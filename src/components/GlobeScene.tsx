@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere } from '@react-three/drei';
+import { Sphere, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface GlobeProps {
@@ -144,22 +144,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           const opacity = Math.min(1, lineProgress * 1.5);
           
           return (
-            <line key={i}>
-              <bufferGeometry>
-                <bufferAttribute
-                  attach="attributes-position"
-                  count={line.points.length}
-                  array={new Float32Array(line.points.flatMap(p => [p.x, p.y, p.z]))}
-                  itemSize={3}
-                />
-              </bufferGeometry>
-              <lineBasicMaterial
-                color="#00ff66"
-                transparent
-                opacity={opacity * 0.6}
-                linewidth={1}
-              />
-            </line>
+            <Line
+              key={i}
+              points={line.points}
+              color="#00ff66"
+              lineWidth={1}
+              transparent
+              opacity={opacity * 0.6}
+            />
           );
         })}
       </group>
