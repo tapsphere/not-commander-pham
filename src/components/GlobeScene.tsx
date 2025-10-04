@@ -10,18 +10,18 @@ function createEarthTexture() {
   canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
   
-  // Deep ocean base
+  // Ocean base - brighter blue
   const oceanGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  oceanGradient.addColorStop(0, '#001a33');
-  oceanGradient.addColorStop(0.5, '#003d5c');
-  oceanGradient.addColorStop(1, '#001a33');
+  oceanGradient.addColorStop(0, '#0a4d7d');
+  oceanGradient.addColorStop(0.5, '#1e5f8c');
+  oceanGradient.addColorStop(1, '#0a4d7d');
   ctx.fillStyle = oceanGradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Land masses with better colors
-  ctx.fillStyle = '#1a4d2e';
+  // Land masses with visible green/brown
+  ctx.fillStyle = '#2d5a2d';
   
-  // North America (more accurate shape)
+  // North America
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(300, 200);
@@ -49,7 +49,7 @@ function createEarthTexture() {
   ctx.ellipse(1000, 220, 100, 70, 0.3, 0, Math.PI * 2);
   ctx.fill();
   
-  // Asia (large mass)
+  // Asia
   ctx.beginPath();
   ctx.moveTo(1100, 180);
   ctx.bezierCurveTo(1200, 140, 1400, 150, 1550, 200);
@@ -69,24 +69,10 @@ function createEarthTexture() {
   ctx.ellipse(650, 120, 60, 50, 0, 0, Math.PI * 2);
   ctx.fill();
   
-  // Add terrain variation
-  for (let i = 0; i < 20000; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    const pixel = ctx.getImageData(x, y, 1, 1).data;
-    if (pixel[0] > 20) { // If it's land
-      const shade = Math.random();
-      ctx.fillStyle = shade > 0.7 
-        ? 'rgba(40, 90, 50, 0.3)' // Mountains
-        : 'rgba(25, 70, 40, 0.2)'; // Plains
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
-  
-  // Ice caps
-  ctx.fillStyle = 'rgba(240, 250, 255, 0.6)';
-  ctx.fillRect(0, 0, canvas.width, 80);
-  ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+  // Ice caps - visible white
+  ctx.fillStyle = '#e8f4f8';
+  ctx.fillRect(0, 0, canvas.width, 60);
+  ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
   
   return canvas;
 }
@@ -103,7 +89,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   // Create latitude and longitude lines
   const gridLines = useMemo(() => {
     const lines = [];
-    const radius = 1.01; // Slightly larger than globe (half the original size)
+    const radius = 0.76; // Slightly larger than globe
     const segments = 32;
     
     // Latitude lines
@@ -150,14 +136,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
 
   // Create shader material for the globe
   const globeMaterial = useMemo(() => {
-    // Create earth texture
-    const textureLoader = new THREE.TextureLoader();
     const earthTexture = new THREE.CanvasTexture(createEarthTexture());
     
     return new THREE.MeshStandardMaterial({
       map: earthTexture,
-      metalness: 0.1,
-      roughness: 0.9,
+      metalness: 0.2,
+      roughness: 0.8,
+      emissive: new THREE.Color(0x112233),
+      emissiveIntensity: 0.2,
     });
   }, []);
   
@@ -185,31 +171,35 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         varying vec3 vPosition;
         
         void main() {
-          // Circuit board pattern - denser grid
-          float circuitX = sin(vPosition.x * 50.0 + vPosition.z * 30.0);
-          float circuitY = sin(vPosition.y * 50.0 + vPosition.x * 30.0);
-          float circuitZ = sin(vPosition.z * 50.0 + vPosition.y * 30.0);
-          float circuit = circuitX * circuitY * circuitZ;
-          float circuitPattern = step(0.90, circuit);
+          // Circuit pattern - tech grid
+          float gridX = abs(sin(vPosition.x * 40.0)) > 0.95 ? 1.0 : 0.0;
+          float gridY = abs(sin(vPosition.y * 40.0)) > 0.95 ? 1.0 : 0.0;
+          float gridZ = abs(sin(vPosition.z * 40.0)) > 0.95 ? 1.0 : 0.0;
+          float circuitPattern = max(gridX, max(gridY, gridZ));
           
-          // Wrapping effect - reveals circuit as it wraps around
-          // Based on angle from starting point (progressive wrap)
+          // Wrapping animation - starts from one side and wraps around
           float angle = atan(vPosition.z, vPosition.x);
-          float normalizedAngle = (angle + 3.14159) / 6.28318; // Normalize to 0-1
+          float normalizedAngle = (angle + 3.14159) / 6.28318; // 0 to 1
           
-          // Combine with vertical progression
-          float verticalReveal = smoothstep(-1.0, 1.0, vPosition.y - 1.5 + progress * 3.0);
-          float wrapReveal = smoothstep(0.0, 1.0, normalizedAngle - 1.0 + progress * 2.0);
-          float reveal = max(verticalReveal, wrapReveal) * progress / 100.0;
+          // Wrap reveal - starts at angle 0 and sweeps around
+          float wrapStart = progress * 2.0; // 0 to 2
+          float wrapReveal = smoothstep(wrapStart - 0.3, wrapStart, normalizedAngle) * 
+                            smoothstep(wrapStart + 0.3, wrapStart, normalizedAngle);
           
-          // Combine patterns
+          // Also add vertical spread
+          float verticalSpread = smoothstep(-1.0, 1.0, vPosition.y + 1.0 - (1.0 - progress) * 2.0);
+          
+          float reveal = max(wrapReveal, verticalSpread * 0.5) * (progress * 10.0);
+          reveal = clamp(reveal, 0.0, 1.0);
+          
+          // Final color
           vec3 color = glowColor * circuitPattern * reveal;
           
-          // Edge glow for depth
-          float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 2.5);
-          color += glowColor * fresnel * 0.2 * reveal;
+          // Edge glow
+          float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 2.0);
+          color += glowColor * fresnel * 0.15 * reveal;
           
-          float alpha = (circuitPattern * reveal * 0.85) + (fresnel * reveal * 0.15);
+          float alpha = (circuitPattern * reveal * 0.9) + (fresnel * reveal * 0.1);
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -249,11 +239,11 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
 
   return (
     <group ref={globeRef}>
-      {/* Main Earth sphere with texture - HALF SIZE */}
-      <Sphere args={[1, 64, 64]} material={globeMaterial} />
+      {/* Main Earth sphere with texture */}
+      <Sphere args={[0.75, 64, 64]} material={globeMaterial} />
       
-      {/* Circuit overlay - HALF SIZE */}
-      <Sphere args={[1.005, 64, 64]} material={overlayMaterial} />
+      {/* Circuit overlay */}
+      <Sphere args={[0.755, 64, 64]} material={overlayMaterial} />
       
       {/* Grid lines */}
       <group ref={gridLinesRef}>
@@ -291,7 +281,7 @@ const DataParticles = ({ progress }: { progress: number }) => {
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
-      const radius = 1.3 + Math.random() * 0.8; // Adjusted for smaller globe
+      const radius = 1.0 + Math.random() * 0.6;
       
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
