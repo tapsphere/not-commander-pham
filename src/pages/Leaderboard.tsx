@@ -94,8 +94,8 @@ const Leaderboard = () => {
             {/* Top 3 Podium */}
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
               {mockLeaders.slice(0, 3).map((leader, idx) => {
-                const borderColor = idx === 0 ? 'hsl(var(--neon-magenta))' : idx === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
-                const glowClass = idx === 0 ? 'text-glow-magenta' : idx === 1 ? 'text-glow-purple' : 'text-glow-green';
+                const borderColor = idx === 0 ? 'hsl(var(--neon-magenta))' : idx === 1 ? 'white' : 'hsl(var(--neon-green))';
+                const glowClass = idx === 0 ? 'text-glow-magenta' : '';
                 
                 return (
                   <Card 
@@ -130,8 +130,8 @@ const Leaderboard = () => {
             {/* Rest of leaderboard */}
             <div className="space-y-2 md:space-y-3">
               {mockLeaders.slice(3).map((leader, idx) => {
-                const colors = ['hsl(var(--neon-green))', 'hsl(var(--neon-purple))', 'hsl(var(--neon-magenta))'];
-                const glowClasses = ['text-glow-green', 'text-glow-purple', 'text-glow-magenta'];
+                const colors = ['hsl(var(--neon-green))', 'white', 'hsl(var(--neon-magenta))'];
+                const glowClasses = ['text-glow-green', '', 'text-glow-magenta'];
                 const colorIndex = idx % 3;
                 const borderColor = colors[colorIndex];
                 const glowClass = glowClasses[colorIndex];
