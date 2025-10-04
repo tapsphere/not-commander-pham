@@ -149,24 +149,26 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           circuit = clamp(circuit, 0.0, 1.5);
           float nodes = mainNode + microNodes;
           
-          // Wrapping animation - slow static-like coverage
+          // Wrapping animation - progressive coverage with static effect
           float angle3d = atan(vPosition.z, vPosition.x);
           float heightFactor = (vPosition.y + 1.0) * 0.5;
           float normalizedAngle = (angle3d + 3.14159) / 6.28318;
-          float wrapPos = normalizedAngle + heightFactor * 0.4;
+          float wrapPos = normalizedAngle + heightFactor * 0.3;
           
-          // Much slower reveal with static-like glitchy effect
-          float staticNoise = noise(vUv * 50.0 + vec2(time * 0.3, 0.0));
-          float glitchEffect = step(0.5, staticNoise) * 0.1;
+          // Static-like glitchy reveal effect
+          float staticNoise = noise(vec2(wrapPos * 20.0, time * 0.5));
+          float glitch = step(0.4, staticNoise) * 0.15;
           
-          // Slow progression - takes 5x longer to wrap
-          float slowProgress = progress * 0.2; // Slowed down significantly
-          float reveal = smoothstep(slowProgress * 3.0 + glitchEffect, slowProgress * 3.0 - 0.8, wrapPos);
-          reveal *= smoothstep(0.0, 0.3, slowProgress);
+          // Progressive wrapping from edge to center
+          float wrapThreshold = progress + glitch;
+          float reveal = smoothstep(wrapThreshold - 0.3, wrapThreshold + 0.1, wrapPos);
+          reveal = 1.0 - reveal; // Invert so it wraps onto the surface
+          reveal *= smoothstep(0.0, 0.15, progress);
           
-          // Add scanline static effect during wrapping
-          float scanline = sin(wrapPos * 100.0 + time * 10.0) * 0.05;
-          reveal += scanline * (1.0 - reveal) * slowProgress;
+          // Add scanline flicker during wrapping
+          float scanline = fract(wrapPos * 50.0 + time * 5.0);
+          float flicker = smoothstep(0.45, 0.55, scanline) * 0.3;
+          reveal = clamp(reveal + flicker * (progress - wrapPos) * 2.0, 0.0, 1.0);
           
           // Intense glowing effect for bright green
           float totalCircuit = circuit + nodes;
