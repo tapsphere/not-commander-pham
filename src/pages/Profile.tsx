@@ -125,12 +125,12 @@ const Profile = () => {
       {/* Header */}
       <div 
         className="border-b-2 p-6"
-        style={{ borderColor: 'hsl(var(--neon-green))' }}
+        style={{ borderColor: 'white' }}
       >
         <div className="max-w-7xl mx-auto">
           <h1 
-            className="text-2xl md:text-3xl font-bold tracking-widest text-center text-glow-green"
-            style={{ color: 'hsl(var(--neon-green))' }}
+            className="text-2xl md:text-3xl font-bold tracking-widest text-center"
+            style={{ color: 'white' }}
           >
             PLAYER PROFILE
           </h1>

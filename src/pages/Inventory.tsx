@@ -24,16 +24,16 @@ const mockBadges = [
   { name: 'Service Orientation', icon: '⭐', level: 'proficient', earned: '2025-02' },
 ];
 
-const getLevelColor = (level: string) => {
-  switch (level) {
-    case 'mastery':
-      return 'text-green-400 border-green-500';
-    case 'proficient':
-      return 'text-yellow-400 border-yellow-500';
-    default:
-      return 'text-red-400 border-red-500';
-  }
-};
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'mastery':
+        return 'text-green-400 border-green-500';
+      case 'proficient':
+        return 'text-white border-white';
+      default:
+        return 'text-red-400 border-red-500';
+    }
+  };
 
 const getLevelLabel = (level: string) => {
   switch (level) {
@@ -67,16 +67,16 @@ const Inventory = () => {
       {/* Header */}
       <div 
         className="border-b-2 p-6"
-        style={{ borderColor: 'hsl(var(--neon-green))' }}
+        style={{ borderColor: 'white' }}
       >
         <div className="max-w-7xl mx-auto">
           <h1 
-            className="text-2xl md:text-3xl font-bold tracking-widest text-center text-glow-green"
-            style={{ color: 'hsl(var(--neon-green))' }}
+            className="text-2xl md:text-3xl font-bold tracking-widest text-center"
+            style={{ color: 'white' }}
           >
             INVENTORY
           </h1>
-          <p className="text-center text-sm mt-2" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+          <p className="text-center text-sm mt-2 text-white/70">
             Your badges, receipts & proof of work
           </p>
         </div>

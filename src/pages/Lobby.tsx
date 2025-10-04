@@ -49,16 +49,16 @@ const Lobby = () => {
       {/* Header */}
       <div 
         className="border-b-2 p-6"
-        style={{ borderColor: 'hsl(var(--neon-green))' }}
+        style={{ borderColor: 'white' }}
       >
         <div className="max-w-7xl mx-auto">
           <h1 
-            className="text-2xl md:text-3xl font-bold tracking-widest text-center text-glow-green mb-2"
-            style={{ color: 'hsl(var(--neon-green))' }}
+            className="text-2xl md:text-3xl font-bold tracking-widest text-center mb-2"
+            style={{ color: 'white' }}
           >
             PLAYOPS HUB
           </h1>
-          <p className="text-center text-sm" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+          <p className="text-center text-sm text-white/70">
             Train • Validate • Prove Your Skills
           </p>
         </div>
