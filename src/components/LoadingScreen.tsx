@@ -44,11 +44,11 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
             clearInterval(interval);
             setTimeout(() => {
               setIsFlipped(true);
-              if (onFlip) {
-                onFlip();
-              }
               setTimeout(() => {
                 setPhase('complete');
+                if (onFlip) {
+                  onFlip();
+                }
               }, 1000);
             }, 500);
           }
@@ -59,7 +59,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
 
       return () => clearInterval(interval);
     }
-  }, [phase]);
+  }, [phase, onProgressUpdate, onFlip]);
 
   const handleInitialize = () => {
     setPhase('loading');
