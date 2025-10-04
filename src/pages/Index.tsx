@@ -1,7 +1,8 @@
-import { useState, useEffect, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Tunnel } from '@/components/TunnelScene';
+import { useState, useEffect } from 'react';
+import { ReactiveStarField } from '@/components/ReactiveStarField';
+import { ParallaxGrid } from '@/components/ParallaxGrid';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { AtmosphericEffects } from '@/components/AtmosphericEffects';
 
 const Index = () => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -32,18 +33,14 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black">
-      {/* 3D Tunnel Canvas */}
-      <Canvas
-        camera={{ position: [0, 0, 10], fov: 75 }}
-        className="absolute inset-0"
-      >
-        <Suspense fallback={null}>
-          <Tunnel progress={progress} mousePosition={mousePosition} />
-        </Suspense>
-      </Canvas>
-
-      {/* Loading UI Overlay */}
+    <div className="relative w-full h-screen overflow-hidden">
+      <ReactiveStarField mousePosition={mousePosition} />
+      <ParallaxGrid 
+        isFlipped={isFlipped} 
+        progress={progress}
+        mousePosition={mousePosition}
+      />
+      <AtmosphericEffects progress={progress} />
       <LoadingScreen 
         onProgressUpdate={setProgress}
         onFlip={() => setIsFlipped(true)}
