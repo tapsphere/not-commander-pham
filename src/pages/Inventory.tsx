@@ -1,4 +1,4 @@
-import { Package, Trophy, FileCheck, Download, Sparkles, Hexagon, Home, User, TrendingUp, Gamepad2 } from 'lucide-react';
+import { Package, Trophy, FileCheck, Download, Sparkles, Hexagon, Home, User, TrendingUp, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
@@ -55,7 +55,7 @@ const Inventory = () => {
     { icon: User, label: 'Profile', path: '/profile' },
     { icon: Hexagon, label: 'Inventory', path: '/inventory' },
     { icon: TrendingUp, label: 'Stats', path: '/profile' },
-    { icon: Gamepad2, label: 'Play', path: '/lobby' },
+    { icon: Wallet, label: 'Wallet', path: '/wallet' },
   ];
 
   const handleNavigation = (path: string, index: number) => {

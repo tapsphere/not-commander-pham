@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, Package, TrendingUp, Gamepad2, Hexagon } from 'lucide-react';
+import { Home, User, Hexagon, TrendingUp, Wallet } from 'lucide-react';
 
 const menuItems = [
   { icon: Home, label: 'Hub', path: '/lobby' },
   { icon: User, label: 'Profile', path: '/profile' },
   { icon: Hexagon, label: 'Inventory', path: '/inventory' },
   { icon: TrendingUp, label: 'Stats', path: '/profile' },
-  { icon: Gamepad2, label: 'Play', path: '/lobby' },
+  { icon: Wallet, label: 'Wallet', path: '/wallet' },
 ];
 
 const Menu = () => {
@@ -46,7 +46,7 @@ const Menu = () => {
                 }}
               />
               <div className="relative w-24 h-24 mx-auto rounded-lg bg-black border-2 flex items-center justify-center mb-6 animate-pulse" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-                <Gamepad2 className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+                <Wallet className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
               </div>
             </div>
             <p 

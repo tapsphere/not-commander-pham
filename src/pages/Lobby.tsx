@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles, Home, User, Hexagon, TrendingUp, Gamepad2 } from 'lucide-react';
+import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles, Home, User, Hexagon, TrendingUp, Wallet } from 'lucide-react';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import stripeLogo from '@/assets/logos/stripe.png';
 import adobeLogo from '@/assets/logos/adobe.png';
@@ -36,7 +36,7 @@ const Lobby = () => {
     { icon: User, label: 'Profile', path: '/profile' },
     { icon: Hexagon, label: 'Inventory', path: '/inventory' },
     { icon: TrendingUp, label: 'Stats', path: '/profile' },
-    { icon: Gamepad2, label: 'Play', path: '/lobby' },
+    { icon: Wallet, label: 'Wallet', path: '/wallet' },
   ];
 
   const handleNavigation = (path: string, index: number) => {
