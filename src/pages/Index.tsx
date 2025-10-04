@@ -34,7 +34,7 @@ const Index = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
       {/* Starfield background */}
-      <div className="absolute inset-0 bg-gradient-radial from-transparent via-black to-black">
+      <div className="absolute inset-0 z-0">
         <div className="stars-small" />
         <div className="stars-medium" />
         <div className="stars-large" />
@@ -43,7 +43,8 @@ const Index = () => {
       {/* 3D Globe Canvas */}
       <Canvas
         camera={{ position: [0, 0, 4], fov: 50 }}
-        className="absolute inset-0"
+        className="absolute inset-0 z-5"
+        style={{ background: 'transparent' }}
       >
         <ambientLight intensity={1.5} />
         <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
