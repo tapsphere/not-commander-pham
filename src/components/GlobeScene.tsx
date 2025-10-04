@@ -68,41 +68,6 @@ const CosmicDust = () => {
   );
 };
 
-// Shooting star component
-const ShootingStar = ({ delay }: { delay: number }) => {
-  const starRef = useRef<THREE.Mesh>(null);
-  const [active, setActive] = useState(false);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => setActive(true), delay);
-    return () => clearTimeout(timer);
-  }, [delay]);
-  
-  useFrame((state) => {
-    if (starRef.current && active) {
-      const time = state.clock.elapsedTime * 2;
-      starRef.current.position.x = -3 + (time % 6);
-      starRef.current.position.y = 2 - (time % 6) * 0.3;
-      starRef.current.position.z = -2 + Math.sin(time) * 0.5;
-      
-      if ((time % 6) > 5.5) {
-        setActive(false);
-        setTimeout(() => setActive(true), Math.random() * 5000);
-      }
-    }
-  });
-  
-  if (!active) return null;
-  
-  return (
-    <mesh ref={starRef}>
-      <sphereGeometry args={[0.03, 8, 8]} />
-      <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
-    </mesh>
-  );
-};
-
-
 interface GlobeProps {
   progress: number;
   mousePosition: { x: number; y: number };
@@ -452,11 +417,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           
           {/* Cosmic dust particles */}
           <CosmicDust />
-          
-          {/* Shooting stars */}
-          <ShootingStar delay={1000} />
-          <ShootingStar delay={3500} />
-          <ShootingStar delay={6000} />
           
           {/* Lens flare effect */}
           <mesh position={[2, 1, -1]}>
