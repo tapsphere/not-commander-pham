@@ -29,14 +29,13 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     });
   }, [texture]);
   
-  // Create overlay material for city lights and infrastructure pattern
+  // Create overlay material for circuit board pattern
   const overlayMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         progress: { value: 0 },
-        glowColor: { value: new THREE.Color(0x00d4ff) },
+        glowColor: { value: new THREE.Color(0x00ff66) },
         time: { value: 0 },
-        earthTexture: { value: texture },
       },
       vertexShader: `
         varying vec3 vNormal;
@@ -54,7 +53,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         uniform float progress;
         uniform vec3 glowColor;
         uniform float time;
-        uniform sampler2D earthTexture;
         varying vec3 vNormal;
         varying vec3 vPosition;
         varying vec2 vUv;
@@ -63,70 +61,94 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
         }
         
-        float noise(vec2 st) {
-          vec2 i = floor(st);
-          vec2 f = fract(st);
-          float a = random(i);
-          float b = random(i + vec2(1.0, 0.0));
-          float c = random(i + vec2(0.0, 1.0));
-          float d = random(i + vec2(1.0, 1.0));
-          vec2 u = f * f * (3.0 - 2.0 * f);
-          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-        }
-        
         void main() {
-          // Sample earth texture to determine land vs ocean
-          vec4 earthColor = texture2D(earthTexture, vUv);
-          float landMask = step(0.35, earthColor.r + earthColor.g);
-          
-          // Create infrastructure network based on geography
-          vec2 uv = vUv * 40.0;
+          // Circuit board pattern with angled traces
+          vec2 uv = vUv * 15.0;
           vec2 gridId = floor(uv);
           vec2 gridUv = fract(uv);
           
-          // Detailed infrastructure lines
-          float lineWidth = 0.05;
+          float lineWidth = 0.06;
+          float circuit = 0.0;
+          
+          // Horizontal traces
           float hLine = step(abs(gridUv.y - 0.5), lineWidth);
+          
+          // Vertical traces
           float vLine = step(abs(gridUv.x - 0.5), lineWidth);
           
-          // Random pattern following land masses
-          float pattern = random(gridId);
-          float infrastructure = (hLine + vLine) * step(0.75, pattern) * landMask;
+          // Diagonal traces (45 degrees)
+          float diagDist1 = abs(gridUv.x - gridUv.y);
+          float diagLine1 = step(diagDist1, lineWidth * 1.4);
           
-          // City nodes - bright spots
+          // Diagonal traces (-45 degrees)
+          float diagDist2 = abs(gridUv.x - (1.0 - gridUv.y));
+          float diagLine2 = step(diagDist2, lineWidth * 1.4);
+          
+          // Random pattern selector
+          float pattern = random(gridId);
+          float patternType = floor(pattern * 5.0);
+          
+          // Different trace patterns based on random
+          if (patternType < 1.0) {
+            circuit = hLine * step(0.5, fract(pattern * 10.0));
+          } else if (patternType < 2.0) {
+            circuit = vLine * step(0.5, fract(pattern * 20.0));
+          } else if (patternType < 3.0) {
+            circuit = diagLine1 * step(0.6, fract(pattern * 15.0));
+          } else if (patternType < 4.0) {
+            circuit = diagLine2 * step(0.6, fract(pattern * 25.0));
+          } else {
+            // Corner traces - L shapes
+            circuit = max(
+              hLine * step(gridUv.x, 0.5),
+              vLine * step(gridUv.y, 0.5)
+            ) * step(0.7, pattern);
+          }
+          
+          // Connection nodes at intersections and endpoints
           vec2 nodePos = vec2(0.5);
           float nodeDist = length(gridUv - nodePos);
-          float cityNode = smoothstep(0.2, 0.05, nodeDist) * step(0.85, pattern) * landMask;
+          float node = smoothstep(0.15, 0.08, nodeDist) * step(0.65, pattern);
           
-          // Additional scattered city lights
-          float scatteredLights = step(0.92, random(gridId + vec2(0.3, 0.7))) * 
-                                  smoothstep(0.3, 0.1, nodeDist) * landMask;
+          // Small endpoint nodes
+          vec2 endPoint1 = vec2(0.0, 0.5);
+          vec2 endPoint2 = vec2(1.0, 0.5);
+          vec2 endPoint3 = vec2(0.5, 0.0);
+          vec2 endPoint4 = vec2(0.5, 1.0);
           
-          // Coastal glow - detect edges
-          float coastalGlow = landMask * (1.0 - landMask * 0.8) * noise(vUv * 30.0);
+          float endpoint = 0.0;
+          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint1)));
+          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint2)));
+          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint3)));
+          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint4)));
+          endpoint *= step(0.75, random(gridId + vec2(0.5, 0.5)));
           
-          // Combine all light sources
-          float lights = max(max(infrastructure, cityNode), max(scatteredLights, coastalGlow * 0.5));
+          // Combine circuit elements
+          circuit = max(max(circuit, node), endpoint);
           
-          // Progressive reveal animation
+          // Wrapping animation from angle
           float angle = atan(vPosition.z, vPosition.x);
+          float heightFactor = (vPosition.y + 1.0) * 0.5; // Add vertical component
           float normalizedAngle = (angle + 3.14159) / 6.28318;
-          float reveal = smoothstep(progress * 1.3 - 0.3, progress * 1.3, normalizedAngle);
-          reveal *= smoothstep(0.0, 0.2, progress);
           
-          // Intense glow for city lights
-          float glow = lights * 2.0;
-          vec3 color = glowColor * (lights * 3.0 + glow) * reveal;
+          // Diagonal wrap
+          float wrapPos = normalizedAngle + heightFactor * 0.3;
+          float reveal = smoothstep(progress * 1.5 - 0.4, progress * 1.5, wrapPos);
+          reveal *= smoothstep(0.0, 0.15, progress);
           
-          // Extra bright city nodes
-          color += glowColor * cityNode * 4.0 * reveal;
+          // Intense glow effect
+          float glow = circuit * 1.8;
+          vec3 color = glowColor * (circuit * 2.5 + glow * 1.2) * reveal;
           
-          // Pulsing effect
-          float pulse = 1.0 + sin(time * 1.5 + pattern * 6.28) * 0.15;
+          // Extra bright nodes
+          color += glowColor * (node + endpoint) * 2.5 * reveal;
+          
+          // Subtle pulse
+          float pulse = 1.0 + sin(time * 1.8 + pattern * 6.28) * 0.15;
           color *= pulse;
           
           // Alpha for visibility
-          float alpha = lights * reveal * 0.9 + glow * reveal * 0.4;
+          float alpha = circuit * reveal * 0.85 + glow * reveal * 0.4;
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -135,7 +157,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       side: THREE.FrontSide,
       blending: THREE.AdditiveBlending,
     });
-  }, [texture]);
+  }, []);
 
   useFrame((state) => {
     if (!globeRef.current) return;
