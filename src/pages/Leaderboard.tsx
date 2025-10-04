@@ -36,11 +36,11 @@ const Leaderboard = () => {
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <Crown className="w-6 h-6 text-yellow-400" />;
+        return <Crown className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />;
       case 2:
-        return <Medal className="w-6 h-6 text-gray-400" />;
+        return <Medal className="w-5 h-5 md:w-6 md:h-6 text-gray-400" />;
       case 3:
-        return <Award className="w-6 h-6 text-orange-400" />;
+        return <Award className="w-5 h-5 md:w-6 md:h-6" style={{ color: 'hsl(var(--neon-green))' }} />;
       default:
         return null;
     }
@@ -92,7 +92,7 @@ const Leaderboard = () => {
 
           <TabsContent value="global" className="space-y-4">
             {/* Top 3 Podium */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
               {mockLeaders.slice(0, 3).map((leader, idx) => {
                 const borderColor = idx === 0 ? 'hsl(var(--neon-magenta))' : idx === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
                 const glowClass = idx === 0 ? 'text-glow-magenta' : idx === 1 ? 'text-glow-purple' : 'text-glow-green';
@@ -100,7 +100,7 @@ const Leaderboard = () => {
                 return (
                   <Card 
                     key={leader.rank} 
-                    className="bg-black/50 border-2 p-4 text-center relative overflow-hidden"
+                    className="bg-black/50 border-2 p-2 md:p-4 text-center relative overflow-hidden"
                     style={{ borderColor }}
                   >
                     <div 
@@ -110,16 +110,16 @@ const Leaderboard = () => {
                       }}
                     />
                     <div className="relative z-10">
-                      <div className="text-4xl mb-2">{leader.avatar}</div>
-                      <div className="mb-2">{getRankIcon(leader.rank)}</div>
-                      <h3 className={`font-bold text-sm mb-2 ${glowClass} tracking-wide`} style={{ color: borderColor }}>
+                      <div className="text-2xl md:text-4xl mb-1 md:mb-2">{leader.avatar}</div>
+                      <div className="mb-1 md:mb-2 flex justify-center">{getRankIcon(leader.rank)}</div>
+                      <h3 className={`font-bold text-[10px] md:text-sm mb-1 md:mb-2 ${glowClass} tracking-wide break-words`} style={{ color: borderColor }}>
                         {leader.username}
                       </h3>
-                      <p className="text-2xl font-bold mb-1" style={{ color: borderColor }}>
+                      <p className="text-lg md:text-2xl font-bold mb-1" style={{ color: borderColor }}>
                         {leader.score.toLocaleString()}
                       </p>
-                      <p className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
-                        XP Points
+                      <p className="text-[10px] md:text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
+                        XP
                       </p>
                     </div>
                   </Card>
@@ -128,39 +128,39 @@ const Leaderboard = () => {
             </div>
 
             {/* Rest of leaderboard */}
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {mockLeaders.slice(3).map((leader) => (
                 <Card 
                   key={leader.rank}
-                  className="bg-black/50 border-2 p-4 hover:bg-black/70 transition-all"
+                  className="bg-black/50 border-2 p-3 md:p-4 hover:bg-black/70 transition-all"
                   style={{ borderColor: 'hsl(var(--neon-green))' }}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 rounded-lg bg-black border-2 flex items-center justify-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-                        <span className="text-xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+                  <div className="flex items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-black border-2 flex items-center justify-center shrink-0" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+                        <span className="text-base md:text-xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
                           {leader.rank}
                         </span>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold mb-1 text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-sm md:text-base mb-1 text-glow-green truncate" style={{ color: 'hsl(var(--neon-green))' }}>
                           {leader.username}
                         </h3>
-                        <div className="flex gap-2">
-                          <Badge className={`text-xs font-mono border-2 ${getLevelColor(leader.level)}`}>
+                        <div className="flex gap-2 flex-wrap">
+                          <Badge className={`text-[10px] md:text-xs font-mono border-2 whitespace-nowrap ${getLevelColor(leader.level)}`}>
                             {leader.level}
                           </Badge>
-                          <Badge variant="outline" className="text-xs font-mono" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
+                          <Badge variant="outline" className="text-[10px] md:text-xs font-mono whitespace-nowrap" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
                             {leader.badges} Badges
                           </Badge>
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+                    <div className="text-right shrink-0">
+                      <p className="text-lg md:text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
                         {leader.score.toLocaleString()}
                       </p>
-                      <p className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
+                      <p className="text-[10px] md:text-xs font-mono whitespace-nowrap" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
                         XP
                       </p>
                     </div>
