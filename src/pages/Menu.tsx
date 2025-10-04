@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, Package, Trophy, BookOpen, Wallet, ChevronRight } from 'lucide-react';
-import { StarField } from '@/components/StarField';
+import { Home, User, Package, Trophy, BookOpen, Wallet } from 'lucide-react';
 
 const menuItems = [
   { icon: Home, label: 'Home', path: '/lobby' },
   { icon: User, label: 'Profile', path: '/profile' },
   { icon: Package, label: 'Inventory', path: '/inventory' },
   { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
-  { icon: BookOpen, label: 'Lore Drops', path: '/lore' },
+  { icon: BookOpen, label: 'Lore', path: '/lore' },
   { icon: Wallet, label: 'Wallet', path: '/wallet' },
 ];
 
 const Menu = () => {
   const navigate = useNavigate();
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const handleNavigation = (path: string) => {
+  const handleNavigation = (path: string, index: number) => {
+    setActiveIndex(index);
     if (path === '/lobby') {
       navigate('/lobby');
     } else {
@@ -26,10 +26,8 @@ const Menu = () => {
   };
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden">
-      <StarField />
-      
-      <div className="relative z-10 min-h-screen flex flex-col">
+    <div className="relative w-full min-h-screen overflow-hidden bg-black">
+      <div className="relative z-10 min-h-screen flex flex-col pb-24">
         {/* Header */}
         <div 
           className="border-b-2 p-6"
@@ -39,85 +37,61 @@ const Menu = () => {
             className="text-2xl md:text-3xl font-bold tracking-widest text-center text-glow-green"
             style={{ color: 'hsl(var(--neon-green))' }}
           >
-            MAIN MENU
+            PLAYOPS COMMAND CENTER
           </h1>
         </div>
 
-        {/* Menu Grid */}
-        <div className="flex-1 flex items-center justify-center p-4 md:p-8">
-          <div className="w-full max-w-2xl space-y-4">
-            {menuItems.map((item, index) => {
-              const Icon = item.icon;
-              const isHovered = hoveredIndex === index;
-              
-              return (
-                <button
-                  key={item.label}
-                  onClick={() => handleNavigation(item.path)}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  className="w-full group relative"
-                  style={{
-                    animation: `fade-in 0.5s ease-out ${index * 0.1}s backwards`
-                  }}
-                >
-                  {/* Menu Item Card */}
-                  <div
-                    className={`
-                      border-2 p-6 md:p-8 
-                      flex items-center justify-between
-                      transition-all duration-300
-                      ${isHovered ? 'border-glow-green bg-primary/10 scale-105' : 'bg-black/50'}
-                    `}
-                    style={{ 
-                      borderColor: 'hsl(var(--neon-green))',
-                      backdropFilter: 'blur(10px)'
-                    }}
-                  >
-                    <div className="flex items-center gap-4 md:gap-6">
-                      <Icon 
-                        className={`w-6 h-6 md:w-8 md:h-8 transition-all duration-300 ${isHovered ? 'text-glow-green' : ''}`}
-                        style={{ color: 'hsl(var(--neon-green))' }}
-                      />
-                      <span 
-                        className={`text-lg md:text-2xl font-bold tracking-wider ${isHovered ? 'text-glow-green' : ''}`}
-                        style={{ color: 'hsl(var(--neon-green))' }}
-                      >
-                        {item.label}
-                      </span>
-                    </div>
-                    
-                    <ChevronRight 
-                      className={`w-6 h-6 transition-all duration-300 ${isHovered ? 'translate-x-2' : ''}`}
-                      style={{ color: 'hsl(var(--neon-green))' }}
-                    />
-                  </div>
-
-                  {/* Hover glow effect */}
-                  {isHovered && (
-                    <div 
-                      className="absolute inset-0 -z-10 blur-xl opacity-50"
-                      style={{ backgroundColor: 'hsl(var(--neon-green))' }}
-                    />
-                  )}
-                </button>
-              );
-            })}
+        {/* Main Content Area */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center space-y-4">
+            <p 
+              className="text-xl font-mono"
+              style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              Select a section from the menu below
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Footer Status */}
-        <div 
-          className="border-t-2 p-4"
-          style={{ borderColor: 'hsl(var(--neon-green))' }}
-        >
-          <p 
-            className="text-center text-xs md:text-sm font-mono"
-            style={{ color: 'hsl(var(--neon-green))' }}
-          >
-            SYSTEM STATUS: ALL OPERATIONS NOMINAL
-          </p>
-        </div>
+      {/* Bottom Navigation Bar */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 border-t-2 bg-black/95 backdrop-blur-lg z-50"
+        style={{ borderColor: 'hsl(var(--neon-green))' }}
+      >
+        <nav className="flex items-center justify-around px-4 py-3">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = activeIndex === index;
+            
+            return (
+              <button
+                key={item.label}
+                onClick={() => handleNavigation(item.path, index)}
+                className="flex flex-col items-center gap-1 min-w-[60px] group transition-all duration-300"
+              >
+                <div 
+                  className={`
+                    p-3 rounded-lg transition-all duration-300
+                    ${isActive ? 'bg-primary/20 scale-110' : 'hover:bg-primary/10'}
+                  `}
+                >
+                  <Icon 
+                    className={`w-6 h-6 transition-all duration-300 ${isActive ? 'text-glow-green' : ''}`}
+                    style={{ color: 'hsl(var(--neon-green))' }}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                </div>
+                <span 
+                  className={`text-xs font-mono transition-all duration-300 ${isActive ? 'text-glow-green font-bold' : ''}`}
+                  style={{ color: 'hsl(var(--neon-green))' }}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );
