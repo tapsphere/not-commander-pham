@@ -51,7 +51,7 @@ const Inventory = () => {
   const [activeIndex, setActiveIndex] = useState(2);
 
   const menuItems = [
-    { icon: Home, label: 'Lobby', path: '/lobby' },
+    { icon: Home, label: 'Hub', path: '/lobby' },
     { icon: User, label: 'Profile', path: '/profile' },
     { icon: Hexagon, label: 'Inventory', path: '/inventory' },
     { icon: TrendingUp, label: 'Stats', path: '/profile' },

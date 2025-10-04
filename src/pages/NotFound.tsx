@@ -49,7 +49,7 @@ const NotFound = () => {
           }}
         >
           <Home className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-          RETURN TO LOBBY
+          RETURN TO HUB
         </Button>
       </div>
     </div>
