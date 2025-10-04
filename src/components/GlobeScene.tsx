@@ -18,14 +18,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const texture = useTexture(earthTexture);
   
 
-  // Create material for the globe - dark night Earth
+  // Create material for the globe - visible Earth with subtle glow
   const globeMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       map: texture,
-      metalness: 0.2,
-      roughness: 0.7,
-      emissive: new THREE.Color(0x0a1520),
-      emissiveIntensity: 0.3,
+      metalness: 0.15,
+      roughness: 0.6,
+      emissive: new THREE.Color(0x2a5a7a),
+      emissiveIntensity: 0.6,
     });
   }, [texture]);
   
