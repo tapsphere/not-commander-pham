@@ -124,7 +124,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
               
               <Progress 
                 value={progress} 
-                className="h-6 bg-black border-2"
+                className="h-6 bg-black border-2 rounded-none"
                 style={{ borderColor: 'hsl(var(--neon-green))' }}
               />
               
