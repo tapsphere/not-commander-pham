@@ -31,8 +31,10 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       roughness: 0.7,
       emissive: new THREE.Color(0x000000),
       emissiveIntensity: 0,
+      transparent: true,
+      opacity: progress > 0 ? 1 : 0, // Hidden until Initialize clicked
     });
-  }, [texture]);
+  }, [texture, progress]);
   
   // Create overlay material for circuit board pattern
   const overlayMaterial = useMemo(() => {
@@ -323,50 +325,54 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
 
   return (
     <>
-      <group ref={globeRef}>
-        {/* Main Earth sphere with texture - scaled down */}
-        <Sphere args={[0.55, 64, 64]} material={globeMaterial} />
-        
-        {/* Circuit overlay */}
-        <Sphere args={[0.555, 64, 64]} material={overlayMaterial} />
-      </group>
-      
-      {/* Subtle atmospheric glow layer */}
-      <mesh ref={atmosphereRef}>
-        <sphereGeometry args={[0.6, 64, 64]} />
-        <meshBasicMaterial
-          color="#4a90e2"
-          transparent
-          opacity={0.08}
-          side={THREE.BackSide}
-        />
-      </mesh>
-      
-      {/* Lens flare effect */}
-      <mesh position={[2, 1, -1]}>
-        <sphereGeometry args={[0.05, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
-      </mesh>
-      
-      {/* Floating particles for depth */}
-      {[...Array(8)].map((_, i) => {
-        const angle = (i / 8) * Math.PI * 2;
-        const radius = 1.5 + Math.random() * 0.5;
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const y = (Math.random() - 0.5) * 1;
-        
-        return (
-          <mesh key={i} position={[x, y, z]}>
-            <sphereGeometry args={[0.01, 8, 8]} />
-            <meshBasicMaterial 
-              color={i % 3 === 0 ? "#4a90e2" : "#ffffff"} 
-              transparent 
-              opacity={0.4} 
+      {progress > 0 && (
+        <>
+          <group ref={globeRef}>
+            {/* Main Earth sphere with texture - scaled down */}
+            <Sphere args={[0.55, 64, 64]} material={globeMaterial} />
+            
+            {/* Circuit overlay */}
+            <Sphere args={[0.555, 64, 64]} material={overlayMaterial} />
+          </group>
+          
+          {/* Subtle atmospheric glow layer */}
+          <mesh ref={atmosphereRef}>
+            <sphereGeometry args={[0.6, 64, 64]} />
+            <meshBasicMaterial
+              color="#4a90e2"
+              transparent
+              opacity={0.08}
+              side={THREE.BackSide}
             />
           </mesh>
-        );
-      })}
+          
+          {/* Lens flare effect */}
+          <mesh position={[2, 1, -1]}>
+            <sphereGeometry args={[0.05, 16, 16]} />
+            <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
+          </mesh>
+          
+          {/* Floating particles for depth */}
+          {[...Array(8)].map((_, i) => {
+            const angle = (i / 8) * Math.PI * 2;
+            const radius = 1.5 + Math.random() * 0.5;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const y = (Math.random() - 0.5) * 1;
+            
+            return (
+              <mesh key={i} position={[x, y, z]}>
+                <sphereGeometry args={[0.01, 8, 8]} />
+                <meshBasicMaterial 
+                  color={i % 3 === 0 ? "#4a90e2" : "#ffffff"} 
+                  transparent 
+                  opacity={0.4} 
+                />
+              </mesh>
+            );
+          })}
+        </>
+      )}
     </>
   );
 };
