@@ -38,7 +38,7 @@ const Leaderboard = () => {
       case 'Mastery':
         return 'bg-green-500/20 text-green-400 border-green-500';
       case 'Proficient':
-        return 'bg-white/20 text-white border-white';
+        return 'bg-gray-400/20 border-2' + ' text-gray-300 border-gray-400';
       default:
         return 'bg-red-500/20 text-red-400 border-red-500';
     }
@@ -49,16 +49,16 @@ const Leaderboard = () => {
       {/* Header */}
       <div 
         className="border-b-2 p-6"
-        style={{ borderColor: 'white' }}
+        style={{ borderColor: '#9ca3af' }}
       >
         <div className="max-w-7xl mx-auto">
           <h1 
             className="text-2xl md:text-3xl font-bold tracking-widest text-center"
-            style={{ color: 'white' }}
+            style={{ color: '#d1d5db' }}
           >
             LEADERBOARD
           </h1>
-          <p className="text-center text-sm mt-2 text-white/70">
+          <p className="text-center text-sm mt-2" style={{ color: '#9ca3af' }}>
             Top performers worldwide
           </p>
         </div>
@@ -66,13 +66,13 @@ const Leaderboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs defaultValue="global" className="w-full">
-          <TabsList className="w-full bg-black/50 border-2 mb-6" style={{ borderColor: 'white' }}>
-            <TabsTrigger value="global" className="flex-1 data-[state=active]:bg-white/20 text-white">
-              <Trophy className="w-5 h-5 mr-2 text-white" strokeWidth={2.5} />
+          <TabsList className="w-full bg-black/50 border-2 mb-6" style={{ borderColor: '#9ca3af' }}>
+            <TabsTrigger value="global" className="flex-1 data-[state=active]:bg-white/20" style={{ color: '#d1d5db' }}>
+              <Trophy className="w-5 h-5 mr-2" style={{ color: '#d1d5db' }} strokeWidth={2.5} />
               Global
             </TabsTrigger>
-            <TabsTrigger value="weekly" className="flex-1 data-[state=active]:bg-white/20 text-white">
-              <TrendingUp className="w-5 h-5 mr-2 text-white" strokeWidth={2.5} />
+            <TabsTrigger value="weekly" className="flex-1 data-[state=active]:bg-white/20" style={{ color: '#d1d5db' }}>
+              <TrendingUp className="w-5 h-5 mr-2" style={{ color: '#d1d5db' }} strokeWidth={2.5} />
               Weekly
             </TabsTrigger>
           </TabsList>
@@ -81,7 +81,7 @@ const Leaderboard = () => {
             {/* Top 3 Podium */}
             <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
               {mockLeaders.slice(0, 3).map((leader, idx) => {
-                const borderColor = idx === 0 ? 'hsl(var(--neon-magenta))' : idx === 1 ? 'white' : 'hsl(var(--neon-green))';
+                const borderColor = idx === 0 ? 'hsl(var(--neon-magenta))' : idx === 1 ? '#9ca3af' : 'hsl(var(--neon-green))';
                 const glowClass = idx === 0 ? 'text-glow-magenta' : '';
                 
                 return (
@@ -116,7 +116,7 @@ const Leaderboard = () => {
             {/* Rest of leaderboard */}
             <div className="space-y-2 md:space-y-3">
               {mockLeaders.slice(3).map((leader, idx) => {
-                const colors = ['hsl(var(--neon-green))', 'white', 'hsl(var(--neon-magenta))'];
+                const colors = ['hsl(var(--neon-green))', '#9ca3af', 'hsl(var(--neon-magenta))'];
                 const glowClasses = ['text-glow-green', '', 'text-glow-magenta'];
                 const colorIndex = idx % 3;
                 const borderColor = colors[colorIndex];
@@ -164,21 +164,21 @@ const Leaderboard = () => {
             </div>
 
             {/* Your Rank */}
-            <Card className="bg-black/50 border-2 p-6 relative overflow-hidden" style={{ borderColor: 'white' }}>
+            <Card className="bg-black/50 border-2 p-6 relative overflow-hidden" style={{ borderColor: '#9ca3af' }}>
               <div 
                 className="absolute inset-0 opacity-10"
                 style={{ 
-                  background: 'radial-gradient(circle at center, white, transparent 70%)'
+                  background: 'radial-gradient(circle at center, #9ca3af, transparent 70%)'
                 }}
               />
               <div className="relative z-10 text-center">
-                <p className="text-sm font-mono mb-2 text-white/70">
+                <p className="text-sm font-mono mb-2" style={{ color: '#9ca3af' }}>
                   Your Current Rank
                 </p>
-                <p className="text-4xl font-bold mb-2 text-white">
+                <p className="text-4xl font-bold mb-2" style={{ color: '#d1d5db' }}>
                   #42
                 </p>
-                <p className="text-sm font-mono text-white/50">
+                <p className="text-sm font-mono" style={{ color: '#9ca3af' }}>
                   Keep validating to climb the ranks!
                 </p>
               </div>
