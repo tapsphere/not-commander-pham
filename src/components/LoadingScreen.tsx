@@ -80,14 +80,14 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
           <div className="text-center space-y-8 animate-fade-in mt-24">
             <h1 className="text-4xl md:text-6xl font-bold tracking-wider">
               <span className="text-white" style={{ textShadow: '0 0 20px rgba(255, 255, 255, 0.5)' }}>PLAY</span>
-              <span className="text-glow-magenta" style={{ color: 'hsl(var(--neon-magenta))' }}>OPS</span>
+              <span className="text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>OPS</span>
             </h1>
 
             <h2 
               className="text-xl md:text-2xl font-light tracking-widest text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
-              Competency-Based Validation Platform
+              The Rise of Human Proof
             </h2>
 
             <Button
