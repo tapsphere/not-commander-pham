@@ -75,17 +75,17 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
         {phase === 'initial' && (
           <div className="text-center space-y-8 animate-fade-in">
             <h1 
-              className="text-xl font-bold tracking-wider text-glow-green"
+              className="text-4xl md:text-6xl font-bold tracking-wider text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
               PLAYOPS
             </h1>
 
             <h2 
-              className="text-3xl md:text-5xl font-bold tracking-widest text-glow-green uppercase"
+              className="text-xl md:text-2xl font-light tracking-widest text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
-              ENTER THE GRID EXPERIENCE
+              The Rise of Human Proof
             </h2>
 
             <Button
@@ -159,7 +159,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
               className="text-center text-xl tracking-widest font-bold text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
-              ENTER LOBBY →
+              ENTER THE GRID →
             </p>
           </div>
         )}

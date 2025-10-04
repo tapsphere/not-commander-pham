@@ -219,26 +219,28 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           circuit = clamp(circuit, 0.0, 1.0);
           float nodes = mainNode;
           
-          // Single direction sweep - right to left across entire sphere
+          // Angled sweep animation - diagonal from bottom-left to top-right
           float angle3d = atan(vPosition.z, vPosition.x);
-          float normalizedAngle = (angle3d + 3.14159) / 6.28318; // 0 to 1
+          float heightFactor = vPosition.y; // -1 to 1 (bottom to top)
+          float normalizedAngle = (angle3d + 3.14159) / 6.28318; // 0 to 1 around sphere
           
-          // Simple left-to-right sweep
-          float sweepPosition = normalizedAngle;
+          // Combine horizontal position and height for diagonal sweep
+          // This creates a sweep that goes diagonally across the sphere
+          float sweepPosition = (normalizedAngle + (heightFactor * 0.5 + 0.5)) * 0.5;
           
           // Static glitch effect
-          float staticNoise = noise(vec2(sweepPosition * 15.0, time * 0.3));
-          float glitch = step(0.5, staticNoise) * 0.08;
+          float staticNoise = noise(vec2(sweepPosition * 20.0, time * 0.3));
+          float glitch = step(0.6, staticNoise) * 0.05;
           
-          // Progressive wrapping from one side only
-          float wrapEdge = progress * 1.2 + glitch;
-          float reveal = smoothstep(wrapEdge - 0.3, wrapEdge, sweepPosition);
-          reveal *= smoothstep(0.0, 0.15, progress);
+          // Progressive wrapping from bottom-left to top-right
+          float wrapEdge = progress * 1.3 + glitch;
+          float reveal = smoothstep(wrapEdge - 0.25, wrapEdge + 0.05, sweepPosition);
+          reveal *= smoothstep(0.0, 0.1, progress);
           
           // Scanline flicker at the wrap edge
           float edgeDistance = abs(sweepPosition - wrapEdge);
-          float scanline = sin(sweepPosition * 60.0 - time * 8.0) * 0.5 + 0.5;
-          float edgeGlow = smoothstep(0.4, 0.0, edgeDistance) * scanline * 0.3;
+          float scanline = sin(sweepPosition * 80.0 - time * 10.0) * 0.5 + 0.5;
+          float edgeGlow = smoothstep(0.3, 0.0, edgeDistance) * scanline * 0.4;
           reveal = clamp(reveal + edgeGlow * progress, 0.0, 1.0);
           
           // Glowing effect with reduced intensity to see Earth
