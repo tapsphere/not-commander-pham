@@ -222,9 +222,8 @@ const Leaderboard = () => {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeIndex === index;
-            const usePurple = index === 2;
-            const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
-            const glowClass = usePurple ? 'text-glow-purple' : 'text-glow-green';
+            const accentColor = 'hsl(var(--neon-green))';
+            const glowClass = 'text-glow-green';
             
             return (
               <button
