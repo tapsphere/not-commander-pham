@@ -3,21 +3,27 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Search, Target, ChevronRight, Star } from 'lucide-react';
+import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles } from 'lucide-react';
+import microsoftLogo from '@/assets/logos/microsoft.png';
+import stripeLogo from '@/assets/logos/stripe.png';
+import adobeLogo from '@/assets/logos/adobe.png';
+import salesforceLogo from '@/assets/logos/salesforce.png';
+import hubspotLogo from '@/assets/logos/hubspot.png';
+import mondayLogo from '@/assets/logos/monday.png';
 
 const mockBrands = [
-  { id: 1, name: 'TechCorp', department: 'Marketing', validators: 12, logo: '🚀' },
-  { id: 2, name: 'FinanceHub', department: 'Finance', validators: 8, logo: '💰' },
-  { id: 3, name: 'CreativeStudio', department: 'Communications', validators: 15, logo: '🎨' },
-  { id: 4, name: 'DataSystems', department: 'Operations', validators: 10, logo: '📊' },
-  { id: 5, name: 'MarketPro', department: 'Marketing', validators: 9, logo: '📈' },
-  { id: 6, name: 'OptiFlow', department: 'Operations', validators: 11, logo: '⚙️' },
+  { id: 1, name: 'Microsoft', department: 'Marketing', validators: 12, logo: microsoftLogo },
+  { id: 2, name: 'Stripe', department: 'Finance', validators: 8, logo: stripeLogo },
+  { id: 3, name: 'Adobe', department: 'Communications', validators: 15, logo: adobeLogo },
+  { id: 4, name: 'Salesforce', department: 'Operations', validators: 10, logo: salesforceLogo },
+  { id: 5, name: 'HubSpot', department: 'Marketing', validators: 9, logo: hubspotLogo },
+  { id: 6, name: 'Monday.com', department: 'Operations', validators: 11, logo: mondayLogo },
 ];
 
 const mockPrograms = [
-  { title: 'Future Skills 2025', duration: '1 Month = 2 Years XP', skills: 24, badge: '🎯' },
-  { title: 'Marketing Mastery', duration: '6 Weeks Program', skills: 18, badge: '📢' },
-  { title: 'Data Analytics Fast Track', duration: '4 Weeks Intensive', skills: 15, badge: '📊' },
+  { title: 'Future Skills 2025', duration: '1 Month = 2 Years XP', skills: 24, icon: Zap },
+  { title: 'Marketing Mastery', duration: '6 Weeks Program', skills: 18, icon: Rocket },
+  { title: 'Data Analytics Fast Track', duration: '4 Weeks Intensive', skills: 15, icon: Sparkles },
 ];
 
 const Lobby = () => {
@@ -95,20 +101,30 @@ const Lobby = () => {
               {mockBrands.map((brand) => (
                 <Card
                   key={brand.id}
-                  className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group"
+                  className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
                   style={{ borderColor: 'hsl(var(--neon-green))' }}
                   onClick={() => navigate('/menu')}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="text-4xl">{brand.logo}</div>
-                    <Badge variant="outline" className="border-2" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
+                  {/* Glow effect on hover */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+                    style={{ 
+                      background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+                    }}
+                  />
+                  
+                  <div className="flex items-start justify-between mb-4 relative z-10">
+                    <div className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" style={{ borderColor: 'hsl(var(--neon-green) / 0.3)' }}>
+                      <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
+                    </div>
+                    <Badge variant="outline" className="border-2 font-mono text-xs" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
                       {brand.department}
                     </Badge>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>
+                  <h3 className="text-xl font-bold mb-2 text-glow-green tracking-wide relative z-10" style={{ color: 'hsl(var(--neon-green))' }}>
                     {brand.name}
                   </h3>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between relative z-10">
                     <span className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
                       {brand.validators} Validators
                     </span>
@@ -121,32 +137,45 @@ const Lobby = () => {
 
           {/* Programs Tab */}
           <TabsContent value="programs" className="space-y-4">
-            {mockPrograms.map((program, idx) => (
-              <Card
-                key={idx}
-                className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group"
-                style={{ borderColor: 'hsl(var(--neon-green))' }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="text-5xl">{program.badge}</div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-glow-green mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
-                      {program.title}
-                    </h3>
-                    <p className="text-sm font-mono mb-2" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
-                      {program.duration} • {program.skills} Skills
-                    </p>
-                    <div className="flex gap-2">
-                      <Badge variant="outline" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
-                        <Star className="w-3 h-3 mr-1" />
-                        Featured
-                      </Badge>
+            {mockPrograms.map((program, idx) => {
+              const IconComponent = program.icon;
+              return (
+                <Card
+                  key={idx}
+                  className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
+                  style={{ borderColor: 'hsl(var(--neon-green))' }}
+                >
+                  {/* Glow effect on hover */}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+                    style={{ 
+                      background: 'radial-gradient(circle at left, hsl(var(--neon-green)), transparent 70%)'
+                    }}
+                  />
+                  
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-20 h-20 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+                      <IconComponent className="w-10 h-10" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
                     </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-glow-green mb-1 tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+                        {program.title}
+                      </h3>
+                      <p className="text-sm font-mono mb-2" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                        {program.duration} • {program.skills} Competencies
+                      </p>
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="text-xs font-mono" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
+                          <Star className="w-3 h-3 mr-1" fill="hsl(var(--neon-green))" />
+                          Featured
+                        </Badge>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} />
                   </div>
-                  <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} />
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </TabsContent>
         </Tabs>
       </div>
