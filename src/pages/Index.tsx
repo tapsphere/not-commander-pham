@@ -46,7 +46,7 @@ const Index = () => {
         <div className="stars-large" />
       </div>
 
-      {/* 3D Globe Canvas */}
+      {/* 3D Globe Canvas with post-processing */}
       <div 
         className="absolute inset-0 z-5"
         style={{
@@ -58,10 +58,15 @@ const Index = () => {
           camera={{ position: [0, 0, 4], fov: 50 }}
           className="w-full h-full"
           style={{ background: 'transparent' }}
+          gl={{ 
+            antialias: true,
+            powerPreference: 'high-performance'
+          }}
         >
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
-          <pointLight position={[-5, -3, -5]} intensity={1.2} color="#4a90e2" />
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[5, 3, 5]} intensity={2.5} color="#ffffff" castShadow />
+          <directionalLight position={[-5, -3, -5]} intensity={0.3} color="#1a2a4a" />
+          <pointLight position={[-3, 0, 3]} intensity={1.2} color="#4a90e2" />
           <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffffff" />
           <Suspense fallback={null}>
             <Globe progress={progress} mousePosition={mousePosition} />

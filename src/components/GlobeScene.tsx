@@ -4,6 +4,104 @@ import { Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import earthTexture from '@/assets/earth-texture.jpg';
 
+interface GlobeProps {
+  progress: number;
+  mousePosition: { x: number; y: number };
+}
+
+// Particle component for cosmic dust
+const CosmicDust = () => {
+  const particlesRef = useRef<THREE.Points>(null);
+  
+  const particles = useMemo(() => {
+    const positions = new Float32Array(200 * 3);
+    const colors = new Float32Array(200 * 3);
+    
+    for (let i = 0; i < 200; i++) {
+      const radius = 2 + Math.random() * 3;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI;
+      
+      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = radius * Math.cos(phi);
+      
+      colors[i * 3] = 0.8 + Math.random() * 0.2;
+      colors[i * 3 + 1] = 0.9 + Math.random() * 0.1;
+      colors[i * 3 + 2] = 1;
+    }
+    
+    return { positions, colors };
+  }, []);
+  
+  useFrame((state) => {
+    if (particlesRef.current) {
+      particlesRef.current.rotation.y += 0.0002;
+    }
+  });
+  
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={200}
+          array={particles.positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={200}
+          array={particles.colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.02}
+        vertexColors
+        transparent
+        opacity={0.6}
+        sizeAttenuation
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+};
+
+// Shooting star component
+const ShootingStar = ({ delay }: { delay: number }) => {
+  const starRef = useRef<THREE.Mesh>(null);
+  const [active, setActive] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setActive(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+  
+  useFrame((state) => {
+    if (starRef.current && active) {
+      const time = state.clock.elapsedTime * 2;
+      starRef.current.position.x = -3 + (time % 6);
+      starRef.current.position.y = 2 - (time % 6) * 0.3;
+      starRef.current.position.z = -2 + Math.sin(time) * 0.5;
+      
+      if ((time % 6) > 5.5) {
+        setActive(false);
+        setTimeout(() => setActive(true), Math.random() * 5000);
+      }
+    }
+  });
+  
+  if (!active) return null;
+  
+  return (
+    <mesh ref={starRef}>
+      <sphereGeometry args={[0.03, 8, 8]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
+    </mesh>
+  );
+};
+
 
 interface GlobeProps {
   progress: number;
@@ -13,6 +111,7 @@ interface GlobeProps {
 export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const globeRef = useRef<THREE.Group>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
+  const cloudsRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
   const [isDragging, setIsDragging] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
@@ -21,6 +120,35 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   
   // Load real Earth texture
   const texture = useTexture(earthTexture);
+
+  // Create cloud texture procedurally
+  const cloudsMaterial = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+    
+    for (let i = 0; i < 2000; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const size = Math.random() * 30 + 10;
+      const opacity = Math.random() * 0.5 + 0.3;
+      
+      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    const cloudsTexture = new THREE.CanvasTexture(canvas);
+    
+    return new THREE.MeshStandardMaterial({
+      map: cloudsTexture,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+    });
+  }, []);
   
 
   // Create material for the globe with real Earth texture
@@ -301,6 +429,11 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       globeRef.current.rotation.y += 0.002;
     }
     
+    // Clouds rotate slightly faster for realism
+    if (cloudsRef.current && progress > 0) {
+      cloudsRef.current.rotation.y += 0.0025;
+    }
+    
     // Interactive rotation and parallax (after zoom completes)
     if (!isDragging && introComplete) {
       // Subtle parallax from mouse
@@ -316,10 +449,10 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       globeRef.current.rotation.y = currentY + (targetY - currentY) * 0.1;
     }
     
-    // Pulsing atmospheric glow
+    // Enhanced pulsing atmospheric glow
     if (atmosphereRef.current) {
       atmosphereRef.current.rotation.copy(globeRef.current.rotation);
-      const scale = 1.05 + Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
+      const scale = 1.08 + Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
       atmosphereRef.current.scale.set(scale, scale, scale);
     }
     
@@ -358,16 +491,41 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
             <Sphere args={[0.555, 64, 64]} material={overlayMaterial} />
           </group>
           
-          {/* Subtle atmospheric glow layer */}
+          {/* Animated cloud layer */}
+          <mesh ref={cloudsRef}>
+            <sphereGeometry args={[0.56, 64, 64]} />
+            <primitive object={cloudsMaterial} attach="material" />
+          </mesh>
+          
+          {/* Enhanced volumetric atmospheric glow */}
           <mesh ref={atmosphereRef}>
-            <sphereGeometry args={[0.6, 64, 64]} />
+            <sphereGeometry args={[0.65, 64, 64]} />
             <meshBasicMaterial
               color="#4a90e2"
               transparent
-              opacity={0.08}
+              opacity={0.15}
               side={THREE.BackSide}
             />
           </mesh>
+          
+          {/* Inner atmospheric glow */}
+          <mesh>
+            <sphereGeometry args={[0.58, 64, 64]} />
+            <meshBasicMaterial
+              color="#6ba3d8"
+              transparent
+              opacity={0.1}
+              side={THREE.BackSide}
+            />
+          </mesh>
+          
+          {/* Cosmic dust particles */}
+          <CosmicDust />
+          
+          {/* Shooting stars */}
+          <ShootingStar delay={1000} />
+          <ShootingStar delay={3500} />
+          <ShootingStar delay={6000} />
           
           {/* Lens flare effect */}
           <mesh position={[2, 1, -1]}>
