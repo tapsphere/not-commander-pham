@@ -149,26 +149,29 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           circuit = clamp(circuit, 0.0, 1.5);
           float nodes = mainNode + microNodes;
           
-          // Wrapping animation - progressive coverage with static effect
+          // Diagonal wrapping animation around Earth
           float angle3d = atan(vPosition.z, vPosition.x);
-          float heightFactor = (vPosition.y + 1.0) * 0.5;
-          float normalizedAngle = (angle3d + 3.14159) / 6.28318;
-          float wrapPos = normalizedAngle + heightFactor * 0.3;
+          float heightFactor = vPosition.y; // -1 to 1
+          float normalizedAngle = (angle3d + 3.14159) / 6.28318; // 0 to 1
           
-          // Static-like glitchy reveal effect
-          float staticNoise = noise(vec2(wrapPos * 20.0, time * 0.5));
-          float glitch = step(0.4, staticNoise) * 0.15;
+          // Diagonal wrap: combine angle and height for diagonal sweep
+          float diagonalWrap = normalizedAngle + (heightFactor * 0.5 + 0.5) * 0.7;
           
-          // Progressive wrapping from edge to center
-          float wrapThreshold = progress + glitch;
-          float reveal = smoothstep(wrapThreshold - 0.3, wrapThreshold + 0.1, wrapPos);
-          reveal = 1.0 - reveal; // Invert so it wraps onto the surface
-          reveal *= smoothstep(0.0, 0.15, progress);
+          // Static glitch effect
+          float staticNoise = noise(vec2(diagonalWrap * 15.0, time * 0.3));
+          float glitch = step(0.5, staticNoise) * 0.1;
           
-          // Add scanline flicker during wrapping
-          float scanline = fract(wrapPos * 50.0 + time * 5.0);
-          float flicker = smoothstep(0.45, 0.55, scanline) * 0.3;
-          reveal = clamp(reveal + flicker * (progress - wrapPos) * 2.0, 0.0, 1.0);
+          // Progressive diagonal wrapping with smooth edges
+          float wrapEdge = progress * 1.5 + glitch;
+          float reveal = smoothstep(wrapEdge - 0.4, wrapEdge + 0.05, diagonalWrap);
+          reveal = 1.0 - reveal; // Invert to wrap ON instead of off
+          reveal *= smoothstep(0.0, 0.2, progress);
+          
+          // Scanline flicker at the wrap edge
+          float edgeDistance = abs(diagonalWrap - wrapEdge);
+          float scanline = sin(diagonalWrap * 80.0 - time * 8.0) * 0.5 + 0.5;
+          float edgeGlow = smoothstep(0.5, 0.0, edgeDistance) * scanline * 0.4;
+          reveal = clamp(reveal + edgeGlow * progress, 0.0, 1.0);
           
           // Intense glowing effect for bright green
           float totalCircuit = circuit + nodes;
