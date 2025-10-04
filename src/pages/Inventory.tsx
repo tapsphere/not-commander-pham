@@ -130,13 +130,13 @@ const Inventory = () => {
                       )}
                     </div>
                     
-                    <h3 className="font-bold text-xs mb-1 text-gray-400">
+                    <h3 className="font-bold text-xs mb-1 text-black">
                       {badge.name}
                     </h3>
-                    <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`}>
+                    <Badge className={`mb-1 border-2 font-mono text-[10px] bg-white ${getLevelColor(badge.level)}`}>
                       {getLevelLabel(badge.level)}
                     </Badge>
-                    <div className="text-[10px] font-mono text-gray-500">
+                    <div className="text-[10px] font-mono text-black">
                       {badge.earned}
                     </div>
                   </div>
