@@ -106,7 +106,7 @@ const Inventory = () => {
                 return (
                   <Card
                     key={idx} 
-                    className="flex flex-col items-center text-center hover:scale-105 transition-all cursor-pointer bg-black/50 border-2 p-4"
+                    className="flex flex-col items-center text-center hover:scale-105 transition-all cursor-pointer bg-transparent border-2 p-4"
                     style={{ borderColor: 'hsl(var(--neon-green))' }}
                   >
                     {/* Telegram-style sticker - no border */}
