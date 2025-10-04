@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const mockLeaders = [
-  { rank: 1, username: 'Player_Alpha', score: 15420, badges: 12, level: 'Mastery', avatar: '🥇' },
-  { rank: 2, username: 'Player_Beta', score: 14230, badges: 11, level: 'Mastery', avatar: '🥈' },
-  { rank: 3, username: 'Player_Gamma', score: 13150, badges: 10, level: 'Proficient', avatar: '🥉' },
+  { rank: 1, username: 'Player_Alpha', score: 15420, badges: 12, level: 'Mastery', avatar: '👤' },
+  { rank: 2, username: 'Player_Beta', score: 14230, badges: 11, level: 'Mastery', avatar: '👤' },
+  { rank: 3, username: 'Player_Gamma', score: 13150, badges: 10, level: 'Proficient', avatar: '👤' },
   { rank: 4, username: 'Player_Delta', score: 12890, badges: 9, level: 'Proficient', avatar: '👤' },
   { rank: 5, username: 'Player_Epsilon', score: 11720, badges: 9, level: 'Proficient', avatar: '👤' },
   { rank: 6, username: 'Player_Zeta', score: 10450, badges: 8, level: 'Proficient', avatar: '👤' },
