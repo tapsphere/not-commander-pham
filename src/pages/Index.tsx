@@ -33,26 +33,41 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
-      {/* Starfield background */}
-      <div className="absolute inset-0 z-0">
+      {/* Starfield background with parallax */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
+          transition: 'transform 0.1s ease-out'
+        }}
+      >
         <div className="stars-small" />
         <div className="stars-medium" />
         <div className="stars-large" />
       </div>
 
       {/* 3D Globe Canvas */}
-      <Canvas
-        camera={{ position: [0, 0, 4], fov: 50 }}
+      <div 
         className="absolute inset-0 z-5"
-        style={{ background: 'transparent' }}
+        style={{
+          transform: `translate(${-mousePosition.x * 0.01}px, ${-mousePosition.y * 0.01}px)`,
+          transition: 'transform 0.1s ease-out'
+        }}
       >
-        <ambientLight intensity={1.5} />
-        <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
-        <pointLight position={[-5, -3, -5]} intensity={0.8} color="#4a90e2" />
-        <Suspense fallback={null}>
-          <Globe progress={progress} mousePosition={mousePosition} />
-        </Suspense>
-      </Canvas>
+        <Canvas
+          camera={{ position: [0, 0, 4], fov: 50 }}
+          className="w-full h-full"
+          style={{ background: 'transparent' }}
+        >
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
+          <pointLight position={[-5, -3, -5]} intensity={1.2} color="#4a90e2" />
+          <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffffff" />
+          <Suspense fallback={null}>
+            <Globe progress={progress} mousePosition={mousePosition} />
+          </Suspense>
+        </Canvas>
+      </div>
 
       {/* Loading UI Overlay */}
       <LoadingScreen 

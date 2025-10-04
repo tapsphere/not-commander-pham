@@ -1,6 +1,6 @@
-import { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Sphere, Line, useTexture } from '@react-three/drei';
+import { useRef, useMemo, useState, useEffect } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import earthTexture from '@/assets/earth-texture.jpg';
 
@@ -12,7 +12,12 @@ interface GlobeProps {
 
 export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const globeRef = useRef<THREE.Group>(null);
-  const gridLinesRef = useRef<THREE.Group>(null);
+  const atmosphereRef = useRef<THREE.Mesh>(null);
+  const { camera } = useThree();
+  const [isDragging, setIsDragging] = useState(false);
+  const [introComplete, setIntroComplete] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const rotationRef = useRef({ x: 0, y: 0 });
   
   // Load real Earth texture
   const texture = useTexture(earthTexture);
@@ -176,20 +181,124 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     });
   }, []);
 
+  // Cinematic zoom intro from deep space
+  useEffect(() => {
+    if (progress >= 100 && !introComplete) {
+      camera.position.set(0, 0, 15);
+      const startTime = Date.now();
+      const duration = 3000;
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3); // Ease out cubic
+        
+        camera.position.z = 15 - (11 * eased);
+        
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          setIntroComplete(true);
+        }
+      };
+      
+      animate();
+    }
+  }, [progress, camera, introComplete]);
+
+  // Enhanced drag interaction
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      setIsDragging(true);
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        const deltaX = e.clientX - dragStartRef.current.x;
+        const deltaY = e.clientY - dragStartRef.current.y;
+        
+        rotationRef.current.y += deltaX * 0.005;
+        rotationRef.current.x += deltaY * 0.005;
+        rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
+        
+        dragStartRef.current = { x: e.clientX, y: e.clientY };
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        setIsDragging(true);
+        dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging && e.touches.length > 0) {
+        const deltaX = e.touches[0].clientX - dragStartRef.current.x;
+        const deltaY = e.touches[0].clientY - dragStartRef.current.y;
+        
+        rotationRef.current.y += deltaX * 0.005;
+        rotationRef.current.x += deltaY * 0.005;
+        rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
+        
+        dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isDragging]);
+
   useFrame((state) => {
     if (!globeRef.current) return;
     
-    // Rotate globe slowly
-    globeRef.current.rotation.y += 0.001;
+    // Orbital float and interactive rotation
+    if (!isDragging && introComplete) {
+      globeRef.current.rotation.y += 0.001;
+      
+      // Subtle parallax from mouse
+      const targetRotationX = (mousePosition.y / window.innerHeight - 0.5) * 0.15;
+      const targetRotationY = (mousePosition.x / window.innerWidth - 0.5) * 0.15;
+      
+      globeRef.current.rotation.x += (targetRotationX + rotationRef.current.x - globeRef.current.rotation.x) * 0.03;
+      globeRef.current.rotation.y += (targetRotationY + rotationRef.current.y - globeRef.current.rotation.y) * 0.03;
+    } else if (isDragging) {
+      // Apply drag rotation
+      globeRef.current.rotation.x = rotationRef.current.x;
+      globeRef.current.rotation.y += 0.001;
+      const currentY = globeRef.current.rotation.y % (Math.PI * 2);
+      const targetY = rotationRef.current.y % (Math.PI * 2);
+      globeRef.current.rotation.y = currentY + (targetY - currentY) * 0.1;
+    }
     
-    // Mouse influence - tilt globe
-    const mouseX = (mousePosition.x / window.innerWidth - 0.5) * 0.3;
-    const mouseY = (mousePosition.y / window.innerHeight - 0.5) * 0.3;
-    globeRef.current.rotation.x = THREE.MathUtils.lerp(
-      globeRef.current.rotation.x,
-      mouseY,
-      0.05
-    );
+    // Pulsing atmospheric glow
+    if (atmosphereRef.current) {
+      atmosphereRef.current.rotation.copy(globeRef.current.rotation);
+      const scale = 1.05 + Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
+      atmosphereRef.current.scale.set(scale, scale, scale);
+    }
     
     // Update shader progress and time for overlay
     const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
@@ -207,13 +316,26 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   });
 
   return (
-    <group ref={globeRef}>
-      {/* Main Earth sphere with texture */}
-      <Sphere args={[0.75, 64, 64]} material={globeMaterial} />
+    <>
+      <group ref={globeRef}>
+        {/* Main Earth sphere with texture */}
+        <Sphere args={[0.75, 64, 64]} material={globeMaterial} />
+        
+        {/* Circuit overlay */}
+        <Sphere args={[0.755, 64, 64]} material={overlayMaterial} />
+      </group>
       
-      {/* Circuit overlay */}
-      <Sphere args={[0.755, 64, 64]} material={overlayMaterial} />
-    </group>
+      {/* Atmospheric glow layer */}
+      <mesh ref={atmosphereRef}>
+        <sphereGeometry args={[0.85, 64, 64]} />
+        <meshBasicMaterial
+          color="#4a90e2"
+          transparent
+          opacity={0.2}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </>
   );
 };
 
