@@ -45,8 +45,9 @@ const Index = () => {
         camera={{ position: [0, 0, 4], fov: 50 }}
         className="absolute inset-0"
       >
-        <ambientLight intensity={0.2} />
-        <pointLight position={[10, 10, 10]} intensity={0.5} color="#00ff66" />
+        <ambientLight intensity={1.5} />
+        <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
+        <pointLight position={[-5, -3, -5]} intensity={0.8} color="#4a90e2" />
         <Suspense fallback={null}>
           <Globe progress={progress} mousePosition={mousePosition} />
         </Suspense>
