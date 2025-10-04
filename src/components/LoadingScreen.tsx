@@ -80,7 +80,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
           <div className="text-center space-y-8 animate-fade-in mt-24">
             <h1 className="text-4xl md:text-6xl font-bold tracking-wider">
               <span className="text-white" style={{ textShadow: '0 0 20px rgba(255, 255, 255, 0.5)' }}>PLAY</span>
-              <span className="text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>OPS</span>
+              <span className="text-glow-magenta" style={{ color: 'hsl(var(--neon-magenta))' }}>OPS</span>
             </h1>
 
             <h2 
@@ -107,10 +107,10 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
 
         {phase === 'loading' && (
           <>
-            {/* Top green line */}
+            {/* Top accent line */}
             <div 
               className="fixed top-0 left-0 right-0 h-1 animate-pulse"
-              style={{ backgroundColor: 'hsl(var(--neon-green))' }}
+              style={{ background: 'linear-gradient(90deg, hsl(var(--neon-magenta)), hsl(var(--neon-purple)), hsl(var(--neon-green)))' }}
             />
 
             {/* Loading content */}
@@ -143,10 +143,10 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
               </p>
             </div>
 
-            {/* Bottom green line */}
+            {/* Bottom accent line */}
             <div 
               className="fixed bottom-0 left-0 right-0 h-1 animate-pulse"
-              style={{ backgroundColor: 'hsl(var(--neon-green))' }}
+              style={{ background: 'linear-gradient(90deg, hsl(var(--neon-green)), hsl(var(--neon-purple)), hsl(var(--neon-magenta)))' }}
             />
           </>
         )}

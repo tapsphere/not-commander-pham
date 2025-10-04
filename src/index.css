@@ -26,7 +26,7 @@ All colors MUST be HSL.
     --muted: 0 0% 15%;
     --muted-foreground: 130 50% 50%;
 
-    --accent: 280 70% 55%;
+    --accent: 291 92% 43%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -37,8 +37,8 @@ All colors MUST be HSL.
     --ring: 130 100% 50%;
 
     --neon-green: 130 100% 50%;
-    --neon-purple: 280 70% 55%;
-    --neon-magenta: 295 100% 50%;
+    --neon-purple: 284 41% 42%;
+    --neon-magenta: 291 92% 43%;
     
     --glow-green: 0 0 20px hsl(130 100% 50% / 0.6);
     --glow-purple: 0 0 20px hsl(280 70% 55% / 0.5);

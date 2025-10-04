@@ -98,37 +98,47 @@ const Lobby = () => {
 
             {/* Brand Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockBrands.map((brand) => (
+              {mockBrands.map((brand, idx) => (
                 <Card
                   key={brand.id}
                   className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
-                  style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
                   onClick={() => navigate('/menu')}
                 >
                   {/* Glow effect on hover */}
                   <div 
                     className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
                     style={{ 
-                      background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+                      background: `radial-gradient(circle at center, ${idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))'}, transparent 70%)`
                     }}
                   />
                   
                   <div className="flex items-start justify-between mb-4 relative z-10">
-                    <div className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" style={{ borderColor: 'hsl(var(--neon-green) / 0.3)' }}>
+                    <div 
+                      className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" 
+                      style={{ borderColor: `${idx % 3 === 0 ? 'hsl(var(--neon-magenta) / 0.3)' : idx % 3 === 1 ? 'hsl(var(--neon-purple) / 0.3)' : 'hsl(var(--neon-green) / 0.3)'}` }}
+                    >
                       <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
                     </div>
-                    <Badge variant="outline" className="border-2 font-mono text-xs" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
+                    <Badge 
+                      variant="outline" 
+                      className="border-2 font-mono text-xs" 
+                      style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))', color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+                    >
                       {brand.department}
                     </Badge>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-glow-green tracking-wide relative z-10" style={{ color: 'hsl(var(--neon-green))' }}>
+                  <h3 
+                    className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${idx % 3 === 0 ? 'text-glow-magenta' : idx % 3 === 1 ? 'text-glow-purple' : 'text-glow-green'}`}
+                    style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+                  >
                     {brand.name}
                   </h3>
                   <div className="flex items-center justify-between relative z-10">
                     <span className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
                       {brand.validators} Validators
                     </span>
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} />
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }} />
                   </div>
                 </Card>
               ))}
@@ -139,39 +149,42 @@ const Lobby = () => {
           <TabsContent value="programs" className="space-y-4">
             {mockPrograms.map((program, idx) => {
               const IconComponent = program.icon;
+              const accentColor = idx % 2 === 0 ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-purple))';
+              const accentGlow = idx % 2 === 0 ? 'text-glow-magenta' : 'text-glow-purple';
+              
               return (
                 <Card
                   key={idx}
                   className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
-                  style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  style={{ borderColor: accentColor }}
                 >
                   {/* Glow effect on hover */}
                   <div 
                     className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
                     style={{ 
-                      background: 'radial-gradient(circle at left, hsl(var(--neon-green)), transparent 70%)'
+                      background: `radial-gradient(circle at left, ${accentColor}, transparent 70%)`
                     }}
                   />
                   
                   <div className="flex items-center gap-4 relative z-10">
-                    <div className="w-20 h-20 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-                      <IconComponent className="w-10 h-10" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+                    <div className="w-20 h-20 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ borderColor: accentColor }}>
+                      <IconComponent className="w-10 h-10" style={{ color: accentColor }} strokeWidth={2.5} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-glow-green mb-1 tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+                      <h3 className={`text-lg font-bold mb-1 tracking-wide ${accentGlow}`} style={{ color: accentColor }}>
                         {program.title}
                       </h3>
                       <p className="text-sm font-mono mb-2" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
                         {program.duration} • {program.skills} Competencies
                       </p>
                       <div className="flex gap-2">
-                        <Badge variant="outline" className="text-xs font-mono" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
-                          <Star className="w-3 h-3 mr-1" fill="hsl(var(--neon-green))" />
+                        <Badge variant="outline" className="text-xs font-mono" style={{ borderColor: accentColor, color: accentColor }}>
+                          <Star className="w-3 h-3 mr-1" fill={accentColor} />
                           Featured
                         </Badge>
                       </div>
                     </div>
-                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} />
+                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" style={{ color: accentColor }} />
                   </div>
                 </Card>
               );

@@ -85,19 +85,30 @@ const Inventory = () => {
                 <Card 
                   key={idx} 
                   className="bg-black/50 border-2 p-6 text-center hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
-                  style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
                 >
                   <div 
                     className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
                     style={{ 
-                      background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+                      background: `radial-gradient(circle at center, ${idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))'}, transparent 70%)`
                     }}
                   />
                   <div className="relative z-10">
-                    <div className="w-20 h-20 mx-auto mb-3 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-                      <Hexagon className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2} fill="hsl(var(--neon-green) / 0.2)" />
+                    <div 
+                      className="w-20 h-20 mx-auto mb-3 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" 
+                      style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+                    >
+                      <Hexagon 
+                        className="w-12 h-12" 
+                        style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }} 
+                        strokeWidth={2} 
+                        fill={`${idx % 3 === 0 ? 'hsl(var(--neon-magenta) / 0.2)' : idx % 3 === 1 ? 'hsl(var(--neon-purple) / 0.2)' : 'hsl(var(--neon-green) / 0.2)'}`}
+                      />
                     </div>
-                    <h3 className="font-bold mb-2 text-glow-green tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+                    <h3 
+                      className={`font-bold mb-2 tracking-wide ${idx % 3 === 0 ? 'text-glow-magenta' : idx % 3 === 1 ? 'text-glow-purple' : 'text-glow-green'}`}
+                      style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+                    >
                       {badge.name}
                     </h3>
                     <Badge className={`mb-2 border-2 font-mono text-xs ${getLevelColor(badge.level)}`}>

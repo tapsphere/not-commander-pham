@@ -167,9 +167,16 @@ const Profile = () => {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {mockBadges.map((badge, idx) => (
-              <Card key={idx} className="bg-black/50 border-2 p-4 text-center hover:bg-black/70 transition-all cursor-pointer" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <Card 
+                key={idx} 
+                className="bg-black/50 border-2 p-4 text-center hover:bg-black/70 transition-all cursor-pointer" 
+                style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+              >
                 <div className="text-4xl mb-2">{badge.icon}</div>
-                <div className="font-bold text-sm mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
+                <div 
+                  className={`font-bold text-sm mb-1 ${idx % 3 === 0 ? 'text-glow-magenta' : idx % 3 === 1 ? 'text-glow-purple' : 'text-glow-green'}`}
+                  style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+                >
                   {badge.name}
                 </div>
                 <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
