@@ -44,14 +44,14 @@ export const LoadingScreen = () => {
     <div className="fixed inset-0 flex items-center justify-center z-10">
       <div className="text-center space-y-8 px-4">
         {/* Brand */}
-        <h1 className="text-2xl font-bold tracking-wider text-glow-pink" style={{ color: 'hsl(var(--neon-pink))' }}>
+        <h1 className="text-2xl font-bold tracking-wider text-glow-purple" style={{ color: 'hsl(var(--neon-purple))' }}>
           PLAYOPS
         </h1>
 
         {/* Main Title */}
         <h2 
-          className="text-4xl md:text-6xl font-bold tracking-widest text-glow-orange uppercase"
-          style={{ color: 'hsl(var(--neon-orange))' }}
+          className="text-4xl md:text-6xl font-bold tracking-widest text-glow-green uppercase"
+          style={{ color: 'hsl(var(--neon-green))' }}
         >
           ENTER THE GRID EXPERIENCE
         </h2>
@@ -60,15 +60,15 @@ export const LoadingScreen = () => {
         {!showButton ? (
           <div className="space-y-6 max-w-md mx-auto">
             <div className="space-y-2">
-              <p className="text-sm tracking-wider" style={{ color: 'hsl(var(--neon-cyan))' }}>
+              <p className="text-sm tracking-wider" style={{ color: 'hsl(var(--neon-green))' }}>
                 LOADING ASSETS...
               </p>
               <Progress value={progress} className="h-2 bg-muted" />
-              <p className="text-lg font-mono" style={{ color: 'hsl(var(--neon-cyan))' }}>
+              <p className="text-lg font-mono" style={{ color: 'hsl(var(--neon-green))' }}>
                 {progress}%
               </p>
             </div>
-            <p className="text-sm tracking-wider animate-pulse" style={{ color: 'hsl(var(--neon-cyan))' }}>
+            <p className="text-sm tracking-wider animate-pulse" style={{ color: 'hsl(var(--neon-green))' }}>
               {status}
             </p>
           </div>
@@ -92,8 +92,8 @@ export const LoadingScreen = () => {
 
         {showButton && (
           <p 
-            className="text-sm tracking-wider animate-pulse text-glow-cyan mt-4"
-            style={{ color: 'hsl(var(--neon-cyan))' }}
+            className="text-sm tracking-wider animate-pulse text-glow-green mt-4"
+            style={{ color: 'hsl(var(--neon-green))' }}
           >
             Enter Lobby
           </p>
