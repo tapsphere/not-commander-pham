@@ -75,6 +75,16 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
 
   return (
     <>
+      {/* "Enter The Grid" header - always visible */}
+      <div className="fixed top-8 left-0 right-0 z-20 text-center">
+        <h3 
+          className="text-lg md:text-xl font-mono tracking-widest text-glow-green"
+          style={{ color: 'hsl(var(--neon-green))' }}
+        >
+          ENTER THE GRID
+        </h3>
+      </div>
+
       <div className={`fixed inset-0 flex flex-col items-center z-10 px-4 ${phase === 'loading' ? 'justify-end pb-12' : 'justify-center'}`}>
         {phase === 'initial' && (
           <div className="text-center space-y-8 animate-fade-in -mt-24">
