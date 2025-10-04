@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
 export const LoadingScreen = () => {
+  const navigate = useNavigate();
   const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('Connecting...');
@@ -48,6 +50,10 @@ export const LoadingScreen = () => {
 
   const handleInitialize = () => {
     setPhase('loading');
+  };
+
+  const handleEnterLobby = () => {
+    navigate('/lobby');
   };
 
   return (
@@ -132,14 +138,15 @@ export const LoadingScreen = () => {
 
         {phase === 'complete' && (
           <div 
-            className="fixed top-0 left-0 right-0 border-4 p-4 animate-slide-in-right"
+            className="fixed top-0 left-0 right-0 border-4 p-4 animate-slide-in-right cursor-pointer hover:bg-primary/10 transition-all"
             style={{ borderColor: 'hsl(var(--neon-green))' }}
+            onClick={handleEnterLobby}
           >
             <p 
-              className="text-center text-xl tracking-widest font-bold"
+              className="text-center text-xl tracking-widest font-bold text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
-              ENTER LOBBY
+              ENTER LOBBY →
             </p>
           </div>
         )}
