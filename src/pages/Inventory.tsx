@@ -101,43 +101,49 @@ const Inventory = () => {
               {mockBadges.map((badge, idx) => {
                 const useMagenta = idx === 1;
                 const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-green))';
-                const glowClass = useMagenta ? 'text-glow-magenta' : 'text-glow-green';
                 
                 return (
                   <Card 
                     key={idx} 
-                    className="bg-black/50 border-2 p-6 text-center hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
-                    style={{ borderColor }}
+                    className="bg-transparent border-0 p-4 text-center hover:scale-105 transition-all cursor-pointer group"
                   >
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
-                      style={{ 
-                        background: `radial-gradient(circle at center, ${borderColor}, transparent 70%)`
-                      }}
-                    />
-                    <div className="relative z-10">
+                    <div className="relative">
+                      {/* Sticker background with white border */}
                       <div 
-                        className="w-20 h-20 mx-auto mb-3 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" 
-                        style={{ borderColor }}
+                        className="w-24 h-24 mx-auto mb-3 rounded-2xl flex items-center justify-center relative"
+                        style={{ 
+                          background: 'white',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                        }}
                       >
-                        <Hexagon 
-                          className="w-12 h-12" 
-                          style={{ color: borderColor }} 
-                          strokeWidth={2} 
-                          fill={`${borderColor}33`}
-                        />
+                        <div 
+                          className="absolute inset-1 rounded-xl flex items-center justify-center text-5xl"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${borderColor}, ${borderColor}dd)`
+                          }}
+                        >
+                          {badge.name.includes('Analytical') && '📊'}
+                          {badge.name.includes('AI') && '🤖'}
+                          {badge.name.includes('Technological') && '💻'}
+                          {badge.name.includes('Creative') && '💡'}
+                          {badge.name.includes('Cybersecurity') && '🔒'}
+                          {badge.name.includes('Resilience') && '🎯'}
+                          {badge.name.includes('Leadership') && '👥'}
+                          {badge.name.includes('Service') && '⭐'}
+                        </div>
                       </div>
+                      
                       <h3 
-                        className={`font-bold mb-2 tracking-wide ${glowClass}`}
+                        className="font-bold text-xs mb-1 tracking-wide"
                         style={{ color: borderColor }}
                       >
                         {badge.name}
                       </h3>
-                      <Badge className={`mb-2 border-2 font-mono text-xs ${getLevelColor(badge.level)}`}>
+                      <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`}>
                         {getLevelLabel(badge.level)}
                       </Badge>
-                      <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
-                        Earned: {badge.earned}
+                      <div className="text-[10px] font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
+                        {badge.earned}
                       </div>
                     </div>
                   </Card>
