@@ -1,4 +1,4 @@
-import { User, Award, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { User, Award, TrendingUp, Shield } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -123,8 +123,14 @@ const Profile = () => {
         {/* Player Card */}
         <Card className="bg-black/50 border-2 p-6" style={{ borderColor: 'hsl(var(--neon-green))' }}>
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center border-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-              <User className="w-10 h-10" style={{ color: 'hsl(var(--neon-green))' }} />
+            <div className="w-20 h-20 rounded-full bg-black border-2 flex items-center justify-center relative overflow-hidden group">
+              <div 
+                className="absolute inset-0 bg-gradient-to-br opacity-20"
+                style={{ 
+                  backgroundImage: `linear-gradient(135deg, hsl(var(--neon-green)), transparent)`
+                }}
+              />
+              <User className="w-10 h-10 relative z-10 group-hover:scale-110 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-glow-green mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
@@ -156,7 +162,7 @@ const Profile = () => {
         {/* Badges Section */}
         <div>
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'hsl(var(--neon-green))' }}>
-            <Award className="w-5 h-5" />
+            <Award className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
             Earned Badges
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -177,7 +183,7 @@ const Profile = () => {
         {/* Competencies Grid */}
         <div>
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'hsl(var(--neon-green))' }}>
-            <TrendingUp className="w-5 h-5" />
+            <TrendingUp className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
             Validated Competencies
           </h3>
           <div className="space-y-3">
@@ -213,20 +219,30 @@ const Profile = () => {
         </div>
 
         {/* Portable Resume CTA */}
-        <Card className="bg-black/50 border-2 p-6 text-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-          <CheckCircle2 className="w-12 h-12 mx-auto mb-4" style={{ color: 'hsl(var(--neon-green))' }} />
-          <h3 className="text-lg font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
-            Export Your Validated Competencies
-          </h3>
-          <p className="text-sm font-mono mb-4" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
-            Download immutable receipts & portable CBE resume
-          </p>
-          <button 
-            className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all"
-            style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
-          >
-            EXPORT RESUME
-          </button>
+        <Card className="bg-black/50 border-2 p-6 text-center relative overflow-hidden group" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+          <div 
+            className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
+            style={{ 
+              background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+            }}
+          />
+          <div className="relative z-10">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black border-2 flex items-center justify-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <Shield className="w-8 h-8" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+            </div>
+            <h3 className="text-lg font-bold mb-2 tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+              Export Your Validated Competencies
+            </h3>
+            <p className="text-sm font-mono mb-4" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+              Download immutable receipts & portable CBE resume
+            </p>
+            <button 
+              className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all hover:scale-105"
+              style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
+            >
+              EXPORT RESUME
+            </button>
+          </div>
         </Card>
       </div>
     </div>

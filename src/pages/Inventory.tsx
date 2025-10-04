@@ -1,4 +1,4 @@
-import { Package, Trophy, FileCheck, Download } from 'lucide-react';
+import { Package, Trophy, FileCheck, Download, Sparkles, Hexagon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -57,11 +57,11 @@ const Inventory = () => {
         <Tabs defaultValue="badges" className="w-full">
           <TabsList className="w-full bg-black/50 border-2 mb-6" style={{ borderColor: 'hsl(var(--neon-green))' }}>
             <TabsTrigger value="badges" className="flex-1 data-[state=active]:bg-primary/20">
-              <Trophy className="w-4 h-4 mr-2" />
+              <Trophy className="w-5 h-5 mr-2" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
               Badges
             </TabsTrigger>
             <TabsTrigger value="receipts" className="flex-1 data-[state=active]:bg-primary/20">
-              <FileCheck className="w-4 h-4 mr-2" />
+              <FileCheck className="w-5 h-5 mr-2" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
               Receipts
             </TabsTrigger>
           </TabsList>
@@ -72,33 +72,51 @@ const Inventory = () => {
               {mockBadges.map((badge, idx) => (
                 <Card 
                   key={idx} 
-                  className="bg-black/50 border-2 p-6 text-center hover:bg-black/70 transition-all cursor-pointer group"
+                  className="bg-black/50 border-2 p-6 text-center hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
                   style={{ borderColor: 'hsl(var(--neon-green))' }}
                 >
-                  <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
-                    {badge.icon}
-                  </div>
-                  <h3 className="font-bold mb-2 text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>
-                    {badge.name}
-                  </h3>
-                  <Badge className={`mb-2 border-2 ${getRarityColor(badge.rarity)}`}>
-                    {badge.rarity}
-                  </Badge>
-                  <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
-                    Earned: {badge.earned}
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
+                    style={{ 
+                      background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+                    }}
+                  />
+                  <div className="relative z-10">
+                    <div className="w-20 h-20 mx-auto mb-3 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+                      <Hexagon className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2} fill="hsl(var(--neon-green) / 0.2)" />
+                    </div>
+                    <h3 className="font-bold mb-2 text-glow-green tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+                      {badge.name}
+                    </h3>
+                    <Badge className={`mb-2 border-2 font-mono text-xs ${getRarityColor(badge.rarity)}`}>
+                      {badge.rarity}
+                    </Badge>
+                    <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
+                      Earned: {badge.earned}
+                    </div>
                   </div>
                 </Card>
               ))}
             </div>
 
-            <Card className="bg-black/50 border-2 p-6 text-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-              <Package className="w-12 h-12 mx-auto mb-4" style={{ color: 'hsl(var(--neon-green))' }} />
-              <h3 className="text-lg font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
-                {mockBadges.length} Badges Collected
-              </h3>
-              <p className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
-                Complete more validators to unlock rare badges
-              </p>
+            <Card className="bg-black/50 border-2 p-6 text-center relative overflow-hidden group" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
+                style={{ 
+                  background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black border-2 flex items-center justify-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+                  <Sparkles className="w-8 h-8" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-lg font-bold mb-2 tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+                  {mockBadges.length} Badges Collected
+                </h3>
+                <p className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                  Complete more validators to unlock rare badges
+                </p>
+              </div>
             </Card>
           </TabsContent>
 
@@ -113,7 +131,7 @@ const Inventory = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <FileCheck className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
+                      <FileCheck className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
                       <span className="font-mono text-sm" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
                         {receipt.id}
                       </span>
@@ -136,10 +154,10 @@ const Inventory = () => {
                     </p>
                   </div>
                   <button 
-                    className="p-2 border-2 rounded-lg hover:bg-primary/20 transition-all"
+                    className="p-2 border-2 rounded-lg hover:bg-primary/20 transition-all hover:scale-110"
                     style={{ borderColor: 'hsl(var(--neon-green))' }}
                   >
-                    <Download className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
+                    <Download className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
                   </button>
                 </div>
                 <div className="text-xs font-mono p-3 bg-black/50 rounded border" style={{ borderColor: 'hsl(var(--neon-green) / 0.3)', color: 'hsl(var(--neon-green) / 0.6)' }}>
@@ -148,20 +166,30 @@ const Inventory = () => {
               </Card>
             ))}
 
-            <Card className="bg-black/50 border-2 p-6 text-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-              <FileCheck className="w-12 h-12 mx-auto mb-4" style={{ color: 'hsl(var(--neon-green))' }} />
-              <h3 className="text-lg font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
-                {mockReceipts.length} Validated Skills
-              </h3>
-              <p className="text-sm font-mono mb-4" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
-                Portable proof employers can verify instantly
-              </p>
-              <button 
-                className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all"
-                style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
-              >
-                EXPORT ALL RECEIPTS
-              </button>
+            <Card className="bg-black/50 border-2 p-6 text-center relative overflow-hidden group" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
+                style={{ 
+                  background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
+                }}
+              />
+              <div className="relative z-10">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-black border-2 flex items-center justify-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+                  <FileCheck className="w-8 h-8" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+                </div>
+                <h3 className="text-lg font-bold mb-2 tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
+                  {mockReceipts.length} Validated Skills
+                </h3>
+                <p className="text-sm font-mono mb-4" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                  Portable proof employers can verify instantly
+                </p>
+                <button 
+                  className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all hover:scale-105"
+                  style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
+                >
+                  EXPORT ALL RECEIPTS
+                </button>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
