@@ -87,7 +87,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
               className="text-xl md:text-2xl font-light tracking-widest text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
-              The Rise of Human Proof
+              Competency-Based Validation Platform
             </h2>
 
             <Button
@@ -161,7 +161,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
               className="text-center text-xl tracking-widest font-bold text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
-              ENTER THE GRID →
+              ENTER PLAYOPS HUB →
             </p>
           </div>
         )}

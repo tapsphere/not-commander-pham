@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, Package, Trophy, BookOpen, Wallet } from 'lucide-react';
+import { Home, User, Package, TrendingUp, Gamepad2, Hexagon } from 'lucide-react';
 
 const menuItems = [
-  { icon: Home, label: 'Home', path: '/lobby' },
+  { icon: Home, label: 'Lobby', path: '/lobby' },
   { icon: User, label: 'Profile', path: '/profile' },
-  { icon: Package, label: 'Items', path: '/inventory' },
-  { icon: Trophy, label: 'Ranks', path: '/leaderboard' },
-  { icon: BookOpen, label: 'Lore', path: '/lore' },
-  { icon: Wallet, label: 'Wallet', path: '/wallet' },
+  { icon: Hexagon, label: 'Inventory', path: '/inventory' },
+  { icon: TrendingUp, label: 'Stats', path: '/profile' },
+  { icon: Gamepad2, label: 'Play', path: '/lobby' },
 ];
 
 const Menu = () => {
@@ -38,10 +37,19 @@ const Menu = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-6">
+            <div className="w-24 h-24 mx-auto rounded-lg bg-black border-2 flex items-center justify-center mb-6 animate-pulse" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <Gamepad2 className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+            </div>
             <p 
-              className="text-xl font-mono"
+              className="text-xl font-mono tracking-wide"
               style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              Navigate to train, validate, and prove your competencies
+            </p>
+            <p 
+              className="text-sm font-mono"
+              style={{ color: 'hsl(var(--neon-green) / 0.6)' }}
             >
               Select a section from the menu below
             </p>
@@ -63,13 +71,23 @@ const Menu = () => {
               <button
                 key={item.label}
                 onClick={() => handleNavigation(item.path, index)}
-                className="flex flex-col items-center gap-1 flex-1 max-w-[90px] group transition-all duration-300"
+                className="flex flex-col items-center gap-1 flex-1 max-w-[90px] group transition-all duration-300 relative"
               >
+                {/* Glow effect on active */}
+                {isActive && (
+                  <div 
+                    className="absolute inset-0 rounded-lg opacity-20 blur-md"
+                    style={{ 
+                      background: 'hsl(var(--neon-green))'
+                    }}
+                  />
+                )}
                 <div 
                   className={`
-                    p-2.5 rounded-lg transition-all duration-300
-                    ${isActive ? 'bg-primary/20 scale-110' : 'hover:bg-primary/10'}
+                    relative p-2.5 rounded-lg border-2 transition-all duration-300
+                    ${isActive ? 'bg-primary/20 scale-110 border-primary' : 'border-transparent hover:bg-primary/10 hover:border-primary/30'}
                   `}
+                  style={isActive ? { borderColor: 'hsl(var(--neon-green))' } : {}}
                 >
                   <Icon 
                     className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? 'text-glow-green' : ''}`}
