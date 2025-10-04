@@ -61,94 +61,103 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
         }
         
+        // Draw a line segment
+        float line(vec2 p, vec2 a, vec2 b, float width) {
+          vec2 pa = p - a;
+          vec2 ba = b - a;
+          float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+          float dist = length(pa - ba * h);
+          return smoothstep(width, width * 0.5, dist);
+        }
+        
         void main() {
-          // Circuit board pattern with angled traces
-          vec2 uv = vUv * 15.0;
+          vec2 uv = vUv * 20.0;
           vec2 gridId = floor(uv);
           vec2 gridUv = fract(uv);
           
-          float lineWidth = 0.06;
           float circuit = 0.0;
+          float nodes = 0.0;
+          float lineWidth = 0.04;
           
-          // Horizontal traces
-          float hLine = step(abs(gridUv.y - 0.5), lineWidth);
+          // Random seed for this cell
+          float seed = random(gridId);
+          float patternChoice = floor(seed * 6.0);
           
-          // Vertical traces
-          float vLine = step(abs(gridUv.x - 0.5), lineWidth);
+          // Center point
+          vec2 center = vec2(0.5);
           
-          // Diagonal traces (45 degrees)
-          float diagDist1 = abs(gridUv.x - gridUv.y);
-          float diagLine1 = step(diagDist1, lineWidth * 1.4);
-          
-          // Diagonal traces (-45 degrees)
-          float diagDist2 = abs(gridUv.x - (1.0 - gridUv.y));
-          float diagLine2 = step(diagDist2, lineWidth * 1.4);
-          
-          // Random pattern selector
-          float pattern = random(gridId);
-          float patternType = floor(pattern * 5.0);
-          
-          // Different trace patterns based on random
-          if (patternType < 1.0) {
-            circuit = hLine * step(0.5, fract(pattern * 10.0));
-          } else if (patternType < 2.0) {
-            circuit = vLine * step(0.5, fract(pattern * 20.0));
-          } else if (patternType < 3.0) {
-            circuit = diagLine1 * step(0.6, fract(pattern * 15.0));
-          } else if (patternType < 4.0) {
-            circuit = diagLine2 * step(0.6, fract(pattern * 25.0));
-          } else {
-            // Corner traces - L shapes
+          // Pattern 1: Horizontal line with nodes
+          if (patternChoice < 1.0) {
+            circuit = line(gridUv, vec2(0.0, 0.5), vec2(1.0, 0.5), lineWidth);
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.0, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(1.0, 0.5)));
+          }
+          // Pattern 2: Vertical line with nodes
+          else if (patternChoice < 2.0) {
+            circuit = line(gridUv, vec2(0.5, 0.0), vec2(0.5, 1.0), lineWidth);
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 0.0)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 1.0)));
+          }
+          // Pattern 3: Diagonal line
+          else if (patternChoice < 3.0) {
+            circuit = line(gridUv, vec2(0.0, 0.0), vec2(1.0, 1.0), lineWidth);
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.0, 0.0)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(1.0, 1.0)));
+          }
+          // Pattern 4: L-shape (corner)
+          else if (patternChoice < 4.0) {
             circuit = max(
-              hLine * step(gridUv.x, 0.5),
-              vLine * step(gridUv.y, 0.5)
-            ) * step(0.7, pattern);
+              line(gridUv, vec2(0.0, 0.5), vec2(0.5, 0.5), lineWidth),
+              line(gridUv, vec2(0.5, 0.5), vec2(0.5, 1.0), lineWidth)
+            );
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.0, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 1.0)));
+          }
+          // Pattern 5: Reverse L-shape
+          else if (patternChoice < 5.0) {
+            circuit = max(
+              line(gridUv, vec2(1.0, 0.5), vec2(0.5, 0.5), lineWidth),
+              line(gridUv, vec2(0.5, 0.5), vec2(0.5, 0.0), lineWidth)
+            );
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(1.0, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 0.0)));
+          }
+          // Pattern 6: T-junction
+          else {
+            circuit = max(
+              line(gridUv, vec2(0.0, 0.5), vec2(1.0, 0.5), lineWidth),
+              line(gridUv, vec2(0.5, 0.5), vec2(0.5, 0.0), lineWidth)
+            );
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.0, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(1.0, 0.5)));
+            nodes += smoothstep(0.08, 0.04, length(gridUv - vec2(0.5, 0.0)));
           }
           
-          // Connection nodes at intersections and endpoints
-          vec2 nodePos = vec2(0.5);
-          float nodeDist = length(gridUv - nodePos);
-          float node = smoothstep(0.15, 0.08, nodeDist) * step(0.65, pattern);
-          
-          // Small endpoint nodes
-          vec2 endPoint1 = vec2(0.0, 0.5);
-          vec2 endPoint2 = vec2(1.0, 0.5);
-          vec2 endPoint3 = vec2(0.5, 0.0);
-          vec2 endPoint4 = vec2(0.5, 1.0);
-          
-          float endpoint = 0.0;
-          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint1)));
-          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint2)));
-          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint3)));
-          endpoint = max(endpoint, smoothstep(0.12, 0.06, length(gridUv - endPoint4)));
-          endpoint *= step(0.75, random(gridId + vec2(0.5, 0.5)));
-          
-          // Combine circuit elements
-          circuit = max(max(circuit, node), endpoint);
+          // Only show if random threshold met
+          float showPattern = step(0.35, seed);
+          circuit *= showPattern;
+          nodes *= showPattern;
           
           // Wrapping animation from angle
           float angle = atan(vPosition.z, vPosition.x);
-          float heightFactor = (vPosition.y + 1.0) * 0.5; // Add vertical component
+          float heightFactor = (vPosition.y + 1.0) * 0.5;
           float normalizedAngle = (angle + 3.14159) / 6.28318;
-          
-          // Diagonal wrap
           float wrapPos = normalizedAngle + heightFactor * 0.3;
           float reveal = smoothstep(progress * 1.5 - 0.4, progress * 1.5, wrapPos);
           reveal *= smoothstep(0.0, 0.15, progress);
           
-          // Intense glow effect
-          float glow = circuit * 1.8;
-          vec3 color = glowColor * (circuit * 2.5 + glow * 1.2) * reveal;
+          // Glow effect
+          float glow = (circuit + nodes) * 2.0;
+          vec3 color = glowColor * (circuit * 3.0 + nodes * 4.0 + glow) * reveal;
           
-          // Extra bright nodes
-          color += glowColor * (node + endpoint) * 2.5 * reveal;
-          
-          // Subtle pulse
-          float pulse = 1.0 + sin(time * 1.8 + pattern * 6.28) * 0.15;
+          // Pulse
+          float pulse = 1.0 + sin(time * 2.0 + seed * 6.28) * 0.2;
           color *= pulse;
           
-          // Alpha for visibility
-          float alpha = circuit * reveal * 0.85 + glow * reveal * 0.4;
+          float alpha = (circuit + nodes) * reveal * 0.9;
           
           gl_FragColor = vec4(color, alpha);
         }
