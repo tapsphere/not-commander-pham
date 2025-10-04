@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trophy, Home, User, Hexagon, TrendingUp, Wallet, Crown, Medal, Award } from 'lucide-react';
+import { Trophy, Home, User, Hexagon, TrendingUp, Wallet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,19 +31,6 @@ const Leaderboard = () => {
   const handleNavigation = (path: string, index: number) => {
     setActiveIndex(index);
     navigate(path);
-  };
-
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="w-5 h-5 md:w-6 md:h-6 text-yellow-400" />;
-      case 2:
-        return <Medal className="w-5 h-5 md:w-6 md:h-6 text-gray-400" />;
-      case 3:
-        return <Award className="w-5 h-5 md:w-6 md:h-6" style={{ color: 'hsl(var(--neon-green))' }} />;
-      default:
-        return null;
-    }
   };
 
   const getLevelColor = (level: string) => {
@@ -110,8 +97,7 @@ const Leaderboard = () => {
                       }}
                     />
                     <div className="relative z-10">
-                      <div className="text-2xl md:text-4xl mb-1 md:mb-2">{leader.avatar}</div>
-                      <div className="mb-1 md:mb-2 flex justify-center">{getRankIcon(leader.rank)}</div>
+                      <div className="text-2xl md:text-4xl mb-2">{leader.avatar}</div>
                       <h3 className={`font-bold text-[10px] md:text-sm mb-1 md:mb-2 ${glowClass} tracking-wide break-words`} style={{ color: borderColor }}>
                         {leader.username}
                       </h3>
