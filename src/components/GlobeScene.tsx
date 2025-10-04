@@ -3,13 +3,90 @@ import { useFrame } from '@react-three/fiber';
 import { Sphere, Line } from '@react-three/drei';
 import * as THREE from 'three';
 
+// Create procedural Earth texture
+function createEarthTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 2048;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d')!;
+  
+  // Ocean base
+  ctx.fillStyle = '#0a4d68';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Add noise for ocean texture
+  for (let i = 0; i < 50000; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    ctx.fillStyle = `rgba(10, 77, 104, ${Math.random() * 0.3})`;
+    ctx.fillRect(x, y, 2, 2);
+  }
+  
+  // Simplified continents (approximated shapes)
+  ctx.fillStyle = '#2d5016';
+  
+  // North America
+  ctx.beginPath();
+  ctx.ellipse(400, 300, 180, 200, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // South America
+  ctx.beginPath();
+  ctx.ellipse(500, 600, 80, 180, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Europe
+  ctx.beginPath();
+  ctx.ellipse(950, 250, 120, 100, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Africa
+  ctx.beginPath();
+  ctx.ellipse(1000, 500, 150, 200, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Asia
+  ctx.beginPath();
+  ctx.ellipse(1400, 300, 300, 200, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Australia
+  ctx.beginPath();
+  ctx.ellipse(1600, 700, 100, 80, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Add terrain texture
+  for (let i = 0; i < 30000; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const pixel = ctx.getImageData(x, y, 1, 1).data;
+    if (pixel[0] > 40) { // If it's land
+      ctx.fillStyle = `rgba(45, 80, 22, ${Math.random() * 0.4})`;
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+  
+  // Clouds layer
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  for (let i = 0; i < 100; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const size = 20 + Math.random() * 80;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  return canvas;
+}
+
 interface GlobeProps {
   progress: number;
   mousePosition: { x: number; y: number };
 }
 
 export const Globe = ({ progress, mousePosition }: GlobeProps) => {
-  const globeRef = useRef<THREE.Mesh>(null);
+  const globeRef = useRef<THREE.Group>(null);
   const gridLinesRef = useRef<THREE.Group>(null);
   
   // Create latitude and longitude lines
@@ -62,6 +139,19 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
 
   // Create shader material for the globe
   const globeMaterial = useMemo(() => {
+    // Create earth texture
+    const textureLoader = new THREE.TextureLoader();
+    const earthTexture = new THREE.CanvasTexture(createEarthTexture());
+    
+    return new THREE.MeshStandardMaterial({
+      map: earthTexture,
+      metalness: 0.1,
+      roughness: 0.9,
+    });
+  }, []);
+  
+  // Create overlay material for circuit grid
+  const overlayMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         progress: { value: 0 },
@@ -84,27 +174,28 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         varying vec3 vPosition;
         
         void main() {
-          // Create grid effect based on position
-          float grid = sin(vPosition.x * 20.0) * sin(vPosition.y * 20.0) * sin(vPosition.z * 20.0);
-          float gridPattern = smoothstep(0.8, 1.0, grid);
+          // Create circuit board pattern
+          float circuit = sin(vPosition.x * 30.0) * sin(vPosition.y * 30.0);
+          float circuitPattern = step(0.85, circuit);
           
-          // Progressive reveal based on latitude
+          // Progressive reveal based on latitude (bottom to top)
           float reveal = smoothstep(-1.0, 1.0, vPosition.y - 2.0 + progress * 4.0);
           
           // Combine patterns
-          vec3 color = mix(vec3(0.0), glowColor, gridPattern * reveal * 0.3);
-          
-          // Add base dark color
-          color += vec3(0.05, 0.08, 0.1);
+          vec3 color = glowColor * circuitPattern * reveal * 0.8;
           
           // Edge glow
-          float edgeGlow = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 2.0);
-          color += glowColor * edgeGlow * 0.2 * reveal;
+          float edgeGlow = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 3.0);
+          color += glowColor * edgeGlow * 0.3 * reveal;
           
-          gl_FragColor = vec4(color, 0.9);
+          float alpha = (circuitPattern * reveal * 0.7) + (edgeGlow * reveal * 0.3);
+          
+          gl_FragColor = vec4(color, alpha);
         }
       `,
       transparent: true,
+      side: THREE.FrontSide,
+      blending: THREE.AdditiveBlending,
     });
   }, []);
 
@@ -125,16 +216,23 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     );
     gridLinesRef.current.rotation.x = globeRef.current.rotation.x;
     
-    // Update shader progress
-    if (globeMaterial.uniforms.progress) {
-      globeMaterial.uniforms.progress.value = progress / 100;
+    // Update shader progress for overlay
+    const overlayMesh = globeRef.current.children[0] as THREE.Mesh;
+    if (overlayMesh && overlayMesh.material) {
+      const mat = overlayMesh.material as THREE.ShaderMaterial;
+      if (mat.uniforms && mat.uniforms.progress) {
+        mat.uniforms.progress.value = progress / 100;
+      }
     }
   });
 
   return (
-    <group>
-      {/* Main globe sphere */}
-      <Sphere ref={globeRef} args={[2, 64, 64]} material={globeMaterial} />
+    <group ref={globeRef}>
+      {/* Main Earth sphere with texture */}
+      <Sphere args={[2, 64, 64]} material={globeMaterial} />
+      
+      {/* Circuit overlay */}
+      <Sphere args={[2.01, 64, 64]} material={overlayMaterial} />
       
       {/* Grid lines */}
       <group ref={gridLinesRef}>
@@ -150,7 +248,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
               color="#00ff66"
               lineWidth={1}
               transparent
-              opacity={opacity * 0.6}
+              opacity={opacity * 0.4}
             />
           );
         })}
