@@ -6,13 +6,17 @@ let gainNodes: GainNode[] = [];
 
 export const playAmbientSound = () => {
   // Prevent multiple simultaneous plays
-  if (isPlaying) return;
+  if (isPlaying) {
+    console.log('Audio already playing');
+    return;
+  }
   
   // Create audio context if it doesn't exist
   if (!audioContext) {
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
 
+  console.log('Starting ambient sound, audio context state:', audioContext.state);
   isPlaying = true;
   const now = audioContext.currentTime;
   
@@ -32,15 +36,15 @@ export const playAmbientSound = () => {
     filter.frequency.value = 400;
     filter.Q.value = 0.5;
     
-    // Very subtle volume with slow fade in
+    // Increased volume for better audibility
     gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(0.02 / (index + 1), now + 3); // Slow 3-second fade in
+    gainNode.gain.linearRampToValueAtTime(0.08 / (index + 1), now + 3); // Louder and slow 3-second fade in
     
     // Add slow modulation for movement
     const lfo = audioContext!.createOscillator();
     const lfoGain = audioContext!.createGain();
     lfo.frequency.value = 0.1 + (index * 0.05); // Very slow modulation
-    lfoGain.gain.value = 0.003; // Subtle
+    lfoGain.gain.value = 0.01; // Subtle
     
     lfo.connect(lfoGain);
     lfoGain.connect(gainNode.gain);
@@ -61,7 +65,7 @@ export const playAmbientSound = () => {
   const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 2, audioContext.sampleRate);
   const noiseData = noiseBuffer.getChannelData(0);
   for (let i = 0; i < noiseData.length; i++) {
-    noiseData[i] = (Math.random() * 2 - 1) * 0.02;
+    noiseData[i] = (Math.random() * 2 - 1) * 0.03;
   }
   
   const noiseSource = audioContext.createBufferSource();
@@ -74,7 +78,7 @@ export const playAmbientSound = () => {
   
   const noiseGain = audioContext.createGain();
   noiseGain.gain.setValueAtTime(0, now);
-  noiseGain.gain.linearRampToValueAtTime(0.008, now + 4); // Even more subtle
+  noiseGain.gain.linearRampToValueAtTime(0.02, now + 4); // Slightly louder
   
   noiseSource.connect(noiseFilter);
   noiseFilter.connect(noiseGain);
@@ -83,6 +87,8 @@ export const playAmbientSound = () => {
   noiseSource.start(now);
   audioNodes.push(noiseSource);
   gainNodes.push(noiseGain);
+  
+  console.log('Ambient sound started with', audioNodes.length, 'audio nodes');
 };
 
 export const stopAmbientSound = () => {
@@ -116,10 +122,13 @@ export const stopAmbientSound = () => {
 export const initAudioContext = () => {
   if (!audioContext) {
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    console.log('Audio context created:', audioContext.state);
   }
   
   // Resume if suspended (some browsers suspend audio contexts)
   if (audioContext.state === 'suspended') {
-    audioContext.resume();
+    audioContext.resume().then(() => {
+      console.log('Audio context resumed:', audioContext?.state);
+    });
   }
 };
