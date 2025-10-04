@@ -17,62 +17,15 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   // Load real Earth texture
   const texture = useTexture(earthTexture);
   
-  // Create latitude and longitude lines
-  const gridLines = useMemo(() => {
-    const lines = [];
-    const radius = 0.76; // Slightly larger than globe
-    const segments = 32;
-    
-    // Latitude lines
-    for (let lat = -80; lat <= 80; lat += 20) {
-      const points = [];
-      const latRad = (lat * Math.PI) / 180;
-      const latRadius = Math.cos(latRad) * radius;
-      
-      for (let i = 0; i <= segments; i++) {
-        const lng = (i / segments) * Math.PI * 2;
-        points.push(
-          new THREE.Vector3(
-            latRadius * Math.cos(lng),
-            Math.sin(latRad) * radius,
-            latRadius * Math.sin(lng)
-          )
-        );
-      }
-      lines.push({ points, type: 'latitude', lat });
-    }
-    
-    // Longitude lines
-    for (let lng = 0; lng < 180; lng += 20) {
-      const points = [];
-      const lngRad = (lng * Math.PI) / 180;
-      
-      for (let i = 0; i <= segments; i++) {
-        const lat = ((i / segments) * 180 - 90) * (Math.PI / 180);
-        const latRadius = Math.cos(lat) * radius;
-        
-        points.push(
-          new THREE.Vector3(
-            latRadius * Math.cos(lngRad),
-            Math.sin(lat) * radius,
-            latRadius * Math.sin(lngRad)
-          )
-        );
-      }
-      lines.push({ points, type: 'longitude', lng });
-    }
-    
-    return lines;
-  }, []);
 
-  // Create material for the globe with real Earth texture
+  // Create material for the globe with real Earth texture (brighter)
   const globeMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       map: texture,
-      metalness: 0.1,
-      roughness: 0.9,
-      emissive: new THREE.Color(0x0a1a2a),
-      emissiveIntensity: 0.15,
+      metalness: 0.05,
+      roughness: 0.7,
+      emissive: new THREE.Color(0x1a3a4a),
+      emissiveIntensity: 0.4,
     });
   }, [texture]);
   
@@ -104,7 +57,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         varying vec3 vPosition;
         varying vec2 vUv;
         
-        // Noise function for organic patterns
+        // Noise for organic patterns
         float random(vec2 st) {
           return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
         }
@@ -121,50 +74,54 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         }
         
         void main() {
-          // Circuit board pattern using UV coordinates
-          vec2 uv = vUv * 15.0; // Scale for pattern density
+          vec2 uv = vUv * 12.0;
           
-          // Main circuit traces - horizontal and vertical lines
-          float hLines = step(0.92, fract(uv.y + noise(floor(uv) * 0.5) * 0.3));
-          float vLines = step(0.92, fract(uv.x + noise(floor(uv) * 0.3) * 0.3));
+          // Organic circuit lines
+          float line1 = abs(sin(uv.x * 2.0 + noise(floor(uv * 0.5)) * 3.0));
+          float line2 = abs(sin(uv.y * 2.0 + noise(floor(uv * 0.3)) * 3.0));
+          float hLines = smoothstep(0.85, 0.95, line1);
+          float vLines = smoothstep(0.85, 0.95, line2);
           
-          // Diagonal traces for complexity
-          float diagLines = step(0.95, fract((uv.x + uv.y) * 0.5 + noise(floor(uv * 0.5)) * 0.2));
+          // Diagonal flowing traces
+          float diag = abs(sin((uv.x + uv.y) * 1.5 + noise(floor(uv * 0.4)) * 2.0));
+          float diagLines = smoothstep(0.88, 0.96, diag);
           
-          // Connection nodes at intersections
-          vec2 nodePos = fract(uv);
-          float nodes = smoothstep(0.15, 0.05, length(nodePos - 0.5)) * 
-                       step(0.8, random(floor(uv)));
+          // Connection nodes
+          vec2 nodeUv = fract(uv);
+          float nodeDist = length(nodeUv - 0.5);
+          float nodes = smoothstep(0.12, 0.08, nodeDist) * step(0.85, random(floor(uv)));
           
-          // Thicker main lines
-          float mainLines = step(0.88, fract(uv.y * 0.5 + noise(floor(uv * 0.25)) * 0.5)) * 0.8;
+          // Main thick pathways
+          float mainPath = smoothstep(0.80, 0.90, abs(sin(uv.y * 0.8 + noise(floor(uv * 0.2)) * 4.0)));
           
-          // Combine all patterns
+          // Combine patterns
           float circuit = max(max(hLines, vLines), max(diagLines, nodes));
-          circuit = max(circuit, mainLines);
+          circuit = max(circuit, mainPath);
           
-          // Wrapping animation - progressive reveal
+          // Wrapping animation - starts from one edge and wraps around globe
           float angle = atan(vPosition.z, vPosition.x);
-          float normalizedAngle = (angle + 3.14159) / 6.28318;
+          float normalizedAngle = (angle + 3.14159) / 6.28318; // 0 to 1
           
-          // Sweep effect that wraps around
-          float wrapReveal = smoothstep(progress - 0.3, progress + 0.1, normalizedAngle);
+          // Progressive wrap - sweeps around horizontally
+          float wrapSpeed = progress * 1.2;
+          float wrapReveal = step(normalizedAngle, wrapSpeed);
           
-          // Vertical component
-          float verticalReveal = smoothstep(-1.0, 1.0, vPosition.y + 1.5 - progress * 3.0);
+          // Smooth edge of the wrap
+          float wrapEdge = smoothstep(wrapSpeed - 0.15, wrapSpeed, normalizedAngle);
+          float reveal = wrapReveal * min(progress * 8.0, 1.0);
           
-          // Combined reveal
-          float reveal = max(wrapReveal, verticalReveal * 0.4) * min(progress * 10.0, 1.0);
+          // Brighter glow
+          float glow = circuit * 0.5;
+          vec3 color = glowColor * (circuit * 1.2 + glow) * reveal;
           
-          // Add glow effect
-          float glow = circuit * 0.3;
-          vec3 color = glowColor * (circuit + glow) * reveal;
+          // Add extra brightness to nodes
+          color += glowColor * nodes * 0.8 * reveal;
           
-          // Pulsing effect on nodes
-          float pulse = 1.0 + sin(time * 2.0 + random(floor(uv)) * 6.28) * 0.2;
-          color *= mix(1.0, pulse, nodes * 0.5);
+          // Pulsing animation
+          float pulse = 1.0 + sin(time * 1.5 + random(floor(uv)) * 6.28) * 0.15;
+          color *= pulse;
           
-          float alpha = (circuit * reveal * 0.85) + (glow * reveal * 0.15);
+          float alpha = (circuit * reveal * 0.9) + (glow * reveal * 0.2);
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -176,11 +133,10 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   }, []);
 
   useFrame((state) => {
-    if (!globeRef.current || !gridLinesRef.current) return;
+    if (!globeRef.current) return;
     
     // Rotate globe slowly
     globeRef.current.rotation.y += 0.002;
-    gridLinesRef.current.rotation.y += 0.002;
     
     // Mouse influence - tilt globe
     const mouseX = (mousePosition.x / window.innerWidth - 0.5) * 0.3;
@@ -190,7 +146,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       mouseY,
       0.05
     );
-    gridLinesRef.current.rotation.x = globeRef.current.rotation.x;
     
     // Update shader progress and time for overlay
     const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
@@ -214,26 +169,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       
       {/* Circuit overlay */}
       <Sphere args={[0.755, 64, 64]} material={overlayMaterial} />
-      
-      {/* Grid lines */}
-      <group ref={gridLinesRef}>
-        {gridLines.map((line, i) => {
-          // Calculate opacity based on progress - wrapping effect
-          const lineProgress = progress / 100;
-          const opacity = Math.min(1, lineProgress * 2);
-          
-          return (
-            <Line
-              key={i}
-              points={line.points}
-              color="#00ff66"
-              lineWidth={0.8}
-              transparent
-              opacity={opacity * 0.6}
-            />
-          );
-        })}
-      </group>
     </group>
   );
 };
