@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import microsoftLogo from '@/assets/logos/microsoft.png';
+import adobeLogo from '@/assets/logos/adobe.png';
+import salesforceLogo from '@/assets/logos/salesforce.png';
+import hubspotLogo from '@/assets/logos/hubspot.png';
 
 const mockReceipts = [
   { id: 'R-2025-001', skill: 'Analytical Thinking / Critical Reasoning', level: 'Mastery', date: '2025-03-15', validator: 'Microsoft' },
@@ -14,14 +18,14 @@ const mockReceipts = [
 ];
 
 const mockBadges = [
-  { name: 'Analytical Thinking Master', icon: '📊', level: 'mastery', earned: '2025-03' },
-  { name: 'AI & Data Fluency Pro', icon: '🤖', level: 'mastery', earned: '2025-03' },
-  { name: 'Technological Literacy', icon: '💻', level: 'proficient', earned: '2025-02' },
-  { name: 'Creative Thinking', icon: '💡', level: 'proficient', earned: '2025-02' },
-  { name: 'Cybersecurity Certified', icon: '🔒', level: 'needs-work', earned: '2025-01' },
-  { name: 'Resilience & Adaptability', icon: '🎯', level: 'proficient', earned: '2025-01' },
-  { name: 'Leadership Mastery', icon: '👥', level: 'mastery', earned: '2025-03' },
-  { name: 'Service Orientation', icon: '⭐', level: 'proficient', earned: '2025-02' },
+  { name: 'Analytical Master', icon: '📊', level: 'mastery', earned: '2025-03', type: 'emoji' },
+  { name: 'Microsoft Certified', icon: microsoftLogo, level: 'mastery', earned: '2025-03', type: 'brand' },
+  { name: 'AI Data Pro', icon: '🤖', level: 'mastery', earned: '2025-03', type: 'emoji' },
+  { name: 'Adobe Creative', icon: adobeLogo, level: 'proficient', earned: '2025-02', type: 'brand' },
+  { name: 'Tech Literacy', icon: '💻', level: 'proficient', earned: '2025-02', type: 'emoji' },
+  { name: 'Salesforce Expert', icon: salesforceLogo, level: 'proficient', earned: '2025-02', type: 'brand' },
+  { name: 'Security Pro', icon: '🔒', level: 'needs-work', earned: '2025-01', type: 'emoji' },
+  { name: 'HubSpot Marketing', icon: hubspotLogo, level: 'proficient', earned: '2025-01', type: 'brand' },
 ];
 
   const getLevelColor = (level: string) => {
@@ -97,56 +101,45 @@ const Inventory = () => {
 
           {/* Badges Tab */}
           <TabsContent value="badges" className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {mockBadges.map((badge, idx) => {
-                const useMagenta = idx === 1;
-                const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-green))';
-                
                 return (
-                  <Card 
+                  <div 
                     key={idx} 
-                    className="bg-transparent border-0 p-4 text-center hover:scale-105 transition-all cursor-pointer group"
+                    className="flex flex-col items-center text-center hover:scale-110 transition-all cursor-pointer group"
                   >
-                    <div className="relative">
-                      {/* Sticker background with white border */}
-                      <div 
-                        className="w-24 h-24 mx-auto mb-3 rounded-2xl flex items-center justify-center relative"
-                        style={{ 
-                          background: 'white',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                        }}
-                      >
+                    {/* Telegram-style sticker - no border */}
+                    <div className="w-24 h-24 mb-2 flex items-center justify-center">
+                      {badge.type === 'emoji' ? (
+                        <div className="text-7xl">
+                          {badge.icon}
+                        </div>
+                      ) : (
                         <div 
-                          className="absolute inset-1 rounded-xl flex items-center justify-center text-5xl"
+                          className="w-20 h-20 rounded-2xl p-3 bg-white flex items-center justify-center"
                           style={{ 
-                            background: `linear-gradient(135deg, ${borderColor}, ${borderColor}dd)`
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                           }}
                         >
-                          {badge.name.includes('Analytical') && '📊'}
-                          {badge.name.includes('AI') && '🤖'}
-                          {badge.name.includes('Technological') && '💻'}
-                          {badge.name.includes('Creative') && '💡'}
-                          {badge.name.includes('Cybersecurity') && '🔒'}
-                          {badge.name.includes('Resilience') && '🎯'}
-                          {badge.name.includes('Leadership') && '👥'}
-                          {badge.name.includes('Service') && '⭐'}
+                          <img 
+                            src={badge.icon as string} 
+                            alt={badge.name}
+                            className="w-full h-full object-contain"
+                          />
                         </div>
-                      </div>
-                      
-                      <h3 
-                        className="font-bold text-xs mb-1 tracking-wide"
-                        style={{ color: borderColor }}
-                      >
-                        {badge.name}
-                      </h3>
-                      <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`}>
-                        {getLevelLabel(badge.level)}
-                      </Badge>
-                      <div className="text-[10px] font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
-                        {badge.earned}
-                      </div>
+                      )}
                     </div>
-                  </Card>
+                    
+                    <h3 className="font-bold text-xs mb-1 text-gray-400">
+                      {badge.name}
+                    </h3>
+                    <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`}>
+                      {getLevelLabel(badge.level)}
+                    </Badge>
+                    <div className="text-[10px] font-mono text-gray-500">
+                      {badge.earned}
+                    </div>
+                  </div>
                 );
               })}
             </div>
