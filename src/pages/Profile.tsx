@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import profileImage from '@/assets/profile-nitin.jpeg';
 
 const mockCompetencies = [
   { 
@@ -140,18 +141,16 @@ const Profile = () => {
         {/* Player Card */}
         <Card className="bg-black/50 border-2 p-6" style={{ borderColor: 'hsl(var(--neon-green))' }}>
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 rounded-full bg-black border-2 flex items-center justify-center relative overflow-hidden group">
-              <div 
-                className="absolute inset-0 bg-gradient-to-br opacity-20"
-                style={{ 
-                  backgroundImage: `linear-gradient(135deg, hsl(var(--neon-green)), transparent)`
-                }}
+            <div className="w-20 h-20 rounded-full bg-black border-2 relative overflow-hidden group" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <img 
+                src={profileImage} 
+                alt="Nitin Kumar" 
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
               />
-              <User className="w-10 h-10 relative z-10 group-hover:scale-110 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-glow-green mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
-                Player_001
+                Nitin Kumar
               </h2>
               <p className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
                 Level 12 • XP: 2,450
