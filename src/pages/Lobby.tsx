@@ -32,7 +32,7 @@ const Lobby = () => {
             className="text-center text-2xl md:text-3xl tracking-widest font-bold text-glow-green"
             style={{ color: 'hsl(var(--neon-green))' }}
           >
-            LOBBY ACCESS GRANTED
+            THE GRID ACCESS GRANTED
           </h1>
         </div>
 
