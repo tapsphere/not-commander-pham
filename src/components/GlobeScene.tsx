@@ -181,19 +181,25 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     });
   }, []);
 
-  // Cinematic zoom intro from deep space
+  // Start camera far away from the beginning
+  useEffect(() => {
+    camera.position.set(0, 0, 15);
+  }, [camera]);
+
+  // Cinematic zoom intro from deep space - smooth journey
   useEffect(() => {
     if (progress >= 100 && !introComplete) {
-      camera.position.set(0, 0, 15);
       const startTime = Date.now();
-      const duration = 3000;
+      const duration = 2500;
+      const startZ = 15;
+      const endZ = 4;
       
       const animate = () => {
         const elapsed = Date.now() - startTime;
         const t = Math.min(elapsed / duration, 1);
         const eased = 1 - Math.pow(1 - t, 3); // Ease out cubic
         
-        camera.position.z = 15 - (11 * eased);
+        camera.position.z = startZ - ((startZ - endZ) * eased);
         
         if (t < 1) {
           requestAnimationFrame(animate);
