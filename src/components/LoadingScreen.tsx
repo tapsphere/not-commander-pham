@@ -71,7 +71,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
 
   return (
     <>
-      <div className="fixed inset-0 flex flex-col items-center justify-center z-10 px-4">
+      <div className="fixed inset-0 flex flex-col items-center justify-end pb-24 z-10 px-4">
         {phase === 'initial' && (
           <div className="text-center space-y-8 animate-fade-in">
             <h1 
