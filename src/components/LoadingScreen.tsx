@@ -73,12 +73,10 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
     <>
       <div className={`fixed inset-0 flex flex-col items-center z-10 px-4 ${phase === 'loading' ? 'justify-end pb-12' : 'justify-center'}`}>
         {phase === 'initial' && (
-          <div className="text-center space-y-8 animate-fade-in">
-            <h1 
-              className="text-4xl md:text-6xl font-bold tracking-wider text-glow-green"
-              style={{ color: 'hsl(var(--neon-green))' }}
-            >
-              PLAYOPS
+          <div className="text-center space-y-8 animate-fade-in mt-24">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-wider">
+              <span className="text-white" style={{ textShadow: '0 0 20px rgba(255, 255, 255, 0.5)' }}>PLAY</span>
+              <span className="text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>OPS</span>
             </h1>
 
             <h2 
