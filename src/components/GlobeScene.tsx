@@ -111,7 +111,6 @@ interface GlobeProps {
 export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const globeRef = useRef<THREE.Group>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
-  const cloudsRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
   const [isDragging, setIsDragging] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
@@ -120,45 +119,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   
   // Load real Earth texture
   const texture = useTexture(earthTexture);
-
-  // Create cloud texture procedurally
-  const cloudsMaterial = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 512;
-    const ctx = canvas.getContext('2d')!;
-    
-    // Black background for clouds
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Create more prominent cloud formations
-    for (let i = 0; i < 3000; i++) {
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height;
-      const size = Math.random() * 50 + 20;
-      const opacity = Math.random() * 0.7 + 0.4;
-      
-      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Add blur effect for softer clouds
-      ctx.filter = 'blur(8px)';
-    }
-    
-    const cloudsTexture = new THREE.CanvasTexture(canvas);
-    
-    return new THREE.MeshStandardMaterial({
-      map: cloudsTexture,
-      transparent: true,
-      opacity: 0.7,
-      depthWrite: false,
-      blending: THREE.NormalBlending,
-    });
-  }, []);
-  
 
   // Create material for the globe with real Earth texture
   const globeMaterial = useMemo(() => {
@@ -438,11 +398,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       globeRef.current.rotation.y += 0.002;
     }
     
-    // Clouds rotate slightly faster for realism
-    if (cloudsRef.current && progress > 0) {
-      cloudsRef.current.rotation.y += 0.0025;
-    }
-    
     // Interactive rotation and parallax (after zoom completes)
     if (!isDragging && introComplete) {
       // Subtle parallax from mouse
@@ -499,12 +454,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
             {/* Circuit overlay */}
             <Sphere args={[0.555, 64, 64]} material={overlayMaterial} />
           </group>
-          
-          {/* Animated cloud layer - more visible */}
-          <mesh ref={cloudsRef}>
-            <sphereGeometry args={[0.565, 64, 64]} />
-            <primitive object={cloudsMaterial} attach="material" />
-          </mesh>
           
           {/* Enhanced volumetric atmospheric glow */}
           <mesh ref={atmosphereRef}>
