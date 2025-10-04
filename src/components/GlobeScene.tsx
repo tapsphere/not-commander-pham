@@ -149,15 +149,24 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           circuit = clamp(circuit, 0.0, 1.5);
           float nodes = mainNode + microNodes;
           
-          // Wrapping animation - covers the globe progressively
+          // Wrapping animation - slow static-like coverage
           float angle3d = atan(vPosition.z, vPosition.x);
           float heightFactor = (vPosition.y + 1.0) * 0.5;
           float normalizedAngle = (angle3d + 3.14159) / 6.28318;
           float wrapPos = normalizedAngle + heightFactor * 0.4;
           
-          // Reverse the reveal so it wraps instead of unwraps
-          float reveal = smoothstep(progress * 2.0, progress * 2.0 - 0.5, wrapPos);
-          reveal *= smoothstep(0.0, 0.2, progress);
+          // Much slower reveal with static-like glitchy effect
+          float staticNoise = noise(vUv * 50.0 + vec2(time * 0.3, 0.0));
+          float glitchEffect = step(0.5, staticNoise) * 0.1;
+          
+          // Slow progression - takes 5x longer to wrap
+          float slowProgress = progress * 0.2; // Slowed down significantly
+          float reveal = smoothstep(slowProgress * 3.0 + glitchEffect, slowProgress * 3.0 - 0.8, wrapPos);
+          reveal *= smoothstep(0.0, 0.3, slowProgress);
+          
+          // Add scanline static effect during wrapping
+          float scanline = sin(wrapPos * 100.0 + time * 10.0) * 0.05;
+          reveal += scanline * (1.0 - reveal) * slowProgress;
           
           // Intense glowing effect for bright green
           float totalCircuit = circuit + nodes;
@@ -315,8 +324,15 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       const mat = overlayMesh.material as THREE.ShaderMaterial;
       if (mat.uniforms) {
         if (mat.uniforms.progress) {
-          // Grid animation starts ONLY when progress hits 100
-          mat.uniforms.progress.value = progress >= 100 ? 1 : 0;
+          // Grid animation starts ONLY when progress hits 100, then slowly wraps over time
+          if (progress >= 100) {
+            const currentProgress = mat.uniforms.progress.value;
+            const targetProgress = 1;
+            // Slow interpolation - takes about 8 seconds to fully wrap
+            mat.uniforms.progress.value = currentProgress + (targetProgress - currentProgress) * 0.008;
+          } else {
+            mat.uniforms.progress.value = 0;
+          }
         }
         if (mat.uniforms.time) {
           mat.uniforms.time.value = state.clock.elapsedTime;
