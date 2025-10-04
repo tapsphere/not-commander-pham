@@ -18,14 +18,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const texture = useTexture(earthTexture);
   
 
-  // Create material for the globe with real Earth texture (brighter)
+  // Create material for the globe with real Earth texture (brighter with glow)
   const globeMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       map: texture,
-      metalness: 0.05,
-      roughness: 0.7,
-      emissive: new THREE.Color(0x1a3a4a),
-      emissiveIntensity: 0.4,
+      metalness: 0.1,
+      roughness: 0.5,
+      emissive: new THREE.Color(0x3a7aa0),
+      emissiveIntensity: 0.8,
     });
   }, [texture]);
   
@@ -57,71 +57,58 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         varying vec3 vPosition;
         varying vec2 vUv;
         
-        // Noise for organic patterns
         float random(vec2 st) {
           return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
         }
         
-        float noise(vec2 st) {
-          vec2 i = floor(st);
-          vec2 f = fract(st);
-          float a = random(i);
-          float b = random(i + vec2(1.0, 0.0));
-          float c = random(i + vec2(0.0, 1.0));
-          float d = random(i + vec2(1.0, 1.0));
-          vec2 u = f * f * (3.0 - 2.0 * f);
-          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-        }
-        
         void main() {
-          vec2 uv = vUv * 12.0;
+          vec2 uv = vUv * 20.0;
+          vec2 gridId = floor(uv);
+          vec2 gridUv = fract(uv);
           
-          // Organic circuit lines
-          float line1 = abs(sin(uv.x * 2.0 + noise(floor(uv * 0.5)) * 3.0));
-          float line2 = abs(sin(uv.y * 2.0 + noise(floor(uv * 0.3)) * 3.0));
-          float hLines = smoothstep(0.85, 0.95, line1);
-          float vLines = smoothstep(0.85, 0.95, line2);
+          // Clean circuit board traces - horizontal and vertical
+          float lineWidth = 0.08;
+          float hLine = step(abs(gridUv.y - 0.5), lineWidth);
+          float vLine = step(abs(gridUv.x - 0.5), lineWidth);
           
-          // Diagonal flowing traces
-          float diag = abs(sin((uv.x + uv.y) * 1.5 + noise(floor(uv * 0.4)) * 2.0));
-          float diagLines = smoothstep(0.88, 0.96, diag);
+          // Random pattern for traces
+          float pattern = random(gridId);
+          float hTrace = hLine * step(0.7, pattern);
+          float vTrace = vLine * step(0.7, random(gridId + vec2(1.0, 0.0)));
           
-          // Connection nodes
-          vec2 nodeUv = fract(uv);
-          float nodeDist = length(nodeUv - 0.5);
-          float nodes = smoothstep(0.12, 0.08, nodeDist) * step(0.85, random(floor(uv)));
+          // Connection nodes at intersections
+          vec2 nodePos = vec2(0.5);
+          float nodeDist = length(gridUv - nodePos);
+          float node = smoothstep(0.15, 0.08, nodeDist) * step(0.8, pattern);
           
-          // Main thick pathways
-          float mainPath = smoothstep(0.80, 0.90, abs(sin(uv.y * 0.8 + noise(floor(uv * 0.2)) * 4.0)));
+          // Small circuit pads
+          float pad = smoothstep(0.25, 0.18, nodeDist) * step(0.85, random(gridId + vec2(0.5, 0.5)));
           
-          // Combine patterns
-          float circuit = max(max(hLines, vLines), max(diagLines, nodes));
-          circuit = max(circuit, mainPath);
+          // Combine circuit elements
+          float circuit = max(max(hTrace, vTrace), max(node, pad));
           
-          // Wrapping animation - starts from one edge and wraps around globe
+          // Wrapping animation
           float angle = atan(vPosition.z, vPosition.x);
-          float normalizedAngle = (angle + 3.14159) / 6.28318; // 0 to 1
+          float normalizedAngle = (angle + 3.14159) / 6.28318;
           
-          // Progressive wrap - sweeps around horizontally
-          float wrapSpeed = progress * 1.2;
-          float wrapReveal = step(normalizedAngle, wrapSpeed);
+          // Smooth progressive reveal
+          float wrapSpeed = progress * 1.3;
+          float reveal = smoothstep(wrapSpeed - 0.2, wrapSpeed, normalizedAngle);
+          reveal *= min(progress * 5.0, 1.0);
           
-          // Smooth edge of the wrap
-          float wrapEdge = smoothstep(wrapSpeed - 0.15, wrapSpeed, normalizedAngle);
-          float reveal = wrapReveal * min(progress * 8.0, 1.0);
+          // Intense glow effect
+          float glow = circuit * 1.5;
+          vec3 color = glowColor * (circuit * 2.0 + glow) * reveal;
           
-          // Brighter glow
-          float glow = circuit * 0.5;
-          vec3 color = glowColor * (circuit * 1.2 + glow) * reveal;
+          // Extra bright nodes
+          color += glowColor * (node + pad) * 1.5 * reveal;
           
-          // Add extra brightness to nodes
-          color += glowColor * nodes * 0.8 * reveal;
-          
-          // Pulsing animation
-          float pulse = 1.0 + sin(time * 1.5 + random(floor(uv)) * 6.28) * 0.15;
+          // Subtle pulse on traces
+          float pulse = 1.0 + sin(time * 2.0 + pattern * 6.28) * 0.2;
           color *= pulse;
           
-          float alpha = (circuit * reveal * 0.9) + (glow * reveal * 0.2);
+          // Strong alpha for visibility
+          float alpha = (circuit * reveal * 0.95) + (glow * reveal * 0.3);
           
           gl_FragColor = vec4(color, alpha);
         }
