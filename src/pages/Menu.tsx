@@ -17,12 +17,7 @@ const Menu = () => {
 
   const handleNavigation = (path: string, index: number) => {
     setActiveIndex(index);
-    if (path === '/lobby') {
-      navigate('/lobby');
-    } else {
-      console.log(`Navigating to ${path}`);
-      // Add navigation logic for other pages
-    }
+    navigate(path);
   };
 
   return (

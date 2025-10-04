@@ -1,100 +1,154 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GridPerspective } from '@/components/GridPerspective';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Building2, Search, Target, ChevronRight, Star } from 'lucide-react';
+
+const mockBrands = [
+  { id: 1, name: 'TechCorp', department: 'Marketing', validators: 12, logo: '🚀' },
+  { id: 2, name: 'FinanceHub', department: 'Finance', validators: 8, logo: '💰' },
+  { id: 3, name: 'CreativeStudio', department: 'Communications', validators: 15, logo: '🎨' },
+  { id: 4, name: 'DataSystems', department: 'Operations', validators: 10, logo: '📊' },
+  { id: 5, name: 'MarketPro', department: 'Marketing', validators: 9, logo: '📈' },
+  { id: 6, name: 'OptiFlow', department: 'Operations', validators: 11, logo: '⚙️' },
+];
+
+const mockPrograms = [
+  { title: 'Future Skills 2025', duration: '1 Month = 2 Years XP', skills: 24, badge: '🎯' },
+  { title: 'Marketing Mastery', duration: '6 Weeks Program', skills: 18, badge: '📢' },
+  { title: 'Data Analytics Fast Track', duration: '4 Weeks Intensive', skills: 15, badge: '📊' },
+];
 
 const Lobby = () => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Fade in effect
-    setTimeout(() => setIsVisible(true), 100);
-  }, []);
-
-  const handleEnter = () => {
-    navigate('/menu');
-  };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      <GridPerspective isFlipped={true} />
-      
-      <div className={`fixed inset-0 flex flex-col items-center justify-center z-10 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Top banner */}
-        <div 
-          className="fixed top-0 left-0 right-0 border-4 p-6 animate-slide-in-right"
-          style={{ borderColor: 'hsl(var(--neon-green))' }}
-        >
+    <div className="relative w-full min-h-screen bg-black pb-24">
+      {/* Header */}
+      <div 
+        className="border-b-2 p-6"
+        style={{ borderColor: 'hsl(var(--neon-green))' }}
+      >
+        <div className="max-w-7xl mx-auto">
           <h1 
-            className="text-center text-2xl md:text-3xl tracking-widest font-bold text-glow-green"
+            className="text-2xl md:text-3xl font-bold tracking-widest text-center text-glow-green mb-2"
             style={{ color: 'hsl(var(--neon-green))' }}
           >
-            THE GRID ACCESS GRANTED
+            PLAYOPS HUB
           </h1>
+          <p className="text-center text-sm" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+            Train • Validate • Prove Your Skills
+          </p>
         </div>
+      </div>
 
-        {/* Center content */}
-        <div className="text-center space-y-12 px-4 mt-20">
-          <div className="space-y-4">
-            <h2 
-              className="text-xl md:text-2xl font-bold tracking-wider text-glow-green"
-              style={{ color: 'hsl(var(--neon-green))' }}
-            >
-              PLAYOPS COMMAND CENTER
-            </h2>
-            <p 
-              className="text-sm md:text-base font-mono"
-              style={{ color: 'hsl(var(--neon-green))' }}
-            >
-              Systems Online • Grid Stable • Ready for Operations
-            </p>
-          </div>
-
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handleEnter}
-            className="border-2 border-glow-green bg-transparent hover:bg-primary/20 text-lg tracking-widest px-16 py-8 font-bold transition-all duration-300 animate-pulse"
+      {/* Search Bar */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
+          <input
+            type="text"
+            placeholder="Search brands, skills, validators..."
+            className="w-full bg-black/50 border-2 rounded-lg pl-12 pr-4 py-3 text-sm font-mono focus:outline-none focus:ring-2"
             style={{ 
               borderColor: 'hsl(var(--neon-green))',
               color: 'hsl(var(--neon-green))'
             }}
-          >
-            ACCESS MENU
-          </Button>
-
-          {/* Decorative lines */}
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <div 
-              className="h-px w-20 md:w-32"
-              style={{ backgroundColor: 'hsl(var(--neon-green))' }}
-            />
-            <div 
-              className="w-2 h-2 rotate-45"
-              style={{ 
-                backgroundColor: 'hsl(var(--neon-green))',
-                boxShadow: '0 0 10px hsl(var(--neon-green))'
-              }}
-            />
-            <div 
-              className="h-px w-20 md:w-32"
-              style={{ backgroundColor: 'hsl(var(--neon-green))' }}
-            />
-          </div>
+          />
         </div>
+      </div>
 
-        {/* Bottom status bar */}
-        <div 
-          className="fixed bottom-0 left-0 right-0 border-t-2 p-4 backdrop-blur-sm"
-          style={{ borderColor: 'hsl(var(--neon-green))' }}
-        >
-          <div className="flex justify-between items-center text-xs md:text-sm font-mono px-4">
-            <span style={{ color: 'hsl(var(--neon-green))' }}>STATUS: ACTIVE</span>
-            <span style={{ color: 'hsl(var(--neon-green))' }}>GRID: OPERATIONAL</span>
-            <span style={{ color: 'hsl(var(--neon-green))' }}>LATENCY: 0ms</span>
-          </div>
-        </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4">
+        <Tabs defaultValue="brands" className="w-full">
+          <TabsList className="w-full bg-black/50 border-2 mb-6" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+            <TabsTrigger value="brands" className="flex-1 data-[state=active]:bg-primary/20">
+              <Building2 className="w-4 h-4 mr-2" />
+              Brand Stores
+            </TabsTrigger>
+            <TabsTrigger value="programs" className="flex-1 data-[state=active]:bg-primary/20">
+              <Target className="w-4 h-4 mr-2" />
+              Programs
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Brand Stores Tab */}
+          <TabsContent value="brands" className="space-y-6">
+            {/* Department Filter */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {['All', 'Marketing', 'Operations', 'Finance', 'Communications'].map((dept) => (
+                <Button
+                  key={dept}
+                  variant="outline"
+                  size="sm"
+                  className="whitespace-nowrap border-2 font-mono"
+                  style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
+                >
+                  {dept}
+                </Button>
+              ))}
+            </div>
+
+            {/* Brand Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mockBrands.map((brand) => (
+                <Card
+                  key={brand.id}
+                  className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group"
+                  style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  onClick={() => navigate('/menu')}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="text-4xl">{brand.logo}</div>
+                    <Badge variant="outline" className="border-2" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
+                      {brand.department}
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>
+                    {brand.name}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                      {brand.validators} Validators
+                    </span>
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* Programs Tab */}
+          <TabsContent value="programs" className="space-y-4">
+            {mockPrograms.map((program, idx) => (
+              <Card
+                key={idx}
+                className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group"
+                style={{ borderColor: 'hsl(var(--neon-green))' }}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-5xl">{program.badge}</div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-glow-green mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
+                      {program.title}
+                    </h3>
+                    <p className="text-sm font-mono mb-2" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                      {program.duration} • {program.skills} Skills
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="outline" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
+                        <Star className="w-3 h-3 mr-1" />
+                        Featured
+                      </Badge>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" style={{ color: 'hsl(var(--neon-green))' }} />
+                </div>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
