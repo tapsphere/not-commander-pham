@@ -8,6 +8,8 @@ import Lobby from "./pages/Lobby";
 import Menu from "./pages/Menu";
 import Profile from "./pages/Profile";
 import Inventory from "./pages/Inventory";
+import Wallet from "./pages/Wallet";
+import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +26,8 @@ const App = () => (
           <Route path="/menu" element={<Menu />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/inventory" element={<Inventory />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

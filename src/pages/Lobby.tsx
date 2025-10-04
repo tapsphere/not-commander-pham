@@ -35,7 +35,7 @@ const Lobby = () => {
     { icon: Home, label: 'Hub', path: '/lobby' },
     { icon: User, label: 'Profile', path: '/profile' },
     { icon: Hexagon, label: 'Inventory', path: '/inventory' },
-    { icon: TrendingUp, label: 'Stats', path: '/profile' },
+    { icon: TrendingUp, label: 'Leaderboard', path: '/leaderboard' },
     { icon: Wallet, label: 'Wallet', path: '/wallet' },
   ];
 
