@@ -147,54 +147,95 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     });
   }, []);
   
-  // Create overlay material for circuit grid
+  // Create overlay material for circuit board pattern
   const overlayMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         progress: { value: 0 },
-        glowColor: { value: new THREE.Color(0x00ff66) },
+        glowColor: { value: new THREE.Color(0x00ffaa) },
+        time: { value: 0 },
       },
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPosition;
+        varying vec2 vUv;
         
         void main() {
           vNormal = normalize(normalMatrix * normal);
           vPosition = position;
+          vUv = uv;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
       fragmentShader: `
         uniform float progress;
         uniform vec3 glowColor;
+        uniform float time;
         varying vec3 vNormal;
         varying vec3 vPosition;
+        varying vec2 vUv;
+        
+        // Noise function for organic patterns
+        float random(vec2 st) {
+          return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+        }
+        
+        float noise(vec2 st) {
+          vec2 i = floor(st);
+          vec2 f = fract(st);
+          float a = random(i);
+          float b = random(i + vec2(1.0, 0.0));
+          float c = random(i + vec2(0.0, 1.0));
+          float d = random(i + vec2(1.0, 1.0));
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
         
         void main() {
-          // Tech grid pattern - square/rectangular grid
-          float gridSize = 30.0;
-          float gridX = abs(fract(vPosition.x * gridSize) - 0.5) < 0.02 ? 1.0 : 0.0;
-          float gridY = abs(fract(vPosition.y * gridSize) - 0.5) < 0.02 ? 1.0 : 0.0;
-          float gridZ = abs(fract(vPosition.z * gridSize) - 0.5) < 0.02 ? 1.0 : 0.0;
-          float circuitPattern = max(gridX, max(gridY, gridZ));
+          // Circuit board pattern using UV coordinates
+          vec2 uv = vUv * 15.0; // Scale for pattern density
           
-          // Wrapping animation - starts from one side and wraps around
+          // Main circuit traces - horizontal and vertical lines
+          float hLines = step(0.92, fract(uv.y + noise(floor(uv) * 0.5) * 0.3));
+          float vLines = step(0.92, fract(uv.x + noise(floor(uv) * 0.3) * 0.3));
+          
+          // Diagonal traces for complexity
+          float diagLines = step(0.95, fract((uv.x + uv.y) * 0.5 + noise(floor(uv * 0.5)) * 0.2));
+          
+          // Connection nodes at intersections
+          vec2 nodePos = fract(uv);
+          float nodes = smoothstep(0.15, 0.05, length(nodePos - 0.5)) * 
+                       step(0.8, random(floor(uv)));
+          
+          // Thicker main lines
+          float mainLines = step(0.88, fract(uv.y * 0.5 + noise(floor(uv * 0.25)) * 0.5)) * 0.8;
+          
+          // Combine all patterns
+          float circuit = max(max(hLines, vLines), max(diagLines, nodes));
+          circuit = max(circuit, mainLines);
+          
+          // Wrapping animation - progressive reveal
           float angle = atan(vPosition.z, vPosition.x);
-          float normalizedAngle = (angle + 3.14159) / 6.28318; // 0 to 1
+          float normalizedAngle = (angle + 3.14159) / 6.28318;
           
-          // Progressive wrap that sweeps around the globe
-          float wrapProgress = progress * 1.5;
-          float wrapReveal = smoothstep(wrapProgress - 0.2, wrapProgress + 0.1, normalizedAngle);
+          // Sweep effect that wraps around
+          float wrapReveal = smoothstep(progress - 0.3, progress + 0.1, normalizedAngle);
           
-          // Vertical spread component
-          float verticalSpread = smoothstep(-1.0, 1.0, vPosition.y + 1.0 - (1.0 - progress) * 2.0);
+          // Vertical component
+          float verticalReveal = smoothstep(-1.0, 1.0, vPosition.y + 1.5 - progress * 3.0);
           
-          float reveal = max(wrapReveal, verticalSpread * 0.3) * min(progress * 12.0, 1.0);
+          // Combined reveal
+          float reveal = max(wrapReveal, verticalReveal * 0.4) * min(progress * 10.0, 1.0);
           
-          // Final color with subtle glow
-          vec3 color = glowColor * circuitPattern * reveal * 0.8;
+          // Add glow effect
+          float glow = circuit * 0.3;
+          vec3 color = glowColor * (circuit + glow) * reveal;
           
-          float alpha = circuitPattern * reveal * 0.7;
+          // Pulsing effect on nodes
+          float pulse = 1.0 + sin(time * 2.0 + random(floor(uv)) * 6.28) * 0.2;
+          color *= mix(1.0, pulse, nodes * 0.5);
+          
+          float alpha = (circuit * reveal * 0.85) + (glow * reveal * 0.15);
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -222,12 +263,17 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     );
     gridLinesRef.current.rotation.x = globeRef.current.rotation.x;
     
-    // Update shader progress for overlay
-    const overlayMesh = globeRef.current.children[0] as THREE.Mesh;
+    // Update shader progress and time for overlay
+    const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
     if (overlayMesh && overlayMesh.material) {
       const mat = overlayMesh.material as THREE.ShaderMaterial;
-      if (mat.uniforms && mat.uniforms.progress) {
-        mat.uniforms.progress.value = progress / 100;
+      if (mat.uniforms) {
+        if (mat.uniforms.progress) {
+          mat.uniforms.progress.value = progress / 100;
+        }
+        if (mat.uniforms.time) {
+          mat.uniforms.time.value = state.clock.elapsedTime;
+        }
       }
     }
   });
