@@ -12,26 +12,35 @@ const mockReceipts = [
 ];
 
 const mockBadges = [
-  { name: 'Analytical Thinking Master', icon: '📊', rarity: 'Epic', earned: '2025-03' },
-  { name: 'AI & Data Fluency Pro', icon: '🤖', rarity: 'Legendary', earned: '2025-03' },
-  { name: 'Technological Literacy', icon: '💻', rarity: 'Rare', earned: '2025-02' },
-  { name: 'Creative Thinking', icon: '💡', rarity: 'Epic', earned: '2025-02' },
-  { name: 'Cybersecurity Certified', icon: '🔒', rarity: 'Rare', earned: '2025-01' },
-  { name: 'Resilience & Adaptability', icon: '🎯', rarity: 'Common', earned: '2025-01' },
-  { name: 'Leadership Mastery', icon: '👥', rarity: 'Legendary', earned: '2025-03' },
-  { name: 'Service Orientation', icon: '⭐', rarity: 'Rare', earned: '2025-02' },
+  { name: 'Analytical Thinking Master', icon: '📊', level: 'mastery', earned: '2025-03' },
+  { name: 'AI & Data Fluency Pro', icon: '🤖', level: 'mastery', earned: '2025-03' },
+  { name: 'Technological Literacy', icon: '💻', level: 'proficient', earned: '2025-02' },
+  { name: 'Creative Thinking', icon: '💡', level: 'proficient', earned: '2025-02' },
+  { name: 'Cybersecurity Certified', icon: '🔒', level: 'needs-work', earned: '2025-01' },
+  { name: 'Resilience & Adaptability', icon: '🎯', level: 'proficient', earned: '2025-01' },
+  { name: 'Leadership Mastery', icon: '👥', level: 'mastery', earned: '2025-03' },
+  { name: 'Service Orientation', icon: '⭐', level: 'proficient', earned: '2025-02' },
 ];
 
-const getRarityColor = (rarity: string) => {
-  switch (rarity) {
-    case 'Legendary':
-      return 'text-purple-400 border-purple-500';
-    case 'Epic':
-      return 'text-blue-400 border-blue-500';
-    case 'Rare':
+const getLevelColor = (level: string) => {
+  switch (level) {
+    case 'mastery':
+      return 'text-green-400 border-green-500';
+    case 'proficient':
       return 'text-yellow-400 border-yellow-500';
     default:
-      return 'text-gray-400 border-gray-500';
+      return 'text-red-400 border-red-500';
+  }
+};
+
+const getLevelLabel = (level: string) => {
+  switch (level) {
+    case 'mastery':
+      return 'Mastery';
+    case 'proficient':
+      return 'Proficient';
+    default:
+      return 'Needs Work';
   }
 };
 
@@ -91,8 +100,8 @@ const Inventory = () => {
                     <h3 className="font-bold mb-2 text-glow-green tracking-wide" style={{ color: 'hsl(var(--neon-green))' }}>
                       {badge.name}
                     </h3>
-                    <Badge className={`mb-2 border-2 font-mono text-xs ${getRarityColor(badge.rarity)}`}>
-                      {badge.rarity}
+                    <Badge className={`mb-2 border-2 font-mono text-xs ${getLevelColor(badge.level)}`}>
+                      {getLevelLabel(badge.level)}
                     </Badge>
                     <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
                       Earned: {badge.earned}
