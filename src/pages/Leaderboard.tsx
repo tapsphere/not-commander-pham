@@ -54,7 +54,7 @@ const Leaderboard = () => {
         <div className="max-w-7xl mx-auto">
           <h1 
             className="text-2xl md:text-3xl font-bold tracking-widest text-center"
-            style={{ color: '#d1d5db' }}
+            style={{ color: 'hsl(var(--neon-green))' }}
           >
             LEADERBOARD
           </h1>

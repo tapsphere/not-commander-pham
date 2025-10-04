@@ -54,7 +54,7 @@ const Lobby = () => {
         <div className="max-w-7xl mx-auto">
           <h1 
             className="text-2xl md:text-3xl font-bold tracking-widest text-center mb-2"
-            style={{ color: 'white' }}
+            style={{ color: 'hsl(var(--neon-green))' }}
           >
             PLAYOPS HUB
           </h1>

@@ -130,7 +130,7 @@ const Profile = () => {
         <div className="max-w-7xl mx-auto">
           <h1 
             className="text-2xl md:text-3xl font-bold tracking-widest text-center"
-            style={{ color: 'white' }}
+            style={{ color: 'hsl(var(--neon-green))' }}
           >
             PLAYER PROFILE
           </h1>
