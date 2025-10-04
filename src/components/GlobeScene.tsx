@@ -1,81 +1,9 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Line } from '@react-three/drei';
+import { Sphere, Line, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
+import earthTexture from '@/assets/earth-texture.jpg';
 
-// Create procedural Earth texture
-function createEarthTexture() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 2048;
-  canvas.height = 1024;
-  const ctx = canvas.getContext('2d')!;
-  
-  // Ocean base - brighter blue
-  const oceanGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  oceanGradient.addColorStop(0, '#0a4d7d');
-  oceanGradient.addColorStop(0.5, '#1e5f8c');
-  oceanGradient.addColorStop(1, '#0a4d7d');
-  ctx.fillStyle = oceanGradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Land masses with visible green/brown
-  ctx.fillStyle = '#2d5a2d';
-  
-  // North America
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(300, 200);
-  ctx.bezierCurveTo(350, 150, 450, 180, 500, 250);
-  ctx.bezierCurveTo(480, 350, 420, 400, 380, 450);
-  ctx.bezierCurveTo(320, 420, 280, 350, 300, 200);
-  ctx.fill();
-  ctx.restore();
-  
-  // South America
-  ctx.beginPath();
-  ctx.ellipse(480, 550, 70, 150, -0.2, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Africa
-  ctx.beginPath();
-  ctx.moveTo(950, 400);
-  ctx.bezierCurveTo(1000, 350, 1050, 380, 1080, 450);
-  ctx.bezierCurveTo(1070, 550, 1020, 620, 970, 650);
-  ctx.bezierCurveTo(920, 600, 900, 500, 950, 400);
-  ctx.fill();
-  
-  // Europe
-  ctx.beginPath();
-  ctx.ellipse(1000, 220, 100, 70, 0.3, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Asia
-  ctx.beginPath();
-  ctx.moveTo(1100, 180);
-  ctx.bezierCurveTo(1200, 140, 1400, 150, 1550, 200);
-  ctx.bezierCurveTo(1600, 250, 1650, 300, 1680, 380);
-  ctx.bezierCurveTo(1650, 450, 1550, 480, 1450, 450);
-  ctx.bezierCurveTo(1350, 420, 1200, 350, 1150, 280);
-  ctx.bezierCurveTo(1100, 240, 1080, 200, 1100, 180);
-  ctx.fill();
-  
-  // Australia
-  ctx.beginPath();
-  ctx.ellipse(1580, 680, 90, 70, 0, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Greenland
-  ctx.beginPath();
-  ctx.ellipse(650, 120, 60, 50, 0, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Ice caps - visible white
-  ctx.fillStyle = '#e8f4f8';
-  ctx.fillRect(0, 0, canvas.width, 60);
-  ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
-  
-  return canvas;
-}
 
 interface GlobeProps {
   progress: number;
@@ -85,6 +13,9 @@ interface GlobeProps {
 export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const globeRef = useRef<THREE.Group>(null);
   const gridLinesRef = useRef<THREE.Group>(null);
+  
+  // Load real Earth texture
+  const texture = useTexture(earthTexture);
   
   // Create latitude and longitude lines
   const gridLines = useMemo(() => {
@@ -134,18 +65,16 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     return lines;
   }, []);
 
-  // Create shader material for the globe
+  // Create material for the globe with real Earth texture
   const globeMaterial = useMemo(() => {
-    const earthTexture = new THREE.CanvasTexture(createEarthTexture());
-    
     return new THREE.MeshStandardMaterial({
-      map: earthTexture,
-      metalness: 0.2,
-      roughness: 0.8,
-      emissive: new THREE.Color(0x112233),
-      emissiveIntensity: 0.2,
+      map: texture,
+      metalness: 0.1,
+      roughness: 0.9,
+      emissive: new THREE.Color(0x0a1a2a),
+      emissiveIntensity: 0.15,
     });
-  }, []);
+  }, [texture]);
   
   // Create overlay material for circuit board pattern
   const overlayMaterial = useMemo(() => {
