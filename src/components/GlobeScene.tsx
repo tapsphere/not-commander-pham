@@ -308,13 +308,13 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       atmosphereRef.current.scale.set(scale, scale, scale);
     }
     
-    // Update shader progress and time for overlay - only after zoom completes
+    // Update shader progress and time for overlay - grid wraps ONLY after zoom completes
     const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
     if (overlayMesh && overlayMesh.material) {
       const mat = overlayMesh.material as THREE.ShaderMaterial;
       if (mat.uniforms) {
         if (mat.uniforms.progress) {
-          // Grid wrapping starts only after intro is complete
+          // Grid starts wrapping only after camera zoom is 100% done
           mat.uniforms.progress.value = introComplete ? progress / 100 : 0;
         }
         if (mat.uniforms.time) {
