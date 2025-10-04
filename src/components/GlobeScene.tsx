@@ -124,20 +124,28 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   // Create cloud texture procedurally
   const cloudsMaterial = useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 256;
+    canvas.width = 1024;
+    canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
     
-    for (let i = 0; i < 2000; i++) {
+    // Black background for clouds
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Create more prominent cloud formations
+    for (let i = 0; i < 3000; i++) {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;
-      const size = Math.random() * 30 + 10;
-      const opacity = Math.random() * 0.5 + 0.3;
+      const size = Math.random() * 50 + 20;
+      const opacity = Math.random() * 0.7 + 0.4;
       
       ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
       ctx.beginPath();
       ctx.arc(x, y, size, 0, Math.PI * 2);
       ctx.fill();
+      
+      // Add blur effect for softer clouds
+      ctx.filter = 'blur(8px)';
     }
     
     const cloudsTexture = new THREE.CanvasTexture(canvas);
@@ -145,8 +153,9 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     return new THREE.MeshStandardMaterial({
       map: cloudsTexture,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.7,
       depthWrite: false,
+      blending: THREE.NormalBlending,
     });
   }, []);
   
@@ -491,9 +500,9 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
             <Sphere args={[0.555, 64, 64]} material={overlayMaterial} />
           </group>
           
-          {/* Animated cloud layer */}
+          {/* Animated cloud layer - more visible */}
           <mesh ref={cloudsRef}>
-            <sphereGeometry args={[0.56, 64, 64]} />
+            <sphereGeometry args={[0.565, 64, 64]} />
             <primitive object={cloudsMaterial} attach="material" />
           </mesh>
           
