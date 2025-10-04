@@ -148,8 +148,8 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           float normalizedAngle = (angle3d + 3.14159) / 6.28318;
           float wrapPos = normalizedAngle + heightFactor * 0.4;
           
-          // Reverse the reveal so it wraps instead of unwraps
-          float reveal = smoothstep(progress * 1.6, progress * 1.6 - 0.5, wrapPos);
+          // Reverse the reveal so it wraps instead of unwraps (slower speed)
+          float reveal = smoothstep(progress * 1.0, progress * 1.0 - 0.5, wrapPos);
           reveal *= smoothstep(0.0, 0.2, progress);
           
           // Intense glowing effect for bright green
