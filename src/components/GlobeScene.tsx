@@ -34,7 +34,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     return new THREE.ShaderMaterial({
       uniforms: {
         progress: { value: 0 },
-        glowColor: { value: new THREE.Color(0x00ffcc) },
+        glowColor: { value: new THREE.Color(0x00ff66) },
         time: { value: 0 },
       },
       vertexShader: `
@@ -145,12 +145,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           circuit = clamp(circuit, 0.0, 1.0);
           float nodes = mainNode + endpoints;
           
-          // Wrapping animation with angle
+          // Wrapping animation - covers the globe progressively
           float angle3d = atan(vPosition.z, vPosition.x);
           float heightFactor = (vPosition.y + 1.0) * 0.5;
           float normalizedAngle = (angle3d + 3.14159) / 6.28318;
           float wrapPos = normalizedAngle + heightFactor * 0.4;
-          float reveal = smoothstep(progress * 1.6 - 0.5, progress * 1.6, wrapPos);
+          
+          // Reverse the reveal so it wraps instead of unwraps
+          float reveal = smoothstep(progress * 1.6, progress * 1.6 - 0.5, wrapPos);
           reveal *= smoothstep(0.0, 0.2, progress);
           
           // Intense glowing effect
