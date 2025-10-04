@@ -18,24 +18,25 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const texture = useTexture(earthTexture);
   
 
-  // Create material for the globe with real Earth texture (brighter with glow)
+  // Create material for the globe - dark night Earth
   const globeMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       map: texture,
-      metalness: 0.1,
-      roughness: 0.5,
-      emissive: new THREE.Color(0x3a7aa0),
-      emissiveIntensity: 0.8,
+      metalness: 0.2,
+      roughness: 0.7,
+      emissive: new THREE.Color(0x0a1520),
+      emissiveIntensity: 0.3,
     });
   }, [texture]);
   
-  // Create overlay material for circuit board pattern
+  // Create overlay material for city lights and infrastructure pattern
   const overlayMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       uniforms: {
         progress: { value: 0 },
-        glowColor: { value: new THREE.Color(0x00ffaa) },
+        glowColor: { value: new THREE.Color(0x00d4ff) },
         time: { value: 0 },
+        earthTexture: { value: texture },
       },
       vertexShader: `
         varying vec3 vNormal;
@@ -53,6 +54,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         uniform float progress;
         uniform vec3 glowColor;
         uniform float time;
+        uniform sampler2D earthTexture;
         varying vec3 vNormal;
         varying vec3 vPosition;
         varying vec2 vUv;
@@ -61,54 +63,70 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
         }
         
+        float noise(vec2 st) {
+          vec2 i = floor(st);
+          vec2 f = fract(st);
+          float a = random(i);
+          float b = random(i + vec2(1.0, 0.0));
+          float c = random(i + vec2(0.0, 1.0));
+          float d = random(i + vec2(1.0, 1.0));
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        
         void main() {
-          vec2 uv = vUv * 20.0;
+          // Sample earth texture to determine land vs ocean
+          vec4 earthColor = texture2D(earthTexture, vUv);
+          float landMask = step(0.35, earthColor.r + earthColor.g);
+          
+          // Create infrastructure network based on geography
+          vec2 uv = vUv * 40.0;
           vec2 gridId = floor(uv);
           vec2 gridUv = fract(uv);
           
-          // Clean circuit board traces - horizontal and vertical
-          float lineWidth = 0.08;
+          // Detailed infrastructure lines
+          float lineWidth = 0.05;
           float hLine = step(abs(gridUv.y - 0.5), lineWidth);
           float vLine = step(abs(gridUv.x - 0.5), lineWidth);
           
-          // Random pattern for traces
+          // Random pattern following land masses
           float pattern = random(gridId);
-          float hTrace = hLine * step(0.7, pattern);
-          float vTrace = vLine * step(0.7, random(gridId + vec2(1.0, 0.0)));
+          float infrastructure = (hLine + vLine) * step(0.75, pattern) * landMask;
           
-          // Connection nodes at intersections
+          // City nodes - bright spots
           vec2 nodePos = vec2(0.5);
           float nodeDist = length(gridUv - nodePos);
-          float node = smoothstep(0.15, 0.08, nodeDist) * step(0.8, pattern);
+          float cityNode = smoothstep(0.2, 0.05, nodeDist) * step(0.85, pattern) * landMask;
           
-          // Small circuit pads
-          float pad = smoothstep(0.25, 0.18, nodeDist) * step(0.85, random(gridId + vec2(0.5, 0.5)));
+          // Additional scattered city lights
+          float scatteredLights = step(0.92, random(gridId + vec2(0.3, 0.7))) * 
+                                  smoothstep(0.3, 0.1, nodeDist) * landMask;
           
-          // Combine circuit elements
-          float circuit = max(max(hTrace, vTrace), max(node, pad));
+          // Coastal glow - detect edges
+          float coastalGlow = landMask * (1.0 - landMask * 0.8) * noise(vUv * 30.0);
           
-          // Wrapping animation
+          // Combine all light sources
+          float lights = max(max(infrastructure, cityNode), max(scatteredLights, coastalGlow * 0.5));
+          
+          // Progressive reveal animation
           float angle = atan(vPosition.z, vPosition.x);
           float normalizedAngle = (angle + 3.14159) / 6.28318;
+          float reveal = smoothstep(progress * 1.3 - 0.3, progress * 1.3, normalizedAngle);
+          reveal *= smoothstep(0.0, 0.2, progress);
           
-          // Smooth progressive reveal
-          float wrapSpeed = progress * 1.3;
-          float reveal = smoothstep(wrapSpeed - 0.2, wrapSpeed, normalizedAngle);
-          reveal *= min(progress * 5.0, 1.0);
+          // Intense glow for city lights
+          float glow = lights * 2.0;
+          vec3 color = glowColor * (lights * 3.0 + glow) * reveal;
           
-          // Intense glow effect
-          float glow = circuit * 1.5;
-          vec3 color = glowColor * (circuit * 2.0 + glow) * reveal;
+          // Extra bright city nodes
+          color += glowColor * cityNode * 4.0 * reveal;
           
-          // Extra bright nodes
-          color += glowColor * (node + pad) * 1.5 * reveal;
-          
-          // Subtle pulse on traces
-          float pulse = 1.0 + sin(time * 2.0 + pattern * 6.28) * 0.2;
+          // Pulsing effect
+          float pulse = 1.0 + sin(time * 1.5 + pattern * 6.28) * 0.15;
           color *= pulse;
           
-          // Strong alpha for visibility
-          float alpha = (circuit * reveal * 0.95) + (glow * reveal * 0.3);
+          // Alpha for visibility
+          float alpha = lights * reveal * 0.9 + glow * reveal * 0.4;
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -117,7 +135,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       side: THREE.FrontSide,
       blending: THREE.AdditiveBlending,
     });
-  }, []);
+  }, [texture]);
 
   useFrame((state) => {
     if (!globeRef.current) return;
