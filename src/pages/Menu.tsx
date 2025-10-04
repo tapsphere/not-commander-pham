@@ -59,7 +59,7 @@ const Menu = () => {
         className="fixed bottom-0 left-0 right-0 border-t-2 bg-black/95 backdrop-blur-lg z-50"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >
-        <nav className="flex items-center justify-around px-4 py-3">
+        <nav className="flex items-center justify-around px-2 py-2 max-w-screen-xl mx-auto">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeIndex === index;
@@ -68,22 +68,22 @@ const Menu = () => {
               <button
                 key={item.label}
                 onClick={() => handleNavigation(item.path, index)}
-                className="flex flex-col items-center gap-1 min-w-[60px] group transition-all duration-300"
+                className="flex flex-col items-center gap-1 flex-1 max-w-[90px] group transition-all duration-300"
               >
                 <div 
                   className={`
-                    p-3 rounded-lg transition-all duration-300
+                    p-2.5 rounded-lg transition-all duration-300
                     ${isActive ? 'bg-primary/20 scale-110' : 'hover:bg-primary/10'}
                   `}
                 >
                   <Icon 
-                    className={`w-6 h-6 transition-all duration-300 ${isActive ? 'text-glow-green' : ''}`}
+                    className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? 'text-glow-green' : ''}`}
                     style={{ color: 'hsl(var(--neon-green))' }}
                     strokeWidth={isActive ? 2.5 : 2}
                   />
                 </div>
                 <span 
-                  className={`text-xs font-mono transition-all duration-300 ${isActive ? 'text-glow-green font-bold' : ''}`}
+                  className={`text-[10px] md:text-xs font-mono transition-all duration-300 truncate w-full text-center ${isActive ? 'text-glow-green font-bold' : ''}`}
                   style={{ color: 'hsl(var(--neon-green))' }}
                 >
                   {item.label}
