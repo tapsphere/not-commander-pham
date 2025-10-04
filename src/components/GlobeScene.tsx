@@ -171,35 +171,30 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         varying vec3 vPosition;
         
         void main() {
-          // Circuit pattern - tech grid
-          float gridX = abs(sin(vPosition.x * 40.0)) > 0.95 ? 1.0 : 0.0;
-          float gridY = abs(sin(vPosition.y * 40.0)) > 0.95 ? 1.0 : 0.0;
-          float gridZ = abs(sin(vPosition.z * 40.0)) > 0.95 ? 1.0 : 0.0;
+          // Tech grid pattern - square/rectangular grid
+          float gridSize = 30.0;
+          float gridX = abs(fract(vPosition.x * gridSize) - 0.5) < 0.02 ? 1.0 : 0.0;
+          float gridY = abs(fract(vPosition.y * gridSize) - 0.5) < 0.02 ? 1.0 : 0.0;
+          float gridZ = abs(fract(vPosition.z * gridSize) - 0.5) < 0.02 ? 1.0 : 0.0;
           float circuitPattern = max(gridX, max(gridY, gridZ));
           
           // Wrapping animation - starts from one side and wraps around
           float angle = atan(vPosition.z, vPosition.x);
           float normalizedAngle = (angle + 3.14159) / 6.28318; // 0 to 1
           
-          // Wrap reveal - starts at angle 0 and sweeps around
-          float wrapStart = progress * 2.0; // 0 to 2
-          float wrapReveal = smoothstep(wrapStart - 0.3, wrapStart, normalizedAngle) * 
-                            smoothstep(wrapStart + 0.3, wrapStart, normalizedAngle);
+          // Progressive wrap that sweeps around the globe
+          float wrapProgress = progress * 1.5;
+          float wrapReveal = smoothstep(wrapProgress - 0.2, wrapProgress + 0.1, normalizedAngle);
           
-          // Also add vertical spread
+          // Vertical spread component
           float verticalSpread = smoothstep(-1.0, 1.0, vPosition.y + 1.0 - (1.0 - progress) * 2.0);
           
-          float reveal = max(wrapReveal, verticalSpread * 0.5) * (progress * 10.0);
-          reveal = clamp(reveal, 0.0, 1.0);
+          float reveal = max(wrapReveal, verticalSpread * 0.3) * min(progress * 12.0, 1.0);
           
-          // Final color
-          vec3 color = glowColor * circuitPattern * reveal;
+          // Final color with subtle glow
+          vec3 color = glowColor * circuitPattern * reveal * 0.8;
           
-          // Edge glow
-          float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 2.0);
-          color += glowColor * fresnel * 0.15 * reveal;
-          
-          float alpha = (circuitPattern * reveal * 0.9) + (fresnel * reveal * 0.1);
+          float alpha = circuitPattern * reveal * 0.7;
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -257,62 +252,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
               key={i}
               points={line.points}
               color="#00ff66"
-              lineWidth={1.5}
+              lineWidth={0.8}
               transparent
-              opacity={opacity * 0.5}
+              opacity={opacity * 0.6}
             />
           );
         })}
       </group>
-      
-      {/* Ambient particles around globe */}
-      <DataParticles progress={progress} />
     </group>
   );
 };
 
-const DataParticles = ({ progress }: { progress: number }) => {
-  const particlesRef = useRef<THREE.Points>(null);
-  
-  const particles = useMemo(() => {
-    const count = 300;
-    const positions = new Float32Array(count * 3);
-    
-    for (let i = 0; i < count; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(Math.random() * 2 - 1);
-      const radius = 1.0 + Math.random() * 0.6;
-      
-      positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = radius * Math.cos(phi);
-    }
-    
-    return positions;
-  }, []);
-
-  useFrame((state) => {
-    if (!particlesRef.current) return;
-    particlesRef.current.rotation.y += 0.0005;
-  });
-
-  return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={particles.length / 3}
-          array={particles}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.05}
-        color="#00ff66"
-        transparent
-        opacity={Math.min(1, progress / 50)}
-        sizeAttenuation
-      />
-    </points>
-  );
-};
