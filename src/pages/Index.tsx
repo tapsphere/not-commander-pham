@@ -75,28 +75,34 @@ const Index = () => {
         
         .stars-small {
           background-image: 
-            radial-gradient(1px 1px at 20% 30%, rgba(0, 255, 102, 0.4), transparent),
-            radial-gradient(1px 1px at 60% 70%, rgba(0, 255, 102, 0.3), transparent),
-            radial-gradient(1px 1px at 50% 50%, rgba(0, 255, 102, 0.4), transparent),
-            radial-gradient(1px 1px at 80% 10%, rgba(0, 255, 102, 0.3), transparent),
-            radial-gradient(1px 1px at 90% 60%, rgba(0, 255, 102, 0.4), transparent);
+            radial-gradient(1px 1px at 20% 30%, white, transparent),
+            radial-gradient(1px 1px at 60% 70%, white, transparent),
+            radial-gradient(1px 1px at 50% 50%, white, transparent),
+            radial-gradient(1px 1px at 80% 10%, white, transparent),
+            radial-gradient(1px 1px at 90% 60%, white, transparent),
+            radial-gradient(1px 1px at 15% 80%, white, transparent),
+            radial-gradient(1px 1px at 40% 15%, white, transparent),
+            radial-gradient(1px 1px at 75% 45%, white, transparent);
           background-size: 200% 200%;
           animation: twinkle 3s infinite;
         }
         
         .stars-medium {
           background-image:
-            radial-gradient(2px 2px at 30% 80%, rgba(0, 255, 102, 0.5), transparent),
-            radial-gradient(2px 2px at 70% 20%, rgba(0, 255, 102, 0.4), transparent),
-            radial-gradient(2px 2px at 40% 40%, rgba(0, 255, 102, 0.5), transparent);
+            radial-gradient(2px 2px at 30% 80%, rgba(255, 255, 255, 0.8), transparent),
+            radial-gradient(2px 2px at 70% 20%, rgba(255, 255, 255, 0.7), transparent),
+            radial-gradient(2px 2px at 40% 40%, rgba(255, 255, 255, 0.8), transparent),
+            radial-gradient(2px 2px at 85% 65%, rgba(255, 255, 255, 0.7), transparent);
           background-size: 300% 300%;
           animation: twinkle 5s infinite;
         }
         
         .stars-large {
           background-image:
-            radial-gradient(3px 3px at 10% 50%, rgba(0, 255, 102, 0.6), transparent),
-            radial-gradient(3px 3px at 85% 85%, rgba(0, 255, 102, 0.5), transparent);
+            radial-gradient(3px 3px at 10% 50%, rgba(255, 255, 255, 0.9), transparent),
+            radial-gradient(3px 3px at 85% 85%, rgba(255, 255, 255, 0.8), transparent),
+            radial-gradient(2px 2px at 25% 25%, rgba(0, 255, 102, 0.7), transparent),
+            radial-gradient(2px 2px at 95% 15%, rgba(0, 255, 102, 0.6), transparent);
           background-size: 400% 400%;
           animation: twinkle 7s infinite;
         }
