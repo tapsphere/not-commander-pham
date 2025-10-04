@@ -13,50 +13,50 @@ export const playGridSweepSound = () => {
 
   isPlaying = true;
 
-  // Create oscillator for the sweep sound
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-  
-  // Connect nodes
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // Configure the sweep sound - futuristic scanning effect
-  oscillator.type = 'sine';
-  
   const now = audioContext.currentTime;
   const duration = 8; // Match the grid sweep duration
   
-  // Frequency sweep from low to high (scanning effect)
-  oscillator.frequency.setValueAtTime(150, now);
-  oscillator.frequency.exponentialRampToValueAtTime(800, now + duration * 0.5);
-  oscillator.frequency.exponentialRampToValueAtTime(400, now + duration);
+  // Create white noise buffer for static effect
+  const bufferSize = audioContext.sampleRate * duration;
+  const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+  const output = noiseBuffer.getChannelData(0);
   
-  // Volume envelope - fade in and out
+  // Generate filtered static noise
+  for (let i = 0; i < bufferSize; i++) {
+    output[i] = Math.random() * 2 - 1;
+  }
+  
+  // Create buffer source
+  const whiteNoise = audioContext.createBufferSource();
+  whiteNoise.buffer = noiseBuffer;
+  
+  // Create filter to shape the static sound
+  const filter = audioContext.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(2000, now);
+  filter.Q.value = 0.5;
+  
+  // Add some frequency modulation for movement
+  filter.frequency.exponentialRampToValueAtTime(4000, now + duration * 0.3);
+  filter.frequency.exponentialRampToValueAtTime(1500, now + duration);
+  
+  // Create gain for volume control
+  const gainNode = audioContext.createGain();
   gainNode.gain.setValueAtTime(0, now);
-  gainNode.gain.linearRampToValueAtTime(0.08, now + 0.3); // Gentle fade in
-  gainNode.gain.linearRampToValueAtTime(0.06, now + duration - 1); // Sustain
+  gainNode.gain.linearRampToValueAtTime(0.12, now + 0.2); // Quick fade in
+  gainNode.gain.linearRampToValueAtTime(0.08, now + duration - 0.5); // Sustain
   gainNode.gain.linearRampToValueAtTime(0, now + duration); // Fade out
   
-  // Add subtle pulse effect
-  const lfo = audioContext.createOscillator();
-  const lfoGain = audioContext.createGain();
+  // Connect nodes
+  whiteNoise.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(audioContext.destination);
   
-  lfo.frequency.value = 4; // Pulse 4 times per second
-  lfoGain.gain.value = 0.02; // Subtle modulation
+  // Start the static sound
+  whiteNoise.start(now);
+  whiteNoise.stop(now + duration);
   
-  lfo.connect(lfoGain);
-  lfoGain.connect(gainNode.gain);
-  
-  // Start the sound
-  oscillator.start(now);
-  lfo.start(now);
-  
-  // Stop after duration
-  oscillator.stop(now + duration);
-  lfo.stop(now + duration);
-  
-  oscillator.onended = () => {
+  whiteNoise.onended = () => {
     isPlaying = false;
   };
 };
