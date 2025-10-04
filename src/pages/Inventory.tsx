@@ -31,11 +31,11 @@ const mockBadges = [
   const getLevelColor = (level: string) => {
     switch (level) {
       case 'mastery':
-        return 'text-green-400 border-green-500';
+        return 'bg-black border-green-500 text-green-400';
       case 'proficient':
-        return 'text-white border-white';
+        return 'bg-black text-white border-white';
       default:
-        return 'text-red-400 border-red-500';
+        return 'bg-black text-red-400 border-red-500';
     }
   };
 
@@ -134,7 +134,7 @@ const Inventory = () => {
                     <h3 className="font-bold text-xs mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
                       {badge.name}
                     </h3>
-                    <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`}>
+                    <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`} style={{ borderColor: 'hsl(var(--neon-green))' }}>
                       {getLevelLabel(badge.level)}
                     </Badge>
                     <div className="text-[10px] font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
