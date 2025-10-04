@@ -10,72 +10,83 @@ function createEarthTexture() {
   canvas.height = 1024;
   const ctx = canvas.getContext('2d')!;
   
-  // Ocean base
-  ctx.fillStyle = '#0a4d68';
+  // Deep ocean base
+  const oceanGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  oceanGradient.addColorStop(0, '#001a33');
+  oceanGradient.addColorStop(0.5, '#003d5c');
+  oceanGradient.addColorStop(1, '#001a33');
+  ctx.fillStyle = oceanGradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Add noise for ocean texture
-  for (let i = 0; i < 50000; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    ctx.fillStyle = `rgba(10, 77, 104, ${Math.random() * 0.3})`;
-    ctx.fillRect(x, y, 2, 2);
-  }
+  // Land masses with better colors
+  ctx.fillStyle = '#1a4d2e';
   
-  // Simplified continents (approximated shapes)
-  ctx.fillStyle = '#2d5016';
-  
-  // North America
+  // North America (more accurate shape)
+  ctx.save();
   ctx.beginPath();
-  ctx.ellipse(400, 300, 180, 200, 0.3, 0, Math.PI * 2);
+  ctx.moveTo(300, 200);
+  ctx.bezierCurveTo(350, 150, 450, 180, 500, 250);
+  ctx.bezierCurveTo(480, 350, 420, 400, 380, 450);
+  ctx.bezierCurveTo(320, 420, 280, 350, 300, 200);
   ctx.fill();
+  ctx.restore();
   
   // South America
   ctx.beginPath();
-  ctx.ellipse(500, 600, 80, 180, 0.2, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Europe
-  ctx.beginPath();
-  ctx.ellipse(950, 250, 120, 100, 0, 0, Math.PI * 2);
+  ctx.ellipse(480, 550, 70, 150, -0.2, 0, Math.PI * 2);
   ctx.fill();
   
   // Africa
   ctx.beginPath();
-  ctx.ellipse(1000, 500, 150, 200, 0, 0, Math.PI * 2);
+  ctx.moveTo(950, 400);
+  ctx.bezierCurveTo(1000, 350, 1050, 380, 1080, 450);
+  ctx.bezierCurveTo(1070, 550, 1020, 620, 970, 650);
+  ctx.bezierCurveTo(920, 600, 900, 500, 950, 400);
   ctx.fill();
   
-  // Asia
+  // Europe
   ctx.beginPath();
-  ctx.ellipse(1400, 300, 300, 200, 0, 0, Math.PI * 2);
+  ctx.ellipse(1000, 220, 100, 70, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Asia (large mass)
+  ctx.beginPath();
+  ctx.moveTo(1100, 180);
+  ctx.bezierCurveTo(1200, 140, 1400, 150, 1550, 200);
+  ctx.bezierCurveTo(1600, 250, 1650, 300, 1680, 380);
+  ctx.bezierCurveTo(1650, 450, 1550, 480, 1450, 450);
+  ctx.bezierCurveTo(1350, 420, 1200, 350, 1150, 280);
+  ctx.bezierCurveTo(1100, 240, 1080, 200, 1100, 180);
   ctx.fill();
   
   // Australia
   ctx.beginPath();
-  ctx.ellipse(1600, 700, 100, 80, 0, 0, Math.PI * 2);
+  ctx.ellipse(1580, 680, 90, 70, 0, 0, Math.PI * 2);
   ctx.fill();
   
-  // Add terrain texture
-  for (let i = 0; i < 30000; i++) {
+  // Greenland
+  ctx.beginPath();
+  ctx.ellipse(650, 120, 60, 50, 0, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // Add terrain variation
+  for (let i = 0; i < 20000; i++) {
     const x = Math.random() * canvas.width;
     const y = Math.random() * canvas.height;
     const pixel = ctx.getImageData(x, y, 1, 1).data;
-    if (pixel[0] > 40) { // If it's land
-      ctx.fillStyle = `rgba(45, 80, 22, ${Math.random() * 0.4})`;
+    if (pixel[0] > 20) { // If it's land
+      const shade = Math.random();
+      ctx.fillStyle = shade > 0.7 
+        ? 'rgba(40, 90, 50, 0.3)' // Mountains
+        : 'rgba(25, 70, 40, 0.2)'; // Plains
       ctx.fillRect(x, y, 1, 1);
     }
   }
   
-  // Clouds layer
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-  for (let i = 0; i < 100; i++) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    const size = 20 + Math.random() * 80;
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // Ice caps
+  ctx.fillStyle = 'rgba(240, 250, 255, 0.6)';
+  ctx.fillRect(0, 0, canvas.width, 80);
+  ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
   
   return canvas;
 }
@@ -92,7 +103,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   // Create latitude and longitude lines
   const gridLines = useMemo(() => {
     const lines = [];
-    const radius = 2.01; // Slightly larger than globe
+    const radius = 1.01; // Slightly larger than globe (half the original size)
     const segments = 32;
     
     // Latitude lines
@@ -174,21 +185,31 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         varying vec3 vPosition;
         
         void main() {
-          // Create circuit board pattern
-          float circuit = sin(vPosition.x * 30.0) * sin(vPosition.y * 30.0);
-          float circuitPattern = step(0.85, circuit);
+          // Circuit board pattern - denser grid
+          float circuitX = sin(vPosition.x * 50.0 + vPosition.z * 30.0);
+          float circuitY = sin(vPosition.y * 50.0 + vPosition.x * 30.0);
+          float circuitZ = sin(vPosition.z * 50.0 + vPosition.y * 30.0);
+          float circuit = circuitX * circuitY * circuitZ;
+          float circuitPattern = step(0.90, circuit);
           
-          // Progressive reveal based on latitude (bottom to top)
-          float reveal = smoothstep(-1.0, 1.0, vPosition.y - 2.0 + progress * 4.0);
+          // Wrapping effect - reveals circuit as it wraps around
+          // Based on angle from starting point (progressive wrap)
+          float angle = atan(vPosition.z, vPosition.x);
+          float normalizedAngle = (angle + 3.14159) / 6.28318; // Normalize to 0-1
+          
+          // Combine with vertical progression
+          float verticalReveal = smoothstep(-1.0, 1.0, vPosition.y - 1.5 + progress * 3.0);
+          float wrapReveal = smoothstep(0.0, 1.0, normalizedAngle - 1.0 + progress * 2.0);
+          float reveal = max(verticalReveal, wrapReveal) * progress / 100.0;
           
           // Combine patterns
-          vec3 color = glowColor * circuitPattern * reveal * 0.8;
+          vec3 color = glowColor * circuitPattern * reveal;
           
-          // Edge glow
-          float edgeGlow = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 3.0);
-          color += glowColor * edgeGlow * 0.3 * reveal;
+          // Edge glow for depth
+          float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1))), 2.5);
+          color += glowColor * fresnel * 0.2 * reveal;
           
-          float alpha = (circuitPattern * reveal * 0.7) + (edgeGlow * reveal * 0.3);
+          float alpha = (circuitPattern * reveal * 0.85) + (fresnel * reveal * 0.15);
           
           gl_FragColor = vec4(color, alpha);
         }
@@ -228,27 +249,27 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
 
   return (
     <group ref={globeRef}>
-      {/* Main Earth sphere with texture */}
-      <Sphere args={[2, 64, 64]} material={globeMaterial} />
+      {/* Main Earth sphere with texture - HALF SIZE */}
+      <Sphere args={[1, 64, 64]} material={globeMaterial} />
       
-      {/* Circuit overlay */}
-      <Sphere args={[2.01, 64, 64]} material={overlayMaterial} />
+      {/* Circuit overlay - HALF SIZE */}
+      <Sphere args={[1.005, 64, 64]} material={overlayMaterial} />
       
       {/* Grid lines */}
       <group ref={gridLinesRef}>
         {gridLines.map((line, i) => {
-          // Calculate opacity based on progress
+          // Calculate opacity based on progress - wrapping effect
           const lineProgress = progress / 100;
-          const opacity = Math.min(1, lineProgress * 1.5);
+          const opacity = Math.min(1, lineProgress * 2);
           
           return (
             <Line
               key={i}
               points={line.points}
               color="#00ff66"
-              lineWidth={1}
+              lineWidth={1.5}
               transparent
-              opacity={opacity * 0.4}
+              opacity={opacity * 0.5}
             />
           );
         })}
@@ -270,7 +291,7 @@ const DataParticles = ({ progress }: { progress: number }) => {
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
-      const radius = 2.5 + Math.random() * 1.5;
+      const radius = 1.3 + Math.random() * 0.8; // Adjusted for smaller globe
       
       positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);

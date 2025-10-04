@@ -42,7 +42,7 @@ const Index = () => {
 
       {/* 3D Globe Canvas */}
       <Canvas
-        camera={{ position: [0, 0, 6], fov: 60 }}
+        camera={{ position: [0, 0, 3.5], fov: 60 }}
         className="absolute inset-0"
       >
         <ambientLight intensity={0.2} />
