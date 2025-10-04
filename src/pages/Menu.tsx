@@ -5,8 +5,8 @@ import { Home, User, Package, Trophy, BookOpen, Wallet } from 'lucide-react';
 const menuItems = [
   { icon: Home, label: 'Home', path: '/lobby' },
   { icon: User, label: 'Profile', path: '/profile' },
-  { icon: Package, label: 'Inventory', path: '/inventory' },
-  { icon: Trophy, label: 'Leaderboard', path: '/leaderboard' },
+  { icon: Package, label: 'Items', path: '/inventory' },
+  { icon: Trophy, label: 'Ranks', path: '/leaderboard' },
   { icon: BookOpen, label: 'Lore', path: '/lore' },
   { icon: Wallet, label: 'Wallet', path: '/wallet' },
 ];
