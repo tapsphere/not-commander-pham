@@ -97,7 +97,6 @@ const Leaderboard = () => {
                       }}
                     />
                     <div className="relative z-10">
-                      <div className="text-2xl md:text-4xl mb-2">{leader.avatar}</div>
                       <h3 className={`font-bold text-[10px] md:text-sm mb-1 md:mb-2 ${glowClass} tracking-wide break-words`} style={{ color: borderColor }}>
                         {leader.username}
                       </h3>
