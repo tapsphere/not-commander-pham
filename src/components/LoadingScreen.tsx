@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { initAudioContext } from '@/utils/gridSweepSound';
+import { initAudioContext, playAmbientSound } from '@/utils/ambientSound';
 
 interface LoadingScreenProps {
   onProgressUpdate?: (progress: number) => void;
@@ -63,8 +63,9 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
   }, [phase, onProgressUpdate, onFlip]);
 
   const handleInitialize = () => {
-    // Initialize audio context on user interaction (required by browsers)
+    // Initialize audio context and start ambient sound
     initAudioContext();
+    playAmbientSound();
     setPhase('loading');
   };
 

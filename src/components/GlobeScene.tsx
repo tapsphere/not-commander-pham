@@ -3,7 +3,6 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { Sphere, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import earthTexture from '@/assets/earth-texture.jpg';
-import { playGridSweepSound, initAudioContext } from '@/utils/gridSweepSound';
 
 interface GlobeProps {
   progress: number;
@@ -117,7 +116,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   const [introComplete, setIntroComplete] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const rotationRef = useRef({ x: 0, y: 0 });
-  const soundPlayedRef = useRef(false);
   
   // Load real Earth texture
   const texture = useTexture(earthTexture);
@@ -403,12 +401,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         if (mat.uniforms.progress) {
           // Grid animation starts ONLY when progress hits 100, then slowly wraps over time
           if (progress >= 100) {
-            // Play sound effect once when grid starts sweeping
-            if (!soundPlayedRef.current) {
-              soundPlayedRef.current = true;
-              playGridSweepSound();
-            }
-            
             const currentProgress = mat.uniforms.progress.value;
             const targetProgress = 1;
             // Slow interpolation - takes about 8 seconds to fully wrap
