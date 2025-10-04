@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
-export const LoadingScreen = () => {
+interface LoadingScreenProps {
+  onProgressUpdate?: (progress: number) => void;
+  onFlip?: () => void;
+}
+
+export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
   const [progress, setProgress] = useState(0);
@@ -25,6 +30,11 @@ export const LoadingScreen = () => {
         setProgress((prev) => {
           const next = prev + 1;
           
+          // Update parent component
+          if (onProgressUpdate) {
+            onProgressUpdate(next);
+          }
+          
           if (next % 20 === 0 && currentStatus < statuses.length - 1) {
             currentStatus++;
             setStatus(statuses[currentStatus]);
@@ -34,6 +44,9 @@ export const LoadingScreen = () => {
             clearInterval(interval);
             setTimeout(() => {
               setIsFlipped(true);
+              if (onFlip) {
+                onFlip();
+              }
               setTimeout(() => {
                 setPhase('complete');
               }, 1000);
