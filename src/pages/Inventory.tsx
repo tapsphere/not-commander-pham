@@ -4,19 +4,22 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const mockReceipts = [
-  { id: 'R-2025-001', skill: 'Excel Data Analysis', level: 'Mastery', date: '2025-03-15', validator: 'TechCorp' },
-  { id: 'R-2025-002', skill: 'SQL Queries', level: 'Proficient', date: '2025-03-10', validator: 'DataSystems' },
-  { id: 'R-2025-003', skill: 'Social Media Marketing', level: 'Mastery', date: '2025-02-28', validator: 'MarketPro' },
-  { id: 'R-2025-004', skill: 'Content Writing', level: 'Proficient', date: '2025-02-20', validator: 'CreativeStudio' },
+  { id: 'R-2025-001', skill: 'Analytical Thinking / Critical Reasoning', level: 'Mastery', date: '2025-03-15', validator: 'Microsoft' },
+  { id: 'R-2025-002', skill: 'AI & Big Data Skills', level: 'Proficient', date: '2025-03-10', validator: 'Salesforce' },
+  { id: 'R-2025-003', skill: 'Technological Literacy', level: 'Mastery', date: '2025-02-28', validator: 'Adobe' },
+  { id: 'R-2025-004', skill: 'Creative Thinking', level: 'Proficient', date: '2025-02-20', validator: 'HubSpot' },
+  { id: 'R-2025-005', skill: 'Leadership & Social Influence', level: 'Mastery', date: '2025-03-05', validator: 'Monday.com' },
 ];
 
 const mockBadges = [
-  { name: 'Excel Master', icon: '📊', rarity: 'Epic', earned: '2025-03' },
-  { name: 'Marketing Pro', icon: '📢', rarity: 'Rare', earned: '2025-02' },
-  { name: 'SQL Certified', icon: '🗄️', rarity: 'Rare', earned: '2025-01' },
-  { name: 'First Validator', icon: '🎯', rarity: 'Common', earned: '2025-01' },
-  { name: 'Speed Runner', icon: '⚡', rarity: 'Epic', earned: '2025-02' },
-  { name: 'Perfectionist', icon: '💎', rarity: 'Legendary', earned: '2025-03' },
+  { name: 'Analytical Thinking Master', icon: '📊', rarity: 'Epic', earned: '2025-03' },
+  { name: 'AI & Data Fluency Pro', icon: '🤖', rarity: 'Legendary', earned: '2025-03' },
+  { name: 'Technological Literacy', icon: '💻', rarity: 'Rare', earned: '2025-02' },
+  { name: 'Creative Thinking', icon: '💡', rarity: 'Epic', earned: '2025-02' },
+  { name: 'Cybersecurity Certified', icon: '🔒', rarity: 'Rare', earned: '2025-01' },
+  { name: 'Resilience & Adaptability', icon: '🎯', rarity: 'Common', earned: '2025-01' },
+  { name: 'Leadership Mastery', icon: '👥', rarity: 'Legendary', earned: '2025-03' },
+  { name: 'Service Orientation', icon: '⭐', rarity: 'Rare', earned: '2025-02' },
 ];
 
 const getRarityColor = (rarity: string) => {
