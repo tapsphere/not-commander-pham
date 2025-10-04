@@ -188,9 +188,9 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     camera.position.set(0, 0, 15);
   }, [camera]);
 
-  // Cinematic zoom intro from deep space - smooth journey
+  // Cinematic zoom intro from deep space - happens first
   useEffect(() => {
-    if (progress >= 100 && !introComplete) {
+    if (progress > 0 && !introComplete) {
       const startTime = Date.now();
       const duration = 2500;
       const startZ = 15;
@@ -308,13 +308,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       atmosphereRef.current.scale.set(scale, scale, scale);
     }
     
-    // Update shader progress and time for overlay
+    // Update shader progress and time for overlay - only after zoom completes
     const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
     if (overlayMesh && overlayMesh.material) {
       const mat = overlayMesh.material as THREE.ShaderMaterial;
       if (mat.uniforms) {
         if (mat.uniforms.progress) {
-          mat.uniforms.progress.value = progress / 100;
+          // Grid wrapping starts only after intro is complete
+          mat.uniforms.progress.value = introComplete ? progress / 100 : 0;
         }
         if (mat.uniforms.time) {
           mat.uniforms.time.value = state.clock.elapsedTime;
