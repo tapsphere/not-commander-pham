@@ -59,7 +59,7 @@ export const StarField = () => {
 
         if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
           const opacity = 1 - star.z / canvas.width;
-          ctx.fillStyle = `rgba(204, 255, 0, ${opacity * 0.8})`;
+          ctx.fillStyle = `rgba(0, 255, 102, ${opacity * 0.8})`;
           ctx.fillRect(px, py, size, size);
         }
       });

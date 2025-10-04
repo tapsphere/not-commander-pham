@@ -43,7 +43,7 @@ export const GridPerspective = ({ isFlipped }: GridPerspectiveProps) => {
         const perspective = 1 - Math.abs(i) / lines;
         const width = canvas.width * perspective;
         
-        ctx.strokeStyle = `rgba(204, 255, 0, ${0.3 * perspective})`;
+        ctx.strokeStyle = `rgba(0, 255, 102, ${0.3 * perspective})`;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(centerX - width / 2, y);
@@ -53,7 +53,7 @@ export const GridPerspective = ({ isFlipped }: GridPerspectiveProps) => {
 
       // Draw vertical lines
       for (let i = -lines; i <= lines; i++) {
-        ctx.strokeStyle = 'rgba(204, 255, 0, 0.2)';
+        ctx.strokeStyle = 'rgba(0, 255, 102, 0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(centerX + i * gridSize, centerY - lines * gridSize);

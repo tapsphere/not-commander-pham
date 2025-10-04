@@ -52,7 +52,7 @@ export const GridBackground = () => {
         if (point.y < 0 || point.y > canvas.height) point.vy *= -1;
 
         // Draw point
-        ctx.fillStyle = 'rgba(204, 255, 0, 0.6)';
+        ctx.fillStyle = 'rgba(0, 255, 102, 0.6)';
         ctx.beginPath();
         ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
         ctx.fill();
@@ -67,7 +67,7 @@ export const GridBackground = () => {
 
           if (distance < maxDistance) {
             const opacity = (1 - distance / maxDistance) * 0.5;
-            ctx.strokeStyle = `rgba(204, 255, 0, ${opacity})`;
+            ctx.strokeStyle = `rgba(0, 255, 102, ${opacity})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(points[i].x, points[i].y);
