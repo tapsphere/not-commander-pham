@@ -282,20 +282,22 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   useFrame((state) => {
     if (!globeRef.current) return;
     
-    // Orbital float and interactive rotation
-    if (!isDragging && introComplete) {
+    // Rotate Earth immediately when it appears (progress > 0)
+    if (progress > 0) {
       globeRef.current.rotation.y += 0.001;
-      
+    }
+    
+    // Interactive rotation and parallax (after zoom completes)
+    if (!isDragging && introComplete) {
       // Subtle parallax from mouse
       const targetRotationX = (mousePosition.y / window.innerHeight - 0.5) * 0.15;
       const targetRotationY = (mousePosition.x / window.innerWidth - 0.5) * 0.15;
       
       globeRef.current.rotation.x += (targetRotationX + rotationRef.current.x - globeRef.current.rotation.x) * 0.03;
       globeRef.current.rotation.y += (targetRotationY + rotationRef.current.y - globeRef.current.rotation.y) * 0.03;
-    } else if (isDragging) {
-      // Apply drag rotation
+    } else if (isDragging && introComplete) {
+      // Apply drag rotation only after zoom
       globeRef.current.rotation.x = rotationRef.current.x;
-      globeRef.current.rotation.y += 0.001;
       const currentY = globeRef.current.rotation.y % (Math.PI * 2);
       const targetY = rotationRef.current.y % (Math.PI * 2);
       globeRef.current.rotation.y = currentY + (targetY - currentY) * 0.1;
@@ -308,13 +310,13 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       atmosphereRef.current.scale.set(scale, scale, scale);
     }
     
-    // Update shader progress and time for overlay - grid wraps ONLY after zoom completes
+    // Grid wraps ONLY after zoom animation finishes
     const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
     if (overlayMesh && overlayMesh.material) {
       const mat = overlayMesh.material as THREE.ShaderMaterial;
       if (mat.uniforms) {
         if (mat.uniforms.progress) {
-          // Grid starts wrapping only after camera zoom is 100% done
+          // Grid animation starts ONLY when introComplete is true
           mat.uniforms.progress.value = introComplete ? progress / 100 : 0;
         }
         if (mat.uniforms.time) {
