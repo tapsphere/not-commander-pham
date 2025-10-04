@@ -3,102 +3,150 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 
 export const LoadingScreen = () => {
+  const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('Connecting...');
-  const [showButton, setShowButton] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
-    const statuses = [
-      'Connecting...',
-      'Loading assets...',
-      'Initializing grid...',
-      'Calibrating systems...',
-      'Ready to enter'
-    ];
-    
-    let currentStatus = 0;
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + 1;
-        
-        // Update status based on progress
-        if (next % 20 === 0 && currentStatus < statuses.length - 1) {
-          currentStatus++;
-          setStatus(statuses[currentStatus]);
-        }
-        
-        if (next >= 100) {
-          clearInterval(interval);
-          setShowButton(true);
-          setStatus('Ready to enter');
-        }
-        
-        return Math.min(next, 100);
-      });
-    }, 50);
+    if (phase === 'loading') {
+      const statuses = [
+        'Connecting...',
+        'Loading assets...',
+        'Initializing grid...',
+        'Calibrating systems...',
+        'Ready'
+      ];
+      
+      let currentStatus = 0;
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          const next = prev + 1;
+          
+          if (next % 20 === 0 && currentStatus < statuses.length - 1) {
+            currentStatus++;
+            setStatus(statuses[currentStatus]);
+          }
+          
+          if (next >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              setIsFlipped(true);
+              setTimeout(() => {
+                setPhase('complete');
+              }, 1000);
+            }, 500);
+          }
+          
+          return Math.min(next, 100);
+        });
+      }, 30);
 
-    return () => clearInterval(interval);
-  }, []);
+      return () => clearInterval(interval);
+    }
+  }, [phase]);
+
+  const handleInitialize = () => {
+    setPhase('loading');
+  };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-10">
-      <div className="text-center space-y-8 px-4">
-        {/* Brand */}
-        <h1 className="text-2xl font-bold tracking-wider text-glow-purple" style={{ color: 'hsl(var(--neon-purple))' }}>
-          PLAYOPS
-        </h1>
+    <>
+      <div className="fixed inset-0 flex flex-col items-center justify-center z-10 px-4">
+        {phase === 'initial' && (
+          <div className="text-center space-y-8 animate-fade-in">
+            <h1 
+              className="text-xl font-bold tracking-wider text-glow-green"
+              style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              PLAYOPS
+            </h1>
 
-        {/* Main Title */}
-        <h2 
-          className="text-4xl md:text-6xl font-bold tracking-widest text-glow-green uppercase"
-          style={{ color: 'hsl(var(--neon-green))' }}
-        >
-          ENTER THE GRID EXPERIENCE
-        </h2>
+            <h2 
+              className="text-3xl md:text-5xl font-bold tracking-widest text-glow-green uppercase"
+              style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              ENTER THE GRID EXPERIENCE
+            </h2>
 
-        {/* Initialize Button or Loading */}
-        {!showButton ? (
-          <div className="space-y-6 max-w-md mx-auto">
-            <div className="space-y-2">
-              <p className="text-sm tracking-wider" style={{ color: 'hsl(var(--neon-green))' }}>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleInitialize}
+              className="border-2 border-glow-green bg-transparent hover:bg-primary/20 text-lg tracking-widest px-12 py-6 font-bold transition-all duration-300 mt-8"
+              style={{ 
+                borderColor: 'hsl(var(--neon-green))',
+                color: 'hsl(var(--neon-green))'
+              }}
+            >
+              INITIALIZE
+            </Button>
+          </div>
+        )}
+
+        {phase === 'loading' && (
+          <>
+            {/* Top green line */}
+            <div 
+              className="fixed top-0 left-0 right-0 h-1 animate-pulse"
+              style={{ backgroundColor: 'hsl(var(--neon-green))' }}
+            />
+
+            {/* Loading content */}
+            <div className="w-full max-w-md space-y-6">
+              <p 
+                className="text-sm tracking-wider text-center font-mono"
+                style={{ color: 'hsl(var(--neon-green))' }}
+              >
                 LOADING ASSETS...
               </p>
-              <Progress value={progress} className="h-2 bg-muted" />
-              <p className="text-lg font-mono" style={{ color: 'hsl(var(--neon-green))' }}>
+              
+              <Progress 
+                value={progress} 
+                className="h-6 bg-black border-2"
+                style={{ borderColor: 'hsl(var(--neon-green))' }}
+              />
+              
+              <p 
+                className="text-2xl font-mono text-center"
+                style={{ color: 'hsl(var(--neon-green))' }}
+              >
                 {progress}%
               </p>
+              
+              <p 
+                className="text-sm tracking-wider text-center animate-pulse font-mono"
+                style={{ color: 'hsl(var(--neon-green))' }}
+              >
+                {status}
+              </p>
             </div>
-            <p className="text-sm tracking-wider animate-pulse" style={{ color: 'hsl(var(--neon-green))' }}>
-              {status}
-            </p>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            size="lg"
-            className="border-2 border-glow-green bg-transparent hover:bg-accent/20 text-lg tracking-widest px-12 py-6 font-bold transition-all duration-300"
-            style={{ 
-              borderColor: 'hsl(var(--neon-green))',
-              color: 'hsl(var(--neon-green))'
-            }}
-            onClick={() => {
-              // Add your navigation logic here
-              console.log('Entering lobby...');
-            }}
-          >
-            INITIALIZE
-          </Button>
+
+            {/* Bottom green line */}
+            <div 
+              className="fixed bottom-0 left-0 right-0 h-1 animate-pulse"
+              style={{ backgroundColor: 'hsl(var(--neon-green))' }}
+            />
+          </>
         )}
 
-        {showButton && (
-          <p 
-            className="text-sm tracking-wider animate-pulse text-glow-green mt-4"
-            style={{ color: 'hsl(var(--neon-green))' }}
+        {phase === 'complete' && (
+          <div 
+            className="fixed top-0 left-0 right-0 border-4 p-4 animate-slide-in-right"
+            style={{ borderColor: 'hsl(var(--neon-green))' }}
           >
-            Enter Lobby
-          </p>
+            <p 
+              className="text-center text-xl tracking-widest font-bold"
+              style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              ENTER LOBBY
+            </p>
+          </div>
         )}
       </div>
-    </div>
+
+      {/* Pass flip state to parent if needed */}
+      <div className="hidden">{isFlipped ? 'flipped' : 'normal'}</div>
+    </>
   );
 };
