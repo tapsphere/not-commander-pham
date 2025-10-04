@@ -234,7 +234,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           
           // Progressive wrapping from bottom-left to top-right
           float wrapEdge = progress * 1.3 + glitch;
-          float reveal = smoothstep(wrapEdge - 0.25, wrapEdge + 0.05, sweepPosition);
+          float reveal = 1.0 - smoothstep(wrapEdge - 0.25, wrapEdge + 0.05, sweepPosition);
           reveal *= smoothstep(0.0, 0.1, progress);
           
           // Scanline flicker at the wrap edge
