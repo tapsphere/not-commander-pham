@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StarField } from '@/components/StarField';
 import { GridPerspective } from '@/components/GridPerspective';
 import { Button } from '@/components/ui/button';
 
@@ -19,7 +18,6 @@ const Lobby = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      <StarField />
       <GridPerspective isFlipped={true} />
       
       <div className={`fixed inset-0 flex flex-col items-center justify-center z-10 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
