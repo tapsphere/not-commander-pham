@@ -282,9 +282,9 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
   useFrame((state) => {
     if (!globeRef.current) return;
     
-    // Rotate Earth immediately when it appears (progress > 0)
+    // Rotate Earth constantly from the moment it appears
     if (progress > 0) {
-      globeRef.current.rotation.y += 0.001;
+      globeRef.current.rotation.y += 0.002;
     }
     
     // Interactive rotation and parallax (after zoom completes)
@@ -294,7 +294,6 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       const targetRotationY = (mousePosition.x / window.innerWidth - 0.5) * 0.15;
       
       globeRef.current.rotation.x += (targetRotationX + rotationRef.current.x - globeRef.current.rotation.x) * 0.03;
-      globeRef.current.rotation.y += (targetRotationY + rotationRef.current.y - globeRef.current.rotation.y) * 0.03;
     } else if (isDragging && introComplete) {
       // Apply drag rotation only after zoom
       globeRef.current.rotation.x = rotationRef.current.x;
@@ -310,14 +309,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
       atmosphereRef.current.scale.set(scale, scale, scale);
     }
     
-    // Grid wraps ONLY after zoom animation finishes
+    // Grid wraps ONLY when loading bar reaches 100%
     const overlayMesh = globeRef.current.children[1] as THREE.Mesh;
     if (overlayMesh && overlayMesh.material) {
       const mat = overlayMesh.material as THREE.ShaderMaterial;
       if (mat.uniforms) {
         if (mat.uniforms.progress) {
-          // Grid animation starts ONLY when introComplete is true
-          mat.uniforms.progress.value = introComplete ? progress / 100 : 0;
+          // Grid animation starts ONLY when progress hits 100
+          mat.uniforms.progress.value = progress >= 100 ? 1 : 0;
         }
         if (mat.uniforms.time) {
           mat.uniforms.time.value = state.clock.elapsedTime;
