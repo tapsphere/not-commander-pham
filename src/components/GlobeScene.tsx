@@ -34,7 +34,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     return new THREE.ShaderMaterial({
       uniforms: {
         progress: { value: 0 },
-        glowColor: { value: new THREE.Color(0x00ff66) },
+        glowColor: { value: new THREE.Color(0x00ff00) }, // Pure bright green
         time: { value: 0 },
       },
       vertexShader: `
@@ -73,77 +73,74 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
         }
         
         void main() {
-          vec2 uv = vUv * 25.0;
+          vec2 uv = vUv * 40.0; // Much denser grid
           vec2 gridId = floor(uv);
           vec2 gridUv = fract(uv);
           
           float circuit = 0.0;
           float seed = random(gridId);
           
-          // Create flowing circuit paths
-          float pathNoise = noise(gridId * 0.5);
-          float angle = pathNoise * 6.28318;
+          // Ultra thin lines for dense circuit board look
+          float lineWidth = 0.02;
+          float spacing = 0.08;
           
-          // Multiple parallel traces
-          float lineWidth = 0.035;
-          float spacing = 0.15;
-          
-          // Horizontal parallel traces
-          for (float i = -2.0; i <= 2.0; i += 1.0) {
+          // Dense horizontal traces
+          for (float i = -4.0; i <= 4.0; i += 1.0) {
             float offset = i * spacing;
             float hTrace = step(abs(gridUv.y - 0.5 - offset), lineWidth);
-            circuit += hTrace * step(0.3, seed + i * 0.1);
+            circuit += hTrace * step(0.2, seed + i * 0.08);
           }
           
-          // Vertical parallel traces  
-          for (float i = -2.0; i <= 2.0; i += 1.0) {
+          // Dense vertical traces  
+          for (float i = -4.0; i <= 4.0; i += 1.0) {
             float offset = i * spacing;
             float vTrace = step(abs(gridUv.x - 0.5 - offset), lineWidth);
-            circuit += vTrace * step(0.3, seed + i * 0.15);
+            circuit += vTrace * step(0.2, seed + i * 0.1);
           }
           
-          // Diagonal traces
+          // More diagonal traces for density
           float diagNoise = noise(gridId + vec2(5.0, 3.0));
-          if (diagNoise > 0.4) {
-            for (float i = -1.0; i <= 1.0; i += 1.0) {
+          if (diagNoise > 0.3) {
+            for (float i = -2.0; i <= 2.0; i += 1.0) {
               float offset = i * spacing;
               float diagDist = abs(gridUv.x - gridUv.y - offset);
-              float diagTrace = step(diagDist, lineWidth * 1.4);
-              circuit += diagTrace * step(0.5, diagNoise + i * 0.1);
+              float diagTrace = step(diagDist, lineWidth * 1.2);
+              circuit += diagTrace * step(0.4, diagNoise + i * 0.08);
             }
           }
           
-          // Corner connections - L shapes
-          float cornerNoise = noise(gridId + vec2(10.0, 7.0));
-          if (cornerNoise > 0.6) {
-            // Horizontal part of L
-            float hPart = step(abs(gridUv.y - 0.5), lineWidth) * step(gridUv.x, 0.6);
-            // Vertical part of L
-            float vPart = step(abs(gridUv.x - 0.5), lineWidth) * step(gridUv.y, 0.6);
-            circuit += max(hPart, vPart) * 1.5;
+          // Opposite diagonal traces
+          float diag2Noise = noise(gridId + vec2(15.0, 8.0));
+          if (diag2Noise > 0.3) {
+            for (float i = -2.0; i <= 2.0; i += 1.0) {
+              float offset = i * spacing;
+              float diagDist = abs(gridUv.x + gridUv.y - 1.0 - offset);
+              float diagTrace = step(diagDist, lineWidth * 1.2);
+              circuit += diagTrace * step(0.4, diag2Noise + i * 0.08);
+            }
           }
           
-          // Connection nodes at intersections
+          // Flowing curved traces
+          float flowNoise = noise(gridId * 0.3 + vec2(time * 0.1, 0.0));
+          float wavyTrace = step(abs(gridUv.y - 0.5 - sin(gridUv.x * 12.0 + flowNoise * 6.28) * 0.1), lineWidth * 1.5);
+          circuit += wavyTrace * step(0.7, flowNoise);
+          
+          // Small connection nodes
           vec2 nodeCenter = vec2(0.5);
           float nodeDist = length(gridUv - nodeCenter);
-          float mainNode = smoothstep(0.12, 0.06, nodeDist) * step(0.5, seed);
+          float mainNode = smoothstep(0.06, 0.03, nodeDist) * step(0.6, seed);
           
-          // Small endpoint nodes
-          float endpoints = 0.0;
-          vec2 ep1 = vec2(0.2, 0.5);
-          vec2 ep2 = vec2(0.8, 0.5);
-          vec2 ep3 = vec2(0.5, 0.2);
-          vec2 ep4 = vec2(0.5, 0.8);
-          
-          endpoints += smoothstep(0.08, 0.04, length(gridUv - ep1));
-          endpoints += smoothstep(0.08, 0.04, length(gridUv - ep2));
-          endpoints += smoothstep(0.08, 0.04, length(gridUv - ep3));
-          endpoints += smoothstep(0.08, 0.04, length(gridUv - ep4));
-          endpoints *= step(0.6, random(gridId + vec2(20.0, 15.0)));
+          // Micro nodes at grid corners
+          float microNodes = 0.0;
+          microNodes += smoothstep(0.04, 0.02, length(gridUv - vec2(0.25, 0.25)));
+          microNodes += smoothstep(0.04, 0.02, length(gridUv - vec2(0.75, 0.25)));
+          microNodes += smoothstep(0.04, 0.02, length(gridUv - vec2(0.25, 0.75)));
+          microNodes += smoothstep(0.04, 0.02, length(gridUv - vec2(0.75, 0.75)));
+          microNodes *= step(0.7, random(gridId + vec2(30.0, 20.0)));
           
           // Combine all elements
-          circuit = clamp(circuit, 0.0, 1.0);
-          float nodes = mainNode + endpoints;
+          circuit = clamp(circuit, 0.0, 1.5);
+          float nodes = mainNode + microNodes;
           
           // Wrapping animation - covers the globe progressively
           float angle3d = atan(vPosition.z, vPosition.x);
@@ -155,20 +152,20 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           float reveal = smoothstep(progress * 1.6, progress * 1.6 - 0.5, wrapPos);
           reveal *= smoothstep(0.0, 0.2, progress);
           
-          // Intense glowing effect
+          // Intense glowing effect for bright green
           float totalCircuit = circuit + nodes;
-          float glow = totalCircuit * 2.5;
-          vec3 color = glowColor * (totalCircuit * 4.0 + glow * 2.0) * reveal;
+          float glow = totalCircuit * 3.0;
+          vec3 color = glowColor * (totalCircuit * 5.0 + glow * 3.0) * reveal;
           
           // Extra bright nodes
-          color += glowColor * nodes * 5.0 * reveal;
+          color += glowColor * nodes * 8.0 * reveal;
           
           // Pulse animation
-          float pulse = 1.0 + sin(time * 2.5 + seed * 6.28) * 0.25;
+          float pulse = 1.0 + sin(time * 2.0 + seed * 6.28) * 0.2;
           color *= pulse;
           
           // Alpha with strong visibility
-          float alpha = totalCircuit * reveal * 0.95 + glow * reveal * 0.5;
+          float alpha = totalCircuit * reveal * 0.98 + glow * reveal * 0.6;
           
           gl_FragColor = vec4(color, alpha);
         }
