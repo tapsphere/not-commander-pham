@@ -16,49 +16,71 @@ export const playGridSweepSound = () => {
   const now = audioContext.currentTime;
   const duration = 8; // Match the grid sweep duration
   
-  // Create white noise buffer for static effect
-  const bufferSize = audioContext.sampleRate * duration;
-  const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-  const output = noiseBuffer.getChannelData(0);
+  // Create multiple crackling/sparking sounds
+  const createSpark = (startTime: number, intensity: number) => {
+    // Create short burst of noise for spark
+    const bufferSize = audioContext!.sampleRate * 0.05; // 50ms spark
+    const noiseBuffer = audioContext!.createBuffer(1, bufferSize, audioContext!.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    
+    // Generate crackling noise with sharp attack
+    for (let i = 0; i < bufferSize; i++) {
+      const envelope = Math.exp(-i / (bufferSize * 0.3)); // Sharp decay
+      output[i] = (Math.random() * 2 - 1) * envelope;
+    }
+    
+    const spark = audioContext!.createBufferSource();
+    spark.buffer = noiseBuffer;
+    
+    // High-pass filter for electric crackle
+    const filter = audioContext!.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1000 + Math.random() * 2000;
+    filter.Q.value = 2;
+    
+    const gainNode = audioContext!.createGain();
+    gainNode.gain.value = intensity * 0.15;
+    
+    spark.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioContext!.destination);
+    
+    spark.start(startTime);
+  };
   
-  // Generate filtered static noise
-  for (let i = 0; i < bufferSize; i++) {
-    output[i] = Math.random() * 2 - 1;
+  // Create multiple sparks over the duration for continuous crackling
+  const sparkCount = 80; // Number of sparks
+  for (let i = 0; i < sparkCount; i++) {
+    const sparkTime = now + (i / sparkCount) * duration;
+    const intensity = 0.5 + Math.random() * 0.5; // Varying intensities
+    
+    // Add some randomness to timing for natural crackle
+    const jitter = (Math.random() - 0.5) * 0.05;
+    createSpark(sparkTime + jitter, intensity);
   }
   
-  // Create buffer source
-  const whiteNoise = audioContext.createBufferSource();
-  whiteNoise.buffer = noiseBuffer;
+  // Add underlying arc sound
+  const oscillator = audioContext.createOscillator();
+  const oscGain = audioContext.createGain();
   
-  // Create filter to shape the static sound
-  const filter = audioContext.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(2000, now);
-  filter.Q.value = 0.5;
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.setValueAtTime(80, now);
+  oscillator.frequency.exponentialRampToValueAtTime(120, now + duration);
   
-  // Add some frequency modulation for movement
-  filter.frequency.exponentialRampToValueAtTime(4000, now + duration * 0.3);
-  filter.frequency.exponentialRampToValueAtTime(1500, now + duration);
+  oscGain.gain.setValueAtTime(0, now);
+  oscGain.gain.linearRampToValueAtTime(0.03, now + 0.1);
+  oscGain.gain.linearRampToValueAtTime(0.02, now + duration - 0.5);
+  oscGain.gain.linearRampToValueAtTime(0, now + duration);
   
-  // Create gain for volume control
-  const gainNode = audioContext.createGain();
-  gainNode.gain.setValueAtTime(0, now);
-  gainNode.gain.linearRampToValueAtTime(0.12, now + 0.2); // Quick fade in
-  gainNode.gain.linearRampToValueAtTime(0.08, now + duration - 0.5); // Sustain
-  gainNode.gain.linearRampToValueAtTime(0, now + duration); // Fade out
+  oscillator.connect(oscGain);
+  oscGain.connect(audioContext.destination);
   
-  // Connect nodes
-  whiteNoise.connect(filter);
-  filter.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+  oscillator.start(now);
+  oscillator.stop(now + duration);
   
-  // Start the static sound
-  whiteNoise.start(now);
-  whiteNoise.stop(now + duration);
-  
-  whiteNoise.onended = () => {
+  setTimeout(() => {
     isPlaying = false;
-  };
+  }, duration * 1000);
 };
 
 // Initialize audio context on user interaction (required by browsers)
