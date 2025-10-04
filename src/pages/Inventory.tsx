@@ -33,7 +33,7 @@ const mockBadges = [
       case 'mastery':
         return 'bg-black border-green-500 text-green-400';
       case 'proficient':
-        return 'bg-black text-white border-white';
+        return 'bg-black border-green-500 text-green-400';
       default:
         return 'bg-black text-red-400 border-red-500';
     }
