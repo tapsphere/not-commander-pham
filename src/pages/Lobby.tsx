@@ -98,50 +98,57 @@ const Lobby = () => {
 
             {/* Brand Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockBrands.map((brand, idx) => (
-                <Card
-                  key={brand.id}
-                  className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
-                  style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
-                  onClick={() => navigate('/menu')}
-                >
-                  {/* Glow effect on hover */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                    style={{ 
-                      background: `radial-gradient(circle at center, ${idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))'}, transparent 70%)`
-                    }}
-                  />
-                  
-                  <div className="flex items-start justify-between mb-4 relative z-10">
-                    <div 
-                      className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" 
-                      style={{ borderColor: `${idx % 3 === 0 ? 'hsl(var(--neon-magenta) / 0.3)' : idx % 3 === 1 ? 'hsl(var(--neon-purple) / 0.3)' : 'hsl(var(--neon-green) / 0.3)'}` }}
-                    >
-                      <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
-                    </div>
-                    <Badge 
-                      variant="outline" 
-                      className="border-2 font-mono text-xs" 
-                      style={{ borderColor: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))', color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
-                    >
-                      {brand.department}
-                    </Badge>
-                  </div>
-                  <h3 
-                    className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${idx % 3 === 0 ? 'text-glow-magenta' : idx % 3 === 1 ? 'text-glow-purple' : 'text-glow-green'}`}
-                    style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }}
+              {mockBrands.map((brand, idx) => {
+                const useMagenta = idx === 1;
+                const usePurple = idx === 4;
+                const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
+                const glowClass = useMagenta ? 'text-glow-magenta' : usePurple ? 'text-glow-purple' : 'text-glow-green';
+                
+                return (
+                  <Card
+                    key={brand.id}
+                    className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
+                    style={{ borderColor }}
+                    onClick={() => navigate('/menu')}
                   >
-                    {brand.name}
-                  </h3>
-                  <div className="flex items-center justify-between relative z-10">
-                    <span className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
-                      {brand.validators} Validators
-                    </span>
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" style={{ color: idx % 3 === 0 ? 'hsl(var(--neon-magenta))' : idx % 3 === 1 ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))' }} />
-                  </div>
-                </Card>
-              ))}
+                    {/* Glow effect on hover */}
+                    <div 
+                      className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+                      style={{ 
+                        background: `radial-gradient(circle at center, ${borderColor}, transparent 70%)`
+                      }}
+                    />
+                    
+                    <div className="flex items-start justify-between mb-4 relative z-10">
+                      <div 
+                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" 
+                        style={{ borderColor: `${borderColor}33` }}
+                      >
+                        <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className="border-2 font-mono text-xs" 
+                        style={{ borderColor, color: borderColor }}
+                      >
+                        {brand.department}
+                      </Badge>
+                    </div>
+                    <h3 
+                      className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${glowClass}`}
+                      style={{ color: borderColor }}
+                    >
+                      {brand.name}
+                    </h3>
+                    <div className="flex items-center justify-between relative z-10">
+                      <span className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                        {brand.validators} Validators
+                      </span>
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" style={{ color: borderColor }} />
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
 
@@ -149,8 +156,9 @@ const Lobby = () => {
           <TabsContent value="programs" className="space-y-4">
             {mockPrograms.map((program, idx) => {
               const IconComponent = program.icon;
-              const accentColor = idx % 2 === 0 ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-purple))';
-              const accentGlow = idx % 2 === 0 ? 'text-glow-magenta' : 'text-glow-purple';
+              const usePurple = idx === 1;
+              const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
+              const accentGlow = usePurple ? 'text-glow-purple' : 'text-glow-green';
               
               return (
                 <Card
