@@ -23,9 +23,9 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     return new THREE.MeshStandardMaterial({
       map: texture,
       metalness: 0.1,
-      roughness: 0.5,
-      emissive: new THREE.Color(0x3a7aa0),
-      emissiveIntensity: 1.2,
+      roughness: 0.4,
+      emissive: new THREE.Color(0x1a3a4a),
+      emissiveIntensity: 0.25,
     });
   }, [texture]);
   
