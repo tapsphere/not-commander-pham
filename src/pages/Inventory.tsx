@@ -104,19 +104,20 @@ const Inventory = () => {
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {mockBadges.map((badge, idx) => {
                 return (
-                  <div 
+                  <Card
                     key={idx} 
-                    className="flex flex-col items-center text-center hover:scale-110 transition-all cursor-pointer group"
+                    className="flex flex-col items-center text-center hover:scale-105 transition-all cursor-pointer bg-black/50 border-2 p-4"
+                    style={{ borderColor: 'hsl(var(--neon-green))' }}
                   >
                     {/* Telegram-style sticker - no border */}
-                    <div className="w-24 h-24 mb-2 flex items-center justify-center">
+                    <div className="w-20 h-20 mb-3 flex items-center justify-center">
                       {badge.type === 'emoji' ? (
-                        <div className="text-7xl">
+                        <div className="text-6xl">
                           {badge.icon}
                         </div>
                       ) : (
                         <div 
-                          className="w-20 h-20 rounded-2xl p-3 bg-white flex items-center justify-center"
+                          className="w-full h-full rounded-2xl p-2 bg-white flex items-center justify-center"
                           style={{ 
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                           }}
@@ -130,16 +131,16 @@ const Inventory = () => {
                       )}
                     </div>
                     
-                    <h3 className="font-bold text-xs mb-1 text-black">
+                    <h3 className="font-bold text-xs mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
                       {badge.name}
                     </h3>
-                    <Badge className={`mb-1 border-2 font-mono text-[10px] bg-white ${getLevelColor(badge.level)}`}>
+                    <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`}>
                       {getLevelLabel(badge.level)}
                     </Badge>
-                    <div className="text-[10px] font-mono text-black">
+                    <div className="text-[10px] font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
                       {badge.earned}
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>
