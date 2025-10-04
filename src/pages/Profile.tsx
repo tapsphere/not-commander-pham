@@ -1,4 +1,6 @@
-import { User, Award, TrendingUp, Shield } from 'lucide-react';
+import { User, Award, TrendingUp, Shield, Home, Hexagon, Gamepad2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -99,8 +101,23 @@ const getLevelLabel = (level: string) => {
 };
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const [activeIndex, setActiveIndex] = useState(1);
   const masteryCount = mockCompetencies.filter(s => s.level === 'mastery').length;
   const proficientCount = mockCompetencies.filter(s => s.level === 'proficient').length;
+
+  const menuItems = [
+    { icon: Home, label: 'Lobby', path: '/lobby' },
+    { icon: User, label: 'Profile', path: '/profile' },
+    { icon: Hexagon, label: 'Inventory', path: '/inventory' },
+    { icon: TrendingUp, label: 'Stats', path: '/profile' },
+    { icon: Gamepad2, label: 'Play', path: '/lobby' },
+  ];
+
+  const handleNavigation = (path: string, index: number) => {
+    setActiveIndex(index);
+    navigate(path);
+  };
 
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
@@ -257,6 +274,56 @@ const Profile = () => {
             </button>
           </div>
         </Card>
+      </div>
+
+      {/* Bottom Navigation Bar */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 border-t-2 bg-black/95 backdrop-blur-lg z-50"
+        style={{ borderColor: 'hsl(var(--neon-green))' }}
+      >
+        <nav className="flex items-center justify-around px-2 py-2 max-w-screen-xl mx-auto">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = activeIndex === index;
+            const usePurple = index === 2;
+            const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
+            const glowClass = usePurple ? 'text-glow-purple' : 'text-glow-green';
+            
+            return (
+              <button
+                key={item.label}
+                onClick={() => handleNavigation(item.path, index)}
+                className="flex flex-col items-center gap-1 flex-1 max-w-[90px] group transition-all duration-300 relative"
+              >
+                {isActive && (
+                  <div 
+                    className="absolute inset-0 rounded-lg opacity-20 blur-md"
+                    style={{ background: accentColor }}
+                  />
+                )}
+                <div 
+                  className={`
+                    relative p-2.5 rounded-lg border-2 transition-all duration-300
+                    ${isActive ? 'bg-primary/20 scale-110' : 'border-transparent hover:bg-primary/10 hover:border-primary/30'}
+                  `}
+                  style={isActive ? { borderColor: accentColor } : {}}
+                >
+                  <Icon 
+                    className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? glowClass : ''}`}
+                    style={{ color: accentColor }}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                </div>
+                <span 
+                  className={`text-[10px] md:text-xs font-mono transition-all duration-300 truncate w-full text-center ${isActive ? glowClass + ' font-bold' : ''}`}
+                  style={{ color: accentColor }}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );

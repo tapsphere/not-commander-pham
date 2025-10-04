@@ -38,11 +38,19 @@ const Menu = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center space-y-6">
-            <div className="w-24 h-24 mx-auto rounded-lg bg-black border-2 flex items-center justify-center mb-6 animate-pulse" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-              <Gamepad2 className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+            <div className="relative">
+              <div 
+                className="absolute inset-0 rounded-lg opacity-20 blur-2xl"
+                style={{ 
+                  background: 'radial-gradient(circle, hsl(var(--neon-magenta)), hsl(var(--neon-purple)), hsl(var(--neon-green)))'
+                }}
+              />
+              <div className="relative w-24 h-24 mx-auto rounded-lg bg-black border-2 flex items-center justify-center mb-6 animate-pulse" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+                <Gamepad2 className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+              </div>
             </div>
             <p 
-              className="text-xl font-mono tracking-wide"
+              className="text-xl font-mono tracking-wide text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
             >
               Navigate to train, validate, and prove your competencies
@@ -66,6 +74,9 @@ const Menu = () => {
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeIndex === index;
+            const usePurple = index === 2;
+            const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
+            const glowClass = usePurple ? 'text-glow-purple' : 'text-glow-green';
             
             return (
               <button
@@ -78,26 +89,26 @@ const Menu = () => {
                   <div 
                     className="absolute inset-0 rounded-lg opacity-20 blur-md"
                     style={{ 
-                      background: 'hsl(var(--neon-green))'
+                      background: accentColor
                     }}
                   />
                 )}
                 <div 
                   className={`
                     relative p-2.5 rounded-lg border-2 transition-all duration-300
-                    ${isActive ? 'bg-primary/20 scale-110 border-primary' : 'border-transparent hover:bg-primary/10 hover:border-primary/30'}
+                    ${isActive ? 'bg-primary/20 scale-110' : 'border-transparent hover:bg-primary/10 hover:border-primary/30'}
                   `}
-                  style={isActive ? { borderColor: 'hsl(var(--neon-green))' } : {}}
+                  style={isActive ? { borderColor: accentColor } : {}}
                 >
                   <Icon 
-                    className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? 'text-glow-green' : ''}`}
-                    style={{ color: 'hsl(var(--neon-green))' }}
+                    className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? glowClass : ''}`}
+                    style={{ color: accentColor }}
                     strokeWidth={isActive ? 2.5 : 2}
                   />
                 </div>
                 <span 
-                  className={`text-[10px] md:text-xs font-mono transition-all duration-300 truncate w-full text-center ${isActive ? 'text-glow-green font-bold' : ''}`}
-                  style={{ color: 'hsl(var(--neon-green))' }}
+                  className={`text-[10px] md:text-xs font-mono transition-all duration-300 truncate w-full text-center ${isActive ? glowClass + ' font-bold' : ''}`}
+                  style={{ color: accentColor }}
                 >
                   {item.label}
                 </span>
