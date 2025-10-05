@@ -58,6 +58,15 @@ ${formData.edgeCase || '[Describe how the disruption appears - e.g., timer cuts 
 UI Aesthetic:
 ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, neon cyberpunk, branded corporate]'}
 
+📱 Telegram Mini App Requirements:
+• Mobile-first responsive design (works on all phone screens)
+• Fast loading and smooth performance
+• Touch-friendly interactions (buttons, swipes, taps)
+• Built with standard web technologies (React, TypeScript)
+• Integrates with Telegram Web App SDK for seamless user experience
+• Runs inside Telegram messenger interface
+• No external app download required
+
 🎯 System Handles Automatically:
 • 3 proficiency levels: Needs Work / Proficient / Mastery
 • Accuracy %, time tracking, edge-case recovery rate
