@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Palette } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { toast } from 'sonner';
-import { BrandCustomizationDialog } from '@/components/platform/BrandCustomizationDialog';
 
 type FilterType = 'all' | 'creator' | 'competency' | 'department';
 
@@ -28,14 +28,13 @@ interface Template {
 }
 
 export default function Marketplace() {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [selectedFilter, setSelectedFilter] = useState<string>('');
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   
   // Filter options
   const [creators, setCreators] = useState<{ id: string; name: string }[]>([]);
@@ -177,10 +176,6 @@ export default function Marketplace() {
     setFilteredTemplates(filtered);
   };
 
-  const handleCustomize = (template: Template) => {
-    setSelectedTemplate(template);
-    setCustomizeDialogOpen(true);
-  };
 
   if (loading) {
     return (
@@ -366,20 +361,13 @@ export default function Marketplace() {
                     </div>
                   )}
                   
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button
-                      onClick={() => handleCustomize(template)}
-                      className="bg-neon-green text-black hover:bg-neon-green/90 gap-2"
-                    >
-                      <Palette className="h-4 w-4" />
-                      Customize with Your Brand
-                    </Button>
-                  </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3 bg-gray-900">
+                <div 
+                  className="p-4 space-y-3 bg-gray-900 cursor-pointer hover:bg-gray-800 transition-colors"
+                  onClick={() => navigate(`/platform/template/${template.id}`)}
+                >
                   <h3 className="font-semibold text-lg text-white leading-tight">{template.name}</h3>
                   
                   {template.description && (
@@ -406,15 +394,6 @@ export default function Marketplace() {
         )}
       </div>
 
-      {/* Customization Dialog */}
-      {selectedTemplate && (
-        <BrandCustomizationDialog
-          open={customizeDialogOpen}
-          onOpenChange={setCustomizeDialogOpen}
-          template={selectedTemplate}
-          onSuccess={fetchTemplates}
-        />
-      )}
     </div>
   );
 }
