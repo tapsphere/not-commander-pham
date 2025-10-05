@@ -82,6 +82,7 @@ export type Database = {
       game_templates: {
         Row: {
           base_prompt: string | null
+          competency_id: string | null
           created_at: string | null
           creator_id: string
           description: string | null
@@ -90,10 +91,12 @@ export type Database = {
           is_published: boolean | null
           name: string
           preview_image: string | null
+          selected_sub_competencies: string[] | null
           updated_at: string | null
         }
         Insert: {
           base_prompt?: string | null
+          competency_id?: string | null
           created_at?: string | null
           creator_id: string
           description?: string | null
@@ -102,10 +105,12 @@ export type Database = {
           is_published?: boolean | null
           name: string
           preview_image?: string | null
+          selected_sub_competencies?: string[] | null
           updated_at?: string | null
         }
         Update: {
           base_prompt?: string | null
+          competency_id?: string | null
           created_at?: string | null
           creator_id?: string
           description?: string | null
@@ -114,9 +119,71 @@ export type Database = {
           is_published?: boolean | null
           name?: string
           preview_image?: string | null
+          selected_sub_competencies?: string[] | null
           updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "game_templates_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "master_competencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      master_competencies: {
+        Row: {
+          cbe_category: string
+          created_at: string | null
+          departments: string[]
+          id: string
+          name: string
+        }
+        Insert: {
+          cbe_category: string
+          created_at?: string | null
+          departments?: string[]
+          id?: string
+          name: string
+        }
+        Update: {
+          cbe_category?: string
+          created_at?: string | null
+          departments?: string[]
+          id?: string
+          name?: string
+        }
         Relationships: []
+      }
+      performance_indicators: {
+        Row: {
+          competency_id: string
+          created_at: string | null
+          description: string
+          id: string
+        }
+        Insert: {
+          competency_id: string
+          created_at?: string | null
+          description: string
+          id?: string
+        }
+        Update: {
+          competency_id?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_indicators_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "master_competencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -147,6 +214,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sub_competencies: {
+        Row: {
+          competency_id: string
+          created_at: string | null
+          id: string
+          statement: string
+        }
+        Insert: {
+          competency_id: string
+          created_at?: string | null
+          id?: string
+          statement: string
+        }
+        Update: {
+          competency_id?: string
+          created_at?: string | null
+          id?: string
+          statement?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_competencies_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "master_competencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       template_competencies: {
         Row: {

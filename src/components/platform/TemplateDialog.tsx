@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Copy } from 'lucide-react';
 
@@ -31,10 +33,72 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     uiAesthetic: '',
   });
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  
+  // Competency data
+  const [competencies, setCompetencies] = useState<any[]>([]);
+  const [subCompetencies, setSubCompetencies] = useState<any[]>([]);
+  const [selectedCompetency, setSelectedCompetency] = useState<string>('');
+  const [selectedSubCompetencies, setSelectedSubCompetencies] = useState<string[]>([]);
+
+  // Fetch competencies on mount
+  useEffect(() => {
+    const fetchCompetencies = async () => {
+      const { data, error } = await supabase
+        .from('master_competencies')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching competencies:', error);
+        return;
+      }
+      
+      setCompetencies(data || []);
+    };
+    
+    fetchCompetencies();
+  }, []);
+
+  // Fetch sub-competencies when competency is selected
+  useEffect(() => {
+    if (!selectedCompetency) {
+      setSubCompetencies([]);
+      setSelectedSubCompetencies([]);
+      return;
+    }
+
+    const fetchSubCompetencies = async () => {
+      const { data, error } = await supabase
+        .from('sub_competencies')
+        .select('*')
+        .eq('competency_id', selectedCompetency)
+        .order('statement');
+      
+      if (error) {
+        console.error('Error fetching sub-competencies:', error);
+        return;
+      }
+      
+      setSubCompetencies(data || []);
+    };
+    
+    fetchSubCompetencies();
+  }, [selectedCompetency]);
 
   // Auto-generate prompt whenever form data changes
   useEffect(() => {
     if (formData.scenario || formData.playerActions || formData.edgeCase) {
+      const selectedComp = competencies.find(c => c.id === selectedCompetency);
+      const selectedSubs = subCompetencies.filter(sc => selectedSubCompetencies.includes(sc.id));
+      
+      const competencySection = selectedComp ? `
+🎯 Target Competency:
+${selectedComp.name} (${selectedComp.cbe_category})
+
+Sub-Competencies Being Tested:
+${selectedSubs.map(sc => `• ${sc.statement}`).join('\n') || '[Select 1-2 sub-competencies]'}
+` : '';
+
       const prompt = `Design a 3–6 minute validator mini-game that tests a specific sub-competency through interactive gameplay.
 
 ⚙️ Quick Reference:
@@ -43,7 +107,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
 • Edge Case: a single twist mid-game that forces adaptation — used to test mastery
 
 All scoring, timing, and proof logic are pre-baked into the system. Focus only on player experience, flow, and the edge-case moment.
-
+${competencySection}
 📋 Design Requirements:
 
 Scenario/Theme:
@@ -75,7 +139,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
       
       setGeneratedPrompt(prompt);
     }
-  }, [formData.scenario, formData.playerActions, formData.edgeCase, formData.uiAesthetic]);
+  }, [formData.scenario, formData.playerActions, formData.edgeCase, formData.uiAesthetic, selectedCompetency, selectedSubCompetencies, competencies, subCompetencies]);
 
   const handleLoadSample = () => {
     setFormData({
@@ -86,6 +150,16 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
       edgeCase: 'Halfway through, the CEO messages: "Revenue must be #1 or we lose funding." Timer cuts to 90 seconds. Players must re-prioritize while maintaining system stability.',
       uiAesthetic: 'Neon cyberpunk dashboard with glitching effects. Dark background with bright green/pink accent colors. Deloitte branding in corner. Animated metric cards with real-time % changes.',
     });
+    // Set the sample competency if available
+    if (competencies.length > 0) {
+      setSelectedCompetency(competencies[0].id);
+      // Wait a moment for sub-competencies to load
+      setTimeout(() => {
+        if (subCompetencies.length >= 2) {
+          setSelectedSubCompetencies([subCompetencies[0].id, subCompetencies[1].id]);
+        }
+      }, 500);
+    }
     toast.success('Sample template loaded!');
   };
 
@@ -110,6 +184,8 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             name: formData.name,
             description: formData.description,
             base_prompt: generatedPrompt,
+            competency_id: selectedCompetency || null,
+            selected_sub_competencies: selectedSubCompetencies,
           })
           .eq('id', template.id);
 
@@ -124,6 +200,8 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             name: formData.name,
             description: formData.description,
             base_prompt: generatedPrompt,
+            competency_id: selectedCompetency || null,
+            selected_sub_competencies: selectedSubCompetencies,
           });
 
         if (error) throw error;
@@ -203,6 +281,65 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                 placeholder="Brief overview of what this validator tests..."
               />
             </div>
+          </div>
+
+          {/* Competency Selection */}
+          <div className="border-t border-gray-700 pt-4 space-y-4">
+            <h3 className="font-semibold" style={{ color: 'hsl(var(--neon-green))' }}>
+              CBE Competency Framework
+            </h3>
+
+            <div>
+              <Label htmlFor="competency">Select Competency *</Label>
+              <Select value={selectedCompetency} onValueChange={setSelectedCompetency}>
+                <SelectTrigger id="competency" className="bg-gray-800 border-gray-700">
+                  <SelectValue placeholder="Choose a competency..." />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {competencies.map((comp) => (
+                    <SelectItem key={comp.id} value={comp.id}>
+                      {comp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedCompetency && subCompetencies.length > 0 && (
+              <div>
+                <Label>Select 1-2 Sub-Competencies *</Label>
+                <div className="space-y-2 mt-2 max-h-60 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md p-3">
+                  {subCompetencies.map((sub) => (
+                    <div key={sub.id} className="flex items-start space-x-2">
+                      <Checkbox
+                        id={sub.id}
+                        checked={selectedSubCompetencies.includes(sub.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            if (selectedSubCompetencies.length < 2) {
+                              setSelectedSubCompetencies([...selectedSubCompetencies, sub.id]);
+                            } else {
+                              toast.error('Maximum 2 sub-competencies allowed');
+                            }
+                          } else {
+                            setSelectedSubCompetencies(selectedSubCompetencies.filter(id => id !== sub.id));
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={sub.id}
+                        className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {sub.statement}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Select 1-2 behaviors this validator will test
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Designer-Controlled Elements */}
