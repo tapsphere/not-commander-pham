@@ -38,6 +38,86 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_customizations: {
+        Row: {
+          brand_id: string
+          created_at: string | null
+          custom_config: Json | null
+          customization_prompt: string | null
+          id: string
+          published_at: string | null
+          template_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string | null
+          custom_config?: Json | null
+          customization_prompt?: string | null
+          id?: string
+          published_at?: string | null
+          template_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string | null
+          custom_config?: Json | null
+          customization_prompt?: string | null
+          id?: string
+          published_at?: string | null
+          template_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_customizations_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "game_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_templates: {
+        Row: {
+          base_prompt: string | null
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          game_config: Json
+          id: string
+          is_published: boolean | null
+          name: string
+          preview_image: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_prompt?: string | null
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          game_config?: Json
+          id?: string
+          is_published?: boolean | null
+          name: string
+          preview_image?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_prompt?: string | null
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          game_config?: Json
+          id?: string
+          is_published?: boolean | null
+          name?: string
+          preview_image?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -64,6 +144,68 @@ export type Database = {
           id?: string
           location?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      template_competencies: {
+        Row: {
+          behavior_triggers: Json | null
+          competency_name: string
+          created_at: string | null
+          id: string
+          scoring_rules: Json | null
+          sub_competencies: string[] | null
+          template_id: string
+          xp_values: Json | null
+        }
+        Insert: {
+          behavior_triggers?: Json | null
+          competency_name: string
+          created_at?: string | null
+          id?: string
+          scoring_rules?: Json | null
+          sub_competencies?: string[] | null
+          template_id: string
+          xp_values?: Json | null
+        }
+        Update: {
+          behavior_triggers?: Json | null
+          competency_name?: string
+          created_at?: string | null
+          id?: string
+          scoring_rules?: Json | null
+          sub_competencies?: string[] | null
+          template_id?: string
+          xp_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_competencies_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "game_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -139,10 +281,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "creator" | "brand" | "player"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -269,6 +417,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["creator", "brand", "player"],
+    },
   },
 } as const
