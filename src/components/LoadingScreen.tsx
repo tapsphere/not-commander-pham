@@ -74,15 +74,8 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
   };
 
   const handleProceedToGrid = () => {
-    // Lower music volume instead of stopping
-    const gainNodes = (window as any).__audioGainNodes || [];
-    console.log('Lowering music volume, found gain nodes:', gainNodes.length);
-    
-    gainNodes.forEach((gainNode: GainNode) => {
-      if (gainNode.context) {
-        gainNode.gain.linearRampToValueAtTime(0.15, gainNode.context.currentTime + 1);
-      }
-    });
+    // Stop ambient music completely
+    stopAmbientSound();
     
     setTimeout(() => {
       setPhase('complete');
