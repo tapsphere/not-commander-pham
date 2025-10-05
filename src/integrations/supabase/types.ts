@@ -217,21 +217,30 @@ export type Database = {
       }
       sub_competencies: {
         Row: {
+          backend_data_captured: Json | null
           competency_id: string
           created_at: string | null
           id: string
+          player_action: string | null
+          scoring_logic: Json | null
           statement: string
         }
         Insert: {
+          backend_data_captured?: Json | null
           competency_id: string
           created_at?: string | null
           id?: string
+          player_action?: string | null
+          scoring_logic?: Json | null
           statement: string
         }
         Update: {
+          backend_data_captured?: Json | null
           competency_id?: string
           created_at?: string | null
           id?: string
+          player_action?: string | null
+          scoring_logic?: Json | null
           statement?: string
         }
         Relationships: [

@@ -96,7 +96,8 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
 ${selectedComp.name} (${selectedComp.cbe_category})
 
 Sub-Competencies Being Tested:
-${selectedSubs.map(sc => `• ${sc.statement}`).join('\n') || '[Select 1-2 sub-competencies]'}
+${selectedSubs.map((sc, idx) => `${idx + 1}. ${sc.statement}
+   Player Action: ${sc.player_action || 'Define the player action'}`).join('\n\n') || '[Select 1-2 sub-competencies]'}
 ` : '';
 
       const prompt = `Design a 3–6 minute validator mini-game that tests a specific sub-competency through interactive gameplay.
@@ -337,6 +338,32 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
                   Select 1-2 behaviors this validator will test
+                </p>
+              </div>
+            )}
+
+            {/* Show Player Actions for Selected Sub-Competencies */}
+            {selectedSubCompetencies.length > 0 && (
+              <div className="bg-gray-800 border border-neon-green/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-sm" style={{ color: 'hsl(var(--neon-green))' }}>
+                  🎮 Player Actions to Surface
+                </h4>
+                <div className="space-y-3">
+                  {subCompetencies
+                    .filter(sub => selectedSubCompetencies.includes(sub.id))
+                    .map((sub, idx) => (
+                      <div key={sub.id} className="text-sm">
+                        <p className="font-medium text-gray-300 mb-1">
+                          {idx + 1}. {sub.statement}
+                        </p>
+                        <p className="text-gray-400 text-xs pl-4">
+                          → {sub.player_action || 'No action defined'}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-3 italic">
+                  These actions will be incorporated into your game design. Scoring logic is handled automatically in the backend.
                 </p>
               </div>
             )}
