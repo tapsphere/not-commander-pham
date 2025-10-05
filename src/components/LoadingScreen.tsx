@@ -187,7 +187,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                     <iframe
                       width="400"
                       height="225"
-                      src="https://www.youtube.com/embed/tlRPjo3NWyY?autoplay=1&mute=1&loop=1&playlist=tlRPjo3NWyY&controls=0&modestbranding=1"
+                      src="https://www.youtube.com/embed/tlRPjo3NWyY?autoplay=1&loop=1&playlist=tlRPjo3NWyY&controls=1"
                       title="YouTube video player"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
