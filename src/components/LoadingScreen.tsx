@@ -8,14 +8,21 @@ import { GridPerspective } from '@/components/GridPerspective';
 interface LoadingScreenProps {
   onProgressUpdate?: (progress: number) => void;
   onFlip?: () => void;
+  onPhaseChange?: (phase: 'initial' | 'loading' | 'complete') => void;
 }
 
-export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) => {
+export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: LoadingScreenProps) => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('Connecting...');
   const [isFlipped, setIsFlipped] = useState(false);
+
+  useEffect(() => {
+    if (onPhaseChange) {
+      onPhaseChange(phase);
+    }
+  }, [phase, onPhaseChange]);
 
   useEffect(() => {
     if (phase === 'loading') {
@@ -200,7 +207,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
                     variant="outline"
                     size="lg"
                     onClick={handleEnterLobby}
-                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-xl tracking-widest px-16 py-8 font-bold transition-all duration-300 animate-pulse"
+                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-base tracking-widest px-12 py-4 font-bold transition-all duration-300 animate-pulse"
                     style={{ 
                       borderColor: 'hsl(var(--neon-green))',
                       color: 'hsl(var(--neon-green))'

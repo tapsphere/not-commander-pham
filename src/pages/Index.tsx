@@ -7,6 +7,7 @@ const Index = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -35,7 +36,7 @@ const Index = () => {
     <div className="relative w-full h-screen overflow-hidden bg-black">
       {/* Starfield background with parallax */}
       <div 
-        className="absolute inset-0 z-0"
+        className={`absolute inset-0 z-0 ${phase === 'complete' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
         style={{
           transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
           transition: 'transform 0.1s ease-out'
@@ -48,7 +49,7 @@ const Index = () => {
 
       {/* 3D Globe Canvas with post-processing */}
       <div 
-        className="absolute inset-0 z-5"
+        className={`absolute inset-0 z-5 ${phase === 'complete' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
         style={{
           transform: `translate(${-mousePosition.x * 0.01}px, ${-mousePosition.y * 0.01}px)`,
           transition: 'transform 0.1s ease-out'
@@ -78,6 +79,7 @@ const Index = () => {
       <LoadingScreen 
         onProgressUpdate={setProgress}
         onFlip={() => setIsFlipped(true)}
+        onPhaseChange={setPhase}
       />
 
       <style>{`
