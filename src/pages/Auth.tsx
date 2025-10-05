@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Palette, Building2, Mail } from 'lucide-react';
+import { Palette, Building2, Mail, Eye, EyeOff } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 type UserRole = 'creator' | 'brand';
@@ -21,6 +21,9 @@ export default function Auth() {
   const [selectedRole, setSelectedRole] = useState<UserRole>('creator');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   useEffect(() => {
     // Check if this is a password recovery flow
@@ -208,16 +211,25 @@ export default function Auth() {
             <form onSubmit={handlePasswordUpdate} className="space-y-4">
               <div>
                 <Label htmlFor="new-password" className="text-white">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Enter your new password"
-                />
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="bg-gray-800 border-gray-700 text-white pr-10"
+                    placeholder="Enter your new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? 'Updating...' : 'Update Password'}
@@ -296,14 +308,23 @@ export default function Auth() {
                         Forgot password?
                       </button>
                     </div>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="bg-gray-800 border-gray-700 text-white"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="signin-password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="bg-gray-800 border-gray-700 text-white pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
                   </div>
                   <Button type="submit" disabled={loading} className="w-full">
                     {loading ? 'Signing in...' : 'Sign In'}
@@ -425,18 +446,27 @@ export default function Auth() {
                   className="bg-gray-800 border-gray-700 text-white"
                 />
               </div>
-              <div>
-                <Label htmlFor="signup-password" className="text-white">Password</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="bg-gray-800 border-gray-700 text-white"
-                />
-              </div>
+                <div>
+                  <Label htmlFor="signup-password" className="text-white">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="signup-password"
+                      type={showSignUpPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="bg-gray-800 border-gray-700 text-white pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showSignUpPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? 'Creating account...' : 'Create Account'}
               </Button>
