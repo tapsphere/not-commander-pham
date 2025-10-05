@@ -186,7 +186,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                     className="text-xl md:text-2xl font-bold tracking-wider text-glow-green whitespace-nowrap"
                     style={{ color: 'hsl(var(--neon-green))' }}
                   >
-                    PLAYOPS COMMAND CENTER
+                    Season One : Zero Proof
                   </h1>
                   <p 
                     className="text-[10px] md:text-xs font-mono tracking-wide whitespace-nowrap"
