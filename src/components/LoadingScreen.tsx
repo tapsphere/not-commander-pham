@@ -167,26 +167,12 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
         )}
 
         {phase === 'ready' && (
-          <div className="text-center space-y-16 animate-fade-in">
-            <h1 
-              className="text-3xl md:text-5xl font-bold tracking-wider text-glow-green"
-              style={{ color: 'hsl(var(--neon-green))' }}
-            >
-              SYSTEMS ONLINE
-            </h1>
-            
-            <p 
-              className="text-sm md:text-base font-mono tracking-wide"
-              style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
-            >
-              Grid calibration complete. Ready to proceed.
-            </p>
-
+          <div className="text-center space-y-8 animate-fade-in mt-32">
             <Button
               variant="outline"
               size="lg"
               onClick={handleProceedToGrid}
-              className="border-2 border-glow-green bg-transparent hover:bg-primary/20 text-lg tracking-widest px-12 py-6 font-bold transition-all duration-300 mt-8"
+              className="border-2 border-glow-green bg-transparent hover:bg-primary/20 text-lg tracking-widest px-12 py-6 font-bold transition-all duration-300"
               style={{ 
                 borderColor: 'hsl(var(--neon-green))',
                 color: 'hsl(var(--neon-green))',
@@ -195,6 +181,13 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
             >
               SYSTEM ONLINE
             </Button>
+            
+            <p 
+              className="text-sm md:text-base font-mono tracking-wide"
+              style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
+            >
+              Grid calibration complete. Ready to proceed.
+            </p>
           </div>
         )}
 
