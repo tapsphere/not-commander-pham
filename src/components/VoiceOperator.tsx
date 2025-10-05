@@ -194,8 +194,8 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 pointer-events-none">
-      <div className="pointer-events-auto flex flex-col items-center gap-4 bg-black/80 backdrop-blur-sm p-8 rounded-lg border border-primary/30">
+    <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
+      <div className="pointer-events-auto flex flex-col items-center gap-3 bg-black/80 backdrop-blur-sm p-6 rounded-lg border border-primary/30">
         <div className="flex items-center gap-3">
           {isSpeaking && <Volume2 className="w-6 h-6 text-primary animate-pulse" />}
           <h2 className="text-xl font-bold text-primary">ARIA SYSTEM</h2>
