@@ -48,22 +48,12 @@ const Leaderboard = () => {
     <div className="relative w-full min-h-screen bg-black pb-24">
       {/* Header */}
       <div 
-        className="border-b-2 p-6"
+        className="border-b-2 p-4"
         style={{ borderColor: '#9ca3af' }}
       >
-        <div className="max-w-7xl mx-auto relative">
-          <h1 
-            className="text-2xl md:text-3xl font-bold tracking-widest text-center"
-            style={{ color: 'hsl(var(--neon-green))' }}
-          >
-            LEADERBOARD
-          </h1>
-          <p className="text-center text-sm mt-2" style={{ color: '#9ca3af' }}>
-            Top performers worldwide
-          </p>
-          
+        <div className="max-w-7xl mx-auto">
           {/* XP Display */}
-          <div className="absolute top-0 right-0 flex gap-2">
+          <div className="flex justify-end gap-2">
             <div className="bg-black/50 border-2 rounded-lg px-3 py-1.5 flex items-center gap-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
               <Zap className="w-4 h-4" style={{ color: 'hsl(var(--neon-green))' }} fill="hsl(var(--neon-green))" />
               <div className="text-right">
