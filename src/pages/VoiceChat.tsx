@@ -271,7 +271,13 @@ export default function VoiceChat() {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
     }
-    navigate(-1);
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    navigate('/');
   };
 
   return (
