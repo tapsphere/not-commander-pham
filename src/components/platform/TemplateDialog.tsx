@@ -77,6 +77,18 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
     }
   }, [formData.scenario, formData.playerActions, formData.edgeCase, formData.uiAesthetic]);
 
+  const handleLoadSample = () => {
+    setFormData({
+      name: 'Priority Trade-Off Navigator',
+      description: 'Tests ability to make strategic decisions under competing constraints',
+      scenario: 'You\'re a Product Manager during a critical launch week. The KPI dashboard is overloading — you must prioritize which metrics to stabilize first before the system crashes.',
+      playerActions: 'Drag-and-drop to rank 6 competing KPIs (user retention, revenue, bug count, feature completion, team morale, tech debt). Each choice affects other metrics in real-time.',
+      edgeCase: 'Halfway through, the CEO messages: "Revenue must be #1 or we lose funding." Timer cuts to 90 seconds. Players must re-prioritize while maintaining system stability.',
+      uiAesthetic: 'Neon cyberpunk dashboard with glitching effects. Dark background with bright green/pink accent colors. Deloitte branding in corner. Animated metric cards with real-time % changes.',
+    });
+    toast.success('Sample template loaded!');
+  };
+
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
     toast.success('Prompt copied to clipboard!');
@@ -136,6 +148,19 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             {template ? 'Edit Template' : 'Create Validator Template'}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Load Sample Button */}
+        <div className="flex justify-end -mt-2 mb-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleLoadSample}
+            className="gap-2"
+          >
+            Load Sample Template
+          </Button>
+        </div>
 
         {/* Quick Reference */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
