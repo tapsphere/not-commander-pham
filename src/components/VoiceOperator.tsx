@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
@@ -12,6 +13,7 @@ interface VoiceOperatorProps {
 }
 
 export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOperatorProps) => {
+  const navigate = useNavigate();
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -191,14 +193,8 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   };
 
   const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      try {
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (error) {
-        console.error('Error starting recognition:', error);
-      }
-    }
+    // Navigate to full-screen voice chat
+    navigate('/voice-chat');
   };
 
   const stopListening = () => {
@@ -225,7 +221,9 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
     // Restore background music
     const gainNodes = getAudioGainNodes();
     gainNodes.forEach(node => {
-      node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+      if (node.context && node.context.state === 'running') {
+        node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+      }
     });
     // Close the UI
     onClose();
