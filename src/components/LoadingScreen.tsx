@@ -183,7 +183,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
               <div className="flex-1 flex flex-col items-center justify-center space-y-8 px-4">
                 <div className="text-center space-y-6">
                   {/* YouTube Video */}
-                  <div className="mb-2">
+                  <div className="mb-2 -mt-12">
                     <iframe
                       width="400"
                       height="225"
