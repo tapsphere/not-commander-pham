@@ -9,6 +9,7 @@ import Profile from "./pages/Profile";
 import Inventory from "./pages/Inventory";
 import Wallet from "./pages/Wallet";
 import Leaderboard from "./pages/Leaderboard";
+import VoiceChat from "./pages/VoiceChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/lobby" element={<Lobby />} />
+          <Route path="/voice-chat" element={<VoiceChat />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/wallet" element={<Wallet />} />
