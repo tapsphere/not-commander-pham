@@ -24,16 +24,28 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
 
   useEffect(() => {
     if (!isActive) {
-      // Stop speech immediately when deactivated
+      // Immediately abort everything when deactivated
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onend = null;
+        } catch (e) {
+          console.log('Error aborting recognition:', e);
+        }
+      }
       if (synthRef.current) {
         synthRef.current.cancel();
       }
-      if (recognitionRef.current && isListening) {
-        recognitionRef.current.stop();
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
       }
       setIsSpeaking(false);
       setIsListening(false);
+      setTranscript('');
       onSpeakingChange(false);
+      
       // Restore background music
       const gainNodes = getAudioGainNodes();
       gainNodes.forEach(node => {
@@ -205,7 +217,19 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   };
 
   const handleClose = () => {
-    // Stop any ongoing speech
+    // CRITICAL: Stop recognition FIRST to prevent feedback loop
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.abort(); // Use abort instead of stop for immediate effect
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+      } catch (e) {
+        console.log('Error stopping recognition:', e);
+      }
+    }
+    
+    // Then stop all speech synthesis
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -213,12 +237,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       synthRef.current.cancel();
     }
     
-    // Stop recognition if active
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-    }
-    
-    // Reset states first
+    // Reset ALL states immediately
     setIsSpeaking(false);
     setIsListening(false);
     setTranscript('');
@@ -232,7 +251,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       }
     });
     
-    // Call onClose to update parent state
+    // Close immediately
     onClose();
   };
 
