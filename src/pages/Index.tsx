@@ -134,11 +134,14 @@ const Index = () => {
                 variant="destructive"
                 onClick={() => {
                   console.log('X button clicked - closing');
+                  console.log('voiceActive before:', voiceActive);
                   if (window.speechSynthesis) {
                     window.speechSynthesis.cancel();
                   }
                   setVoiceActive(false);
                   setIsSpeaking(false);
+                  setPhase('complete'); // Change phase so it doesn't reactivate
+                  console.log('Set voiceActive to false and phase to complete');
                 }}
                 className="w-24"
               >
