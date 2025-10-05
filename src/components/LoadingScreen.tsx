@@ -207,11 +207,10 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                     variant="outline"
                     size="sm"
                     onClick={handleEnterLobby}
-                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-sm tracking-widest px-6 py-2 font-bold transition-all duration-300"
+                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-sm tracking-widest px-6 py-2 font-bold transition-all duration-300 animate-pulse"
                     style={{ 
                       borderColor: 'hsl(var(--neon-green))',
-                      color: 'hsl(var(--neon-green))',
-                      animation: 'button-pulse 2s ease-in-out infinite'
+                      color: 'hsl(var(--neon-green))'
                     }}
                   >
                     ACCESS THE GRID
