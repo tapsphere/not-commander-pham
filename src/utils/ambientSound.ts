@@ -17,9 +17,17 @@ export const playApocalypseSound = async () => {
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     
     const source = audioContext.createBufferSource();
+    const gainNode = audioContext.createGain();
     source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
+    gainNode.gain.value = 1;
+    
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
     source.start(0);
+    
+    // Track the source so it can be stopped
+    audioNodes.push(source);
+    gainNodes.push(gainNode);
     
     console.log('Apocalypse sound effect playing');
   } catch (error) {
@@ -115,7 +123,7 @@ export const playAmbientSound = () => {
 };
 
 export const stopAmbientSound = () => {
-  if (!audioContext || !isPlaying) return;
+  if (!audioContext) return;
   
   const now = audioContext.currentTime;
   
@@ -123,10 +131,10 @@ export const stopAmbientSound = () => {
   gainNodes.forEach(gainNode => {
     gainNode.gain.cancelScheduledValues(now);
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-    gainNode.gain.linearRampToValueAtTime(0, now + 2); // 2-second fade out
+    gainNode.gain.linearRampToValueAtTime(0, now + 0.5); // Fast fade out
   });
   
-  // Stop all oscillators after fade out
+  // Stop all audio nodes after fade out
   setTimeout(() => {
     audioNodes.forEach(node => {
       try {
@@ -138,7 +146,7 @@ export const stopAmbientSound = () => {
     audioNodes = [];
     gainNodes = [];
     isPlaying = false;
-  }, 2000);
+  }, 500);
 };
 
 // Initialize audio context on user interaction (required by browsers)
