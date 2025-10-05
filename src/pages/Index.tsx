@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { Globe } from '@/components/GlobeScene';
@@ -8,6 +8,7 @@ import { Mic, X, Volume2 } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
+  const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -95,11 +96,13 @@ const Index = () => {
           setPhase(newPhase);
           // Activate voice operator when ready phase is reached (only if user hasn't closed it)
           if (newPhase === 'ready' && !userClosed) {
-            setTimeout(() => setVoiceActive(true), 500);
+            voiceTimeoutRef.current = setTimeout(() => setVoiceActive(true), 500);
           }
           // Deactivate voice operator and stop all speech immediately
           if (newPhase === 'complete') {
-            // Stop speech synthesis immediately
+            if (voiceTimeoutRef.current) {
+              clearTimeout(voiceTimeoutRef.current);
+            }
             if (window.speechSynthesis) {
               window.speechSynthesis.cancel();
             }
@@ -142,14 +145,16 @@ const Index = () => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('X button clicked - CLOSING NOW');
+                // Cancel any pending timeout
+                if (voiceTimeoutRef.current) {
+                  clearTimeout(voiceTimeoutRef.current);
+                }
                 if (window.speechSynthesis) {
                   window.speechSynthesis.cancel();
                 }
-                setUserClosed(true); // Prevent phase handler from reopening
+                setUserClosed(true);
                 setIsSpeaking(false);
                 setVoiceActive(false);
-                console.log('Set voiceActive to false and userClosed to true');
               }}
               className="w-24"
             >
