@@ -120,7 +120,7 @@ UI Styling Instructions:
       }
 
       // Save customization
-      const { error } = await supabase
+      const { data: customizationData, error } = await supabase
         .from('brand_customizations')
         .insert({
           brand_id: user.id,
@@ -129,11 +129,32 @@ UI Styling Instructions:
           secondary_color: secondaryColor,
           logo_url: logoUrl,
           customization_prompt: generatedPrompt,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast.success('Brand customization saved!');
+      toast.success('Customization saved! Generating your game...');
+
+      // Call edge function to generate game
+      const { data: gameData, error: gameError } = await supabase.functions.invoke('generate-game', {
+        body: {
+          templatePrompt: editablePrompt,
+          primaryColor,
+          secondaryColor,
+          logoUrl,
+          customizationId: customizationData.id,
+        }
+      });
+
+      if (gameError) {
+        console.error('Game generation error:', gameError);
+        toast.error('Game generation failed. You can try again later from your dashboard.');
+      } else {
+        toast.success('Game generated successfully! 🎮');
+      }
+
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -327,7 +348,7 @@ UI Styling Instructions:
               disabled={loading}
               className="bg-neon-green text-black hover:bg-neon-green/90"
             >
-              {loading ? 'Saving...' : 'Save Customization'}
+              {loading ? 'Generating Game...' : 'Generate & Save Game'}
             </Button>
           </div>
         </div>
