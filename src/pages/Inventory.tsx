@@ -197,6 +197,9 @@ const Inventory = () => {
                       {receipt.skill}
                     </h3>
                     <div className="flex gap-2 mb-2">
+                      <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
+                        CBE
+                      </Badge>
                       <Badge variant="outline" style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}>
                         {receipt.validator}
                       </Badge>
