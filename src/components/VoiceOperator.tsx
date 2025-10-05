@@ -205,25 +205,20 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   };
 
   const handleClose = () => {
-    console.log('Close button clicked - stopping all audio');
-    
-    // Stop any ongoing speech - multiple approaches to ensure it stops
+    // Stop any ongoing speech
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
-      console.log('Called window.speechSynthesis.cancel()');
     }
     if (synthRef.current) {
       synthRef.current.cancel();
-      console.log('Called synthRef.current.cancel()');
     }
     
     // Stop recognition if active
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
-      console.log('Stopped recognition');
     }
     
-    // Reset states
+    // Reset states first
     setIsSpeaking(false);
     setIsListening(false);
     setTranscript('');
@@ -231,15 +226,13 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
     
     // Restore background music
     const gainNodes = getAudioGainNodes();
-    console.log('Restoring background music, found nodes:', gainNodes.length);
     gainNodes.forEach(node => {
       if (node.context && node.context.state === 'running') {
         node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
       }
     });
     
-    // Close the UI
-    console.log('Calling onClose()');
+    // Call onClose to update parent state
     onClose();
   };
 
@@ -282,10 +275,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
           <Button
             size="lg"
             variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClose();
-            }}
+            onClick={handleClose}
           >
             Close
           </Button>
