@@ -32,10 +32,28 @@ export default function TemplateDetail() {
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  const [isBrand, setIsBrand] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     loadTemplate();
+    checkUserRole();
   }, [templateId]);
+
+  const checkUserRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setIsLoggedIn(true);
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'brand')
+        .maybeSingle();
+      
+      setIsBrand(!!roles);
+    }
+  };
 
   const loadTemplate = async () => {
     try {
@@ -171,13 +189,35 @@ export default function TemplateDetail() {
               </div>
             )}
 
-            <Button
-              onClick={() => setCustomizeDialogOpen(true)}
-              className="w-full bg-neon-green text-black hover:bg-neon-green/90 gap-2 text-lg py-6"
-            >
-              <Palette className="h-5 w-5" />
-              Customize with Your Brand
-            </Button>
+            {!isLoggedIn ? (
+              <div className="space-y-3">
+                <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 text-center">
+                  <p className="text-yellow-300 text-sm mb-3">
+                    Sign in as a Brand to customize this template
+                  </p>
+                  <Button
+                    onClick={() => navigate('/auth')}
+                    className="w-full bg-neon-green text-black hover:bg-neon-green/90"
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              </div>
+            ) : !isBrand ? (
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4 text-center">
+                <p className="text-yellow-300 text-sm">
+                  Only Brand accounts can customize templates. Please log in with a Brand account.
+                </p>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setCustomizeDialogOpen(true)}
+                className="w-full bg-neon-green text-black hover:bg-neon-green/90 gap-2 text-lg py-6"
+              >
+                <Palette className="h-5 w-5" />
+                Customize with Your Brand
+              </Button>
+            )}
           </Card>
         </div>
 
