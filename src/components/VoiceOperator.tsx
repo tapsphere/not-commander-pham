@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { Mic, X, Volume2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { getAudioGainNodes } from '@/utils/ambientSound';
 
@@ -249,42 +249,33 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
           </p>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <Button
             size="lg"
-            variant={isListening ? "destructive" : "default"}
-            onClick={isListening ? stopListening : startListening}
-            className="gap-2"
+            variant="default"
+            onClick={startListening}
+            className="gap-2 w-24"
           >
-            {isListening ? (
-              <>
-                <MicOff className="w-5 h-5" />
-                Stop
-              </>
-            ) : (
-              <>
-                <Mic className="w-5 h-5" />
-                Speak
-              </>
-            )}
+            <Mic className="w-5 h-5" />
           </Button>
 
           <Button
             size="lg"
-            variant="outline"
+            variant="destructive"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               handleClose();
             }}
             type="button"
+            className="w-24"
           >
-            Close
+            <X className="w-5 h-5" />
           </Button>
         </div>
 
         <p className="text-xs text-gray-400 text-center max-w-sm">
-          {isListening ? "Listening..." : isSpeaking ? "ARIA speaking..." : "Click Speak to talk to ARIA"}
+          {isSpeaking ? "ARIA speaking..." : "Click microphone to talk to ARIA"}
         </p>
       </div>
     </div>
