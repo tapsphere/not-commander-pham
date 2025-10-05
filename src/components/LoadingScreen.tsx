@@ -192,8 +192,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      className="mx-auto rounded-lg border-2"
-                      style={{ borderColor: 'hsl(var(--neon-green))' }}
+                      className="mx-auto rounded-lg"
                     />
                   </div>
                   
