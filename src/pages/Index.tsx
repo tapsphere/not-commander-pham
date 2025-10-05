@@ -40,12 +40,21 @@ const Index = () => {
     };
   }, []);
 
-  // Stop speech when voiceActive becomes false
+  // Stop speech when voiceActive becomes false - be VERY aggressive
   useEffect(() => {
     if (!voiceActive) {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
+      // Stop speech synthesis multiple times to ensure it stops
+      const stopSpeech = () => {
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.cancel(); // Call twice
+        }
+      };
+      
+      stopSpeech();
+      setTimeout(stopSpeech, 100);
+      setTimeout(stopSpeech, 200);
+      setTimeout(stopSpeech, 500);
     }
   }, [voiceActive]);
 
@@ -102,10 +111,19 @@ const Index = () => {
         onProgressUpdate={setProgress}
         onFlip={() => setIsFlipped(true)}
         onPhaseChange={(newPhase) => {
+          console.log('Phase changed to:', newPhase, 'userClosed:', userClosed);
           setPhase(newPhase);
           // Activate voice operator when ready phase is reached (only if user hasn't closed it)
           if (newPhase === 'ready' && !userClosed) {
-            voiceTimeoutRef.current = setTimeout(() => setVoiceActive(true), 500);
+            // Clear any existing timeout first
+            if (voiceTimeoutRef.current) {
+              clearTimeout(voiceTimeoutRef.current);
+            }
+            voiceTimeoutRef.current = setTimeout(() => {
+              if (!userClosed) {
+                setVoiceActive(true);
+              }
+            }, 500);
           }
           // Deactivate voice operator and stop all speech immediately
           if (newPhase === 'complete') {
@@ -154,16 +172,30 @@ const Index = () => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // IMMEDIATELY stop all speech - don't wait for anything
+                if (window.speechSynthesis) {
+                  window.speechSynthesis.cancel();
+                  window.speechSynthesis.cancel(); // Call twice for safety
+                }
+                
                 // Cancel any pending timeout
                 if (voiceTimeoutRef.current) {
                   clearTimeout(voiceTimeoutRef.current);
+                  voiceTimeoutRef.current = null;
                 }
-                if (window.speechSynthesis) {
-                  window.speechSynthesis.cancel();
-                }
+                
+                // Set all state at once
                 setUserClosed(true);
                 setIsSpeaking(false);
                 setVoiceActive(false);
+                
+                // Force additional speech stops after a delay
+                setTimeout(() => {
+                  if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                  }
+                }, 100);
               }}
               className="w-24"
             >
