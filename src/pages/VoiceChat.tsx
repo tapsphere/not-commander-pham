@@ -41,29 +41,46 @@ export default function VoiceChat() {
     
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
+      recognitionRef.current.continuous = true; // Keep listening
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = async (event: any) => {
-        const text = event.results[0][0].transcript;
+        const text = event.results[event.results.length - 1][0].transcript;
         setTranscript(text);
         await handleAIResponse(text);
       };
 
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-        toast({
-          title: "Voice Error",
-          description: "Could not understand audio. Please try again.",
-          variant: "destructive",
-        });
+        // Auto-restart on error
+        if (isListening && event.error !== 'aborted') {
+          setTimeout(() => {
+            if (recognitionRef.current && isListening) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.log('Already started');
+              }
+            }
+          }, 1000);
+        }
       };
 
       recognitionRef.current.onend = () => {
-        setIsListening(false);
         setIsUserSpeaking(false);
+        // Auto-restart if still supposed to be listening
+        if (isListening) {
+          setTimeout(() => {
+            if (recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.log('Already started');
+              }
+            }
+          }, 100);
+        }
       };
     }
 
@@ -73,9 +90,12 @@ export default function VoiceChat() {
     };
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Greeting
-    const greeting = "Ready to assist. You can speak now.";
-    speakText(greeting);
+    // Greeting and auto-start listening
+    const greeting = "I'm ready to help. Start speaking anytime.";
+    speakText(greeting).then(() => {
+      // Auto-start listening after greeting
+      setTimeout(() => startListening(), 500);
+    });
     setMessages([{ role: 'assistant', content: greeting, timestamp: new Date() }]);
 
     return () => {
@@ -290,27 +310,38 @@ export default function VoiceChat() {
         </Canvas>
       </div>
 
-      {/* Top controls */}
+      {/* Minimal top-left status */}
+      <div className="fixed top-4 left-4 z-50 flex items-center gap-3">
+        {(isListening || isSpeaking) && (
+          <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-2 rounded-full border" 
+            style={{ borderColor: 'hsl(var(--neon-green) / 0.5)' }}>
+            <div className={`w-2 h-2 rounded-full ${isSpeaking ? 'bg-purple-500 animate-pulse' : 'bg-green-500 animate-pulse'}`} />
+            <span className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green))' }}>
+              {isSpeaking ? 'ARIA' : isUserSpeaking ? 'LISTENING' : 'READY'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Top-right controls */}
       <div className="fixed top-4 right-4 z-50 flex gap-2">
         <Button
           onClick={() => setShowConversation(!showConversation)}
-          className="gap-2 border-2 bg-black/80 backdrop-blur-sm hover:bg-primary/20"
+          variant="ghost"
+          className="w-9 h-9 p-0 bg-black/60 backdrop-blur-sm hover:bg-primary/20 rounded-full"
           style={{ 
-            borderColor: 'hsl(var(--neon-green))',
             color: 'hsl(var(--neon-green))'
           }}
-          size="sm"
         >
           <MessageSquare className="w-4 h-4" />
         </Button>
         <Button
           onClick={handleClose}
-          className="gap-2 border-2 bg-black/80 backdrop-blur-sm hover:bg-destructive/20"
+          variant="ghost"
+          className="w-9 h-9 p-0 bg-black/60 backdrop-blur-sm hover:bg-destructive/20 rounded-full"
           style={{ 
-            borderColor: 'hsl(var(--neon-green))',
             color: 'hsl(var(--neon-green))'
           }}
-          size="sm"
         >
           <X className="w-4 h-4" />
         </Button>
@@ -354,47 +385,43 @@ export default function VoiceChat() {
         </div>
       )}
 
-      {/* Voice Interface */}
-      <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto flex flex-col items-center gap-3 bg-black/80 backdrop-blur-sm p-6 rounded-lg border-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-          <h2 className="text-xl font-bold text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>
-            ARIA SYSTEM
-          </h2>
-
-          {transcript && (
-            <p className="text-sm text-gray-300 max-w-md text-center">
-              You: {transcript}
+      {/* Minimal bottom floating button */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none">
+        {transcript && (
+          <div className="pointer-events-auto bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full border max-w-md" 
+            style={{ borderColor: 'hsl(var(--neon-green) / 0.3)' }}>
+            <p className="text-xs text-gray-300 text-center font-mono">
+              "{transcript}"
             </p>
+          </div>
+        )}
+        
+        <button
+          onClick={isListening ? stopListening : startListening}
+          disabled={isSpeaking}
+          className="pointer-events-auto w-16 h-16 rounded-full bg-black/80 backdrop-blur-sm border-2 flex items-center justify-center transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            borderColor: isListening ? 'hsl(var(--neon-green))' : 'hsl(var(--neon-green) / 0.5)',
+            boxShadow: isListening ? '0 0 20px hsl(var(--neon-green) / 0.5)' : 'none'
+          }}
+        >
+          {isListening ? (
+            <div className="relative">
+              <Mic className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} />
+              <div className="absolute inset-0 animate-ping">
+                <Mic className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} />
+              </div>
+            </div>
+          ) : (
+            <Mic className="w-6 h-6" style={{ color: 'hsl(var(--neon-green) / 0.7)' }} />
           )}
-
-          <Button
-            size="lg"
-            variant={isListening ? "destructive" : "default"}
-            onClick={isListening ? stopListening : startListening}
-            disabled={isSpeaking}
-            className="gap-2 border-2"
-            style={{
-              borderColor: isListening ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-green))',
-              color: isListening ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-green))'
-            }}
-          >
-            {isListening ? (
-              <>
-                <MicOff className="w-5 h-5" />
-                Stop
-              </>
-            ) : (
-              <>
-                <Mic className="w-5 h-5" />
-                Speak
-              </>
-            )}
-          </Button>
-
-          <p className="text-xs text-gray-400 text-center max-w-sm font-mono">
-            {isListening ? (isUserSpeaking ? "Listening..." : "Speak now...") : isSpeaking ? "ARIA speaking..." : "Click Speak to talk to ARIA"}
+        </button>
+        
+        {!isListening && !isSpeaking && (
+          <p className="text-[10px] text-gray-500 font-mono pointer-events-none">
+            Tap to speak
           </p>
-        </div>
+        )}
       </div>
 
       <style>{`
