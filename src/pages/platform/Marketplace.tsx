@@ -217,44 +217,49 @@ export default function Marketplace() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Channel Navigation */}
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-          <Button
-            variant={filterType === 'all' ? 'default' : 'outline'}
-            onClick={() => {
-              setFilterType('all');
-              setSelectedFilter('');
-            }}
-            className={filterType === 'all' ? 'bg-neon-green text-black' : ''}
-          >
-            All Validators
-          </Button>
-          
-          {/* Creator Channels */}
-          {creators.length > 0 && (
-            <div className="flex gap-2">
-              {creators.slice(0, 5).map((creator) => (
-                <Button
-                  key={creator.id}
-                  variant={
-                    filterType === 'creator' && selectedFilter === creator.id
-                      ? 'default'
-                      : 'outline'
-                  }
-                  onClick={() => {
-                    setFilterType('creator');
-                    setSelectedFilter(creator.id);
-                  }}
-                  className={
-                    filterType === 'creator' && selectedFilter === creator.id
-                      ? 'bg-neon-green text-black'
-                      : ''
-                  }
-                >
-                  {creator.name}
-                </Button>
-              ))}
-            </div>
-          )}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">
+            Browse Channels
+          </h2>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button
+              variant={filterType === 'all' ? 'default' : 'outline'}
+              onClick={() => {
+                setFilterType('all');
+                setSelectedFilter('');
+              }}
+              className={filterType === 'all' ? 'bg-neon-green text-black' : ''}
+            >
+              🎮 All Validators
+            </Button>
+            
+            {/* Creator Channels */}
+            {creators.length > 0 && (
+              <>
+                {creators.map((creator) => (
+                  <Button
+                    key={creator.id}
+                    variant={
+                      filterType === 'creator' && selectedFilter === creator.id
+                        ? 'default'
+                        : 'outline'
+                    }
+                    onClick={() => {
+                      setFilterType('creator');
+                      setSelectedFilter(creator.id);
+                    }}
+                    className={
+                      filterType === 'creator' && selectedFilter === creator.id
+                        ? 'bg-neon-green text-black'
+                        : ''
+                    }
+                  >
+                    👤 {creator.name}
+                  </Button>
+                ))}
+              </>
+            )}
+          </div>
         </div>
 
         {/* Competency & Department Filters */}
@@ -308,10 +313,31 @@ export default function Marketplace() {
           </div>
         </div>
 
+        {/* Channel Header */}
+        {filterType === 'creator' && selectedFilter && (
+          <div className="mb-6 bg-gray-900 border border-neon-green/30 rounded-lg p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 rounded-full bg-neon-green/20 flex items-center justify-center">
+                <span className="text-2xl">👤</span>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">
+                  {creators.find(c => c.id === selectedFilter)?.name}'s Validators
+                </h2>
+                <p className="text-sm text-gray-400">
+                  {filteredTemplates.length} published validator{filteredTemplates.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Results Count */}
-        <p className="text-sm text-gray-400 mb-4">
-          Showing {filteredTemplates.length} validator{filteredTemplates.length !== 1 ? 's' : ''}
-        </p>
+        {filterType !== 'creator' && (
+          <p className="text-sm text-gray-400 mb-4">
+            Showing {filteredTemplates.length} validator{filteredTemplates.length !== 1 ? 's' : ''}
+          </p>
+        )}
 
         {/* Template Grid */}
         {filteredTemplates.length === 0 ? (

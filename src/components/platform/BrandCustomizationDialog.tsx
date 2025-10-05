@@ -151,6 +151,22 @@ UI Styling Instructions:
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Show Creator's Original Prompt */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="font-semibold mb-2 text-sm text-gray-300 flex items-center gap-2">
+              <Copy className="h-4 w-4 text-neon-green" />
+              Creator's Original Prompt
+            </h3>
+            <div className="bg-black/50 rounded p-4 max-h-48 overflow-y-auto">
+              <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                {template.base_prompt || 'No prompt available'}
+              </pre>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              This is the original design prompt created by the validator designer. You can customize it below with your brand identity.
+            </p>
+          </div>
+
           {/* Brand Colors */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
