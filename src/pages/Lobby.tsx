@@ -124,7 +124,6 @@ const Lobby = () => {
                     key={brand.id}
                     className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
                     style={{ borderColor }}
-                    onClick={() => navigate('/menu')}
                   >
                     {/* Glow effect on hover */}
                     <div 
