@@ -258,12 +258,12 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
               
               @keyframes subtle-pulse {
                 0%, 100% {
-                  opacity: 1;
-                  box-shadow: 0 0 5px hsl(var(--neon-green) / 0.3);
+                  transform: scale(1);
+                  box-shadow: 0 0 8px hsl(var(--neon-green) / 0.4);
                 }
                 50% {
-                  opacity: 0.92;
-                  box-shadow: 0 0 15px hsl(var(--neon-green) / 0.5);
+                  transform: scale(1.05);
+                  box-shadow: 0 0 16px hsl(var(--neon-green) / 0.6);
                 }
               }
             `}</style>
