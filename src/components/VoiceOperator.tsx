@@ -205,27 +205,41 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   };
 
   const handleClose = () => {
-    // Stop any ongoing speech
+    console.log('Close button clicked - stopping all audio');
+    
+    // Stop any ongoing speech - multiple approaches to ensure it stops
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      console.log('Called window.speechSynthesis.cancel()');
+    }
     if (synthRef.current) {
       synthRef.current.cancel();
+      console.log('Called synthRef.current.cancel()');
     }
+    
     // Stop recognition if active
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
+      console.log('Stopped recognition');
     }
+    
     // Reset states
     setIsSpeaking(false);
     setIsListening(false);
     setTranscript('');
     onSpeakingChange(false);
+    
     // Restore background music
     const gainNodes = getAudioGainNodes();
+    console.log('Restoring background music, found nodes:', gainNodes.length);
     gainNodes.forEach(node => {
       if (node.context && node.context.state === 'running') {
         node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
       }
     });
+    
     // Close the UI
+    console.log('Calling onClose()');
     onClose();
   };
 
