@@ -5,7 +5,14 @@ import { Globe } from '@/components/GlobeScene';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Mic, MicOff, X, MessageSquare } from 'lucide-react';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
 
 export default function VoiceChat() {
   const navigate = useNavigate();
@@ -15,6 +22,9 @@ export default function VoiceChat() {
   const [transcript, setTranscript] = useState('');
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [showConversation, setShowConversation] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -64,7 +74,9 @@ export default function VoiceChat() {
     window.addEventListener('mousemove', handleMouseMove);
 
     // Greeting
-    speakText("Ready to assist. You can speak now.");
+    const greeting = "Ready to assist. You can speak now.";
+    speakText(greeting);
+    setMessages([{ role: 'assistant', content: greeting, timestamp: new Date() }]);
 
     return () => {
       if (recognitionRef.current) {
@@ -85,6 +97,13 @@ export default function VoiceChat() {
 
   const handleAIResponse = async (userMessage: string) => {
     try {
+      // Add user message to conversation
+      setMessages(prev => [...prev, { 
+        role: 'user', 
+        content: userMessage, 
+        timestamp: new Date() 
+      }]);
+
       const { data, error } = await supabase.functions.invoke('voice-chat', {
         body: { message: userMessage }
       });
@@ -92,6 +111,14 @@ export default function VoiceChat() {
       if (error) throw error;
 
       const aiMessage = data.message;
+      
+      // Add AI response to conversation
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: aiMessage, 
+        timestamp: new Date() 
+      }]);
+      
       await speakText(aiMessage);
       
     } catch (error) {
@@ -103,6 +130,11 @@ export default function VoiceChat() {
       });
     }
   };
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const speakText = async (text: string) => {
     return new Promise<void>((resolve) => {
@@ -252,18 +284,69 @@ export default function VoiceChat() {
         </Canvas>
       </div>
 
-      {/* Close button */}
-      <Button
-        onClick={handleClose}
-        className="fixed top-4 right-4 z-50 gap-2 border-2 bg-black/80 backdrop-blur-sm hover:bg-destructive/20"
-        style={{ 
-          borderColor: 'hsl(var(--neon-green))',
-          color: 'hsl(var(--neon-green))'
-        }}
-        size="sm"
-      >
-        <X className="w-4 h-4" />
-      </Button>
+      {/* Top controls */}
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Button
+          onClick={() => setShowConversation(!showConversation)}
+          className="gap-2 border-2 bg-black/80 backdrop-blur-sm hover:bg-primary/20"
+          style={{ 
+            borderColor: 'hsl(var(--neon-green))',
+            color: 'hsl(var(--neon-green))'
+          }}
+          size="sm"
+        >
+          <MessageSquare className="w-4 h-4" />
+        </Button>
+        <Button
+          onClick={handleClose}
+          className="gap-2 border-2 bg-black/80 backdrop-blur-sm hover:bg-destructive/20"
+          style={{ 
+            borderColor: 'hsl(var(--neon-green))',
+            color: 'hsl(var(--neon-green))'
+          }}
+          size="sm"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Conversation Log */}
+      {showConversation && messages.length > 1 && (
+        <div className="fixed left-4 top-4 bottom-24 w-80 z-50 pointer-events-auto">
+          <div className="h-full bg-black/80 backdrop-blur-sm border-2 rounded-lg p-4" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+            <h3 className="text-sm font-bold font-mono mb-3 text-glow-green" style={{ color: 'hsl(var(--neon-green))' }}>
+              CONVERSATION LOG
+            </h3>
+            <ScrollArea className="h-[calc(100%-2rem)]">
+              <div className="space-y-3 pr-4">
+                {messages.map((msg, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`p-3 rounded border ${
+                      msg.role === 'user' 
+                        ? 'bg-black/50 border-white/20' 
+                        : 'bg-primary/10 border-primary/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-mono font-bold" style={{ 
+                        color: msg.role === 'user' ? 'hsl(var(--neon-green))' : 'hsl(var(--neon-green))' 
+                      }}>
+                        {msg.role === 'user' ? 'YOU' : 'ARIA'}
+                      </span>
+                      <span className="text-[10px] text-gray-500 font-mono">
+                        {msg.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-300 leading-relaxed">{msg.content}</p>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
+      )}
 
       {/* Voice Interface */}
       <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
