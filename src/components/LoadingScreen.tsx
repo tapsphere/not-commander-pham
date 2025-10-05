@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { initAudioContext, playAmbientSound } from '@/utils/ambientSound';
+import { GridPerspective } from '@/components/GridPerspective';
 
 interface LoadingScreenProps {
   onProgressUpdate?: (progress: number) => void;
@@ -152,18 +153,101 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
         )}
 
         {phase === 'complete' && (
-          <div 
-            className="fixed top-0 left-0 right-0 border-4 p-4 animate-slide-in-right cursor-pointer hover:bg-primary/10 transition-all"
-            style={{ borderColor: 'hsl(var(--neon-green))' }}
-            onClick={handleEnterLobby}
-          >
-            <p 
-              className="text-center text-xl tracking-widest font-bold text-glow-green"
-              style={{ color: 'hsl(var(--neon-green))' }}
-            >
-              ENTER THE GRID →
-            </p>
-          </div>
+          <>
+            {/* Grid Background */}
+            <GridPerspective isFlipped={false} />
+            
+            {/* Full Screen Splash */}
+            <div className="fixed inset-0 flex flex-col animate-fade-in z-20">
+              {/* Top Banner */}
+              <div 
+                className="border-b-4 p-6"
+                style={{ borderColor: 'hsl(var(--neon-green))' }}
+              >
+                <p 
+                  className="text-center text-3xl md:text-5xl tracking-widest font-bold text-glow-green"
+                  style={{ color: 'hsl(var(--neon-green))' }}
+                >
+                  LOBBY ACCESS GRANTED
+                </p>
+              </div>
+
+              {/* Center Content */}
+              <div className="flex-1 flex flex-col items-center justify-center space-y-12 px-4">
+                <div className="text-center space-y-6 animate-fade-in">
+                  <h1 
+                    className="text-4xl md:text-6xl font-bold tracking-wider text-glow-green"
+                    style={{ color: 'hsl(var(--neon-green))' }}
+                  >
+                    PLAYOPS COMMAND CENTER
+                  </h1>
+                  <p 
+                    className="text-base md:text-xl font-mono tracking-wide"
+                    style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
+                  >
+                    Systems Online • Grid Stable • Ready for Operations
+                  </p>
+                </div>
+
+                {/* Decorative lines around button */}
+                <div className="relative">
+                  <div 
+                    className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[400px] h-[200px] border-2"
+                    style={{ borderColor: 'hsl(var(--neon-green) / 0.3)' }}
+                  />
+                  
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleEnterLobby}
+                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-xl tracking-widest px-16 py-8 font-bold transition-all duration-300 animate-pulse"
+                    style={{ 
+                      borderColor: 'hsl(var(--neon-green))',
+                      color: 'hsl(var(--neon-green))'
+                    }}
+                  >
+                    ACCESS MENU
+                  </Button>
+
+                  {/* Decorative corner accents */}
+                  <div 
+                    className="absolute -top-8 left-1/2 -translate-x-1/2 w-32 h-0.5"
+                    style={{ backgroundColor: 'hsl(var(--neon-green))' }}
+                  />
+                  <div 
+                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-32 h-0.5"
+                    style={{ backgroundColor: 'hsl(var(--neon-green))' }}
+                  />
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 -left-12 w-8 h-8 border-2 rounded-full"
+                    style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  />
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 -right-12 w-8 h-8 border-2 rounded-full"
+                    style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Status Bar */}
+              <div 
+                className="border-t-4 p-4"
+                style={{ borderColor: 'hsl(var(--neon-green))' }}
+              >
+                <div className="max-w-7xl mx-auto flex justify-between items-center text-xs md:text-base font-mono">
+                  <span style={{ color: 'hsl(var(--neon-green))' }}>
+                    STATUS: <span className="font-bold">ACTIVE</span>
+                  </span>
+                  <span style={{ color: 'hsl(var(--neon-green))' }}>
+                    GRID: <span className="font-bold">OPERATIONAL</span>
+                  </span>
+                  <span style={{ color: 'hsl(var(--neon-green))' }}>
+                    LATENCY: <span className="font-bold">0ms</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
