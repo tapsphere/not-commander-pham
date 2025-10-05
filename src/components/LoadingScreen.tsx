@@ -167,7 +167,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
         )}
 
         {phase === 'ready' && (
-          <div className="text-center space-y-8 animate-fade-in mt-32">
+          <div className="text-center space-y-8 animate-fade-in mt-64">
             <p 
               className="text-sm md:text-base font-mono tracking-wide"
               style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
