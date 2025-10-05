@@ -19,12 +19,8 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
-  console.log('VoiceOperator render - isActive:', isActive);
-
   useEffect(() => {
     if (!isActive) return;
-
-    console.log('VoiceOperator activated!');
 
     // Initialize speech synthesis
     synthRef.current = window.speechSynthesis;
@@ -41,7 +37,6 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       recognitionRef.current.onresult = async (event: any) => {
         const text = event.results[0][0].transcript;
         setTranscript(text);
-        console.log('User said:', text);
         
         // Send to AI and get response
         await handleAIResponse(text);
@@ -70,7 +65,6 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
     }
 
     // Greeting when activated
-    console.log('Playing greeting...');
     speakText("Hello Nitin. I am ARIA, your AI survival companion. You can use voice commands and speak to me anytime. I will help and assist you building your human-proof profile.");
 
     return () => {
@@ -92,7 +86,6 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       if (error) throw error;
 
       const aiMessage = data.message;
-      console.log('AI response:', aiMessage);
       await speakText(aiMessage);
       
     } catch (error) {
@@ -115,19 +108,26 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       // Cancel any ongoing speech
       synthRef.current.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 0.8;
+      // Small delay to ensure voices are loaded
+      setTimeout(() => {
 
-      // Try to use a female voice like Siri
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.1;
+      utterance.volume = 0.9;
+
+      // Try to use a natural female voice
       const voices = synthRef.current.getVoices();
+      const preferredVoices = [
+        'Samantha', 'Karen', 'Victoria', 'Alex',
+        'Google US English', 'Microsoft Zira',
+        'Google UK English Female'
+      ];
+      
       const femaleVoice = voices.find(v => 
-        v.name.includes('Samantha') || 
-        v.name.includes('Female') ||
-        v.name.includes('Karen') ||
-        v.name.includes('Moira') ||
-        (v.lang.startsWith('en') && !v.name.includes('Male'))
+        preferredVoices.some(pv => v.name.includes(pv))
+      ) || voices.find(v => 
+        v.lang.startsWith('en-US') && v.name.includes('Female')
       ) || voices[0];
 
       if (femaleVoice) {
@@ -153,6 +153,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       };
 
       synthRef.current.speak(utterance);
+      }, 100);
     });
   };
 
