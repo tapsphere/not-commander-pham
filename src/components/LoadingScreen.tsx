@@ -165,7 +165,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
             <GridPerspective isFlipped={false} />
             
             {/* Full Screen Splash */}
-            <div className="fixed inset-0 flex flex-col animate-fade-in z-20">
+            <div className="fixed inset-0 flex flex-col animate-fade-in z-20" style={{ animation: 'fade-in 0.3s ease-out, spin-in 1s ease-out' }}>
               {/* Top Banner */}
               <div 
                 className="border-b-4 p-6"
@@ -181,7 +181,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
 
               {/* Center Content */}
               <div className="flex-1 flex flex-col items-center justify-center space-y-12 px-4">
-                <div className="text-center space-y-6 animate-fade-in">
+                <div className="text-center space-y-6">
                   <h1 
                     className="text-xl md:text-2xl font-bold tracking-wider text-glow-green whitespace-nowrap"
                     style={{ color: 'hsl(var(--neon-green))' }}
@@ -242,6 +242,19 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                 </div>
               </div>
             </div>
+
+            <style>{`
+              @keyframes spin-in {
+                0% {
+                  transform: rotate(180deg) scale(0.5);
+                  opacity: 0;
+                }
+                100% {
+                  transform: rotate(0deg) scale(1);
+                  opacity: 1;
+                }
+              }
+            `}</style>
           </>
         )}
       </div>
