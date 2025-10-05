@@ -74,8 +74,16 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
   };
 
   const handleProceedToGrid = () => {
-    // Stop all music before showing grid splash
-    stopAmbientSound();
+    // Lower music volume instead of stopping
+    const gainNodes = (window as any).__audioGainNodes || [];
+    console.log('Lowering music volume, found gain nodes:', gainNodes.length);
+    
+    gainNodes.forEach((gainNode: GainNode) => {
+      if (gainNode.context) {
+        gainNode.gain.linearRampToValueAtTime(0.15, gainNode.context.currentTime + 1);
+      }
+    });
+    
     setTimeout(() => {
       setPhase('complete');
       if (onFlip) {

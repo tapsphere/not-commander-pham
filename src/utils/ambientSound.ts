@@ -87,9 +87,13 @@ export const playAmbientSound = () => {
     oscillator.start(now);
     lfo.start(now);
     
-    audioNodes.push(oscillator);
-    audioNodes.push(lfo);
-    gainNodes.push(gainNode);
+  // Track gain nodes globally for volume control
+  audioNodes.push(oscillator);
+  audioNodes.push(lfo);
+  gainNodes.push(gainNode);
+  
+  // Store gain nodes globally
+  (window as any).__audioGainNodes = gainNodes;
   });
   
   // Add subtle noise layer for texture
@@ -118,6 +122,9 @@ export const playAmbientSound = () => {
   noiseSource.start(now);
   audioNodes.push(noiseSource);
   gainNodes.push(noiseGain);
+  
+  // Store gain nodes globally
+  (window as any).__audioGainNodes = gainNodes;
   
   console.log('Ambient sound started with', audioNodes.length, 'audio nodes');
 };
@@ -148,6 +155,9 @@ export const stopAmbientSound = () => {
     isPlaying = false;
   }, 500);
 };
+
+// Export gain nodes for volume control
+export const getAudioGainNodes = () => gainNodes;
 
 // Initialize audio context on user interaction (required by browsers)
 export const initAudioContext = () => {

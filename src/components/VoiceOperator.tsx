@@ -71,7 +71,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
 
     // Greeting when activated
     console.log('Playing greeting...');
-    speakText("Systems online. Welcome, survivor. How can I assist you?");
+    speakText("Hello Nitin. I am ARIA, your AI survival companion. You can use voice commands and speak to me anytime. I will help and assist you building your human-proof profile.");
 
     return () => {
       if (recognitionRef.current) {
@@ -181,7 +181,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       <div className="pointer-events-auto flex flex-col items-center gap-4 bg-black/80 backdrop-blur-sm p-8 rounded-lg border border-primary/30">
         <div className="flex items-center gap-3">
           {isSpeaking && <Volume2 className="w-6 h-6 text-primary animate-pulse" />}
-          <h2 className="text-xl font-bold text-primary">MISSION CONTROL</h2>
+          <h2 className="text-xl font-bold text-primary">ARIA SYSTEM</h2>
         </div>
 
         {transcript && (
@@ -221,7 +221,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
         </div>
 
         <p className="text-xs text-gray-400 text-center max-w-sm">
-          {isListening ? "Listening..." : isSpeaking ? "Operator speaking..." : "Click Speak to talk to mission control"}
+          {isListening ? "Listening..." : isSpeaking ? "ARIA speaking..." : "Click Speak to talk to ARIA"}
         </p>
       </div>
     </div>

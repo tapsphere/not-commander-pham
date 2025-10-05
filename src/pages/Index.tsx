@@ -77,7 +77,7 @@ const Index = () => {
               progress={progress} 
               mousePosition={mousePosition}
               isSpeaking={isSpeaking}
-              onEarthClick={() => progress >= 100 && setVoiceActive(true)}
+              onEarthClick={() => {}}
             />
           </Suspense>
         </Canvas>
@@ -87,7 +87,13 @@ const Index = () => {
       <LoadingScreen 
         onProgressUpdate={setProgress}
         onFlip={() => setIsFlipped(true)}
-        onPhaseChange={setPhase}
+        onPhaseChange={(newPhase) => {
+          setPhase(newPhase);
+          // Activate voice operator when ready phase is reached
+          if (newPhase === 'ready') {
+            setTimeout(() => setVoiceActive(true), 500);
+          }
+        }}
       />
 
       {/* Voice Operator Interface */}
