@@ -14,7 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      aria_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_content: string
+          message_role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_content: string
+          message_role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_content?: string
+          message_role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          location: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_skills: {
+        Row: {
+          created_at: string | null
+          earned_from: string | null
+          id: string
+          skill_level: string | null
+          skill_name: string
+          user_id: string
+          xp_earned: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          earned_from?: string | null
+          id?: string
+          skill_level?: string | null
+          skill_name: string
+          user_id: string
+          xp_earned?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          earned_from?: string | null
+          id?: string
+          skill_level?: string | null
+          skill_name?: string
+          user_id?: string
+          xp_earned?: number | null
+        }
+        Relationships: []
+      }
+      work_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          max_salary: number | null
+          min_salary: number | null
+          preferred_industries: string[] | null
+          preferred_locations: string[] | null
+          updated_at: string | null
+          user_id: string
+          work_type: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          max_salary?: number | null
+          min_salary?: number | null
+          preferred_industries?: string[] | null
+          preferred_locations?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          work_type?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          max_salary?: number | null
+          min_salary?: number | null
+          preferred_industries?: string[] | null
+          preferred_locations?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          work_type?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

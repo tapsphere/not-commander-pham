@@ -104,8 +104,14 @@ export default function VoiceChat() {
         timestamp: new Date() 
       }]);
 
+      // Get current session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+
       const { data, error } = await supabase.functions.invoke('voice-chat', {
-        body: { message: userMessage }
+        body: { message: userMessage },
+        headers: session?.access_token ? {
+          Authorization: `Bearer ${session.access_token}`
+        } : undefined
       });
 
       if (error) throw error;
