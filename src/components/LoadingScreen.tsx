@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { initAudioContext, playAmbientSound, playApocalypseSound } from '@/utils/ambientSound';
+import { initAudioContext, playAmbientSound, playApocalypseSound, stopAmbientSound } from '@/utils/ambientSound';
 import { GridPerspective } from '@/components/GridPerspective';
 
 interface LoadingScreenProps {
@@ -54,11 +54,13 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
             setTimeout(() => {
               setIsFlipped(true);
               setTimeout(() => {
+                // Stop all music before showing grid splash
+                stopAmbientSound();
                 setPhase('complete');
                 if (onFlip) {
                   onFlip();
                 }
-              }, 1000);
+              }, 1500); // Increased to wait for grid sweep effect
             }, 500);
           }
           
