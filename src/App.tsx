@@ -11,6 +11,11 @@ import Wallet from "./pages/Wallet";
 import Leaderboard from "./pages/Leaderboard";
 import VoiceChat from "./pages/VoiceChat";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import { PlatformLayout } from "./components/platform/PlatformLayout";
+import CreatorDashboard from "./pages/platform/CreatorDashboard";
+import BrandDashboard from "./pages/platform/BrandDashboard";
+import Marketplace from "./pages/platform/Marketplace";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +26,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Game Routes (Players) */}
           <Route path="/" element={<Index />} />
           <Route path="/lobby" element={<Lobby />} />
           <Route path="/voice-chat" element={<VoiceChat />} />
@@ -28,6 +34,15 @@ const App = () => (
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          
+          {/* Platform Routes (Creators & Brands) */}
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/platform" element={<PlatformLayout />}>
+            <Route path="creator" element={<CreatorDashboard />} />
+            <Route path="brand" element={<BrandDashboard />} />
+            <Route path="marketplace" element={<Marketplace />} />
+          </Route>
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
