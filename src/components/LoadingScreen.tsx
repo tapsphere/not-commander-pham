@@ -189,7 +189,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                     PLAYOPS COMMAND CENTER
                   </h1>
                   <p 
-                    className="text-sm md:text-base font-mono tracking-wide"
+                    className="text-xs md:text-sm font-mono tracking-wide whitespace-nowrap"
                     style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
                   >
                     Systems Online • Grid Stable • Ready for Operations
