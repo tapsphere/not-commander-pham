@@ -109,54 +109,57 @@ const Index = () => {
       />
 
       {/* Voice Operator Interface */}
-      {voiceActive === true && (
-        <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto flex flex-col items-center gap-3 bg-black/80 backdrop-blur-sm p-6 rounded-lg border border-primary/30">
-            <div className="flex items-center gap-3">
-              {isSpeaking && <Volume2 className="w-6 h-6 text-primary animate-pulse" />}
-              <h2 className="text-xl font-bold text-primary">ARIA SYSTEM</h2>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                size="lg"
-                variant="default"
-                onClick={() => {
-                  navigate('/voice-chat');
-                }}
-                className="gap-2 w-24"
-              >
-                <Mic className="w-5 h-5" />
-              </Button>
-
-              <Button
-                size="lg"
-                variant="destructive"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('X button clicked - closing');
-                  console.log('voiceActive before:', voiceActive);
-                  if (window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                  }
-                  // Force immediate state updates
-                  setIsSpeaking(false);
-                  setVoiceActive(false);
-                  console.log('Called setVoiceActive(false)');
-                }}
-                className="w-24"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <p className="text-xs text-gray-400 text-center max-w-sm">
-              {isSpeaking ? "ARIA speaking..." : "Click microphone to talk to ARIA"}
-            </p>
+      <div 
+        className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none transition-opacity duration-300"
+        style={{ 
+          opacity: voiceActive ? 1 : 0,
+          pointerEvents: voiceActive ? 'auto' : 'none',
+          visibility: voiceActive ? 'visible' : 'hidden'
+        }}
+      >
+        <div className="pointer-events-auto flex flex-col items-center gap-3 bg-black/80 backdrop-blur-sm p-6 rounded-lg border border-primary/30">
+          <div className="flex items-center gap-3">
+            {isSpeaking && <Volume2 className="w-6 h-6 text-primary animate-pulse" />}
+            <h2 className="text-xl font-bold text-primary">ARIA SYSTEM</h2>
           </div>
+
+          <div className="flex gap-3">
+            <Button
+              size="lg"
+              variant="default"
+              onClick={() => {
+                navigate('/voice-chat');
+              }}
+              className="gap-2 w-24"
+            >
+              <Mic className="w-5 h-5" />
+            </Button>
+
+            <Button
+              size="lg"
+              variant="destructive"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('X button clicked - closing');
+                if (window.speechSynthesis) {
+                  window.speechSynthesis.cancel();
+                }
+                setIsSpeaking(false);
+                setVoiceActive(false);
+                console.log('Set voiceActive to false');
+              }}
+              className="w-24"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <p className="text-xs text-gray-400 text-center max-w-sm">
+            {isSpeaking ? "ARIA speaking..." : "Click microphone to talk to ARIA"}
+          </p>
         </div>
-      )}
+      </div>
 
       <style>{`
         @keyframes twinkle {
