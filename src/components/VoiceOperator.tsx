@@ -19,7 +19,13 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
+  console.log('VoiceOperator render - isActive:', isActive);
+
   useEffect(() => {
+    if (!isActive) return;
+
+    console.log('VoiceOperator activated!');
+
     // Initialize speech synthesis
     synthRef.current = window.speechSynthesis;
 
@@ -55,6 +61,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
         setIsListening(false);
       };
     } else {
+      console.error('Speech recognition not supported');
       toast({
         title: "Not Supported",
         description: "Voice recognition not supported in this browser.",
@@ -63,9 +70,8 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
     }
 
     // Greeting when activated
-    if (isActive) {
-      speakText("Systems online. Welcome, survivor. How can I assist you?");
-    }
+    console.log('Playing greeting...');
+    speakText("Systems online. Welcome, survivor. How can I assist you?");
 
     return () => {
       if (recognitionRef.current) {

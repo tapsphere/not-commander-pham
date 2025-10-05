@@ -392,7 +392,13 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
             position={[0, 0.1, 0]}
             onClick={(e) => {
               e.stopPropagation();
-              if (progress >= 100) onEarthClick();
+              console.log('Earth clicked! Progress:', progress);
+              if (progress >= 100) {
+                console.log('Activating voice operator!');
+                onEarthClick();
+              } else {
+                console.log('Progress not complete yet');
+              }
             }}
           >
             {/* Main Earth sphere with texture - scaled down */}
