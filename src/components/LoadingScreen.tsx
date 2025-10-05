@@ -213,11 +213,6 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
 
                 {/* Decorative lines around button */}
                 <div className="relative">
-                  <div 
-                    className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[400px] h-[200px] border-2"
-                    style={{ borderColor: 'hsl(var(--neon-green) / 0.3)' }}
-                  />
-                  
                   <Button
                     variant="outline"
                     size="sm"
@@ -231,12 +226,6 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                   >
                     ACCESS THE GRID
                   </Button>
-
-                  {/* Decorative corner accents */}
-                  <div 
-                    className="absolute -top-8 left-1/2 -translate-x-1/2 w-32 h-0.5"
-                    style={{ backgroundColor: 'hsl(var(--neon-green))' }}
-                  />
                 </div>
               </div>
 
