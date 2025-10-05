@@ -24,6 +24,8 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      console.log('Starting signup for role:', selectedRole);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -33,20 +35,47 @@ export default function Auth() {
         }
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Insert role
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: data.user.id, role: selectedRole });
-
-        if (roleError) throw roleError;
-
-        toast.success('Account created! Redirecting...');
-        navigate(selectedRole === 'creator' ? '/platform/creator' : '/platform/brand');
+      if (error) {
+        console.error('Signup error:', error);
+        throw error;
       }
+
+      if (!data.user) {
+        throw new Error('No user data returned from signup');
+      }
+
+      console.log('User created:', data.user.id);
+
+      // Insert role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: data.user.id, role: selectedRole });
+
+      if (roleError) {
+        console.error('Role insert error:', roleError);
+        throw roleError;
+      }
+
+      console.log('Role inserted successfully');
+
+      // Wait for session to be established
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verify session exists
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Session not established. Please try signing in.');
+      }
+
+      console.log('Session confirmed, navigating...');
+      toast.success('Account created! Redirecting...');
+      
+      // Small delay before navigation
+      setTimeout(() => {
+        navigate(selectedRole === 'creator' ? '/platform/creator' : '/platform/brand');
+      }, 500);
     } catch (error: any) {
+      console.error('Signup failed:', error);
       toast.error(error.message);
     } finally {
       setLoading(false);
