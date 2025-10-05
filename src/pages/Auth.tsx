@@ -9,31 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Palette, Building2, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { WalletConnect } from '@/components/WalletConnect';
-import { useTonWallet } from '@tonconnect/ui-react';
 
 type UserRole = 'creator' | 'brand';
 
 export default function Auth() {
   const navigate = useNavigate();
-  const wallet = useTonWallet();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('creator');
-
-  // Redirect wallet users to lobby
-  useEffect(() => {
-    const checkWalletAuth = async () => {
-      if (wallet) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          navigate('/lobby');
-        }
-      }
-    };
-    checkWalletAuth();
-  }, [wallet, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,23 +128,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* TON Wallet Connection - Player Access */}
-        <div className="space-y-3">
-          <h2 className="text-2xl font-bold text-center" style={{ color: 'hsl(var(--neon-green))' }}>
-            Play Games
-          </h2>
-          <p className="text-sm text-gray-400 text-center">Connect your TON wallet to access validators</p>
-          <WalletConnect />
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Separator className="flex-1" />
-          <span className="text-xs text-gray-500">OR</span>
-          <Separator className="flex-1" />
-        </div>
-
-        {/* Creator/Brand Platform Access */}
+      <div className="w-full max-w-md">
         <Card className="w-full p-8 bg-gray-900 border-neon-green">
           <h1 className="text-2xl font-bold text-center mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
             Creator & Brand Platform
