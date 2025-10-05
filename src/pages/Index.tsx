@@ -109,7 +109,7 @@ const Index = () => {
       />
 
       {/* Voice Operator Interface */}
-      {voiceActive && (
+      {voiceActive === true && (
         <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
           <div className="pointer-events-auto flex flex-col items-center gap-3 bg-black/80 backdrop-blur-sm p-6 rounded-lg border border-primary/30">
             <div className="flex items-center gap-3">
@@ -132,16 +132,18 @@ const Index = () => {
               <Button
                 size="lg"
                 variant="destructive"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('X button clicked - closing');
                   console.log('voiceActive before:', voiceActive);
                   if (window.speechSynthesis) {
                     window.speechSynthesis.cancel();
                   }
-                  setVoiceActive(false);
+                  // Force immediate state updates
                   setIsSpeaking(false);
-                  setPhase('complete'); // Change phase so it doesn't reactivate
-                  console.log('Set voiceActive to false and phase to complete');
+                  setVoiceActive(false);
+                  console.log('Called setVoiceActive(false)');
                 }}
                 className="w-24"
               >
