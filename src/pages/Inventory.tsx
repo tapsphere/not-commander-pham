@@ -142,6 +142,9 @@ const Inventory = () => {
                     <h3 className="font-bold text-xs mb-1" style={{ color: 'hsl(var(--neon-green))' }}>
                       {badge.name}
                     </h3>
+                    <Badge className="mb-1 border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
+                      CBE
+                    </Badge>
                     <Badge className={`mb-1 border-2 font-mono text-[10px] ${getLevelColor(badge.level)}`} style={{ borderColor: 'hsl(var(--neon-green))' }}>
                       {getLevelLabel(badge.level)}
                     </Badge>
