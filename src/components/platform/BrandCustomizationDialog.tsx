@@ -31,27 +31,29 @@ export const BrandCustomizationDialog = ({
   const [secondaryColor, setSecondaryColor] = useState('#9945FF');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [customPrompt, setCustomPrompt] = useState('');
+  const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
   useEffect(() => {
-    if (template.base_prompt) {
+    if (template.base_prompt && !editablePrompt) {
+      setEditablePrompt(template.base_prompt);
+    }
+  }, [template]);
+
+  useEffect(() => {
+    if (editablePrompt) {
       generateBrandedPrompt();
     }
-  }, [template, primaryColor, secondaryColor, customPrompt]);
+  }, [editablePrompt, primaryColor, secondaryColor]);
 
   const generateBrandedPrompt = () => {
-    const basePrompt = template.base_prompt || '';
-    
     const brandSection = `
+
 🎨 BRAND CUSTOMIZATION:
 
 Brand Colors:
 • Primary: ${primaryColor}
 • Secondary: ${secondaryColor}
-
-Brand Requirements:
-${customPrompt || '• Apply brand colors throughout the interface\n• Ensure consistent brand presence'}
 
 UI Styling Instructions:
 • Use ${primaryColor} for primary actions, highlights, and key UI elements
@@ -61,7 +63,7 @@ UI Styling Instructions:
 • Apply brand colors to buttons, progress bars, and success states
 `;
 
-    const modifiedPrompt = basePrompt + '\n\n' + brandSection;
+    const modifiedPrompt = editablePrompt + '\n\n' + brandSection;
     setGeneratedPrompt(modifiedPrompt);
   };
 
@@ -151,19 +153,33 @@ UI Styling Instructions:
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Show Creator's Original Prompt */}
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-            <h3 className="font-semibold mb-2 text-sm text-gray-300 flex items-center gap-2">
-              <Copy className="h-4 w-4 text-neon-green" />
-              Creator's Original Prompt
-            </h3>
-            <div className="bg-black/50 rounded p-4 max-h-48 overflow-y-auto">
-              <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
-                {template.base_prompt || 'No prompt available'}
-              </pre>
+          {/* Editable AI Prompt Area */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                ✨ AI Prompt
+              </h3>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditablePrompt(template.base_prompt || '')}
+                className="text-xs"
+              >
+                Reset to Original
+              </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              This is the original design prompt created by the validator designer. You can customize it below with your brand identity.
+            
+            <Textarea
+              value={editablePrompt}
+              onChange={(e) => setEditablePrompt(e.target.value)}
+              rows={8}
+              className="bg-gray-800 border-gray-700 font-mono text-sm"
+              placeholder="Edit the validator design prompt here..."
+            />
+            
+            <p className="text-xs text-gray-400">
+              Edit this prompt to customize the validator for your brand. Add specific requirements, adjust the theme, or modify the gameplay mechanics.
             </p>
           </div>
 
@@ -273,44 +289,27 @@ UI Styling Instructions:
             </div>
           </div>
 
-          {/* Custom Instructions */}
-          <div className="space-y-4">
-            <Label htmlFor="customPrompt">
-              Additional Brand Requirements (Optional)
-            </Label>
-            <Textarea
-              id="customPrompt"
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              rows={3}
-              className="bg-gray-800 border-gray-700"
-              placeholder="e.g., Use rounded corners, Include brand tagline, Emphasize trust and security..."
-            />
-          </div>
 
-          {/* Generated Prompt Preview */}
-          <div className="space-y-4">
+          {/* Final Branded Prompt Preview */}
+          <div className="space-y-4 border-t border-gray-700 pt-6">
             <div className="flex items-center justify-between">
-              <Label>Generated Branded Prompt</Label>
+              <Label className="text-base font-semibold">Final Branded Prompt</Label>
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={handleCopyPrompt}
-                className="gap-2"
+                className="gap-2 bg-neon-green text-black hover:bg-neon-green/90"
               >
                 <Copy className="h-4 w-4" />
-                Copy Prompt
+                Copy to Build in Lovable
               </Button>
             </div>
-            <Textarea
-              value={generatedPrompt}
-              readOnly
-              rows={12}
-              className="bg-gray-800 border-gray-700 text-xs font-mono"
-            />
+            <div className="bg-black border border-neon-green/30 rounded-lg p-4 max-h-64 overflow-y-auto">
+              <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                {generatedPrompt}
+              </pre>
+            </div>
             <p className="text-xs text-gray-400">
-              Copy this prompt and paste it into Lovable to generate your branded validator
+              This is your complete branded validator prompt. Copy it and paste into Lovable to generate the validator with your brand identity.
             </p>
           </div>
 
