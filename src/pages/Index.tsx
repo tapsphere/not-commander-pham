@@ -93,6 +93,10 @@ const Index = () => {
           if (newPhase === 'ready') {
             setTimeout(() => setVoiceActive(true), 500);
           }
+          // Deactivate voice operator when complete phase is reached
+          if (newPhase === 'complete') {
+            setVoiceActive(false);
+          }
         }}
       />
 
