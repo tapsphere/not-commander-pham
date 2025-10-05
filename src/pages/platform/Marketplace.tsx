@@ -352,7 +352,7 @@ export default function Marketplace() {
                 className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-neon-green/50 transition-all group"
               >
                 {/* Preview Image */}
-                <div className="aspect-video bg-gray-800 relative">
+                <div className="aspect-video bg-gradient-to-br from-gray-800 via-gray-900 to-black relative">
                   {template.preview_image ? (
                     <img
                       src={template.preview_image}
@@ -360,8 +360,9 @@ export default function Marketplace() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-6xl opacity-20">🎮</div>
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                      <div className="text-6xl">🎮</div>
+                      <div className="text-xs text-gray-500 font-mono">VALIDATOR</div>
                     </div>
                   )}
                   
@@ -378,24 +379,22 @@ export default function Marketplace() {
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3">
-                  <h3 className="font-semibold text-lg text-white">{template.name}</h3>
+                <div className="p-4 space-y-3 bg-gray-900">
+                  <h3 className="font-semibold text-lg text-white leading-tight">{template.name}</h3>
                   
                   {template.description && (
-                    <p className="text-sm text-gray-400 line-clamp-2">
+                    <p className="text-sm text-gray-300 line-clamp-2 min-h-[2.5rem]">
                       {template.description}
                     </p>
                   )}
 
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {template.profiles?.full_name && (
-                      <span className="bg-gray-800 px-2 py-1 rounded text-gray-300">
-                        By {template.profiles.full_name}
-                      </span>
-                    )}
+                  <div className="flex flex-wrap gap-2 text-xs pt-2 border-t border-gray-800">
+                    <span className="bg-gray-800 px-2 py-1 rounded text-gray-400 flex items-center gap-1">
+                      👤 {template.profiles?.full_name || 'Creator'}
+                    </span>
                     
                     {template.master_competencies && (
-                      <span className="bg-neon-purple/20 text-neon-purple px-2 py-1 rounded">
+                      <span className="bg-neon-purple/20 text-neon-purple px-2 py-1 rounded border border-neon-purple/30">
                         {template.master_competencies.cbe_category}
                       </span>
                     )}
