@@ -78,15 +78,21 @@ const playOperatorVoice = (variant: keyof typeof voiceConfirmations) => {
     const message = confirmations[Math.floor(Math.random() * confirmations.length)];
     
     const utterance = new SpeechSynthesisUtterance(message);
-    utterance.rate = 1.1; // Slightly faster for operator feel
-    utterance.pitch = 0.9; // Slightly lower for authority
-    utterance.volume = 0.6; // Not too loud
+    utterance.rate = 1.05; // Natural pace like Siri
+    utterance.pitch = 1.0; // Natural pitch
+    utterance.volume = 0.7; // Clear and audible
     
-    // Try to use a male voice for operator feel
+    // Try to use a female voice like Siri
     const voices = synth.getVoices();
     const operatorVoice = voices.find(v => 
-      v.name.includes('Male') || v.name.includes('Daniel') || v.name.includes('David')
-    ) || voices[0];
+      v.name.includes('Samantha') || // Siri-like voice on Mac
+      v.name.includes('Female') || 
+      v.name.includes('Fiona') ||
+      v.name.includes('Karen') ||
+      v.name.includes('Moira') ||
+      v.name.includes('Victoria') ||
+      (v.lang.startsWith('en') && v.name.includes('Google') && !v.name.includes('Male'))
+    ) || voices.find(v => v.lang.startsWith('en')) || voices[0];
     
     if (operatorVoice) {
       utterance.voice = operatorVoice;
