@@ -20,21 +20,38 @@ export const PlatformLayout = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        console.log('No user found, redirecting to auth');
         navigate('/auth');
         return;
       }
 
-      const { data: roleData } = await supabase
+      console.log('User found:', user.id);
+
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (roleData) {
-        setUserRole(roleData.role);
+      if (roleError) {
+        console.error('Role fetch error:', roleError);
+        toast.error('Failed to load user role');
+        navigate('/auth');
+        return;
       }
+
+      if (!roleData) {
+        console.log('No role found for user');
+        toast.error('No role assigned. Please sign up again.');
+        navigate('/auth');
+        return;
+      }
+
+      console.log('Role found:', roleData.role);
+      setUserRole(roleData.role);
     } catch (error) {
       console.error('Auth check failed:', error);
+      toast.error('Authentication failed');
       navigate('/auth');
     } finally {
       setLoading(false);
