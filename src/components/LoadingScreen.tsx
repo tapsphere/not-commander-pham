@@ -207,10 +207,11 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                     variant="outline"
                     size="sm"
                     onClick={handleEnterLobby}
-                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-sm tracking-widest px-6 py-2 font-bold transition-all duration-300 animate-pulse"
+                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-sm tracking-widest px-6 py-2 font-bold transition-all duration-300"
                     style={{ 
                       borderColor: 'hsl(var(--neon-green))',
-                      color: 'hsl(var(--neon-green))'
+                      color: 'hsl(var(--neon-green))',
+                      animation: 'subtle-pulse 3s ease-in-out infinite'
                     }}
                   >
                     ACCESS THE GRID
@@ -255,14 +256,12 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                 }
               }
               
-              @keyframes button-pulse {
+              @keyframes subtle-pulse {
                 0%, 100% {
                   opacity: 1;
-                  box-shadow: 0 0 10px hsl(var(--neon-green) / 0.3);
                 }
                 50% {
-                  opacity: 0.85;
-                  box-shadow: 0 0 20px hsl(var(--neon-green) / 0.5);
+                  opacity: 0.9;
                 }
               }
             `}</style>
