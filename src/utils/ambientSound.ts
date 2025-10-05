@@ -1,8 +1,31 @@
 // Ambient background sound for immersive atmosphere
+import apocalypseSound from '@/assets/apocalypse.mp3';
+
 let audioContext: AudioContext | null = null;
 let isPlaying = false;
 let audioNodes: AudioScheduledSourceNode[] = [];
 let gainNodes: GainNode[] = [];
+
+export const playApocalypseSound = async () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+
+  try {
+    const response = await fetch(apocalypseSound);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+    
+    console.log('Apocalypse sound effect playing');
+  } catch (error) {
+    console.error('Error playing apocalypse sound:', error);
+  }
+};
 
 export const playAmbientSound = () => {
   // Prevent multiple simultaneous plays
