@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
 import { Button } from './ui/button';
+import { getAudioGainNodes } from '@/utils/ambientSound';
 
 interface VoiceOperatorProps {
   isActive: boolean;
@@ -137,11 +138,21 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       utterance.onstart = () => {
         setIsSpeaking(true);
         onSpeakingChange(true);
+        // Lower background music when speaking
+        const gainNodes = getAudioGainNodes();
+        gainNodes.forEach(node => {
+          node.gain.setTargetAtTime(0.05, node.context.currentTime, 0.3);
+        });
       };
 
       utterance.onend = () => {
         setIsSpeaking(false);
         onSpeakingChange(false);
+        // Restore background music volume
+        const gainNodes = getAudioGainNodes();
+        gainNodes.forEach(node => {
+          node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+        });
         resolve();
       };
 
@@ -149,6 +160,11 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
         console.error('Speech synthesis error:', event);
         setIsSpeaking(false);
         onSpeakingChange(false);
+        // Restore background music volume
+        const gainNodes = getAudioGainNodes();
+        gainNodes.forEach(node => {
+          node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+        });
         resolve();
       };
 
@@ -178,7 +194,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 pointer-events-none">
       <div className="pointer-events-auto flex flex-col items-center gap-4 bg-black/80 backdrop-blur-sm p-8 rounded-lg border border-primary/30">
         <div className="flex items-center gap-3">
           {isSpeaking && <Volume2 className="w-6 h-6 text-primary animate-pulse" />}
