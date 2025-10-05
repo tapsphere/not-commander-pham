@@ -45,7 +45,10 @@ export type Database = {
           custom_config: Json | null
           customization_prompt: string | null
           id: string
+          logo_url: string | null
+          primary_color: string | null
           published_at: string | null
+          secondary_color: string | null
           template_id: string
           updated_at: string | null
         }
@@ -55,7 +58,10 @@ export type Database = {
           custom_config?: Json | null
           customization_prompt?: string | null
           id?: string
+          logo_url?: string | null
+          primary_color?: string | null
           published_at?: string | null
+          secondary_color?: string | null
           template_id: string
           updated_at?: string | null
         }
@@ -65,7 +71,10 @@ export type Database = {
           custom_config?: Json | null
           customization_prompt?: string | null
           id?: string
+          logo_url?: string | null
+          primary_color?: string | null
           published_at?: string | null
+          secondary_color?: string | null
           template_id?: string
           updated_at?: string | null
         }
