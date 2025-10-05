@@ -100,6 +100,7 @@ export type Database = {
           competency_id: string | null
           created_at: string | null
           creator_id: string
+          custom_game_url: string | null
           description: string | null
           game_config: Json
           id: string
@@ -107,6 +108,7 @@ export type Database = {
           name: string
           preview_image: string | null
           selected_sub_competencies: string[] | null
+          template_type: string
           updated_at: string | null
         }
         Insert: {
@@ -114,6 +116,7 @@ export type Database = {
           competency_id?: string | null
           created_at?: string | null
           creator_id: string
+          custom_game_url?: string | null
           description?: string | null
           game_config?: Json
           id?: string
@@ -121,6 +124,7 @@ export type Database = {
           name: string
           preview_image?: string | null
           selected_sub_competencies?: string[] | null
+          template_type?: string
           updated_at?: string | null
         }
         Update: {
@@ -128,6 +132,7 @@ export type Database = {
           competency_id?: string | null
           created_at?: string | null
           creator_id?: string
+          custom_game_url?: string | null
           description?: string | null
           game_config?: Json
           id?: string
@@ -135,6 +140,7 @@ export type Database = {
           name?: string
           preview_image?: string | null
           selected_sub_competencies?: string[] | null
+          template_type?: string
           updated_at?: string | null
         }
         Relationships: [
