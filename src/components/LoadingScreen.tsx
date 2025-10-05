@@ -180,10 +180,10 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
               </div>
 
               {/* Center Content */}
-              <div className="flex-1 flex flex-col items-center justify-center space-y-12 px-4">
+              <div className="flex-1 flex flex-col items-center justify-center space-y-8 px-4">
                 <div className="text-center space-y-6">
                   {/* YouTube Video */}
-                  <div className="mb-6">
+                  <div className="mb-2">
                     <iframe
                       width="400"
                       height="225"
