@@ -1,5 +1,6 @@
-// Button click sound effects
+// Button click sound effects with operator voice confirmations
 let audioContext: AudioContext | null = null;
+let speechSynth: SpeechSynthesis | null = null;
 
 const initAudioContext = () => {
   if (!audioContext) {
@@ -11,53 +12,98 @@ const initAudioContext = () => {
   return audioContext;
 };
 
-// Different sound profiles for button variants
-const soundProfiles = {
-  default: { frequency: 800, duration: 0.08, volume: 0.15 }, // Primary - higher pitch
-  secondary: { frequency: 600, duration: 0.08, volume: 0.12 }, // Secondary - mid tone
-  destructive: { frequency: 400, duration: 0.12, volume: 0.18 }, // Warning - lower, longer
-  outline: { frequency: 700, duration: 0.06, volume: 0.1 }, // Subtle click
-  ghost: { frequency: 650, duration: 0.05, volume: 0.08 }, // Softest
-  link: { frequency: 750, duration: 0.05, volume: 0.09 }, // Quick tick
+const initSpeechSynth = () => {
+  if (!speechSynth && 'speechSynthesis' in window) {
+    speechSynth = window.speechSynthesis;
+  }
+  return speechSynth;
 };
 
-export const playButtonSound = (variant: keyof typeof soundProfiles = 'default') => {
+// Terminal click sounds - sharp and digital
+const soundProfiles = {
+  default: { frequency: 1200, duration: 0.03, volume: 0.15 }, // Sharp terminal click
+  secondary: { frequency: 1000, duration: 0.03, volume: 0.12 }, // Mid click
+  destructive: { frequency: 800, duration: 0.04, volume: 0.18 }, // Warning click
+  outline: { frequency: 1100, duration: 0.025, volume: 0.1 }, // Subtle click
+  ghost: { frequency: 1050, duration: 0.02, volume: 0.08 }, // Softest click
+  link: { frequency: 1150, duration: 0.025, volume: 0.09 }, // Quick tick
+};
+
+// Operator voice confirmations for each button type
+const voiceConfirmations = {
+  default: ['Confirmed', 'Acknowledged', 'Affirmative'],
+  secondary: ['Processing', 'Stand by', 'Roger that'],
+  destructive: ['Warning', 'Alert', 'Caution advised'],
+  outline: ['Access granted', 'Proceeding', 'Copy'],
+  ghost: ['Noted', 'Check', 'Received'],
+  link: ['Navigation confirmed', 'Accessing', 'Online'],
+};
+
+const playTerminalClick = (profile: typeof soundProfiles.default) => {
   try {
     const ctx = initAudioContext();
-    const profile = soundProfiles[variant] || soundProfiles.default;
-    
     const now = ctx.currentTime;
     
-    // Create a short, punchy click sound
+    // Create sharp terminal click
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
     
-    // Use a sine wave for a clean click
-    oscillator.type = 'sine';
+    // Square wave for digital/terminal sound
+    oscillator.type = 'square';
     oscillator.frequency.setValueAtTime(profile.frequency, now);
-    oscillator.frequency.exponentialRampToValueAtTime(profile.frequency * 0.5, now + profile.duration);
     
-    // Add a bandpass filter for more realistic sound
-    filter.type = 'bandpass';
-    filter.frequency.value = profile.frequency;
-    filter.Q.value = 1;
+    // Very sharp attack and quick decay for terminal click
+    gainNode.gain.setValueAtTime(profile.volume, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + profile.duration);
     
-    // Quick attack and release for a click sound
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(profile.volume, now + 0.01); // Fast attack
-    gainNode.gain.exponentialRampToValueAtTime(0.01, now + profile.duration); // Fast decay
-    
-    // Connect nodes
-    oscillator.connect(filter);
-    filter.connect(gainNode);
+    oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
     
-    // Play the sound
     oscillator.start(now);
     oscillator.stop(now + profile.duration);
   } catch (error) {
-    // Silently fail if audio context isn't available
-    console.debug('Button sound failed:', error);
+    console.debug('Terminal click failed:', error);
   }
+};
+
+const playOperatorVoice = (variant: keyof typeof voiceConfirmations) => {
+  try {
+    const synth = initSpeechSynth();
+    if (!synth) return;
+    
+    // Cancel any ongoing speech
+    synth.cancel();
+    
+    const confirmations = voiceConfirmations[variant] || voiceConfirmations.default;
+    const message = confirmations[Math.floor(Math.random() * confirmations.length)];
+    
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 1.1; // Slightly faster for operator feel
+    utterance.pitch = 0.9; // Slightly lower for authority
+    utterance.volume = 0.6; // Not too loud
+    
+    // Try to use a male voice for operator feel
+    const voices = synth.getVoices();
+    const operatorVoice = voices.find(v => 
+      v.name.includes('Male') || v.name.includes('Daniel') || v.name.includes('David')
+    ) || voices[0];
+    
+    if (operatorVoice) {
+      utterance.voice = operatorVoice;
+    }
+    
+    synth.speak(utterance);
+  } catch (error) {
+    console.debug('Operator voice failed:', error);
+  }
+};
+
+export const playButtonSound = (variant: keyof typeof soundProfiles = 'default') => {
+  const profile = soundProfiles[variant] || soundProfiles.default;
+  
+  // Play terminal click immediately
+  playTerminalClick(profile);
+  
+  // Play operator voice confirmation
+  playOperatorVoice(variant as keyof typeof voiceConfirmations);
 };
