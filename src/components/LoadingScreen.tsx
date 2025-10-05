@@ -221,10 +221,6 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                     className="absolute -top-8 left-1/2 -translate-x-1/2 w-32 h-0.5"
                     style={{ backgroundColor: 'hsl(var(--neon-green))' }}
                   />
-                  <div 
-                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-32 h-0.5"
-                    style={{ backgroundColor: 'hsl(var(--neon-green))' }}
-                  />
                 </div>
               </div>
 
