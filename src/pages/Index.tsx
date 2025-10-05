@@ -2,12 +2,15 @@ import { useState, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Globe } from '@/components/GlobeScene';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { VoiceOperator } from '@/components/VoiceOperator';
 
 const Index = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [phase, setPhase] = useState<'initial' | 'loading' | 'ready' | 'complete'>('initial');
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -70,7 +73,12 @@ const Index = () => {
           <pointLight position={[-3, 0, 3]} intensity={1.2} color="#4a90e2" />
           <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffffff" />
           <Suspense fallback={null}>
-            <Globe progress={progress} mousePosition={mousePosition} />
+            <Globe 
+              progress={progress} 
+              mousePosition={mousePosition}
+              isSpeaking={isSpeaking}
+              onEarthClick={() => progress >= 100 && setVoiceActive(true)}
+            />
           </Suspense>
         </Canvas>
       </div>
@@ -80,6 +88,13 @@ const Index = () => {
         onProgressUpdate={setProgress}
         onFlip={() => setIsFlipped(true)}
         onPhaseChange={setPhase}
+      />
+
+      {/* Voice Operator Interface */}
+      <VoiceOperator 
+        isActive={voiceActive}
+        onSpeakingChange={setIsSpeaking}
+        onClose={() => setVoiceActive(false)}
       />
 
       <style>{`

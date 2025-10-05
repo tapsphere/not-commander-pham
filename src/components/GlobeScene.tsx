@@ -71,9 +71,11 @@ const CosmicDust = () => {
 interface GlobeProps {
   progress: number;
   mousePosition: { x: number; y: number };
+  isSpeaking: boolean;
+  onEarthClick: () => void;
 }
 
-export const Globe = ({ progress, mousePosition }: GlobeProps) => {
+export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: GlobeProps) => {
   const globeRef = useRef<THREE.Group>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
   const { camera } = useThree();
@@ -385,7 +387,14 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     <>
       {progress > 0 && (
         <>
-          <group ref={globeRef} position={[0, 0.1, 0]}>
+          <group 
+            ref={globeRef} 
+            position={[0, 0.1, 0]}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (progress >= 100) onEarthClick();
+            }}
+          >
             {/* Main Earth sphere with texture - scaled down */}
             <Sphere args={[0.55, 64, 64]} material={globeMaterial} />
             
@@ -393,13 +402,13 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
             <Sphere args={[0.555, 64, 64]} material={overlayMaterial} />
           </group>
           
-          {/* Enhanced volumetric atmospheric glow */}
+          {/* Enhanced volumetric atmospheric glow - pulses when speaking */}
           <mesh ref={atmosphereRef} position={[0, 0.1, 0]}>
             <sphereGeometry args={[0.65, 64, 64]} />
             <meshBasicMaterial
-              color="#4a90e2"
+              color={isSpeaking ? "#00ff00" : "#4a90e2"}
               transparent
-              opacity={0.15}
+              opacity={isSpeaking ? 0.3 : 0.15}
               side={THREE.BackSide}
             />
           </mesh>
