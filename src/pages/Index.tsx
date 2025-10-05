@@ -93,9 +93,14 @@ const Index = () => {
           if (newPhase === 'ready') {
             setTimeout(() => setVoiceActive(true), 500);
           }
-          // Deactivate voice operator when complete phase is reached
+          // Deactivate voice operator and stop all speech immediately
           if (newPhase === 'complete') {
+            // Stop speech synthesis immediately
+            if (window.speechSynthesis) {
+              window.speechSynthesis.cancel();
+            }
             setVoiceActive(false);
+            setIsSpeaking(false);
           }
         }}
       />
