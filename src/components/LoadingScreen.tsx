@@ -175,7 +175,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                   className="text-center text-3xl md:text-5xl tracking-widest font-bold text-glow-green"
                   style={{ color: 'hsl(var(--neon-green))' }}
                 >
-                  LOBBY ACCESS GRANTED
+                  THE GRID ACCESS GRANTED
                 </p>
               </div>
 
@@ -213,7 +213,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                       color: 'hsl(var(--neon-green))'
                     }}
                   >
-                    ACCESS MENU
+                    ACCESS THE GRID
                   </Button>
 
                   {/* Decorative corner accents */}
@@ -224,14 +224,6 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                   <div 
                     className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-32 h-0.5"
                     style={{ backgroundColor: 'hsl(var(--neon-green))' }}
-                  />
-                  <div 
-                    className="absolute top-1/2 -translate-y-1/2 -left-12 w-8 h-8 border-2 rounded-full"
-                    style={{ borderColor: 'hsl(var(--neon-green))' }}
-                  />
-                  <div 
-                    className="absolute top-1/2 -translate-y-1/2 -right-12 w-8 h-8 border-2 rounded-full"
-                    style={{ borderColor: 'hsl(var(--neon-green))' }}
                   />
                 </div>
               </div>
