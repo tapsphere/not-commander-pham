@@ -203,6 +203,7 @@ export type Database = {
           location: string | null
           updated_at: string | null
           user_id: string
+          wallet_address: string | null
         }
         Insert: {
           bio?: string | null
@@ -212,6 +213,7 @@ export type Database = {
           location?: string | null
           updated_at?: string | null
           user_id: string
+          wallet_address?: string | null
         }
         Update: {
           bio?: string | null
@@ -221,6 +223,7 @@ export type Database = {
           location?: string | null
           updated_at?: string | null
           user_id?: string
+          wallet_address?: string | null
         }
         Relationships: []
       }

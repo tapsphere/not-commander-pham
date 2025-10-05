@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Palette, Building2, Mail } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { WalletConnect } from '@/components/WalletConnect';
+import { useTonWallet } from '@tonconnect/ui-react';
 
 type UserRole = 'creator' | 'brand';
 
 export default function Auth() {
   const navigate = useNavigate();
+  const wallet = useTonWallet();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('creator');
+
+  // Redirect wallet users to lobby
+  useEffect(() => {
+    const checkWalletAuth = async () => {
+      if (wallet) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          navigate('/lobby');
+        }
+      }
+    };
+    checkWalletAuth();
+  }, [wallet, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,10 +144,28 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 bg-gray-900 border-neon-green">
-        <h1 className="text-3xl font-bold text-center mb-6" style={{ color: 'hsl(var(--neon-green))' }}>
-          Platform Access
-        </h1>
+      <div className="w-full max-w-md space-y-6">
+        {/* TON Wallet Connection - Player Access */}
+        <div className="space-y-3">
+          <h2 className="text-2xl font-bold text-center" style={{ color: 'hsl(var(--neon-green))' }}>
+            Play Games
+          </h2>
+          <p className="text-sm text-gray-400 text-center">Connect your TON wallet to access validators</p>
+          <WalletConnect />
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Separator className="flex-1" />
+          <span className="text-xs text-gray-500">OR</span>
+          <Separator className="flex-1" />
+        </div>
+
+        {/* Creator/Brand Platform Access */}
+        <Card className="w-full p-8 bg-gray-900 border-neon-green">
+          <h1 className="text-2xl font-bold text-center mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
+            Creator & Brand Platform
+          </h1>
+          <p className="text-sm text-gray-400 text-center mb-6">Sign in to manage templates & customizations</p>
 
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -307,7 +341,8 @@ export default function Auth() {
             </form>
           </TabsContent>
         </Tabs>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

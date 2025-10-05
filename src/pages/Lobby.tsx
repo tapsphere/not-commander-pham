@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles, Home, User, Hexagon, TrendingUp, Wallet, Coins } from 'lucide-react';
 import { AriaButton } from '@/components/AriaButton';
+import { WalletConnect } from '@/components/WalletConnect';
+import { useTonWallet } from '@tonconnect/ui-react';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import stripeLogo from '@/assets/logos/stripe.png';
 import adobeLogo from '@/assets/logos/adobe.png';
@@ -30,6 +32,7 @@ const mockPrograms = [
 
 const Lobby = () => {
   const navigate = useNavigate();
+  const wallet = useTonWallet();
   const [activeIndex, setActiveIndex] = useState(0);
 
   const menuItems = [
@@ -44,6 +47,30 @@ const Lobby = () => {
     setActiveIndex(index);
     navigate(path);
   };
+
+  // Gate access if wallet not connected
+  if (!wallet) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="max-w-md w-full space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+              🔒 Wallet Required
+            </h1>
+            <p className="text-gray-400">Connect your TON wallet to access the game grid</p>
+          </div>
+          <WalletConnect />
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => navigate('/auth')}
+          >
+            Back to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
