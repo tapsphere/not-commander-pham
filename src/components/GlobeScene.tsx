@@ -385,7 +385,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
     <>
       {progress > 0 && (
         <>
-          <group ref={globeRef} position={[0, 0.5, 0]}>
+          <group ref={globeRef} position={[0, -0.3, 0]}>
             {/* Main Earth sphere with texture - scaled down */}
             <Sphere args={[0.55, 64, 64]} material={globeMaterial} />
             
@@ -394,7 +394,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           </group>
           
           {/* Enhanced volumetric atmospheric glow */}
-          <mesh ref={atmosphereRef} position={[0, 0.5, 0]}>
+          <mesh ref={atmosphereRef} position={[0, -0.3, 0]}>
             <sphereGeometry args={[0.65, 64, 64]} />
             <meshBasicMaterial
               color="#4a90e2"
@@ -405,7 +405,7 @@ export const Globe = ({ progress, mousePosition }: GlobeProps) => {
           </mesh>
           
           {/* Inner atmospheric glow */}
-          <mesh position={[0, 0.5, 0]}>
+          <mesh position={[0, -0.3, 0]}>
             <sphereGeometry args={[0.58, 64, 64]} />
             <meshBasicMaterial
               color="#6ba3d8"
