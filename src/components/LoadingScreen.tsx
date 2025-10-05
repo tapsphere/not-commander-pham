@@ -182,6 +182,21 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
               {/* Center Content */}
               <div className="flex-1 flex flex-col items-center justify-center space-y-12 px-4">
                 <div className="text-center space-y-6">
+                  {/* YouTube Video */}
+                  <div className="mb-6">
+                    <iframe
+                      width="560"
+                      height="315"
+                      src="https://www.youtube.com/embed/tlRPjo3NWyY?autoplay=1&mute=1&loop=1&playlist=tlRPjo3NWyY&controls=0&modestbranding=1"
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="mx-auto rounded-lg border-2"
+                      style={{ borderColor: 'hsl(var(--neon-green))' }}
+                    />
+                  </div>
+                  
                   <h1 
                     className="text-xl md:text-2xl font-bold tracking-wider text-glow-green whitespace-nowrap"
                     style={{ color: 'hsl(var(--neon-green))' }}
