@@ -42,8 +42,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? Slot : "button";
     
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      // Play sound effect based on variant
-      playButtonSound(variant || 'default');
+      // Play sound effect based on variant (no voice for platform buttons)
+      playButtonSound(variant || 'default', false);
       
       // Call original onClick handler
       onClick?.(e);
