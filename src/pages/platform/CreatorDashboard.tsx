@@ -2,23 +2,27 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers } from 'lucide-react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { TemplateDialog } from '@/components/platform/TemplateDialog';
+import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
 
 type Template = {
   id: string;
   name: string;
   description: string;
+  base_prompt: string | null;
   is_published: boolean;
   created_at: string;
   preview_image?: string;
 };
 
 export default function CreatorDashboard() {
-  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [competenciesDialogOpen, setCompetenciesDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
 
   useEffect(() => {
     loadTemplates();
@@ -42,6 +46,16 @@ export default function CreatorDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEdit = (template: Template) => {
+    setSelectedTemplate(template);
+    setDialogOpen(true);
+  };
+
+  const handleManageCompetencies = (template: Template) => {
+    setSelectedTemplate(template);
+    setCompetenciesDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -89,7 +103,13 @@ export default function CreatorDashboard() {
           </h2>
           <p className="text-gray-400 mt-2">Create game templates with CBE competencies built in</p>
         </div>
-        <Button onClick={() => navigate('/platform/creator/new')} className="gap-2">
+        <Button 
+          onClick={() => {
+            setSelectedTemplate(null);
+            setDialogOpen(true);
+          }} 
+          className="gap-2"
+        >
           <Plus className="w-4 h-4" />
           New Template
         </Button>
@@ -98,7 +118,13 @@ export default function CreatorDashboard() {
       {templates.length === 0 ? (
         <Card className="p-12 text-center bg-gray-900 border-gray-800">
           <p className="text-gray-400 mb-4">No templates yet</p>
-          <Button onClick={() => navigate('/platform/creator/new')} variant="outline">
+          <Button 
+            onClick={() => {
+              setSelectedTemplate(null);
+              setDialogOpen(true);
+            }} 
+            variant="outline"
+          >
             Create Your First Template
           </Button>
         </Card>
@@ -130,26 +156,32 @@ export default function CreatorDashboard() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() => navigate(`/platform/creator/edit/${template.id}`)}
-                    className="flex-1"
+                    variant="ghost"
+                    onClick={() => handleEdit(template)}
                   >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
+                    <Edit className="w-4 h-4" />
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
+                    onClick={() => handleManageCompetencies(template)}
+                    title="Manage Competencies"
+                  >
+                    <Layers className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => handleTogglePublish(template.id, template.is_published)}
                   >
-                    {template.is_published ? 'Unpublish' : 'Publish'}
+                    {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => handleDelete(template.id)}
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-4 h-4 text-red-400" />
                   </Button>
                 </div>
               </div>
@@ -157,6 +189,20 @@ export default function CreatorDashboard() {
           ))}
         </div>
       )}
+
+      <TemplateDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        template={selectedTemplate}
+        onSuccess={loadTemplates}
+      />
+
+      <CompetenciesDialog
+        open={competenciesDialogOpen}
+        onOpenChange={setCompetenciesDialogOpen}
+        templateId={selectedTemplate?.id || ''}
+        templateName={selectedTemplate?.name || ''}
+      />
     </div>
   );
 }
