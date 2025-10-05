@@ -84,7 +84,7 @@ const ContextMenuItem = React.forwardRef<
       className,
     )}
     onClick={(e) => {
-      playButtonSound('ghost');
+      playButtonSound('ghost', false);
       onClick?.(e);
     }}
     {...props}
@@ -104,7 +104,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
     )}
     checked={checked}
     onClick={(e) => {
-      playButtonSound('ghost');
+      playButtonSound('ghost', false);
       onClick?.(e);
     }}
     {...props}
@@ -130,7 +130,7 @@ const ContextMenuRadioItem = React.forwardRef<
       className,
     )}
     onClick={(e) => {
-      playButtonSound('ghost');
+      playButtonSound('ghost', false);
       onClick?.(e);
     }}
     {...props}

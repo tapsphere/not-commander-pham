@@ -85,7 +85,7 @@ const DropdownMenuItem = React.forwardRef<
       className,
     )}
     onClick={(e) => {
-      playButtonSound('ghost');
+      playButtonSound('ghost', false);
       onClick?.(e);
     }}
     {...props}
@@ -105,7 +105,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     )}
     checked={checked}
     onClick={(e) => {
-      playButtonSound('ghost');
+      playButtonSound('ghost', false);
       onClick?.(e);
     }}
     {...props}
@@ -131,7 +131,7 @@ const DropdownMenuRadioItem = React.forwardRef<
       className,
     )}
     onClick={(e) => {
-      playButtonSound('ghost');
+      playButtonSound('ghost', false);
       onClick?.(e);
     }}
     {...props}

@@ -104,12 +104,14 @@ const playOperatorVoice = (variant: keyof typeof voiceConfirmations) => {
   }
 };
 
-export const playButtonSound = (variant: keyof typeof soundProfiles = 'default') => {
+export const playButtonSound = (variant: keyof typeof soundProfiles = 'default', playVoice: boolean = true) => {
   const profile = soundProfiles[variant] || soundProfiles.default;
   
   // Play terminal click immediately
   playTerminalClick(profile);
   
-  // Play operator voice confirmation
-  playOperatorVoice(variant as keyof typeof voiceConfirmations);
+  // Play operator voice confirmation only if requested
+  if (playVoice) {
+    playOperatorVoice(variant as keyof typeof voiceConfirmations);
+  }
 };
