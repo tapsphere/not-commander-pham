@@ -214,13 +214,22 @@ export default function TemplateDetail() {
                 </p>
               </div>
             ) : (
-              <Button
-                onClick={() => setCustomizeDialogOpen(true)}
-                className="w-full bg-neon-green text-black hover:bg-neon-green/90 gap-2 text-lg py-6"
-              >
-                <Palette className="h-5 w-5" />
-                Customize with Your Brand
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={() => setCustomizeDialogOpen(true)}
+                  className="w-full gap-2 text-lg py-7 font-bold shadow-lg shadow-neon-green/50 animate-pulse hover:animate-none"
+                  style={{
+                    backgroundColor: 'hsl(var(--neon-green))',
+                    color: 'black',
+                  }}
+                >
+                  <Palette className="h-6 w-6" />
+                  Customize with Your Brand
+                </Button>
+                <p className="text-xs text-gray-400 text-center">
+                  Click to add your brand colors and generate your custom game
+                </p>
+              </div>
             )}
           </Card>
         </div>
