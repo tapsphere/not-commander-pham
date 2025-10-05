@@ -392,11 +392,11 @@ export default function VoiceChat() {
       )}
 
       {/* Minimal bottom floating button */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3 pointer-events-none">
         {transcript && (
-          <div className="pointer-events-auto bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full border max-w-md" 
-            style={{ borderColor: 'hsl(var(--neon-green) / 0.3)' }}>
-            <p className="text-xs text-gray-300 text-center font-mono">
+          <div className="pointer-events-auto bg-black/90 backdrop-blur-sm px-6 py-4 rounded-lg border-2 w-[600px]" 
+            style={{ borderColor: 'hsl(var(--neon-green) / 0.5)' }}>
+            <p className="text-sm text-gray-200 text-center font-mono leading-relaxed">
               "{transcript}"
             </p>
           </div>
