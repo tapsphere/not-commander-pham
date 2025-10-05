@@ -21,7 +21,24 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {
+      // Stop speech immediately when deactivated
+      if (synthRef.current) {
+        synthRef.current.cancel();
+      }
+      if (recognitionRef.current && isListening) {
+        recognitionRef.current.stop();
+      }
+      setIsSpeaking(false);
+      setIsListening(false);
+      onSpeakingChange(false);
+      // Restore background music
+      const gainNodes = getAudioGainNodes();
+      gainNodes.forEach(node => {
+        node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+      });
+      return;
+    }
 
     // Initialize speech synthesis
     synthRef.current = window.speechSynthesis;
