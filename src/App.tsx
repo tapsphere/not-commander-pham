@@ -12,6 +12,7 @@ import Leaderboard from "./pages/Leaderboard";
 import VoiceChat from "./pages/VoiceChat";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Play from "./pages/Play";
 import { PlatformLayout } from "./components/platform/PlatformLayout";
 import CreatorDashboard from "./pages/platform/CreatorDashboard";
 import BrandDashboard from "./pages/platform/BrandDashboard";
@@ -46,6 +47,9 @@ const App = () => (
           
           {/* Validator Demo */}
           <Route path="/validator-demo" element={<ValidatorDemo />} />
+          
+          {/* Public Play Route */}
+          <Route path="/play/:code" element={<Play />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

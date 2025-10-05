@@ -3,7 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 type Customization = {
   id: string;
@@ -11,6 +19,7 @@ type Customization = {
   customization_prompt: string;
   published_at: string | null;
   created_at: string;
+  unique_code: string | null;
   game_templates: {
     name: string;
     preview_image?: string;
@@ -21,6 +30,9 @@ export default function BrandDashboard() {
   const navigate = useNavigate();
   const [customizations, setCustomizations] = useState<Customization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [selectedCustomization, setSelectedCustomization] = useState<Customization | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadCustomizations();
@@ -50,6 +62,61 @@ export default function BrandDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateUniqueCode = () => {
+    return Math.random().toString(36).substring(2, 10).toUpperCase();
+  };
+
+  const handlePublish = async (customization: Customization) => {
+    try {
+      const uniqueCode = generateUniqueCode();
+      
+      const { error } = await supabase
+        .from('brand_customizations')
+        .update({
+          published_at: new Date().toISOString(),
+          unique_code: uniqueCode,
+        })
+        .eq('id', customization.id);
+
+      if (error) throw error;
+
+      toast.success('Validator published successfully!');
+      
+      // Update local state
+      setCustomizations(prev =>
+        prev.map(c =>
+          c.id === customization.id
+            ? { ...c, published_at: new Date().toISOString(), unique_code: uniqueCode }
+            : c
+        )
+      );
+
+      // Show the share dialog
+      setSelectedCustomization({ ...customization, unique_code: uniqueCode, published_at: new Date().toISOString() });
+      setPublishDialogOpen(true);
+    } catch (error: any) {
+      toast.error('Failed to publish: ' + error.message);
+    }
+  };
+
+  const handleShowLink = (customization: Customization) => {
+    setSelectedCustomization(customization);
+    setPublishDialogOpen(true);
+  };
+
+  const getShareableLink = () => {
+    if (!selectedCustomization?.unique_code) return '';
+    return `${window.location.origin}/play/${selectedCustomization.unique_code}`;
+  };
+
+  const handleCopyLink = () => {
+    const link = getShareableLink();
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    toast.success('Link copied to clipboard!');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading) {
@@ -145,15 +212,89 @@ export default function BrandDashboard() {
                   >
                     {custom.published_at ? 'Live' : 'Draft'}
                   </span>
-                  <Button size="sm" variant="outline">
-                    Manage
-                  </Button>
+                  {custom.published_at ? (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleShowLink(custom)}
+                      className="gap-2"
+                    >
+                      <Link2 className="h-3 w-3" />
+                      Share
+                    </Button>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      onClick={() => handlePublish(custom)}
+                      className="bg-neon-green text-black hover:bg-neon-green/90"
+                    >
+                      Publish
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Publish Dialog */}
+      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+        <DialogContent className="bg-gray-900 border-neon-green text-white">
+          <DialogHeader>
+            <DialogTitle className="text-neon-green text-glow-green">
+              🎉 Validator Published!
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Share this link with players to access your branded validator
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-black border border-neon-green/30 rounded-lg p-4">
+              <p className="text-sm text-gray-400 mb-2">Shareable Link:</p>
+              <p className="text-sm font-mono text-neon-green break-all">
+                {getShareableLink()}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={handleCopyLink}
+                className="flex-1 gap-2 bg-neon-green text-black hover:bg-neon-green/90"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setPublishDialogOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
+
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+              <p className="text-xs text-gray-400">
+                <strong className="text-white">Share Code:</strong>{' '}
+                {selectedCustomization?.unique_code}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
+                Players can access this validator using the link or the share code
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
