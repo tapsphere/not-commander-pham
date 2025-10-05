@@ -49,7 +49,7 @@ const Leaderboard = () => {
       {/* Header */}
       <div 
         className="border-b-2 p-4"
-        style={{ borderColor: '#9ca3af' }}
+        style={{ borderColor: 'hsl(var(--neon-green))' }}
       >
         <div className="max-w-7xl mx-auto">
           {/* XP Display */}
