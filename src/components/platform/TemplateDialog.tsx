@@ -121,7 +121,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-neon-green text-white">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-neon-green text-white pointer-events-auto">
         <DialogHeader>
           <DialogTitle style={{ color: 'hsl(var(--neon-green))' }}>
             {template ? 'Edit Template' : 'Create Validator Template'}
