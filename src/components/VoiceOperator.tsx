@@ -226,7 +226,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   };
 
   const handleClose = () => {
-    // Simple, immediate close - let useEffect handle cleanup
+    console.log('=== CLOSE BUTTON CLICKED ===');
     onClose();
   };
 

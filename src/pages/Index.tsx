@@ -106,11 +106,16 @@ const Index = () => {
       />
 
       {/* Voice Operator Interface */}
-      <VoiceOperator 
-        isActive={voiceActive}
-        onSpeakingChange={setIsSpeaking}
-        onClose={() => setVoiceActive(false)}
-      />
+      {voiceActive && (
+        <VoiceOperator 
+          isActive={voiceActive}
+          onSpeakingChange={setIsSpeaking}
+          onClose={() => {
+            console.log('=== onClose called from Index ===');
+            setVoiceActive(false);
+          }}
+        />
+      )}
 
       <style>{`
         @keyframes twinkle {
