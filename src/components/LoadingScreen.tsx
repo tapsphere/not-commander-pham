@@ -230,14 +230,14 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                 className="border-t-4 p-4"
                 style={{ borderColor: 'hsl(var(--neon-green))' }}
               >
-                <div className="max-w-7xl mx-auto flex justify-between items-center text-xs md:text-base font-mono">
-                  <span style={{ color: 'hsl(var(--neon-green))' }}>
+                <div className="max-w-7xl mx-auto grid grid-cols-3 gap-8 text-[10px] md:text-xs font-mono">
+                  <span className="text-left" style={{ color: 'hsl(var(--neon-green))' }}>
                     STATUS: <span className="font-bold">ACTIVE</span>
                   </span>
-                  <span style={{ color: 'hsl(var(--neon-green))' }}>
+                  <span className="text-center" style={{ color: 'hsl(var(--neon-green))' }}>
                     GRID: <span className="font-bold">OPERATIONAL</span>
                   </span>
-                  <span style={{ color: 'hsl(var(--neon-green))' }}>
+                  <span className="text-right" style={{ color: 'hsl(var(--neon-green))' }}>
                     LATENCY: <span className="font-bold">0ms</span>
                   </span>
                 </div>
