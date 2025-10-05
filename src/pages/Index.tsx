@@ -14,6 +14,7 @@ const Index = () => {
   const [phase, setPhase] = useState<'initial' | 'loading' | 'ready' | 'complete'>('initial');
   const [voiceActive, setVoiceActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [userClosed, setUserClosed] = useState(false);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -92,8 +93,8 @@ const Index = () => {
         onFlip={() => setIsFlipped(true)}
         onPhaseChange={(newPhase) => {
           setPhase(newPhase);
-          // Activate voice operator when ready phase is reached
-          if (newPhase === 'ready') {
+          // Activate voice operator when ready phase is reached (only if user hasn't closed it)
+          if (newPhase === 'ready' && !userClosed) {
             setTimeout(() => setVoiceActive(true), 500);
           }
           // Deactivate voice operator and stop all speech immediately
@@ -141,13 +142,14 @@ const Index = () => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('X button clicked - closing');
+                console.log('X button clicked - CLOSING NOW');
                 if (window.speechSynthesis) {
                   window.speechSynthesis.cancel();
                 }
+                setUserClosed(true); // Prevent phase handler from reopening
                 setIsSpeaking(false);
                 setVoiceActive(false);
-                console.log('Set voiceActive to false');
+                console.log('Set voiceActive to false and userClosed to true');
               }}
               className="w-24"
             >
