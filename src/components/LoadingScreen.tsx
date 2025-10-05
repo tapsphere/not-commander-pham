@@ -167,7 +167,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
         )}
 
         {phase === 'ready' && (
-          <div className="text-center space-y-8 animate-fade-in mt-64">
+          <div className="text-center space-y-8 animate-fade-in" style={{ marginTop: '450px' }}>
             <Button
               variant="outline"
               size="lg"
