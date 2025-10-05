@@ -40,6 +40,15 @@ const Index = () => {
     };
   }, []);
 
+  // Stop speech when voiceActive becomes false
+  useEffect(() => {
+    if (!voiceActive) {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    }
+  }, [voiceActive]);
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
       {/* Starfield background with parallax */}
