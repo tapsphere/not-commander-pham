@@ -17,8 +17,19 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('creator');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+
+  useEffect(() => {
+    // Check if this is a password recovery flow
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
+    });
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,6 +158,40 @@ export default function Auth() {
     }
   };
 
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success('Password updated successfully!');
+      setIsPasswordRecovery(false);
+      setNewPassword('');
+      
+      // Navigate to appropriate platform
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+
+        const route = roleData?.role === 'creator' ? '/platform/creator' : '/platform/brand';
+        navigate(route);
+      }
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -154,8 +199,32 @@ export default function Auth() {
           <h1 className="text-2xl font-bold text-center mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
             Creator & Brand Platform
           </h1>
-          <p className="text-sm text-gray-400 text-center mb-6">Sign in to manage templates & customizations</p>
+          <p className="text-sm text-gray-400 text-center mb-6">
+            {isPasswordRecovery ? 'Set your new password' : 'Sign in to manage templates & customizations'}
+          </p>
 
+        {isPasswordRecovery ? (
+          <div className="space-y-4">
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+              <div>
+                <Label htmlFor="new-password" className="text-white">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  placeholder="Enter your new password"
+                />
+              </div>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Updating...' : 'Update Password'}
+              </Button>
+            </form>
+          </div>
+        ) : (
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -374,6 +443,7 @@ export default function Auth() {
             </form>
           </TabsContent>
         </Tabs>
+        )}
         </Card>
       </div>
     </div>
