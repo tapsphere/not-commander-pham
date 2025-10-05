@@ -148,13 +148,18 @@ const Lobby = () => {
                       >
                         <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className="border-2 font-mono text-xs" 
-                        style={{ borderColor, color: borderColor }}
-                      >
-                        {brand.department}
-                      </Badge>
+                      <div className="flex flex-col gap-2">
+                        <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
+                          CBE
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="border-2 font-mono text-xs" 
+                          style={{ borderColor, color: borderColor }}
+                        >
+                          {brand.department}
+                        </Badge>
+                      </div>
                     </div>
                     <h3 
                       className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${glowClass}`}
@@ -208,6 +213,9 @@ const Lobby = () => {
                         {program.duration} • {program.skills} Competencies
                       </p>
                       <div className="flex gap-2">
+                        <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
+                          CBE
+                        </Badge>
                         <Badge variant="outline" className="text-xs font-mono" style={{ borderColor: accentColor, color: accentColor }}>
                           <Star className="w-3 h-3 mr-1" fill={accentColor} />
                           Featured
