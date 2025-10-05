@@ -185,8 +185,8 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                   {/* YouTube Video */}
                   <div className="mb-6">
                     <iframe
-                      width="560"
-                      height="315"
+                      width="400"
+                      height="225"
                       src="https://www.youtube.com/embed/tlRPjo3NWyY?autoplay=1&mute=1&loop=1&playlist=tlRPjo3NWyY&controls=0&modestbranding=1"
                       title="YouTube video player"
                       frameBorder="0"
