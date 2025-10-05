@@ -24,33 +24,42 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
 
   useEffect(() => {
     if (!isActive) {
-      // Immediately abort everything when deactivated
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.abort();
-          recognitionRef.current.onresult = null;
-          recognitionRef.current.onerror = null;
-          recognitionRef.current.onend = null;
-        } catch (e) {
-          console.log('Error aborting recognition:', e);
-        }
-      }
-      if (synthRef.current) {
-        synthRef.current.cancel();
-      }
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
+      // Immediately cleanup everything when deactivated
+      setTranscript('');
       setIsSpeaking(false);
       setIsListening(false);
-      setTranscript('');
       onSpeakingChange(false);
+      
+      // Force stop all audio
+      try {
+        if (recognitionRef.current) {
+          recognitionRef.current.abort();
+        }
+      } catch (e) {
+        // Ignore errors
+      }
+      
+      try {
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+        if (synthRef.current) {
+          synthRef.current.cancel();
+        }
+      } catch (e) {
+        // Ignore errors
+      }
       
       // Restore background music
       const gainNodes = getAudioGainNodes();
       gainNodes.forEach(node => {
-        node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+        try {
+          node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+        } catch (e) {
+          // Ignore errors
+        }
       });
+      
       return;
     }
 
@@ -217,41 +226,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   };
 
   const handleClose = () => {
-    // CRITICAL: Stop recognition FIRST to prevent feedback loop
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.abort(); // Use abort instead of stop for immediate effect
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.onend = null;
-      } catch (e) {
-        console.log('Error stopping recognition:', e);
-      }
-    }
-    
-    // Then stop all speech synthesis
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-    if (synthRef.current) {
-      synthRef.current.cancel();
-    }
-    
-    // Reset ALL states immediately
-    setIsSpeaking(false);
-    setIsListening(false);
-    setTranscript('');
-    onSpeakingChange(false);
-    
-    // Restore background music
-    const gainNodes = getAudioGainNodes();
-    gainNodes.forEach(node => {
-      if (node.context && node.context.state === 'running') {
-        node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
-      }
-    });
-    
-    // Close immediately
+    // Simple, immediate close - let useEffect handle cleanup
     onClose();
   };
 
