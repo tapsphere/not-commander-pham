@@ -167,7 +167,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
         )}
 
         {phase === 'ready' && (
-          <div className="text-center space-y-8 animate-fade-in">
+          <div className="text-center space-y-16 animate-fade-in">
             <h1 
               className="text-3xl md:text-5xl font-bold tracking-wider text-glow-green"
               style={{ color: 'hsl(var(--neon-green))' }}
@@ -193,7 +193,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                 animation: 'subtle-pulse 2s ease-in-out infinite'
               }}
             >
-              ACCESS GRID
+              SYSTEM ONLINE
             </Button>
           </div>
         )}
