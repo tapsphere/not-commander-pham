@@ -4,6 +4,7 @@ import { Trophy, Home, User, Hexagon, TrendingUp, Wallet, Zap, Coins } from 'luc
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AriaButton } from '@/components/AriaButton';
 
 const mockLeaders = [
   { rank: 1, username: 'Player_Alpha', score: 15420, badges: 12, level: 'Mastery', avatar: '👤' },
@@ -46,8 +47,11 @@ const Leaderboard = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
+      {/* ARIA Access Button */}
+      <AriaButton />
+      
       {/* Header */}
-      <div 
+      <div
         className="border-b-2 p-4"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >

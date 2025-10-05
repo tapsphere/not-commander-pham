@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AriaButton } from '@/components/AriaButton';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import adobeLogo from '@/assets/logos/adobe.png';
 import salesforceLogo from '@/assets/logos/salesforce.png';
@@ -68,8 +69,11 @@ const Inventory = () => {
   };
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
+      {/* ARIA Access Button */}
+      <AriaButton />
+      
       {/* Header */}
-      <div 
+      <div
         className="border-b-2 p-4"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >

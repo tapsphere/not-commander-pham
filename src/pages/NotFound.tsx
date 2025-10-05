@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AlertCircle, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AriaButton } from "@/components/AriaButton";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,6 +14,9 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-black relative overflow-hidden">
+      {/* ARIA Access Button */}
+      <AriaButton />
+      
       {/* Grid background effect */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{

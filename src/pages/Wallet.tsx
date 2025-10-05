@@ -4,6 +4,7 @@ import { Wallet as WalletIcon, Home, User, Hexagon, TrendingUp, Copy, ExternalLi
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AriaButton } from '@/components/AriaButton';
 
 const Wallet = () => {
   const navigate = useNavigate();
@@ -42,8 +43,11 @@ const Wallet = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
+      {/* ARIA Access Button */}
+      <AriaButton />
+      
       {/* Header */}
-      <div 
+      <div
         className="border-b-2 p-4"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >

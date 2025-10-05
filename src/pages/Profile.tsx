@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { AriaButton } from '@/components/AriaButton';
 import profileImage from '@/assets/profile-nitin.jpeg';
 
 const mockCompetencies = [
@@ -122,8 +123,11 @@ const Profile = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
+      {/* ARIA Access Button */}
+      <AriaButton />
+      
       {/* Header */}
-      <div 
+      <div
         className="border-b-2 p-4"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >
