@@ -1,4 +1,4 @@
-import { User, Award, TrendingUp, Shield, Home, Hexagon, Wallet } from 'lucide-react';
+import { User, Award, TrendingUp, Shield, Home, Hexagon, Wallet, Zap, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
@@ -127,13 +127,31 @@ const Profile = () => {
         className="border-b-2 p-6"
         style={{ borderColor: 'white' }}
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto relative">
           <h1 
             className="text-2xl md:text-3xl font-bold tracking-widest text-center"
             style={{ color: 'hsl(var(--neon-green))' }}
           >
             PLAYER PROFILE
           </h1>
+          
+          {/* XP Display */}
+          <div className="absolute top-0 right-0 flex gap-2">
+            <div className="bg-black/50 border-2 rounded-lg px-3 py-1.5 flex items-center gap-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <Zap className="w-4 h-4" style={{ color: 'hsl(var(--neon-green))' }} fill="hsl(var(--neon-green))" />
+              <div className="text-right">
+                <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>XP</div>
+                <div className="text-sm font-bold" style={{ color: 'hsl(var(--neon-green))' }}>2,450</div>
+              </div>
+            </div>
+            <div className="bg-black/50 border-2 rounded-lg px-3 py-1.5 flex items-center gap-2" style={{ borderColor: 'hsl(var(--neon-magenta))' }}>
+              <Coins className="w-4 h-4" style={{ color: 'hsl(var(--neon-magenta))' }} />
+              <div className="text-right">
+                <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-magenta) / 0.7)' }}>PLYO</div>
+                <div className="text-sm font-bold" style={{ color: 'hsl(var(--neon-magenta))' }}>1,250</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

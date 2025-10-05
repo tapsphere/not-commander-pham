@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet as WalletIcon, Home, User, Hexagon, TrendingUp, Copy, ExternalLink, Coins } from 'lucide-react';
+import { Wallet as WalletIcon, Home, User, Hexagon, TrendingUp, Copy, ExternalLink, Coins, Zap } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +47,7 @@ const Wallet = () => {
         className="border-b-2 p-6"
         style={{ borderColor: 'white' }}
       >
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto relative">
           <h1 
             className="text-2xl md:text-3xl font-bold tracking-widest text-center"
             style={{ color: 'hsl(var(--neon-green))' }}
@@ -57,6 +57,17 @@ const Wallet = () => {
           <p className="text-center text-sm mt-2 text-white/70">
             Connect to manage your PLYO tokens
           </p>
+          
+          {/* XP Display */}
+          <div className="absolute top-0 right-0">
+            <div className="bg-black/50 border-2 rounded-lg px-3 py-1.5 flex items-center gap-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <Zap className="w-4 h-4" style={{ color: 'hsl(var(--neon-green))' }} fill="hsl(var(--neon-green))" />
+              <div className="text-right">
+                <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>XP</div>
+                <div className="text-sm font-bold" style={{ color: 'hsl(var(--neon-green))' }}>2,450</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
