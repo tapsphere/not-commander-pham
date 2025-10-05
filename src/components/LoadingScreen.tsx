@@ -183,7 +183,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
               <div className="flex-1 flex flex-col items-center justify-center space-y-12 px-4">
                 <div className="text-center space-y-6 animate-fade-in">
                   <h1 
-                    className="text-4xl md:text-6xl font-bold tracking-wider text-glow-green"
+                    className="text-2xl md:text-4xl font-bold tracking-wider text-glow-green whitespace-nowrap"
                     style={{ color: 'hsl(var(--neon-green))' }}
                   >
                     PLAYOPS COMMAND CENTER
@@ -205,9 +205,9 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
                   
                   <Button
                     variant="outline"
-                    size="lg"
+                    size="sm"
                     onClick={handleEnterLobby}
-                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-base tracking-widest px-12 py-4 font-bold transition-all duration-300 animate-pulse"
+                    className="relative border-2 bg-black/50 hover:bg-primary/20 text-sm tracking-widest px-6 py-2 font-bold transition-all duration-300 animate-pulse"
                     style={{ 
                       borderColor: 'hsl(var(--neon-green))',
                       color: 'hsl(var(--neon-green))'
