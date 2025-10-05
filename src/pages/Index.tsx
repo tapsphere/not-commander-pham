@@ -7,7 +7,7 @@ const Index = () => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
+  const [phase, setPhase] = useState<'initial' | 'loading' | 'ready' | 'complete'>('initial');
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {

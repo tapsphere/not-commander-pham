@@ -8,12 +8,12 @@ import { GridPerspective } from '@/components/GridPerspective';
 interface LoadingScreenProps {
   onProgressUpdate?: (progress: number) => void;
   onFlip?: () => void;
-  onPhaseChange?: (phase: 'initial' | 'loading' | 'complete') => void;
+  onPhaseChange?: (phase: 'initial' | 'loading' | 'ready' | 'complete') => void;
 }
 
 export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: LoadingScreenProps) => {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<'initial' | 'loading' | 'complete'>('initial');
+  const [phase, setPhase] = useState<'initial' | 'loading' | 'ready' | 'complete'>('initial');
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('Connecting...');
   const [isFlipped, setIsFlipped] = useState(false);
@@ -53,14 +53,7 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
             clearInterval(interval);
             setTimeout(() => {
               setIsFlipped(true);
-              setTimeout(() => {
-                // Stop all music before showing grid splash
-                stopAmbientSound();
-                setPhase('complete');
-                if (onFlip) {
-                  onFlip();
-                }
-              }, 1500); // Increased to wait for grid sweep effect
+              setPhase('ready'); // Show ready state with button
             }, 500);
           }
           
@@ -78,6 +71,17 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
     playApocalypseSound();
     playAmbientSound();
     setPhase('loading');
+  };
+
+  const handleProceedToGrid = () => {
+    // Stop all music before showing grid splash
+    stopAmbientSound();
+    setTimeout(() => {
+      setPhase('complete');
+      if (onFlip) {
+        onFlip();
+      }
+    }, 100);
   };
 
   const handleEnterLobby = () => {
@@ -160,6 +164,38 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip, onPhaseChange }: Loadi
               style={{ background: 'linear-gradient(90deg, hsl(var(--neon-green)), hsl(var(--neon-purple)), hsl(var(--neon-magenta)))' }}
             />
           </>
+        )}
+
+        {phase === 'ready' && (
+          <div className="text-center space-y-8 animate-fade-in">
+            <h1 
+              className="text-3xl md:text-5xl font-bold tracking-wider text-glow-green"
+              style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              SYSTEMS ONLINE
+            </h1>
+            
+            <p 
+              className="text-sm md:text-base font-mono tracking-wide"
+              style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
+            >
+              Grid calibration complete. Ready to proceed.
+            </p>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleProceedToGrid}
+              className="border-2 border-glow-green bg-transparent hover:bg-primary/20 text-lg tracking-widest px-12 py-6 font-bold transition-all duration-300 mt-8"
+              style={{ 
+                borderColor: 'hsl(var(--neon-green))',
+                color: 'hsl(var(--neon-green))',
+                animation: 'subtle-pulse 2s ease-in-out infinite'
+              }}
+            >
+              ACCESS GRID
+            </Button>
+          </div>
         )}
 
         {phase === 'complete' && (
