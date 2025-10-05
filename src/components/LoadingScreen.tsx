@@ -152,68 +152,17 @@ export const LoadingScreen = ({ onProgressUpdate, onFlip }: LoadingScreenProps) 
         )}
 
         {phase === 'complete' && (
-          <div className="fixed inset-0 bg-black flex flex-col animate-fade-in z-50">
-            {/* Top Banner */}
-            <div 
-              className="border-b-4 p-6 animate-pulse"
-              style={{ borderColor: 'hsl(var(--neon-green))' }}
+          <div 
+            className="fixed top-0 left-0 right-0 border-4 p-4 animate-slide-in-right cursor-pointer hover:bg-primary/10 transition-all"
+            style={{ borderColor: 'hsl(var(--neon-green))' }}
+            onClick={handleEnterLobby}
+          >
+            <p 
+              className="text-center text-xl tracking-widest font-bold text-glow-green"
+              style={{ color: 'hsl(var(--neon-green))' }}
             >
-              <p 
-                className="text-center text-3xl md:text-4xl tracking-widest font-bold text-glow-green"
-                style={{ color: 'hsl(var(--neon-green))' }}
-              >
-                LOBBY ACCESS GRANTED
-              </p>
-            </div>
-
-            {/* Center Content */}
-            <div className="flex-1 flex flex-col items-center justify-center space-y-12 px-4">
-              <div className="text-center space-y-6">
-                <h1 
-                  className="text-4xl md:text-6xl font-bold tracking-wider text-glow-green"
-                  style={{ color: 'hsl(var(--neon-green))' }}
-                >
-                  PLAYOPS COMMAND CENTER
-                </h1>
-                <p 
-                  className="text-lg md:text-xl font-mono tracking-wide"
-                  style={{ color: 'hsl(var(--neon-green) / 0.8)' }}
-                >
-                  Systems Online • Grid Stable • Ready for Operations
-                </p>
-              </div>
-
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleEnterLobby}
-                className="border-2 bg-transparent hover:bg-primary/20 text-xl tracking-widest px-16 py-8 font-bold transition-all duration-300 animate-pulse"
-                style={{ 
-                  borderColor: 'hsl(var(--neon-green))',
-                  color: 'hsl(var(--neon-green))'
-                }}
-              >
-                ACCESS MENU
-              </Button>
-            </div>
-
-            {/* Bottom Status Bar */}
-            <div 
-              className="border-t-4 p-4"
-              style={{ borderColor: 'hsl(var(--neon-green))' }}
-            >
-              <div className="max-w-7xl mx-auto flex justify-between items-center text-sm md:text-base font-mono">
-                <span style={{ color: 'hsl(var(--neon-green))' }}>
-                  STATUS: <span className="font-bold">ACTIVE</span>
-                </span>
-                <span style={{ color: 'hsl(var(--neon-green))' }}>
-                  GRID: <span className="font-bold">OPERATIONAL</span>
-                </span>
-                <span style={{ color: 'hsl(var(--neon-green))' }}>
-                  LATENCY: <span className="font-bold">0ms</span>
-                </span>
-              </div>
-            </div>
+              ENTER THE GRID →
+            </p>
           </div>
         )}
       </div>
