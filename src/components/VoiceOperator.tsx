@@ -191,6 +191,29 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
     }
   };
 
+  const handleClose = () => {
+    // Stop any ongoing speech
+    if (synthRef.current) {
+      synthRef.current.cancel();
+    }
+    // Stop recognition if active
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+    // Reset states
+    setIsSpeaking(false);
+    setIsListening(false);
+    setTranscript('');
+    onSpeakingChange(false);
+    // Restore background music
+    const gainNodes = getAudioGainNodes();
+    gainNodes.forEach(node => {
+      node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+    });
+    // Close the UI
+    onClose();
+  };
+
   if (!isActive) return null;
 
   return (
@@ -231,7 +254,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
           <Button
             size="lg"
             variant="outline"
-            onClick={onClose}
+            onClick={handleClose}
           >
             Close
           </Button>
