@@ -16,6 +16,7 @@ import { PlatformLayout } from "./components/platform/PlatformLayout";
 import CreatorDashboard from "./pages/platform/CreatorDashboard";
 import BrandDashboard from "./pages/platform/BrandDashboard";
 import Marketplace from "./pages/platform/Marketplace";
+import ValidatorDemo from "./pages/ValidatorDemo";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,9 @@ const App = () => (
             <Route path="brand" element={<BrandDashboard />} />
             <Route path="marketplace" element={<Marketplace />} />
           </Route>
+          
+          {/* Validator Demo */}
+          <Route path="/validator-demo" element={<ValidatorDemo />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -429,16 +429,26 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             <div className="border-t border-gray-700 pt-4">
               <div className="flex items-center justify-between mb-2">
                 <Label>Generated AI Design Prompt</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyPrompt}
-                  className="gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  Copy to Use in Lovable
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('/validator-demo', '_blank')}
+                  >
+                    View Demo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyPrompt}
+                    className="gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy to Use in Lovable
+                  </Button>
+                </div>
               </div>
               <Textarea
                 value={generatedPrompt}
