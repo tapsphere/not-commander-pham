@@ -49,7 +49,7 @@ export default function Play() {
           )
         `)
         .eq('unique_code', code)
-        .eq('published_at', 'NOT NULL')
+        .not('published_at', 'is', null)
         .maybeSingle();
 
       if (error) throw error;
