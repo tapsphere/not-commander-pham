@@ -42,16 +42,20 @@ export default function TemplateDetail() {
 
   const checkUserRole = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('Checking user role, user:', user?.id);
     if (user) {
       setIsLoggedIn(true);
-      const { data: roles } = await supabase
+      const { data: roles, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('role', 'brand')
         .maybeSingle();
       
+      console.log('Brand role check:', { roles, error, isBrand: !!roles });
       setIsBrand(!!roles);
+    } else {
+      console.log('No user found');
     }
   };
 
