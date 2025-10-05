@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles, Home, User, Hexagon, TrendingUp, Wallet, Coins } from 'lucide-react';
+import { AriaButton } from '@/components/AriaButton';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import stripeLogo from '@/assets/logos/stripe.png';
 import adobeLogo from '@/assets/logos/adobe.png';
@@ -46,6 +47,9 @@ const Lobby = () => {
 
   return (
     <div className="relative w-full min-h-screen bg-black pb-24">
+      {/* ARIA Access Button */}
+      <AriaButton />
+      
       {/* Header */}
       <div 
         className="border-b-2 p-4"
