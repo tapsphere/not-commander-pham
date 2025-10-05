@@ -264,7 +264,6 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
             size="lg"
             variant={isListening ? "destructive" : "default"}
             onClick={isListening ? stopListening : startListening}
-            disabled={isSpeaking}
             className="gap-2"
           >
             {isListening ? (
@@ -283,7 +282,10 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
           <Button
             size="lg"
             variant="outline"
-            onClick={handleClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClose();
+            }}
           >
             Close
           </Button>

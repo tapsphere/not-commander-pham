@@ -338,9 +338,9 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
       globeRef.current.rotation.y += 0.002;
     }
     
-    // Pulse earth when ARIA is speaking
+    // Pulse earth when ARIA is speaking - reduced pulse to prevent text overlap
     if (isSpeaking) {
-      const pulseScale = 1 + Math.sin(state.clock.elapsedTime * 8) * 0.03;
+      const pulseScale = 1 + Math.sin(state.clock.elapsedTime * 8) * 0.015;
       globeRef.current.scale.set(pulseScale, pulseScale, pulseScale);
     } else {
       // Smooth return to normal scale
@@ -365,11 +365,11 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
       globeRef.current.rotation.y = currentY + (targetY - currentY) * 0.1;
     }
     
-    // Enhanced pulsing atmospheric glow - more dramatic when speaking
+    // Enhanced pulsing atmospheric glow - reduced pulse to prevent text overlap
     if (atmosphereRef.current) {
       atmosphereRef.current.rotation.copy(globeRef.current.rotation);
       if (isSpeaking) {
-        const speakScale = 1.15 + Math.sin(state.clock.elapsedTime * 8) * 0.08;
+        const speakScale = 1.08 + Math.sin(state.clock.elapsedTime * 8) * 0.04;
         atmosphereRef.current.scale.set(speakScale, speakScale, speakScale);
       } else {
         const scale = 1.08 + Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
