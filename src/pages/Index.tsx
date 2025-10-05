@@ -1,10 +1,13 @@
 import { useState, useEffect, Suspense } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { Globe } from '@/components/GlobeScene';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { VoiceOperator } from '@/components/VoiceOperator';
+import { Button } from '@/components/ui/button';
+import { Mic, X, Volume2 } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [isFlipped, setIsFlipped] = useState(false);
   const [progress, setProgress] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -107,14 +110,47 @@ const Index = () => {
 
       {/* Voice Operator Interface */}
       {voiceActive && (
-        <VoiceOperator 
-          isActive={voiceActive}
-          onSpeakingChange={setIsSpeaking}
-          onClose={() => {
-            console.log('=== onClose called from Index ===');
-            setVoiceActive(false);
-          }}
-        />
+        <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto flex flex-col items-center gap-3 bg-black/80 backdrop-blur-sm p-6 rounded-lg border border-primary/30">
+            <div className="flex items-center gap-3">
+              {isSpeaking && <Volume2 className="w-6 h-6 text-primary animate-pulse" />}
+              <h2 className="text-xl font-bold text-primary">ARIA SYSTEM</h2>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                size="lg"
+                variant="default"
+                onClick={() => {
+                  navigate('/voice-chat');
+                }}
+                className="gap-2 w-24"
+              >
+                <Mic className="w-5 h-5" />
+              </Button>
+
+              <Button
+                size="lg"
+                variant="destructive"
+                onClick={() => {
+                  console.log('X button clicked - closing');
+                  if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                  }
+                  setVoiceActive(false);
+                  setIsSpeaking(false);
+                }}
+                className="w-24"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <p className="text-xs text-gray-400 text-center max-w-sm">
+              {isSpeaking ? "ARIA speaking..." : "Click microphone to talk to ARIA"}
+            </p>
+          </div>
+        </div>
       )}
 
       <style>{`
