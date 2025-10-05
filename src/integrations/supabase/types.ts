@@ -44,6 +44,7 @@ export type Database = {
           created_at: string | null
           custom_config: Json | null
           customization_prompt: string | null
+          generated_game_html: string | null
           id: string
           logo_url: string | null
           primary_color: string | null
@@ -58,6 +59,7 @@ export type Database = {
           created_at?: string | null
           custom_config?: Json | null
           customization_prompt?: string | null
+          generated_game_html?: string | null
           id?: string
           logo_url?: string | null
           primary_color?: string | null
@@ -72,6 +74,7 @@ export type Database = {
           created_at?: string | null
           custom_config?: Json | null
           customization_prompt?: string | null
+          generated_game_html?: string | null
           id?: string
           logo_url?: string | null
           primary_color?: string | null
