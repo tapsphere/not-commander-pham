@@ -468,9 +468,12 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             <h3 className="font-semibold" style={{ color: 'hsl(var(--neon-green))' }}>
               Designer-Controlled Elements
             </h3>
+            <p className="text-xs text-yellow-400 mb-2">
+              ⚠️ Fill in these fields to generate the AI prompt and unlock the Test Preview button
+            </p>
 
             <div>
-              <Label htmlFor="scenario">Scenario / Theme</Label>
+              <Label htmlFor="scenario">Scenario / Theme *</Label>
               <Textarea
                 id="scenario"
                 value={formData.scenario}
@@ -482,7 +485,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             </div>
 
             <div>
-              <Label htmlFor="playerActions">Player Actions</Label>
+              <Label htmlFor="playerActions">Player Actions *</Label>
               <Textarea
                 id="playerActions"
                 value={formData.playerActions}
@@ -494,7 +497,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             </div>
 
             <div>
-              <Label htmlFor="edgeCase">Edge-Case Moment</Label>
+              <Label htmlFor="edgeCase">Edge-Case Moment *</Label>
               <Textarea
                 id="edgeCase"
                 value={formData.edgeCase}
