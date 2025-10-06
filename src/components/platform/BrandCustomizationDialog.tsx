@@ -346,7 +346,7 @@ UI Styling Instructions:
             <Button
               onClick={handleSaveCustomization}
               disabled={loading}
-              className="bg-neon-green text-black hover:bg-neon-green/90"
+              className="bg-neon-green text-white hover:bg-neon-green/90"
             >
               {loading ? 'Generating Game...' : 'Generate & Save Game'}
             </Button>
