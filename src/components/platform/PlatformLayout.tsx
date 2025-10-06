@@ -16,6 +16,12 @@ export const PlatformLayout = () => {
   }, []);
 
   const checkAuth = async () => {
+    // TEMP: Auth disabled for demo
+    const pathRole = location.pathname.includes('creator') ? 'creator' : 'brand';
+    setUserRole(pathRole);
+    setLoading(false);
+    
+    /* ORIGINAL CODE - Re-enable after demo:
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -56,6 +62,7 @@ export const PlatformLayout = () => {
     } finally {
       setLoading(false);
     }
+    */
   };
 
   const handleSignOut = async () => {

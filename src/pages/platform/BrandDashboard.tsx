@@ -40,8 +40,11 @@ export default function BrandDashboard() {
 
   const loadCustomizations = async () => {
     try {
+      // TEMP: Skip auth check for demo
+      /* ORIGINAL CODE - Re-enable after demo:
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      */
 
       const { data, error } = await supabase
         .from('brand_customizations')
@@ -52,7 +55,7 @@ export default function BrandDashboard() {
             preview_image
           )
         `)
-        .eq('brand_id', user.id)
+        // .eq('brand_id', user.id)  // TEMP: Commented for demo
         .order('created_at', { ascending: false });
 
       if (error) throw error;
