@@ -549,7 +549,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                       size="sm"
                       onClick={handleTestPreview}
                       disabled={generating}
-                      className="gap-2 bg-neon-green text-black hover:bg-neon-green/90 animate-pulse"
+                      className="gap-2 bg-neon-green text-white hover:bg-neon-green/90 animate-pulse"
                     >
                       <Eye className="h-4 w-4" />
                       {generating ? 'Generating...' : 'Test Preview 🎮'}
