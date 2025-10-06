@@ -383,12 +383,20 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             <div>
               <Label htmlFor="competency">Select Competency *</Label>
               <Select value={selectedCompetency} onValueChange={setSelectedCompetency}>
-                <SelectTrigger id="competency" className="bg-gray-800 border-gray-700">
+                <SelectTrigger id="competency" className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="Choose a competency..." />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 z-[100] pointer-events-auto">
+                <SelectContent 
+                  className="bg-gray-800 border-gray-700 text-white z-[9999]" 
+                  position="popper"
+                  sideOffset={5}
+                >
                   {competencies.map((comp) => (
-                    <SelectItem key={comp.id} value={comp.id} className="cursor-pointer hover:bg-gray-700">
+                    <SelectItem 
+                      key={comp.id} 
+                      value={comp.id} 
+                      className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700 text-white"
+                    >
                       {comp.name}
                     </SelectItem>
                   ))}
