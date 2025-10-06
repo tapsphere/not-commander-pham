@@ -46,6 +46,8 @@ export type Database = {
           customization_prompt: string | null
           generated_game_html: string | null
           id: string
+          live_end_date: string | null
+          live_start_date: string | null
           logo_url: string | null
           primary_color: string | null
           published_at: string | null
@@ -61,6 +63,8 @@ export type Database = {
           customization_prompt?: string | null
           generated_game_html?: string | null
           id?: string
+          live_end_date?: string | null
+          live_start_date?: string | null
           logo_url?: string | null
           primary_color?: string | null
           published_at?: string | null
@@ -76,6 +80,8 @@ export type Database = {
           customization_prompt?: string | null
           generated_game_html?: string | null
           id?: string
+          live_end_date?: string | null
+          live_start_date?: string | null
           logo_url?: string | null
           primary_color?: string | null
           published_at?: string | null

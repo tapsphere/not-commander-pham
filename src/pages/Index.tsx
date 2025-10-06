@@ -4,7 +4,19 @@ import { Canvas } from '@react-three/fiber';
 import { Globe } from '@/components/GlobeScene';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Button } from '@/components/ui/button';
-import { Mic, X, Volume2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Mic, X, Volume2, Play } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+type LiveGame = {
+  id: string;
+  unique_code: string;
+  logo_url: string | null;
+  game_templates: {
+    name: string;
+    preview_image: string | null;
+  };
+};
 
 const Index = () => {
   const navigate = useNavigate();
@@ -16,6 +28,40 @@ const Index = () => {
   const [voiceActive, setVoiceActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [userClosed, setUserClosed] = useState(false);
+  const [liveGames, setLiveGames] = useState<LiveGame[]>([]);
+
+  useEffect(() => {
+    loadLiveGames();
+  }, []);
+
+  const loadLiveGames = async () => {
+    try {
+      const now = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('brand_customizations')
+        .select(`
+          id,
+          unique_code,
+          logo_url,
+          game_templates (
+            name,
+            preview_image
+          )
+        `)
+        .not('published_at', 'is', null)
+        .not('unique_code', 'is', null)
+        .lte('live_start_date', now)
+        .gte('live_end_date', now)
+        .order('published_at', { ascending: false })
+        .limit(6);
+
+      if (error) throw error;
+      setLiveGames(data || []);
+    } catch (error) {
+      console.error('Failed to load live games:', error);
+    }
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -208,6 +254,61 @@ const Index = () => {
           </p>
         </div>
       </div>
+
+      {/* Live Games Section */}
+      {liveGames.length > 0 && (
+        <div className="fixed bottom-8 left-0 right-0 z-40 px-8 pointer-events-none">
+          <div className="max-w-7xl mx-auto pointer-events-auto">
+            <div className="bg-black/80 backdrop-blur-sm border border-neon-green/30 rounded-lg p-6">
+              <h3 className="text-2xl font-bold mb-4" style={{ color: 'hsl(var(--neon-green))' }}>
+                🎮 Live Validators
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {liveGames.map((game) => (
+                  <Card 
+                    key={game.id} 
+                    className="bg-gray-900/90 border-gray-700 hover:border-neon-green transition-all cursor-pointer overflow-hidden"
+                    onClick={() => navigate(`/play/${game.unique_code}`)}
+                  >
+                    <div className="aspect-video bg-gray-800 flex items-center justify-center relative">
+                      {game.game_templates?.preview_image ? (
+                        <img 
+                          src={game.game_templates.preview_image} 
+                          alt="Preview" 
+                          className="w-full h-full object-cover" 
+                        />
+                      ) : (
+                        <Play className="w-12 h-12 text-gray-600" />
+                      )}
+                      {game.logo_url && (
+                        <div className="absolute top-2 right-2 bg-white/90 rounded p-1">
+                          <img 
+                            src={game.logo_url} 
+                            alt="Brand" 
+                            className="h-6 w-auto object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h4 className="font-semibold text-white text-sm">
+                        {game.game_templates?.name}
+                      </h4>
+                      <Button 
+                        size="sm" 
+                        className="mt-2 w-full gap-2 bg-neon-green text-black hover:bg-neon-green/90"
+                      >
+                        <Play className="h-3 w-3" />
+                        Play Now
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes twinkle {

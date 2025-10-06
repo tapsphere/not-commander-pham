@@ -3,8 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +38,9 @@ export default function BrandDashboard() {
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [selectedCustomization, setSelectedCustomization] = useState<Customization | null>(null);
   const [copied, setCopied] = useState(false);
+  const [liveStartDate, setLiveStartDate] = useState<Date>();
+  const [liveEndDate, setLiveEndDate] = useState<Date>();
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     loadCustomizations();
@@ -71,7 +79,29 @@ export default function BrandDashboard() {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
   };
 
-  const handlePublish = async (customization: Customization) => {
+  const handlePublishClick = (customization: Customization) => {
+    setSelectedCustomization(customization);
+    setShowDatePicker(true);
+    // Set default dates: start now, end in 30 days
+    setLiveStartDate(new Date());
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 30);
+    setLiveEndDate(endDate);
+  };
+
+  const handlePublish = async () => {
+    if (!selectedCustomization) return;
+    
+    if (!liveStartDate || !liveEndDate) {
+      toast.error('Please select start and end dates');
+      return;
+    }
+
+    if (liveEndDate <= liveStartDate) {
+      toast.error('End date must be after start date');
+      return;
+    }
+
     try {
       const uniqueCode = generateUniqueCode();
       
@@ -80,8 +110,10 @@ export default function BrandDashboard() {
         .update({
           published_at: new Date().toISOString(),
           unique_code: uniqueCode,
+          live_start_date: liveStartDate.toISOString(),
+          live_end_date: liveEndDate.toISOString(),
         })
-        .eq('id', customization.id);
+        .eq('id', selectedCustomization.id);
 
       if (error) throw error;
 
@@ -90,14 +122,15 @@ export default function BrandDashboard() {
       // Update local state
       setCustomizations(prev =>
         prev.map(c =>
-          c.id === customization.id
+          c.id === selectedCustomization.id
             ? { ...c, published_at: new Date().toISOString(), unique_code: uniqueCode }
             : c
         )
       );
 
+      setShowDatePicker(false);
       // Show the share dialog
-      setSelectedCustomization({ ...customization, unique_code: uniqueCode, published_at: new Date().toISOString() });
+      setSelectedCustomization({ ...selectedCustomization, unique_code: uniqueCode, published_at: new Date().toISOString() });
       setPublishDialogOpen(true);
     } catch (error: any) {
       toast.error('Failed to publish: ' + error.message);
@@ -237,7 +270,7 @@ export default function BrandDashboard() {
                   ) : (
                     <Button 
                       size="sm" 
-                      onClick={() => handlePublish(custom)}
+                      onClick={() => handlePublishClick(custom)}
                       className="bg-neon-green text-black hover:bg-neon-green/90"
                     >
                       Publish
@@ -250,7 +283,94 @@ export default function BrandDashboard() {
         </div>
       )}
 
-      {/* Publish Dialog */}
+      {/* Date Picker Dialog */}
+      <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
+        <DialogContent className="bg-gray-900 border-neon-green text-white">
+          <DialogHeader>
+            <DialogTitle className="text-neon-green text-glow-green">
+              Set Live Timeframe
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Choose when this validator will be available to players
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="start-date" className="text-white">Start Date & Time</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-gray-800 border-gray-700",
+                      !liveStartDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {liveStartDate ? format(liveStartDate, "PPP p") : <span>Pick start date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-gray-900 border-neon-green" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={liveStartDate}
+                    onSelect={setLiveStartDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end-date" className="text-white">End Date & Time</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-gray-800 border-gray-700",
+                      !liveEndDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {liveEndDate ? format(liveEndDate, "PPP p") : <span>Pick end date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-gray-900 border-neon-green" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={liveEndDate}
+                    onSelect={setLiveEndDate}
+                    disabled={(date) => date < (liveStartDate || new Date())}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowDatePicker(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePublish}
+                className="flex-1 bg-neon-green text-black hover:bg-neon-green/90"
+              >
+                Publish Now
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Dialog */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
         <DialogContent className="bg-gray-900 border-neon-green text-white">
           <DialogHeader>

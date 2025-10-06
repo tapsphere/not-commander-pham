@@ -63,6 +63,23 @@ The metrics object MUST include all required fields from backend_data_captured.
 `;
     }
 
+    let logoInstructions = '';
+    if (logoUrl) {
+      logoInstructions = `
+
+BRAND LOGO INTEGRATION (REQUIRED):
+The brand's logo MUST be displayed in the game UI.
+Logo URL: ${logoUrl}
+
+Include this HTML in the game:
+\`\`\`html
+<div style="position: fixed; top: 10px; right: 10px; z-index: 9999; background: white; padding: 8px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+  <img src="${logoUrl}" alt="Brand Logo" style="height: 40px; width: auto; display: block;" />
+</div>
+\`\`\`
+`;
+    }
+
     const systemPrompt = `You are an expert game developer. Generate a complete, playable HTML5 game based on the template description and brand customization.
 
 CRITICAL REQUIREMENTS:
@@ -70,12 +87,12 @@ CRITICAL REQUIREMENTS:
 2. Include ALL JavaScript and CSS inline within the HTML
 3. The game must be fully functional and playable
 4. Use the brand colors provided: primary=${primaryColor}, secondary=${secondaryColor}
-5. If a logo URL is provided, incorporate it into the game UI
-6. Make it responsive and mobile-friendly
-7. Include clear instructions for the player
-8. Add scoring/feedback mechanisms
-9. Use modern, clean design
+5. Make it responsive and mobile-friendly
+6. Include clear instructions for the player
+7. Add scoring/feedback mechanisms
+8. Use modern, clean design
 ${scoringInstructions}
+${logoInstructions}
 
 OUTPUT FORMAT:
 Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.`;
