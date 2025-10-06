@@ -109,15 +109,28 @@ export default function Auth() {
 
       if (error) throw error;
 
-      // Get user role
-      const { data: roleData } = await supabase
+      // Get all user roles
+      const { data: rolesData } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', data.user.id)
-        .single();
+        .eq('user_id', data.user.id);
 
-      toast.success('Signed in!');
-      const route = roleData?.role === 'creator' ? '/platform/creator' : '/platform/brand';
+      if (!rolesData || rolesData.length === 0) {
+        // No roles assigned - they're just a player
+        toast.success('Signed in as Player!');
+        navigate('/lobby');
+        return;
+      }
+
+      // If user has multiple roles, prioritize: brand > creator > player
+      const roles = rolesData.map(r => r.role);
+      let primaryRole = roles[0];
+      
+      if (roles.includes('brand')) primaryRole = 'brand';
+      else if (roles.includes('creator')) primaryRole = 'creator';
+
+      toast.success(`Signed in as ${primaryRole}!`);
+      const route = primaryRole === 'creator' ? '/platform/creator' : '/platform/brand';
       navigate(route);
     } catch (error: any) {
       toast.error(error.message);
