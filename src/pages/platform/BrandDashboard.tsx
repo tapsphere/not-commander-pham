@@ -216,15 +216,24 @@ export default function BrandDashboard() {
                     {custom.published_at ? 'Live' : 'Draft'}
                   </span>
                   {custom.published_at ? (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleShowLink(custom)}
-                      className="gap-2"
-                    >
-                      <Link2 className="h-3 w-3" />
-                      Share
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => window.open(`${window.location.origin}/play/${custom.unique_code}`, '_blank')}
+                        className="gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Play
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleShowLink(custom)}
+                        className="gap-2"
+                      >
+                        <Link2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   ) : (
                     <Button 
                       size="sm" 
@@ -263,8 +272,18 @@ export default function BrandDashboard() {
 
             <div className="flex gap-3">
               <Button
+                onClick={() => {
+                  window.open(getShareableLink(), '_blank');
+                }}
+                className="flex-1 gap-2"
+              >
+                <Play className="h-4 w-4" />
+                Play Now
+              </Button>
+              <Button
                 onClick={handleCopyLink}
-                className="flex-1 gap-2 bg-neon-green text-black hover:bg-neon-green/90"
+                variant="outline"
+                className="flex-1 gap-2"
               >
                 {copied ? (
                   <>
@@ -278,13 +297,14 @@ export default function BrandDashboard() {
                   </>
                 )}
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => setPublishDialogOpen(false)}
-              >
-                Close
-              </Button>
             </div>
+            <Button
+              variant="ghost"
+              onClick={() => setPublishDialogOpen(false)}
+              className="w-full"
+            >
+              Close
+            </Button>
 
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
               <p className="text-xs text-gray-400">
