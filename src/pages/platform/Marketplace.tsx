@@ -29,64 +29,58 @@ interface Template {
 
 export default function Marketplace() {
   const navigate = useNavigate();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [creators, setCreators] = useState<{ id: string; name: string; bio?: string; templateCount: number }[]>([]);
+  const [filteredCreators, setFilteredCreators] = useState<{ id: string; name: string; bio?: string; templateCount: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<FilterType>('all');
-  const [selectedFilter, setSelectedFilter] = useState<string>('');
-  
-  // Filter options
-  const [creators, setCreators] = useState<{ id: string; name: string }[]>([]);
-  const [competencies, setCompetencies] = useState<{ id: string; name: string }[]>([]);
-  const [departments, setDepartments] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchTemplates();
-    fetchFilterOptions();
+    fetchCreators();
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [templates, filterType, selectedFilter, searchQuery]);
+    applySearch();
+  }, [creators, searchQuery]);
 
-  const fetchTemplates = async () => {
+  const fetchCreators = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch all published templates
+      const { data: templatesData, error } = await supabase
         .from('game_templates')
-        .select('*')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
+        .select('creator_id')
+        .eq('is_published', true);
 
       if (error) throw error;
 
-      // Fetch related data separately
-      const templatesWithData = await Promise.all(
-        (data || []).map(async (template) => {
-          const [profileData, competencyData] = await Promise.all([
-            supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', template.creator_id)
-              .single(),
-            template.competency_id
-              ? supabase
-                  .from('master_competencies')
-                  .select('name, cbe_category, departments')
-                  .eq('id', template.competency_id)
-                  .single()
-              : null,
-          ]);
+      // Get unique creator IDs and count their templates
+      const creatorTemplateCount = new Map<string, number>();
+      templatesData?.forEach(template => {
+        const count = creatorTemplateCount.get(template.creator_id) || 0;
+        creatorTemplateCount.set(template.creator_id, count + 1);
+      });
 
+      const uniqueCreatorIds = Array.from(creatorTemplateCount.keys());
+      
+      // Fetch creator profiles
+      const creatorsWithData = await Promise.all(
+        uniqueCreatorIds.map(async (creatorId) => {
+          const { data } = await supabase
+            .from('profiles')
+            .select('full_name, bio')
+            .eq('user_id', creatorId)
+            .single();
+          
           return {
-            ...template,
-            profiles: profileData.data || null,
-            master_competencies: competencyData?.data || null,
+            id: creatorId,
+            name: data?.full_name || 'Unknown Creator',
+            bio: data?.bio,
+            templateCount: creatorTemplateCount.get(creatorId) || 0
           };
         })
       );
-
-      setTemplates(templatesWithData as any);
+      
+      setCreators(creatorsWithData);
+      setFilteredCreators(creatorsWithData);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -94,86 +88,16 @@ export default function Marketplace() {
     }
   };
 
-  const fetchFilterOptions = async () => {
-    try {
-      // Fetch creators who have published templates
-      const { data: templatesData } = await supabase
-        .from('game_templates')
-        .select('creator_id')
-        .eq('is_published', true);
-
-      if (templatesData) {
-        const uniqueCreatorIds = Array.from(new Set(templatesData.map(t => t.creator_id)));
-        
-        const creatorsWithNames = await Promise.all(
-          uniqueCreatorIds.map(async (creatorId) => {
-            const { data } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('user_id', creatorId)
-              .single();
-            
-            return {
-              id: creatorId,
-              name: data?.full_name || 'Unknown Creator'
-            };
-          })
-        );
-        
-        setCreators(creatorsWithNames);
-      }
-
-      // Fetch competencies
-      const { data: competenciesData } = await supabase
-        .from('master_competencies')
-        .select('id, name')
-        .order('name');
-
-      if (competenciesData) {
-        setCompetencies(competenciesData);
-      }
-
-      // Extract unique departments from competencies
-      const { data: deptData } = await supabase
-        .from('master_competencies')
-        .select('departments');
-
-      if (deptData) {
-        const allDepts = deptData.flatMap((d: any) => d.departments || []);
-        const uniqueDepts = Array.from(new Set(allDepts)).sort();
-        setDepartments(uniqueDepts);
-      }
-    } catch (error: any) {
-      console.error('Error fetching filter options:', error);
-    }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...templates];
-
-    // Apply filter type
-    if (filterType === 'creator' && selectedFilter) {
-      filtered = filtered.filter(t => t.creator_id === selectedFilter);
-    } else if (filterType === 'competency' && selectedFilter) {
-      filtered = filtered.filter(t => t.competency_id === selectedFilter);
-    } else if (filterType === 'department' && selectedFilter) {
-      filtered = filtered.filter(
-        t => t.master_competencies?.departments?.includes(selectedFilter)
-      );
-    }
-
-    // Apply search
+  const applySearch = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        t =>
-          t.name.toLowerCase().includes(query) ||
-          t.description?.toLowerCase().includes(query) ||
-          t.master_competencies?.name.toLowerCase().includes(query)
+      const filtered = creators.filter(
+        creator => creator.name.toLowerCase().includes(query)
       );
+      setFilteredCreators(filtered);
+    } else {
+      setFilteredCreators(creators);
     }
-
-    setFilteredTemplates(filtered);
   };
 
 
@@ -192,14 +116,14 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-neon-green text-glow-green">
-              Validator Marketplace
+              Creator Channels
             </h1>
             
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search validators..."
+                  placeholder="Search creators..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 w-64 bg-gray-800 border-gray-700"
@@ -210,190 +134,57 @@ export default function Marketplace() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Channel Navigation */}
-        <div className="mb-6">
-          <h2 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">
-            Browse Channels
-          </h2>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <Button
-              variant={filterType === 'all' ? 'default' : 'outline'}
-              onClick={() => {
-                setFilterType('all');
-                setSelectedFilter('');
-              }}
-              className={filterType === 'all' ? 'bg-neon-green text-black' : ''}
-            >
-              🎮 All Validators
-            </Button>
-            
-            {/* Creator Channels */}
-            {creators.length > 0 && (
-              <>
-                {creators.map((creator) => (
-                  <Button
-                    key={creator.id}
-                    variant={
-                      filterType === 'creator' && selectedFilter === creator.id
-                        ? 'default'
-                        : 'outline'
-                    }
-                    onClick={() => {
-                      setFilterType('creator');
-                      setSelectedFilter(creator.id);
-                    }}
-                    className={
-                      filterType === 'creator' && selectedFilter === creator.id
-                        ? 'bg-neon-green text-black'
-                        : ''
-                    }
-                  >
-                    👤 {creator.name}
-                  </Button>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <p className="text-sm text-gray-400 mb-6">
+          Browse {filteredCreators.length} creator channel{filteredCreators.length !== 1 ? 's' : ''}
+        </p>
 
-        {/* Competency & Department Filters */}
-        <div className="mb-6 flex gap-4">
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Filter by Competency</label>
-            <select
-              value={filterType === 'competency' ? selectedFilter : ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setFilterType('competency');
-                  setSelectedFilter(e.target.value);
-                } else {
-                  setFilterType('all');
-                  setSelectedFilter('');
-                }
-              }}
-              className="bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white"
-            >
-              <option value="">All Competencies</option>
-              {competencies.map((comp) => (
-                <option key={comp.id} value={comp.id}>
-                  {comp.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Filter by Department</label>
-            <select
-              value={filterType === 'department' ? selectedFilter : ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setFilterType('department');
-                  setSelectedFilter(e.target.value);
-                } else {
-                  setFilterType('all');
-                  setSelectedFilter('');
-                }
-              }}
-              className="bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white"
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Channel Header */}
-        {filterType === 'creator' && selectedFilter && (
-          <div className="mb-6 bg-gray-900 border border-neon-green/30 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-full bg-neon-green/20 flex items-center justify-center">
-                <span className="text-2xl">👤</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">
-                  {creators.find(c => c.id === selectedFilter)?.name}'s Validators
-                </h2>
-                <p className="text-sm text-gray-400">
-                  {filteredTemplates.length} published validator{filteredTemplates.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Results Count */}
-        {filterType !== 'creator' && (
-          <p className="text-sm text-gray-400 mb-4">
-            Showing {filteredTemplates.length} validator{filteredTemplates.length !== 1 ? 's' : ''}
-          </p>
-        )}
-
-        {/* Template Grid */}
-        {filteredTemplates.length === 0 ? (
+        {/* Creators Grid */}
+        {filteredCreators.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-400">No validators found matching your filters</p>
+            <p className="text-gray-400">No creators found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map((template) => (
+            {filteredCreators.map((creator) => (
               <div
-                key={template.id}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-neon-green/50 transition-all group"
+                key={creator.id}
+                onClick={() => navigate(`/platform/creator/${creator.id}`)}
+                className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-neon-green/50 transition-all cursor-pointer group"
               >
-                {/* Preview Image */}
-                <div className="aspect-video bg-gradient-to-br from-gray-800 via-gray-900 to-black relative">
-                  {template.preview_image ? (
-                    <img
-                      src={template.preview_image}
-                      alt={template.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                      <div className="text-6xl">🎮</div>
-                      <div className="text-xs text-gray-500 font-mono">VALIDATOR</div>
-                    </div>
-                  )}
-                  
+                {/* Creator Avatar */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-3xl flex-shrink-0">
+                    👤
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-xl text-white mb-1 truncate">
+                      {creator.name}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      {creator.templateCount} validator{creator.templateCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Content */}
-                <div 
-                  className="p-4 space-y-3 bg-gray-900 cursor-pointer hover:bg-gray-800 transition-colors"
-                  onClick={() => navigate(`/platform/template/${template.id}`)}
-                >
-                  <h3 className="font-semibold text-lg text-white leading-tight">{template.name}</h3>
-                  
-                  {template.description && (
-                    <p className="text-sm text-gray-300 line-clamp-2 min-h-[2.5rem]">
-                      {template.description}
-                    </p>
-                  )}
+                {/* Bio */}
+                {creator.bio && (
+                  <p className="text-sm text-gray-300 line-clamp-2 mb-4">
+                    {creator.bio}
+                  </p>
+                )}
 
-                  <div className="flex flex-wrap gap-2 text-xs pt-2 border-t border-gray-800">
-                    <span className="bg-gray-800 px-2 py-1 rounded text-gray-400 flex items-center gap-1">
-                      👤 {template.profiles?.full_name || 'Creator'}
-                    </span>
-                    
-                    {template.master_competencies && (
-                      <span className="bg-neon-purple/20 text-neon-purple px-2 py-1 rounded border border-neon-purple/30">
-                        {template.master_competencies.cbe_category}
-                      </span>
-                    )}
-                  </div>
+                {/* View Channel Button */}
+                <div className="pt-4 border-t border-gray-800">
+                  <span className="text-sm text-neon-green group-hover:text-neon-green/80 transition-colors">
+                    View Channel →
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-
     </div>
   );
 }
