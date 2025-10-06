@@ -602,14 +602,14 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
 
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-[100vw] max-h-[100vh] w-full h-full bg-gray-900 border-neon-green p-4">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-neon-green text-glow-green">
-              Game Preview - {formData.name}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex items-center justify-center h-[calc(100%-120px)]">
-            <div className="w-full max-w-[430px] h-full max-h-[932px] overflow-hidden rounded-lg border-2 border-neon-green/50 shadow-2xl bg-black">
+        <DialogContent className="max-w-[430px] w-full h-[90vh] bg-black border-neon-green p-0">
+          <div className="flex flex-col h-full">
+            <DialogHeader className="px-4 py-3 border-b border-neon-green/30">
+              <DialogTitle className="text-neon-green text-glow-green text-sm">
+                Mobile Preview - {formData.name}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
               {previewHtml && (
                 <iframe
                   srcDoc={previewHtml}
@@ -619,15 +619,15 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                 />
               )}
             </div>
-          </div>
-          <div className="flex gap-3 justify-center mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setPreviewOpen(false)}
-              className="bg-gray-800 text-white hover:bg-gray-700"
-            >
-              Close Preview
-            </Button>
+            <div className="px-4 py-3 border-t border-neon-green/30">
+              <Button
+                variant="outline"
+                onClick={() => setPreviewOpen(false)}
+                className="w-full bg-gray-800 text-white hover:bg-gray-700"
+              >
+                Close Preview
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
