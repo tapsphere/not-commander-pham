@@ -106,33 +106,34 @@ export default function CreatorPortfolio() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Header */}
-      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-black pb-safe">
+      {/* Mobile-First Header */}
+      <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm sticky top-0 z-10">
+        <div className="px-4 py-3">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => navigate('/platform/marketplace')}
-            className="mb-4"
+            className="mb-3 -ml-2"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Marketplace
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back
           </Button>
           
           {/* Creator Header */}
-          <div className="flex items-start gap-6 mt-4">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-4xl">
+          <div className="flex items-start gap-3 md:gap-4">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-3xl md:text-4xl flex-shrink-0">
               👤
             </div>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-white mb-2">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-white mb-1 truncate">
                 {creator.full_name || 'Creator'}
               </h1>
               {creator.bio && (
-                <p className="text-gray-400 text-lg mb-2">{creator.bio}</p>
+                <p className="text-gray-400 text-sm md:text-base mb-1 line-clamp-2">{creator.bio}</p>
               )}
-              <p className="text-sm text-gray-500">
-                {templates.length} published validator{templates.length !== 1 ? 's' : ''}
+              <p className="text-xs text-gray-500">
+                {templates.length} validator{templates.length !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -140,18 +141,18 @@ export default function CreatorPortfolio() {
       </div>
 
       {/* Templates Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="px-4 py-4">
         {templates.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-400">This creator hasn't published any validators yet</p>
+            <p className="text-gray-400 text-sm">This creator hasn't published any validators yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
             {templates.map((template) => (
               <div
                 key={template.id}
                 onClick={() => navigate(`/platform/template/${template.id}`)}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-neon-green/50 transition-all cursor-pointer group"
+                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden active:opacity-80 transition-all cursor-pointer"
               >
                 {/* Preview Image */}
                 <div className="aspect-video bg-gradient-to-br from-gray-800 via-gray-900 to-black relative">
@@ -162,31 +163,23 @@ export default function CreatorPortfolio() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                      <div className="text-6xl">🎮</div>
-                      <div className="text-xs text-gray-500 font-mono">VALIDATOR</div>
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                      <div className="text-3xl md:text-4xl">🎮</div>
+                      <div className="text-[10px] text-gray-500 font-mono">VALIDATOR</div>
                     </div>
                   )}
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3 bg-gray-900 group-hover:bg-gray-800 transition-colors">
-                  <h3 className="font-semibold text-lg text-white leading-tight">
+                <div className="p-2 md:p-3 space-y-1.5 bg-gray-900">
+                  <h3 className="font-semibold text-xs md:text-sm text-white leading-tight line-clamp-2">
                     {template.name}
                   </h3>
-                  
-                  {template.description && (
-                    <p className="text-sm text-gray-300 line-clamp-2">
-                      {template.description}
-                    </p>
-                  )}
 
                   {template.master_competencies && (
-                    <div className="flex gap-2 pt-2 border-t border-gray-800">
-                      <span className="bg-neon-purple/20 text-neon-purple px-2 py-1 rounded border border-neon-purple/30 text-xs">
-                        {template.master_competencies.cbe_category}
-                      </span>
-                    </div>
+                    <span className="inline-block bg-neon-purple/20 text-neon-purple px-1.5 py-0.5 rounded border border-neon-purple/30 text-[10px]">
+                      {template.master_competencies.cbe_category}
+                    </span>
                   )}
                 </div>
               </div>

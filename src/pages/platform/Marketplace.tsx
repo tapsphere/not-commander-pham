@@ -110,58 +110,54 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Header */}
-      <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-neon-green text-glow-green">
-              Creator Channels
-            </h1>
-            
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search creators..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-64 bg-gray-800 border-gray-700"
-                />
-              </div>
-            </div>
+    <div className="min-h-screen bg-black pb-safe">
+      {/* Mobile-First Header */}
+      <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm sticky top-0 z-10">
+        <div className="px-4 py-3">
+          <h1 className="text-xl md:text-2xl font-bold text-neon-green text-glow-green mb-3">
+            Creator Channels
+          </h1>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search creators..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 w-full bg-gray-800 border-gray-700"
+            />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <p className="text-sm text-gray-400 mb-6">
-          Browse {filteredCreators.length} creator channel{filteredCreators.length !== 1 ? 's' : ''}
+      <div className="px-4 py-4">
+        <p className="text-xs md:text-sm text-gray-400 mb-4">
+          {filteredCreators.length} channel{filteredCreators.length !== 1 ? 's' : ''}
         </p>
 
-        {/* Creators Grid */}
+        {/* Mobile-Optimized Creators Grid */}
         {filteredCreators.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400">No creators found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {filteredCreators.map((creator) => (
               <div
                 key={creator.id}
                 onClick={() => navigate(`/platform/creator/${creator.id}`)}
-                className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-neon-green/50 transition-all cursor-pointer group"
+                className="bg-gray-900 border border-gray-800 rounded-lg p-4 active:bg-gray-800 transition-all cursor-pointer"
               >
                 {/* Creator Avatar */}
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-3xl flex-shrink-0">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-2xl flex-shrink-0">
                     👤
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-xl text-white mb-1 truncate">
+                    <h3 className="font-semibold text-base md:text-lg text-white mb-0.5 truncate">
                       {creator.name}
                     </h3>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-xs text-gray-400">
                       {creator.templateCount} validator{creator.templateCount !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -169,14 +165,14 @@ export default function Marketplace() {
 
                 {/* Bio */}
                 {creator.bio && (
-                  <p className="text-sm text-gray-300 line-clamp-2 mb-4">
+                  <p className="text-xs md:text-sm text-gray-300 line-clamp-2 mb-3">
                     {creator.bio}
                   </p>
                 )}
 
                 {/* View Channel Button */}
-                <div className="pt-4 border-t border-gray-800">
-                  <span className="text-sm text-neon-green group-hover:text-neon-green/80 transition-colors">
+                <div className="pt-3 border-t border-gray-800">
+                  <span className="text-xs md:text-sm text-neon-green">
                     View Channel →
                   </span>
                 </div>
