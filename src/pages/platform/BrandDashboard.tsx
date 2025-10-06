@@ -248,11 +248,19 @@ export default function BrandDashboard() {
                   >
                     {custom.published_at ? 'Live' : 'Draft'}
                   </span>
-                  {custom.published_at ? (
+                   {custom.published_at ? (
                     <div className="flex gap-2">
                       <Button 
                         size="sm" 
-                        onClick={() => window.open(`${window.location.origin}/play/${custom.unique_code}`, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Play clicked, unique_code:', custom.unique_code);
+                          if (custom.unique_code) {
+                            window.open(`${window.location.origin}/play/${custom.unique_code}`, '_blank');
+                          } else {
+                            toast.error('Game code is missing. Please republish this game.');
+                          }
+                        }}
                         className="gap-2"
                       >
                         <Play className="h-3 w-3" />
@@ -261,7 +269,11 @@ export default function BrandDashboard() {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleShowLink(custom)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Link clicked, customization:', custom);
+                          handleShowLink(custom);
+                        }}
                         className="gap-2"
                       >
                         <Link2 className="h-3 w-3" />
