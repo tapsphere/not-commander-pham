@@ -8,6 +8,7 @@ import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles, H
 import { AriaButton } from '@/components/AriaButton';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useTonWallet } from '@tonconnect/ui-react';
+import { supabase } from '@/integrations/supabase/client';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import stripeLogo from '@/assets/logos/stripe.png';
 import adobeLogo from '@/assets/logos/adobe.png';
@@ -30,10 +31,23 @@ const mockPrograms = [
   { title: 'Data Analytics Fast Track', duration: '4 Weeks Intensive', skills: 15, icon: Sparkles },
 ];
 
+type LiveGame = {
+  id: string;
+  unique_code: string;
+  logo_url: string | null;
+  primary_color: string;
+  secondary_color: string;
+  game_templates: {
+    name: string;
+    preview_image: string | null;
+  };
+};
+
 const Lobby = () => {
   const navigate = useNavigate();
   const wallet = useTonWallet();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [liveGames, setLiveGames] = useState<LiveGame[]>([]);
 
   const menuItems = [
     { icon: Home, label: 'Hub', path: '/lobby' },
@@ -42,6 +56,40 @@ const Lobby = () => {
     { icon: TrendingUp, label: 'Leaderboard', path: '/leaderboard' },
     { icon: Wallet, label: 'Wallet', path: '/wallet' },
   ];
+
+  useEffect(() => {
+    loadLiveGames();
+  }, []);
+
+  const loadLiveGames = async () => {
+    try {
+      const now = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('brand_customizations')
+        .select(`
+          id,
+          unique_code,
+          logo_url,
+          primary_color,
+          secondary_color,
+          game_templates (
+            name,
+            preview_image
+          )
+        `)
+        .not('published_at', 'is', null)
+        .not('unique_code', 'is', null)
+        .lte('live_start_date', now)
+        .gte('live_end_date', now)
+        .order('published_at', { ascending: false });
+
+      if (error) throw error;
+      setLiveGames(data || []);
+    } catch (error) {
+      console.error('Failed to load live games:', error);
+    }
+  };
 
   const handleNavigation = (path: string, index: number) => {
     setActiveIndex(index);
@@ -152,6 +200,62 @@ const Lobby = () => {
 
             {/* Brand Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Live Published Games */}
+              {liveGames.map((game, idx) => {
+                const useMagenta = idx % 3 === 1;
+                const usePurple = idx % 3 === 2;
+                const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
+                const glowClass = useMagenta ? 'text-glow-magenta' : usePurple ? 'text-glow-purple' : 'text-glow-green';
+                
+                return (
+                  <Card
+                    key={game.id}
+                    className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
+                    style={{ borderColor }}
+                    onClick={() => navigate(`/play/${game.unique_code}`)}
+                  >
+                    {/* Glow effect on hover */}
+                    <div 
+                      className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
+                      style={{ 
+                        background: `radial-gradient(circle at center, ${borderColor}, transparent 70%)`
+                      }}
+                    />
+                    
+                    <div className="flex items-start justify-between mb-4 relative z-10">
+                      <div 
+                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" 
+                        style={{ borderColor: `${borderColor}33` }}
+                      >
+                        {game.logo_url ? (
+                          <img src={game.logo_url} alt="Brand" className="w-full h-full object-contain" />
+                        ) : (
+                          <Building2 className="w-8 h-8" style={{ color: borderColor }} />
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
+                          LIVE
+                        </Badge>
+                      </div>
+                    </div>
+                    <h3 
+                      className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${glowClass}`}
+                      style={{ color: borderColor }}
+                    >
+                      {game.game_templates?.name || 'Validator'}
+                    </h3>
+                    <div className="flex items-center justify-between relative z-10">
+                      <span className="text-sm font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
+                        Play Now
+                      </span>
+                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" style={{ color: borderColor }} />
+                    </div>
+                  </Card>
+                );
+              })}
+
+              {/* Mock Brands */}
               {mockBrands.map((brand, idx) => {
                 const useMagenta = idx === 1;
                 const usePurple = idx === 4;
