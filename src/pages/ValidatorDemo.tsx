@@ -76,9 +76,30 @@ export default function ValidatorDemo() {
   }, [gameState]);
 
   const calculateScore = () => {
-    // Simple scoring: based on how many KPIs are ranked
-    const completionScore = (rankedKpis.length / 6) * 100;
-    setScore(Math.round(completionScore));
+    // Sub-competencies for this validator (Pass/Fail logic)
+    let passes = 0;
+    const totalSubs = 5;
+    
+    // Sub 1: Identified at least 2 concerning metrics (Pass if ranked >= 2 KPIs)
+    if (rankedKpis.length >= 2) passes++;
+    
+    // Sub 2: Ranked Bug Count or Tech Debt in top 3 (Pass if either is in first 3 positions)
+    const top3Ids = rankedKpis.slice(0, 3).map(k => k.id);
+    if (top3Ids.includes('3') || top3Ids.includes('6')) passes++;
+    
+    // Sub 3: Ranked User Retention or Feature Completion (both trending down)
+    const rankedIds = rankedKpis.map(k => k.id);
+    if (rankedIds.includes('1') || rankedIds.includes('4')) passes++;
+    
+    // Sub 4: Completed full ranking (Pass if all 6 KPIs ranked)
+    if (rankedKpis.length === 6) passes++;
+    
+    // Sub 5: Edge case handled (Pass if Revenue is #1 after edge case)
+    if (edgeCaseTriggered && rankedKpis[0]?.id === '2') passes++;
+    
+    // Final score = (passes / total_subs) × 100%
+    const finalScore = Math.round((passes / totalSubs) * 100);
+    setScore(finalScore);
   };
 
   const handleDragStart = (e: React.DragEvent, kpiId: string) => {
@@ -122,8 +143,13 @@ export default function ValidatorDemo() {
   };
 
   const getProficiencyLevel = (score: number) => {
-    if (score >= 95) return { level: 'Mastery', color: 'text-neon-green', bg: 'bg-neon-green/10' };
+    // Mastery: ≥ 95% pass and all edge-case triggers passed
+    if (score >= 95 && edgeCaseTriggered && rankedKpis[0]?.id === '2') {
+      return { level: 'Mastery', color: 'text-neon-green', bg: 'bg-neon-green/10' };
+    }
+    // Proficient: ≥ 80% and < 95% pass
     if (score >= 80) return { level: 'Proficient', color: 'text-yellow-400', bg: 'bg-yellow-400/10' };
+    // Needs Work: < 80% pass
     return { level: 'Needs Work', color: 'text-red-400', bg: 'bg-red-400/10' };
   };
 
@@ -241,19 +267,37 @@ export default function ValidatorDemo() {
             </div>
             
             <div className="bg-gray-900 rounded-lg p-6 space-y-3">
-              <h3 className="font-semibold text-neon-green">Performance Breakdown:</h3>
+              <h3 className="font-semibold text-neon-green">Sub-Competencies Passed:</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">KPIs Ranked:</span>
-                  <span className="text-white">{rankedKpis.length}/6</span>
+                  <span className="text-gray-400">Identified Concerning Metrics (≥2):</span>
+                  <span className={rankedKpis.length >= 2 ? 'text-neon-green' : 'text-red-400'}>
+                    {rankedKpis.length >= 2 ? '✓ Pass' : '✗ Fail'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Edge-Case Handled:</span>
-                  <span className="text-white">{edgeCaseTriggered ? 'Yes' : 'No'}</span>
+                  <span className="text-gray-400">Prioritized Critical Issues (Top 3):</span>
+                  <span className={rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? 'text-neon-green' : 'text-red-400'}>
+                    {rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? '✓ Pass' : '✗ Fail'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Time Remaining:</span>
-                  <span className="text-white">{timeLeft}s</span>
+                  <span className="text-gray-400">Addressed Declining Metrics:</span>
+                  <span className={rankedKpis.some(k => k.id === '1' || k.id === '4') ? 'text-neon-green' : 'text-red-400'}>
+                    {rankedKpis.some(k => k.id === '1' || k.id === '4') ? '✓ Pass' : '✗ Fail'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Completed Full Analysis:</span>
+                  <span className={rankedKpis.length === 6 ? 'text-neon-green' : 'text-red-400'}>
+                    {rankedKpis.length === 6 ? '✓ Pass' : '✗ Fail'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Edge-Case: Revenue Priority:</span>
+                  <span className={edgeCaseTriggered && rankedKpis[0]?.id === '2' ? 'text-neon-green' : 'text-red-400'}>
+                    {edgeCaseTriggered && rankedKpis[0]?.id === '2' ? '✓ Pass' : '✗ Fail'}
+                  </span>
                 </div>
               </div>
             </div>
