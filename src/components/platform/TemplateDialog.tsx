@@ -380,16 +380,19 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
               CBE Competency Framework
             </h3>
 
-            <div>
+            <div className="relative">
               <Label htmlFor="competency">Select Competency *</Label>
               <Select value={selectedCompetency} onValueChange={setSelectedCompetency}>
                 <SelectTrigger id="competency" className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="Choose a competency..." />
                 </SelectTrigger>
                 <SelectContent 
-                  className="bg-gray-800 border-gray-700 text-white z-[9999]" 
+                  className="bg-gray-800 border-gray-700 text-white max-h-[300px] overflow-y-auto" 
                   position="popper"
+                  side="bottom"
+                  align="start"
                   sideOffset={5}
+                  style={{ zIndex: 99999 }}
                 >
                   {competencies.map((comp) => (
                     <SelectItem 
