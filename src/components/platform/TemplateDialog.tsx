@@ -296,9 +296,9 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                 <SelectTrigger id="competency" className="bg-gray-800 border-gray-700">
                   <SelectValue placeholder="Choose a competency..." />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
+                <SelectContent className="bg-gray-800 border-gray-700 z-[100] pointer-events-auto">
                   {competencies.map((comp) => (
-                    <SelectItem key={comp.id} value={comp.id}>
+                    <SelectItem key={comp.id} value={comp.id} className="cursor-pointer hover:bg-gray-700">
                       {comp.name}
                     </SelectItem>
                   ))}
