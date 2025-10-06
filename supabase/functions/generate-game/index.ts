@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId } = await req.json();
+    const { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode } = await req.json();
     
-    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId });
+    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -81,6 +81,22 @@ Generate a complete, playable HTML5 game that matches this description and uses 
     generatedHtml = generatedHtml.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
 
     console.log('Generated HTML length:', generatedHtml.length);
+
+    // If preview mode, return HTML without saving
+    if (previewMode) {
+      console.log('Preview mode - returning HTML without saving');
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: 'Game preview generated',
+          html: generatedHtml
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      );
+    }
 
     // Save the generated HTML to the database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

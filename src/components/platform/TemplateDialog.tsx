@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Copy } from 'lucide-react';
+import { Copy, Eye } from 'lucide-react';
 import { TemplateTypeSelector } from './TemplateTypeSelector';
 import { CustomGameUpload } from './CustomGameUpload';
 
@@ -37,6 +37,9 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     uiAesthetic: '',
   });
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
   
   // Competency data
   const [competencies, setCompetencies] = useState<any[]>([]);
@@ -171,6 +174,44 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
     toast.success('Prompt copied to clipboard!');
+  };
+
+  const handleTestPreview = async () => {
+    if (!generatedPrompt) {
+      toast.error('Please fill in the template details first');
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      toast.info('Generating game preview... This may take 30-60 seconds');
+      
+      const { data, error } = await supabase.functions.invoke('generate-game', {
+        body: {
+          templatePrompt: generatedPrompt,
+          primaryColor: '#00FF00',
+          secondaryColor: '#9945FF',
+          logoUrl: null,
+          customizationId: null,
+          previewMode: true,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.html) {
+        setPreviewHtml(data.html);
+        setPreviewOpen(true);
+        toast.success('Preview generated! 🎮');
+      } else {
+        throw new Error('No HTML returned from preview');
+      }
+    } catch (error: any) {
+      console.error('Preview generation error:', error);
+      toast.error('Failed to generate preview: ' + error.message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -489,6 +530,17 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                   </Button>
                   <Button
                     type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={handleTestPreview}
+                    disabled={generating}
+                    className="gap-2 bg-neon-green text-black hover:bg-neon-green/90"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {generating ? 'Generating...' : 'Test Preview'}
+                  </Button>
+                  <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleCopyPrompt}
@@ -531,6 +583,35 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
           </div>
         </form>
       </DialogContent>
+
+      {/* Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full bg-gray-900 border-neon-green">
+          <DialogHeader>
+            <DialogTitle className="text-neon-green text-glow-green">
+              Game Preview - {formData.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden rounded-lg border border-neon-green/30">
+            {previewHtml && (
+              <iframe
+                srcDoc={previewHtml}
+                className="w-full h-full"
+                title="Game Preview"
+                sandbox="allow-scripts allow-same-origin"
+              />
+            )}
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setPreviewOpen(false)}
+            >
+              Close Preview
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
