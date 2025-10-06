@@ -94,6 +94,77 @@ export type Database = {
           },
         ]
       }
+      game_results: {
+        Row: {
+          competency_id: string | null
+          created_at: string | null
+          customization_id: string | null
+          gameplay_data: Json | null
+          id: string
+          passed: boolean
+          proficiency_level: string | null
+          scoring_metrics: Json
+          sub_competency_id: string | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          competency_id?: string | null
+          created_at?: string | null
+          customization_id?: string | null
+          gameplay_data?: Json | null
+          id?: string
+          passed: boolean
+          proficiency_level?: string | null
+          scoring_metrics?: Json
+          sub_competency_id?: string | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          competency_id?: string | null
+          created_at?: string | null
+          customization_id?: string | null
+          gameplay_data?: Json | null
+          id?: string
+          passed?: boolean
+          proficiency_level?: string | null
+          scoring_metrics?: Json
+          sub_competency_id?: string | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_results_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "master_competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_results_customization_id_fkey"
+            columns: ["customization_id"]
+            isOneToOne: false
+            referencedRelation: "brand_customizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_results_sub_competency_id_fkey"
+            columns: ["sub_competency_id"]
+            isOneToOne: false
+            referencedRelation: "sub_competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_results_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "game_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_templates: {
         Row: {
           base_prompt: string | null

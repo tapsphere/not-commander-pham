@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode } = await req.json();
+    const { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode, subCompetencies } = await req.json();
     
-    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode });
+    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode, subCompetencies });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -22,6 +22,47 @@ serve(async (req) => {
     }
 
     // Create the prompt for game generation
+    let scoringInstructions = '';
+    if (subCompetencies && subCompetencies.length > 0) {
+      scoringInstructions = `
+
+SCORING INTEGRATION (CRITICAL):
+The game must capture these metrics and send them to the backend at the end:
+
+${subCompetencies.map((sc: any, index: number) => `
+Sub-Competency ${index + 1}: ${sc.statement}
+Required Metrics: ${JSON.stringify(sc.backend_data_captured || [])}
+Scoring Logic: ${JSON.stringify(sc.scoring_logic || {})}
+`).join('\n')}
+
+At game completion, the generated HTML must call this JavaScript function:
+\`\`\`javascript
+async function submitScore(metrics) {
+  const response = await fetch('${Deno.env.get('SUPABASE_URL')}/functions/v1/submit-score', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + (localStorage.getItem('supabase.auth.token') || '')
+    },
+    body: JSON.stringify({
+      templateId: '${customizationId}',
+      customizationId: '${customizationId}',
+      competencyId: '${subCompetencies[0]?.competency_id || ''}',
+      subCompetencyId: '${subCompetencies[0]?.id || ''}',
+      scoringMetrics: metrics,
+      gameplayData: { /* optional extra data */ }
+    })
+  });
+  const result = await response.json();
+  console.log('Score submitted:', result);
+  return result;
+}
+\`\`\`
+
+The metrics object MUST include all required fields from backend_data_captured.
+`;
+    }
+
     const systemPrompt = `You are an expert game developer. Generate a complete, playable HTML5 game based on the template description and brand customization.
 
 CRITICAL REQUIREMENTS:
@@ -34,6 +75,7 @@ CRITICAL REQUIREMENTS:
 7. Include clear instructions for the player
 8. Add scoring/feedback mechanisms
 9. Use modern, clean design
+${scoringInstructions}
 
 OUTPUT FORMAT:
 Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.`;

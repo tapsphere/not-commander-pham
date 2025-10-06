@@ -186,6 +186,19 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
     try {
       toast.info('Generating game preview... This may take 30-60 seconds');
       
+      // Fetch full sub-competency data including scoring logic
+      let subCompetenciesData = [];
+      if (selectedSubCompetencies.length > 0) {
+        const { data: subComps, error: subError } = await supabase
+          .from('sub_competencies')
+          .select('*')
+          .in('id', selectedSubCompetencies);
+        
+        if (!subError && subComps) {
+          subCompetenciesData = subComps;
+        }
+      }
+      
       const { data, error } = await supabase.functions.invoke('generate-game', {
         body: {
           templatePrompt: generatedPrompt,
@@ -194,6 +207,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
           logoUrl: null,
           customizationId: null,
           previewMode: true,
+          subCompetencies: subCompetenciesData,
         }
       });
 
