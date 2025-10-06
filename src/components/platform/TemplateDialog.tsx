@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Copy } from 'lucide-react';
+import { TemplateTypeSelector } from './TemplateTypeSelector';
+import { CustomGameUpload } from './CustomGameUpload';
 
 interface TemplateDialogProps {
   open: boolean;
@@ -24,6 +26,8 @@ interface TemplateDialogProps {
 
 export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: TemplateDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [templateType, setTemplateType] = useState<'ai_generated' | 'custom_upload'>('ai_generated');
+  const [customGameFile, setCustomGameFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: template?.name || '',
     description: template?.description || '',
@@ -177,6 +181,26 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      let customGameUrl = null;
+
+      // Handle custom game upload
+      if (templateType === 'custom_upload' && customGameFile) {
+        const fileExt = customGameFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('custom-games')
+          .upload(fileName, customGameFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('custom-games')
+          .getPublicUrl(fileName);
+
+        customGameUrl = publicUrl;
+      }
+
       if (template?.id) {
         // Update existing template
         const { error } = await supabase
@@ -184,7 +208,9 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
           .update({
             name: formData.name,
             description: formData.description,
-            base_prompt: generatedPrompt,
+            base_prompt: templateType === 'ai_generated' ? generatedPrompt : null,
+            template_type: templateType,
+            custom_game_url: customGameUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
           })
@@ -200,7 +226,9 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             creator_id: user.id,
             name: formData.name,
             description: formData.description,
-            base_prompt: generatedPrompt,
+            base_prompt: templateType === 'ai_generated' ? generatedPrompt : null,
+            template_type: templateType,
+            custom_game_url: customGameUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
           });
@@ -212,6 +240,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
       onSuccess();
       onOpenChange(false);
       setFormData({ name: '', description: '', scenario: '', playerActions: '', edgeCase: '', uiAesthetic: '' });
+      setCustomGameFile(null);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -228,18 +257,26 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
           </DialogTitle>
         </DialogHeader>
 
-        {/* Load Sample Button */}
-        <div className="flex justify-end -mt-2 mb-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleLoadSample}
-            className="gap-2"
-          >
-            Load Sample Template
-          </Button>
-        </div>
+        {/* Template Type Selector */}
+        <TemplateTypeSelector
+          selectedType={templateType}
+          onTypeChange={setTemplateType}
+        />
+
+        {/* Load Sample Button - Only for AI Generated */}
+        {templateType === 'ai_generated' && (
+          <div className="flex justify-end -mt-2 mb-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleLoadSample}
+              className="gap-2"
+            >
+              Load Sample Template
+            </Button>
+          </div>
+        )}
 
         {/* Quick Reference */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
@@ -283,6 +320,18 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
               />
             </div>
           </div>
+
+          {/* Custom Upload Section */}
+          {templateType === 'custom_upload' && (
+            <CustomGameUpload
+              onFileSelect={setCustomGameFile}
+              selectedFile={customGameFile}
+            />
+          )}
+
+          {/* AI Generated Template Form */}
+          {templateType === 'ai_generated' && (
+            <>
 
           {/* Competency Selection */}
           <div className="border-t border-gray-700 pt-4 space-y-4">
@@ -461,6 +510,8 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
               </p>
             </div>
           )}
+          </>
+          )}
 
           <div className="flex gap-3 justify-end border-t border-gray-700 pt-4">
             <Button
@@ -471,7 +522,10 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button 
+              type="submit" 
+              disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+            >
               {loading ? 'Saving...' : template ? 'Update Template' : 'Create Template'}
             </Button>
           </div>
