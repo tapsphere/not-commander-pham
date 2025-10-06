@@ -289,7 +289,7 @@ export default function BrandDashboard() {
                         console.log('🟢 Publish button clicked!');
                         handlePublishClick(custom);
                       }}
-                      className="bg-neon-green text-black hover:bg-neon-green/90"
+                      className="bg-neon-green text-white hover:bg-neon-green/90"
                     >
                       Publish
                     </Button>
@@ -382,7 +382,7 @@ export default function BrandDashboard() {
               </Button>
               <Button
                 onClick={handlePublish}
-                className="flex-1 bg-neon-green text-black hover:bg-neon-green/90"
+                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90"
               >
                 Publish Now
               </Button>

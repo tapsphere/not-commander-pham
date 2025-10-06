@@ -318,7 +318,7 @@ UI Styling Instructions:
               <Button
                 type="button"
                 onClick={handleCopyPrompt}
-                className="gap-2 bg-neon-green text-black hover:bg-neon-green/90"
+                className="gap-2 bg-neon-green text-white hover:bg-neon-green/90"
               >
                 <Copy className="h-4 w-4" />
                 Copy to Build in Lovable

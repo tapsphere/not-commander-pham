@@ -207,7 +207,7 @@ export default function TemplateDetail() {
                   </p>
                   <Button
                     onClick={() => navigate('/auth')}
-                    className="w-full bg-neon-green text-black hover:bg-neon-green/90"
+                    className="w-full bg-neon-green text-white hover:bg-neon-green/90"
                   >
                     Sign In
                   </Button>

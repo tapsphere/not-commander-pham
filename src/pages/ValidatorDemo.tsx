@@ -170,7 +170,7 @@ export default function ValidatorDemo() {
             
             <Button
               onClick={startGame}
-              className="w-full bg-neon-green text-black hover:bg-neon-green/90 text-lg h-14 border-glow-green"
+              className="w-full bg-neon-green text-white hover:bg-neon-green/90 text-lg h-14 border-glow-green"
             >
               Start Validator
             </Button>
@@ -261,7 +261,7 @@ export default function ValidatorDemo() {
             <div className="flex gap-3">
               <Button
                 onClick={() => navigate('/platform/creator')}
-                className="flex-1 bg-neon-green text-black hover:bg-neon-green/90"
+                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90"
               >
                 Back to Dashboard
               </Button>
@@ -404,7 +404,7 @@ export default function ValidatorDemo() {
                 setGameState('results');
                 calculateScore();
               }}
-              className="w-full bg-neon-green text-black hover:bg-neon-green/90 text-lg h-14 border-glow-green"
+              className="w-full bg-neon-green text-white hover:bg-neon-green/90 text-lg h-14 border-glow-green"
             >
               Submit Ranking
             </Button>

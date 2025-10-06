@@ -296,7 +296,7 @@ const Index = () => {
                       </h4>
                       <Button 
                         size="sm" 
-                        className="mt-2 w-full gap-2 bg-neon-green text-black hover:bg-neon-green/90"
+                        className="mt-2 w-full gap-2 bg-neon-green text-white hover:bg-neon-green/90"
                       >
                         <Play className="h-3 w-3" />
                         Play Now
