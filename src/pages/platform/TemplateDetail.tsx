@@ -41,6 +41,11 @@ export default function TemplateDetail() {
   }, [templateId]);
 
   const checkUserRole = async () => {
+    // TEMP: Auth disabled for demo
+    setIsLoggedIn(true);
+    setIsBrand(true);
+    
+    /* ORIGINAL CODE - Re-enable after demo:
     const { data: { user } } = await supabase.auth.getUser();
     console.log('Checking user role, user:', user?.id);
     if (user) {
@@ -57,6 +62,7 @@ export default function TemplateDetail() {
     } else {
       console.log('No user found');
     }
+    */
   };
 
   const loadTemplate = async () => {
