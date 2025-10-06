@@ -522,53 +522,62 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
           </div>
 
           {/* Generated Prompt Preview */}
-          {generatedPrompt && (
-            <div className="border-t border-gray-700 pt-4">
-              <div className="flex items-center justify-between mb-2">
-                <Label>Generated AI Design Prompt</Label>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open('/validator-demo', '_blank')}
-                  >
-                    View Demo
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    onClick={handleTestPreview}
-                    disabled={generating}
-                    className="gap-2 bg-neon-green text-black hover:bg-neon-green/90"
-                  >
-                    <Eye className="h-4 w-4" />
-                    {generating ? 'Generating...' : 'Test Preview'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyPrompt}
-                    className="gap-2"
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy to Use in Lovable
-                  </Button>
-                </div>
+          <div className="border-t border-gray-700 pt-4">
+            {!generatedPrompt ? (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-center">
+                <p className="text-yellow-400 font-semibold mb-2">⚠️ Test Preview Not Available Yet</p>
+                <p className="text-sm text-gray-300">
+                  Fill in at least the <strong>Scenario</strong>, <strong>Player Actions</strong>, and <strong>Edge-Case Moment</strong> fields above to generate the prompt and unlock the Test Preview button.
+                </p>
               </div>
-              <Textarea
-                value={generatedPrompt}
-                readOnly
-                rows={10}
-                className="bg-gray-800 border-gray-700 text-xs font-mono"
-              />
-              <p className="text-xs text-gray-400 mt-2">
-                Copy this prompt and paste it into Lovable or another AI designer to build your validator.
-              </p>
-            </div>
-          )}
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Generated AI Design Prompt</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open('/validator-demo', '_blank')}
+                    >
+                      View Demo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={handleTestPreview}
+                      disabled={generating}
+                      className="gap-2 bg-neon-green text-black hover:bg-neon-green/90 animate-pulse"
+                    >
+                      <Eye className="h-4 w-4" />
+                      {generating ? 'Generating...' : 'Test Preview 🎮'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyPrompt}
+                      className="gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy to Use in Lovable
+                    </Button>
+                  </div>
+                </div>
+                <Textarea
+                  value={generatedPrompt}
+                  readOnly
+                  rows={10}
+                  className="bg-gray-800 border-gray-700 text-xs font-mono"
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  Copy this prompt and paste it into Lovable or another AI designer to build your validator.
+                </p>
+              </>
+            )}
+          </div>
           </>
           )}
 
