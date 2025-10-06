@@ -80,6 +80,7 @@ export default function BrandDashboard() {
   };
 
   const handlePublishClick = (customization: Customization) => {
+    console.log('🔵 Publish clicked, opening date picker for:', customization.id);
     setSelectedCustomization(customization);
     setShowDatePicker(true);
     // Set default dates: start now, end in 30 days
@@ -87,6 +88,7 @@ export default function BrandDashboard() {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 30);
     setLiveEndDate(endDate);
+    console.log('🔵 showDatePicker state set to true');
   };
 
   const handlePublish = async () => {
@@ -282,7 +284,11 @@ export default function BrandDashboard() {
                   ) : (
                     <Button 
                       size="sm" 
-                      onClick={() => handlePublishClick(custom)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('🟢 Publish button clicked!');
+                        handlePublishClick(custom);
+                      }}
                       className="bg-neon-green text-black hover:bg-neon-green/90"
                     >
                       Publish
@@ -296,11 +302,14 @@ export default function BrandDashboard() {
       )}
 
       {/* Date Picker Dialog */}
-      <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
+      <Dialog open={showDatePicker} onOpenChange={(open) => {
+        console.log('🟡 Dialog open state changed to:', open);
+        setShowDatePicker(open);
+      }}>
         <DialogContent className="bg-gray-900 border-neon-green text-white">
           <DialogHeader>
             <DialogTitle className="text-neon-green text-glow-green">
-              Set Live Timeframe
+              📅 Set Live Timeframe
             </DialogTitle>
             <DialogDescription className="text-gray-400">
               Choose when this validator will be available to players
