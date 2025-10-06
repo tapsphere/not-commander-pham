@@ -230,10 +230,10 @@ const Profile = () => {
         <div>
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'hsl(var(--neon-green))' }}>
             <Award className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
-            Earned Badges ({badgesCount})
+            Latest Achievements
           </h3>
           {loading ? (
-            <div className="text-gray-400 text-center py-8">Loading badges...</div>
+            <div className="text-gray-400 text-center py-8">Loading achievements...</div>
           ) : gameResults.length === 0 ? (
             <Card className="bg-black/50 border-2 p-8 text-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
               <div className="text-4xl mb-4">🎮</div>
@@ -248,7 +248,7 @@ const Profile = () => {
             </Card>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {gameResults.map((result, idx) => {
+              {gameResults.slice(0, 8).map((result, idx) => {
                 const isMastery = result.proficiency_level === 'Mastery';
                 const isProficient = result.proficiency_level === 'Proficient';
                 const borderColor = isMastery ? 'hsl(var(--neon-green))' : 
@@ -284,6 +284,89 @@ const Profile = () => {
             </div>
           )}
         </div>
+
+        {/* Game History */}
+        {!loading && gameResults.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'hsl(var(--neon-green))' }}>
+              <TrendingUp className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
+              Complete Play History ({gameResults.length} attempts)
+            </h3>
+            <div className="space-y-3">
+              {gameResults.map((result, idx) => {
+                const isMastery = result.proficiency_level === 'Mastery';
+                const isProficient = result.proficiency_level === 'Proficient';
+                const isPass = result.scoring_metrics?.score >= 80;
+                const borderColor = isMastery ? 'hsl(var(--neon-green))' : 
+                                   isProficient ? 'hsl(var(--neon-purple))' : 
+                                   'hsl(var(--neon-magenta))';
+                const date = new Date(result.created_at);
+                const timeString = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                const dateString = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                return (
+                  <Card 
+                    key={result.id} 
+                    className="bg-black/50 border-2 p-4 hover:bg-black/70 transition-all" 
+                    style={{ borderColor: 'hsl(var(--neon-green))' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div 
+                          className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl border-2"
+                          style={{ 
+                            borderColor: borderColor,
+                            backgroundColor: `${borderColor}20`
+                          }}
+                        >
+                          {isMastery ? '🏆' : isProficient ? '⭐' : '📊'}
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h4 className="font-bold text-white">
+                              Priority Trade-Off Navigator
+                            </h4>
+                            <Badge 
+                              className="border-2 text-xs" 
+                              style={{ 
+                                borderColor: borderColor,
+                                backgroundColor: `${borderColor}20`,
+                                color: borderColor
+                              }}
+                            >
+                              {result.proficiency_level}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.6)' }}>
+                            <span>{dateString} at {timeString}</span>
+                            <span>•</span>
+                            <span>Score: {result.scoring_metrics?.score || 0}%</span>
+                            <span>•</span>
+                            <span>Passes: {result.scoring_metrics?.passes || 0}/{result.scoring_metrics?.totalSubs || 5}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div 
+                          className="text-3xl font-bold"
+                          style={{ color: borderColor }}
+                        >
+                          {result.scoring_metrics?.score || 0}%
+                        </div>
+                        <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
+                          {isPass ? '✓ PASS' : '✗ FAIL'}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Competencies Grid */}
         <div>
