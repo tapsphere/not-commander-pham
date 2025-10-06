@@ -1,11 +1,19 @@
 import { User, Award, TrendingUp, Shield, Home, Hexagon, Wallet, Zap, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AriaButton } from '@/components/AriaButton';
+import { supabase } from '@/integrations/supabase/client';
 import profileImage from '@/assets/profile-nitin.jpeg';
+
+type GameResult = {
+  id: string;
+  proficiency_level: string;
+  scoring_metrics: any;
+  created_at: string;
+};
 
 const mockCompetencies = [
   { 
@@ -105,8 +113,36 @@ const getLevelLabel = (level: string) => {
 const Profile = () => {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(1);
-  const masteryCount = mockCompetencies.filter(s => s.level === 'mastery').length;
-  const proficientCount = mockCompetencies.filter(s => s.level === 'proficient').length;
+  const [gameResults, setGameResults] = useState<GameResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    loadGameResults();
+  }, []);
+  
+  const loadGameResults = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('game_results')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setGameResults(data || []);
+    } catch (error) {
+      console.error('Failed to load game results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const masteryCount = gameResults.filter(r => r.proficiency_level === 'Mastery').length;
+  const proficientCount = gameResults.filter(r => r.proficiency_level === 'Proficient').length;
+  const badgesCount = masteryCount + proficientCount;
 
   const menuItems = [
     { icon: Home, label: 'Hub', path: '/lobby' },
@@ -184,7 +220,7 @@ const Profile = () => {
               <div className="text-xs font-mono text-yellow-400/70">Proficient</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>{mockBadges.length}</div>
+              <div className="text-3xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>{badgesCount}</div>
               <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>Badges</div>
             </div>
           </div>
@@ -194,34 +230,59 @@ const Profile = () => {
         <div>
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'hsl(var(--neon-green))' }}>
             <Award className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} strokeWidth={2.5} />
-            Earned Badges
+            Earned Badges ({badgesCount})
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {mockBadges.map((badge, idx) => {
-              const usePurple = idx === 0;
-              const borderColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
-              const glowClass = usePurple ? 'text-glow-purple' : 'text-glow-green';
-              
-              return (
-                <Card 
-                  key={idx} 
-                  className="bg-black/50 border-2 p-4 text-center hover:bg-black/70 transition-all cursor-pointer" 
-                  style={{ borderColor }}
-                >
-                  <div className="text-4xl mb-2">{badge.icon}</div>
-                  <div 
-                    className={`font-bold text-sm mb-1 ${glowClass}`}
-                    style={{ color: borderColor }}
+          {loading ? (
+            <div className="text-gray-400 text-center py-8">Loading badges...</div>
+          ) : gameResults.length === 0 ? (
+            <Card className="bg-black/50 border-2 p-8 text-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+              <div className="text-4xl mb-4">🎮</div>
+              <p className="text-gray-400 mb-4">No validators completed yet</p>
+              <button 
+                onClick={() => navigate('/lobby')}
+                className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all"
+                style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
+              >
+                Start Playing
+              </button>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {gameResults.map((result, idx) => {
+                const isMastery = result.proficiency_level === 'Mastery';
+                const isProficient = result.proficiency_level === 'Proficient';
+                const borderColor = isMastery ? 'hsl(var(--neon-green))' : 
+                                   isProficient ? 'hsl(var(--neon-purple))' : 
+                                   'hsl(var(--neon-magenta))';
+                const glowClass = isMastery ? 'text-glow-green' : 
+                                 isProficient ? 'text-glow-purple' : 
+                                 'text-glow-magenta';
+                const icon = isMastery ? '🏆' : isProficient ? '⭐' : '📊';
+                
+                return (
+                  <Card 
+                    key={result.id} 
+                    className="bg-black/50 border-2 p-4 text-center hover:bg-black/70 transition-all cursor-pointer" 
+                    style={{ borderColor }}
                   >
-                    {badge.name}
-                  </div>
-                  <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
-                    {badge.date}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+                    <div className="text-4xl mb-2">{icon}</div>
+                    <div 
+                      className={`font-bold text-sm mb-1 ${glowClass}`}
+                      style={{ color: borderColor }}
+                    >
+                      {result.proficiency_level}
+                    </div>
+                    <div className="text-lg font-bold mb-1" style={{ color: borderColor }}>
+                      {result.scoring_metrics?.score || 0}%
+                    </div>
+                    <div className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.5)' }}>
+                      {new Date(result.created_at).toLocaleDateString()}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Competencies Grid */}

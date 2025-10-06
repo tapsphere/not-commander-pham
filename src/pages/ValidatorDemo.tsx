@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface KPI {
   id: string;
@@ -75,31 +77,63 @@ export default function ValidatorDemo() {
     return () => clearInterval(interval);
   }, [gameState]);
 
-  const calculateScore = () => {
+  const calculateScore = async () => {
     // Sub-competencies for this validator (Pass/Fail logic)
     let passes = 0;
     const totalSubs = 5;
     
-    // Sub 1: Identified at least 2 concerning metrics (Pass if ranked >= 2 KPIs)
-    if (rankedKpis.length >= 2) passes++;
+    const subResults = {
+      identifiedMetrics: rankedKpis.length >= 2,
+      prioritizedCritical: rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6'),
+      addressedDeclining: rankedKpis.some(k => k.id === '1' || k.id === '4'),
+      completedAnalysis: rankedKpis.length === 6,
+      edgeCaseHandled: edgeCaseTriggered && rankedKpis[0]?.id === '2'
+    };
     
-    // Sub 2: Ranked Bug Count or Tech Debt in top 3 (Pass if either is in first 3 positions)
-    const top3Ids = rankedKpis.slice(0, 3).map(k => k.id);
-    if (top3Ids.includes('3') || top3Ids.includes('6')) passes++;
-    
-    // Sub 3: Ranked User Retention or Feature Completion (both trending down)
-    const rankedIds = rankedKpis.map(k => k.id);
-    if (rankedIds.includes('1') || rankedIds.includes('4')) passes++;
-    
-    // Sub 4: Completed full ranking (Pass if all 6 KPIs ranked)
-    if (rankedKpis.length === 6) passes++;
-    
-    // Sub 5: Edge case handled (Pass if Revenue is #1 after edge case)
-    if (edgeCaseTriggered && rankedKpis[0]?.id === '2') passes++;
+    // Count passes
+    passes = Object.values(subResults).filter(Boolean).length;
     
     // Final score = (passes / total_subs) × 100%
     const finalScore = Math.round((passes / totalSubs) * 100);
     setScore(finalScore);
+    
+    // Save to database
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const proficiencyLevel = 
+          finalScore >= 95 && subResults.edgeCaseHandled ? 'Mastery' :
+          finalScore >= 80 ? 'Proficient' :
+          'Needs Work';
+        
+        const { error } = await supabase
+          .from('game_results')
+          .insert({
+            user_id: user.id,
+            passed: finalScore >= 80,
+            proficiency_level: proficiencyLevel,
+            scoring_metrics: {
+              score: finalScore,
+              passes: passes,
+              totalSubs: totalSubs,
+              subResults: subResults,
+              timeRemaining: timeLeft
+            },
+            gameplay_data: {
+              rankedKpis: rankedKpis.map(k => k.name),
+              edgeCaseTriggered: edgeCaseTriggered
+            }
+          });
+        
+        if (error) {
+          console.error('Failed to save result:', error);
+        } else {
+          toast.success('Result saved to your profile!');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving result:', error);
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, kpiId: string) => {
