@@ -10,6 +10,11 @@ export function WalletConnect() {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log('TON Connect UI status:', tonConnectUI.connected);
+    console.log('Wallet:', wallet);
+  }, [tonConnectUI, wallet]);
+
+  useEffect(() => {
     const linkWalletToProfile = async () => {
       if (!wallet) return;
 
