@@ -55,6 +55,7 @@ export type Database = {
           template_id: string
           unique_code: string | null
           updated_at: string | null
+          visibility: Database["public"]["Enums"]["game_visibility"]
         }
         Insert: {
           brand_id: string
@@ -72,6 +73,7 @@ export type Database = {
           template_id: string
           unique_code?: string | null
           updated_at?: string | null
+          visibility?: Database["public"]["Enums"]["game_visibility"]
         }
         Update: {
           brand_id?: string
@@ -89,6 +91,7 @@ export type Database = {
           template_id?: string
           unique_code?: string | null
           updated_at?: string | null
+          visibility?: Database["public"]["Enums"]["game_visibility"]
         }
         Relationships: [
           {
@@ -506,6 +509,7 @@ export type Database = {
     }
     Enums: {
       app_role: "creator" | "brand" | "player"
+      game_visibility: "public" | "unlisted" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -634,6 +638,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["creator", "brand", "player"],
+      game_visibility: ["public", "unlisted", "private"],
     },
   },
 } as const

@@ -71,7 +71,7 @@ const Lobby = () => {
     try {
       const now = new Date().toISOString();
       
-      // Fetch brand customizations
+      // Fetch brand customizations (only public games for lobby)
       const { data: customizations, error: customError } = await supabase
         .from('brand_customizations')
         .select(`
@@ -88,6 +88,7 @@ const Lobby = () => {
         `)
         .not('published_at', 'is', null)
         .not('unique_code', 'is', null)
+        .eq('visibility', 'public')
         .lte('live_start_date', now)
         .gte('live_end_date', now)
         .order('published_at', { ascending: false });

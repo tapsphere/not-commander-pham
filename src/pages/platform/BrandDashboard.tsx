@@ -3,12 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -41,6 +42,7 @@ export default function BrandDashboard() {
   const [liveStartDate, setLiveStartDate] = useState<Date>();
   const [liveEndDate, setLiveEndDate] = useState<Date>();
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [visibility, setVisibility] = useState<'public' | 'unlisted' | 'private'>('public');
 
   useEffect(() => {
     loadCustomizations();
@@ -88,6 +90,7 @@ export default function BrandDashboard() {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 30);
     setLiveEndDate(endDate);
+    setVisibility('public'); // Reset to public by default
     console.log('🔵 showDatePicker state set to true');
   };
 
@@ -114,6 +117,7 @@ export default function BrandDashboard() {
           unique_code: uniqueCode,
           live_start_date: liveStartDate.toISOString(),
           live_end_date: liveEndDate.toISOString(),
+          visibility: visibility,
         })
         .eq('id', selectedCustomization.id);
 
@@ -387,6 +391,44 @@ export default function BrandDashboard() {
                   />
                 </PopoverContent>
               </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="visibility" className="text-white">Visibility</Label>
+              <Select value={visibility} onValueChange={(value: 'public' | 'unlisted' | 'private') => setVisibility(value)}>
+                <SelectTrigger className="w-full bg-gray-800 border-gray-700">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-900 border-neon-green">
+                  <SelectItem value="public" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4 text-neon-green" />
+                      <div>
+                        <p className="font-medium">Public</p>
+                        <p className="text-xs text-gray-400">Visible in game lobby</p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="unlisted" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <EyeOff className="h-4 w-4 text-yellow-500" />
+                      <div>
+                        <p className="font-medium">Unlisted</p>
+                        <p className="text-xs text-gray-400">Only via direct link</p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="private" className="cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-red-500" />
+                      <div>
+                        <p className="font-medium">Private</p>
+                        <p className="text-xs text-gray-400">Internal training only (coming soon)</p>
+                      </div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex gap-3">
