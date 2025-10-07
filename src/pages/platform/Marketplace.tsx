@@ -29,59 +29,35 @@ interface Template {
 
 export default function Marketplace() {
   const navigate = useNavigate();
-  const [creators, setCreators] = useState<{ id: string; name: string; bio?: string; avatar_url?: string; templateCount: number }[]>([]);
-  const [filteredCreators, setFilteredCreators] = useState<{ id: string; name: string; bio?: string; avatar_url?: string; templateCount: number }[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchCreators();
+    fetchTemplates();
   }, []);
 
   useEffect(() => {
     applySearch();
-  }, [creators, searchQuery]);
+  }, [templates, searchQuery]);
 
-  const fetchCreators = async () => {
+  const fetchTemplates = async () => {
     try {
-      // Fetch all published templates
       const { data: templatesData, error } = await supabase
         .from('game_templates')
-        .select('creator_id')
-        .eq('is_published', true);
+        .select(`
+          *,
+          profiles:creator_id (full_name),
+          master_competencies:competency_id (name, cbe_category, departments)
+        `)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      // Get unique creator IDs and count their templates
-      const creatorTemplateCount = new Map<string, number>();
-      templatesData?.forEach(template => {
-        const count = creatorTemplateCount.get(template.creator_id) || 0;
-        creatorTemplateCount.set(template.creator_id, count + 1);
-      });
-
-      const uniqueCreatorIds = Array.from(creatorTemplateCount.keys());
       
-      // Fetch creator profiles with avatar
-      const creatorsWithData = await Promise.all(
-        uniqueCreatorIds.map(async (creatorId) => {
-          const { data } = await supabase
-            .from('profiles')
-            .select('full_name, bio, avatar_url')
-            .eq('user_id', creatorId)
-            .single();
-          
-          return {
-            id: creatorId,
-            name: data?.full_name || 'Unknown Creator',
-            bio: data?.bio,
-            avatar_url: data?.avatar_url,
-            templateCount: creatorTemplateCount.get(creatorId) || 0
-          };
-        })
-      );
-      
-      setCreators(creatorsWithData);
-      setFilteredCreators(creatorsWithData);
+      setTemplates(templatesData || []);
+      setFilteredTemplates(templatesData || []);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -92,12 +68,14 @@ export default function Marketplace() {
   const applySearch = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      const filtered = creators.filter(
-        creator => creator.name.toLowerCase().includes(query)
+      const filtered = templates.filter(
+        template => 
+          template.name.toLowerCase().includes(query) ||
+          template.description?.toLowerCase().includes(query)
       );
-      setFilteredCreators(filtered);
+      setFilteredTemplates(filtered);
     } else {
-      setFilteredCreators(creators);
+      setFilteredTemplates(templates);
     }
   };
 
@@ -116,13 +94,13 @@ export default function Marketplace() {
       <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="px-4 py-3">
           <h1 className="text-xl md:text-2xl font-bold text-neon-green text-glow-green mb-3">
-            Creator Channels
+            Game Marketplace
           </h1>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search creators..."
+              placeholder="Search games..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full bg-gray-800 border-gray-700"
@@ -133,57 +111,62 @@ export default function Marketplace() {
 
       <div className="px-4 py-4">
         <p className="text-xs md:text-sm text-gray-400 mb-4">
-          {filteredCreators.length} channel{filteredCreators.length !== 1 ? 's' : ''}
+          {filteredTemplates.length} game{filteredTemplates.length !== 1 ? 's' : ''}
         </p>
 
-        {/* Mobile-Optimized Creators Grid */}
-        {filteredCreators.length === 0 ? (
+        {/* Mobile-Optimized Games Grid */}
+        {filteredTemplates.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-400">No creators found</p>
+            <p className="text-gray-400">No games found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {filteredCreators.map((creator) => (
+            {filteredTemplates.map((template) => (
               <div
-                key={creator.id}
-                onClick={() => navigate(`/platform/creator/${creator.id}`)}
-                className="bg-gray-900 border border-gray-800 rounded-lg p-4 active:bg-gray-800 transition-all cursor-pointer"
+                key={template.id}
+                onClick={() => navigate(`/platform/template/${template.id}`)}
+                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden active:bg-gray-800 transition-all cursor-pointer"
               >
-                {/* Creator Avatar */}
-                <div className="flex items-center gap-3 mb-3">
-                  {creator.avatar_url ? (
+                {/* Game Cover Image */}
+                <div className="relative aspect-video bg-gray-800">
+                  {template.preview_image ? (
                     <img 
-                      src={creator.avatar_url} 
-                      alt={creator.name}
-                      className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
+                      src={template.preview_image.startsWith('/') ? template.preview_image.slice(1) : template.preview_image}
+                      alt={template.name}
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-2xl flex-shrink-0">
-                      {creator.name.charAt(0).toUpperCase()}
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                      <span className="text-4xl">{template.name.charAt(0)}</span>
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-base md:text-lg text-white mb-0.5 truncate">
-                      {creator.name}
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      {creator.templateCount} validator{creator.templateCount !== 1 ? 's' : ''}
-                    </p>
-                  </div>
                 </div>
 
-                {/* Bio */}
-                {creator.bio && (
-                  <p className="text-xs md:text-sm text-gray-300 line-clamp-2 mb-3">
-                    {creator.bio}
-                  </p>
-                )}
+                {/* Game Info */}
+                <div className="p-4">
+                  <h3 className="font-semibold text-base md:text-lg text-white mb-1 truncate">
+                    {template.name}
+                  </h3>
+                  
+                  {template.description && (
+                    <p className="text-xs md:text-sm text-gray-300 line-clamp-2 mb-2">
+                      {template.description}
+                    </p>
+                  )}
 
-                {/* View Channel Button */}
-                <div className="pt-3 border-t border-gray-800">
-                  <span className="text-xs md:text-sm text-neon-green">
-                    View Channel →
-                  </span>
+                  {/* Creator Name */}
+                  {template.profiles && (
+                    <p className="text-xs text-gray-400 mb-2">
+                      by {template.profiles.full_name || 'Unknown Creator'}
+                    </p>
+                  )}
+
+                  {/* Play Button */}
+                  <div className="pt-2 border-t border-gray-800">
+                    <span className="text-xs md:text-sm text-neon-green">
+                      Play Now →
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
