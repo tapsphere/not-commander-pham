@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft, Edit, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type ValidatorData = {
   id: string;
@@ -13,6 +14,8 @@ type ValidatorData = {
   secondary_color: string;
   logo_url: string | null;
   generated_game_html: string | null;
+  brand_id: string;
+  unique_code: string | null;
   game_templates: {
     name: string;
     description: string | null;
@@ -26,6 +29,7 @@ export default function Play() {
   const [loading, setLoading] = useState(true);
   const [validator, setValidator] = useState<ValidatorData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     if (code) {
@@ -44,6 +48,8 @@ export default function Play() {
           secondary_color,
           logo_url,
           generated_game_html,
+          brand_id,
+          unique_code,
           game_templates (
             name,
             description,
@@ -62,6 +68,12 @@ export default function Play() {
       }
 
       setValidator(data as ValidatorData);
+
+      // Check if current user is the owner
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && data.brand_id === user.id) {
+        setIsOwner(true);
+      }
     } catch (error: any) {
       console.error('Failed to load validator:', error);
       setError('Failed to load validator');
@@ -99,33 +111,107 @@ export default function Play() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Return Button Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-        <div className="max-w-7xl mx-auto p-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/lobby')}
-            style={{ color: 'hsl(var(--neon-green))' }}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Return to Hub
-          </Button>
-        </div>
-      </div>
+  const handleCopyLink = () => {
+    if (!validator?.unique_code) return;
+    const link = `${window.location.origin}/play/${validator.unique_code}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Link copied to clipboard!');
+  };
 
-      {validator.generated_game_html ? (
-        /* Render the generated game */
-        <div className="w-full h-screen pt-16">
-          <iframe
-            srcDoc={validator.generated_game_html}
-            className="w-full h-full border-0"
-            title="Game Validator"
-            sandbox="allow-scripts allow-same-origin allow-forms"
-          />
+  return (
+    <ScrollArea className="h-screen">
+      <div className="min-h-screen bg-black text-white">
+        {/* Return Button Header */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+          <div className="max-w-7xl mx-auto p-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/lobby')}
+              style={{ color: 'hsl(var(--neon-green))' }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Return to Hub
+            </Button>
+          </div>
         </div>
-      ) : (
+
+        {validator.generated_game_html ? (
+          /* Render the generated game */
+          <div className="pt-16">
+            <div className="w-full" style={{ height: 'calc(100vh - 4rem)' }}>
+              <iframe
+                srcDoc={validator.generated_game_html}
+                className="w-full h-full border-0"
+                title="Game Validator"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+              />
+            </div>
+
+            {/* Owner Controls Section - Scrollable */}
+            {isOwner && (
+              <div className="bg-gray-900 border-t-2 border-neon-green py-8">
+                <div className="max-w-4xl mx-auto px-4 space-y-6">
+                  <h2 className="text-2xl font-bold text-neon-green mb-6">Game Management</h2>
+                  
+                  {/* Promote Section */}
+                  <Card className="bg-gray-800 border-gray-700 p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-blue-500/10 rounded-lg">
+                        <Share2 className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold text-white mb-2">Promote Your Game</h3>
+                        <p className="text-gray-400 mb-4">
+                          Share this game with your team or publish it to a wider audience.
+                        </p>
+                        <div className="flex gap-3">
+                          <Button 
+                            onClick={handleCopyLink}
+                            className="gap-2"
+                          >
+                            <Share2 className="h-4 w-4" />
+                            Copy Share Link
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            onClick={() => navigate('/platform/brand')}
+                          >
+                            View Analytics
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Edit Section */}
+                  <Card className="bg-gray-800 border-gray-700 p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-purple-500/10 rounded-lg">
+                        <Edit className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-semibold text-white mb-2">Edit Game Settings</h3>
+                        <p className="text-gray-400 mb-4">
+                          Modify game parameters, branding, or visibility settings.
+                        </p>
+                        <div className="flex gap-3">
+                          <Button 
+                            variant="outline"
+                            onClick={() => navigate('/platform/brand')}
+                            className="gap-2"
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit in Dashboard
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
         /* Show preview if game hasn't been generated yet */
         <div className="pt-16">
           {/* Hero Section */}
@@ -202,7 +288,8 @@ export default function Play() {
             <p className="text-sm">Powered by TON Validator Platform</p>
           </div>
         </div>
-      )}
-    </div>
+        )}
+      </div>
+    </ScrollArea>
   );
 }

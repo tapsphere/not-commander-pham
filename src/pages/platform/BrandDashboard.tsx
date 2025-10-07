@@ -251,7 +251,11 @@ export default function BrandDashboard() {
             <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
               <div className="aspect-video bg-gray-800 flex items-center justify-center">
                 {custom.game_templates?.preview_image ? (
-                  <img src={custom.game_templates.preview_image} alt="Preview" className="w-full h-full object-cover" />
+                  <img 
+                    src={custom.game_templates.preview_image.startsWith('/') ? custom.game_templates.preview_image.substring(1) : custom.game_templates.preview_image} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <Play className="w-12 h-12 text-gray-600" />
                 )}
