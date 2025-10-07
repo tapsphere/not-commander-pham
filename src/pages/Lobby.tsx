@@ -9,6 +9,7 @@ import { AriaButton } from '@/components/AriaButton';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useTonWallet } from '@tonconnect/ui-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import stripeLogo from '@/assets/logos/stripe.png';
 import adobeLogo from '@/assets/logos/adobe.png';
@@ -212,7 +213,13 @@ const Lobby = () => {
                     key={game.id}
                     className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
                     style={{ borderColor }}
-                    onClick={() => navigate(`/play/${game.unique_code}`)}
+                    onClick={() => {
+                      if (game.unique_code) {
+                        navigate(`/play/${game.unique_code}`);
+                      } else {
+                        toast.error('Game code not found');
+                      }
+                    }}
                   >
                     {/* Glow effect on hover */}
                     <div 
