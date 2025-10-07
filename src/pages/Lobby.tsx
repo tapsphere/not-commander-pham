@@ -69,7 +69,8 @@ const Lobby = () => {
     try {
       const now = new Date().toISOString();
       
-      const { data, error } = await supabase
+      // Fetch brand customizations
+      const { data: customizations, error: customError } = await supabase
         .from('brand_customizations')
         .select(`
           id,
@@ -81,9 +82,6 @@ const Lobby = () => {
           game_templates (
             name,
             preview_image
-          ),
-          profiles!brand_customizations_brand_id_fkey (
-            company_name
           )
         `)
         .not('published_at', 'is', null)
@@ -92,12 +90,24 @@ const Lobby = () => {
         .gte('live_end_date', now)
         .order('published_at', { ascending: false });
 
-      if (error) throw error;
+      if (customError) throw customError;
+      
+      // Fetch brand profiles
+      const brandIds = (customizations || []).map(c => c.brand_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, company_name')
+        .in('user_id', brandIds);
+      
+      // Create a map of brand_id to company_name
+      const profileMap = new Map(
+        (profiles || []).map(p => [p.user_id, p.company_name])
+      );
       
       // Transform data to add brand_name
-      const transformedData = (data || []).map((game: any) => ({
+      const transformedData = (customizations || []).map((game: any) => ({
         ...game,
-        brand_name: game.profiles?.company_name || null
+        brand_name: profileMap.get(game.brand_id) || null
       }));
       
       setLiveGames(transformedData);
