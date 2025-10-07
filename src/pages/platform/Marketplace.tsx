@@ -44,20 +44,40 @@ export default function Marketplace() {
 
   const fetchTemplates = async () => {
     try {
+      // Fetch templates
       const { data: templatesData, error } = await supabase
         .from('game_templates')
-        .select(`
-          *,
-          profiles:creator_id (full_name),
-          master_competencies:competency_id (name, cbe_category, departments)
-        `)
+        .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Fetch creator profiles for all templates
+      const templatesWithCreators = await Promise.all(
+        (templatesData || []).map(async (template) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', template.creator_id)
+            .single();
+
+          const { data: competency } = await supabase
+            .from('master_competencies')
+            .select('name, cbe_category, departments')
+            .eq('id', template.competency_id)
+            .single();
+
+          return {
+            ...template,
+            profiles: profile,
+            master_competencies: competency
+          };
+        })
+      );
       
-      setTemplates(templatesData || []);
-      setFilteredTemplates(templatesData || []);
+      setTemplates(templatesWithCreators);
+      setFilteredTemplates(templatesWithCreators);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
