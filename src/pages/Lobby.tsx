@@ -52,6 +52,8 @@ const Lobby = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [liveGames, setLiveGames] = useState<LiveGame[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const menuItems = [
     { icon: Home, label: 'Hub', path: '/lobby' },
@@ -62,8 +64,15 @@ const Lobby = () => {
   ];
 
   useEffect(() => {
+    checkAuth();
     loadLiveGames();
   }, []);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setUser(session?.user || null);
+    setLoading(false);
+  };
 
   const loadLiveGames = async () => {
     try {
@@ -131,24 +140,41 @@ const Lobby = () => {
     );
   });
 
-  // Gate access if wallet not connected
-  if (!wallet) {
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-neon-green">Loading...</div>
+      </div>
+    );
+  }
+
+  // Gate access if not authenticated with either wallet OR email
+  if (!wallet && !user) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-              🔒 Wallet Required
+              🔒 Authentication Required
             </h1>
-            <p className="text-gray-400">Connect your TON wallet to access the game grid</p>
+            <p className="text-gray-400">Connect your TON wallet or sign in to access the game grid</p>
           </div>
           <WalletConnect />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-black px-2 text-gray-500">Or</span>
+            </div>
+          </div>
           <Button 
             variant="outline" 
             className="w-full"
             onClick={() => navigate('/auth')}
           >
-            Back to Login
+            Sign In with Email
           </Button>
         </div>
       </div>
