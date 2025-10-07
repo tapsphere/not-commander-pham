@@ -10,6 +10,7 @@ import { WalletConnect } from '@/components/WalletConnect';
 import { useTonWallet } from '@tonconnect/ui-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import microsoftLogo from '@/assets/logos/microsoft.png';
 import stripeLogo from '@/assets/logos/stripe.png';
 import adobeLogo from '@/assets/logos/adobe.png';
@@ -49,6 +50,7 @@ type LiveGame = {
 const Lobby = () => {
   const navigate = useNavigate();
   const wallet = useTonWallet();
+  const isMobile = useIsMobile();
   const [activeIndex, setActiveIndex] = useState(0);
   const [liveGames, setLiveGames] = useState<LiveGame[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,8 +133,8 @@ const Lobby = () => {
     );
   });
 
-  // Gate access if wallet not connected
-  if (!wallet) {
+  // Gate access if wallet not connected (mobile only)
+  if (isMobile && !wallet) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-6">
