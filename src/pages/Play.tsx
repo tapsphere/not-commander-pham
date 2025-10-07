@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 type ValidatorData = {
@@ -101,9 +101,23 @@ export default function Play() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Return Button Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
+        <div className="max-w-7xl mx-auto p-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/lobby')}
+            style={{ color: 'hsl(var(--neon-green))' }}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Return to Hub
+          </Button>
+        </div>
+      </div>
+
       {validator.generated_game_html ? (
         /* Render the generated game */
-        <div className="w-full h-screen">
+        <div className="w-full h-screen pt-16">
           <iframe
             srcDoc={validator.generated_game_html}
             className="w-full h-full border-0"
@@ -113,7 +127,7 @@ export default function Play() {
         </div>
       ) : (
         /* Show preview if game hasn't been generated yet */
-        <>
+        <div className="pt-16">
           {/* Hero Section */}
           <div 
             className="relative py-20 px-4"
@@ -187,7 +201,7 @@ export default function Play() {
           <div className="border-t border-gray-800 py-8 text-center text-gray-500">
             <p className="text-sm">Powered by TON Validator Platform</p>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
