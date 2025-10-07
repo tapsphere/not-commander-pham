@@ -35,6 +35,7 @@ const mockPrograms = [
 type LiveGame = {
   id: string;
   unique_code: string;
+  brand_id: string;
   logo_url: string | null;
   primary_color: string;
   secondary_color: string;
@@ -71,6 +72,7 @@ const Lobby = () => {
         .select(`
           id,
           unique_code,
+          brand_id,
           logo_url,
           primary_color,
           secondary_color,
@@ -231,8 +233,12 @@ const Lobby = () => {
                     
                     <div className="flex items-start justify-between mb-4 relative z-10">
                       <div 
-                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" 
+                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center hover:border-primary transition-colors cursor-pointer" 
                         style={{ borderColor: `${borderColor}33` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/brand/${game.brand_id}`);
+                        }}
                       >
                         {game.logo_url ? (
                           <img src={game.logo_url} alt="Brand" className="w-full h-full object-contain" />
@@ -243,6 +249,16 @@ const Lobby = () => {
                       <div className="flex flex-col gap-2">
                         <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
                           LIVE
+                        </Badge>
+                        <Badge 
+                          className="border-2 font-mono text-[9px] bg-black/50 cursor-pointer hover:bg-white/10"
+                          style={{ borderColor, color: borderColor }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/brand/${game.brand_id}`);
+                          }}
+                        >
+                          STORE
                         </Badge>
                       </div>
                     </div>
