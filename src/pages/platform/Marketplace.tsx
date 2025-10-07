@@ -6,78 +6,79 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 
-type FilterType = 'all' | 'creator' | 'competency' | 'department';
-
-interface Template {
-  id: string;
-  name: string;
-  description: string | null;
-  preview_image: string | null;
-  base_prompt: string | null;
+interface CreatorChannel {
   creator_id: string;
-  competency_id: string | null;
-  is_published: boolean;
-  profiles?: {
-    full_name: string | null;
-  } | null;
-  master_competencies?: {
-    name: string;
-    cbe_category: string;
-    departments: string[];
-  } | null;
+  creator_name: string | null;
+  creator_bio: string | null;
+  featured_game_image: string | null;
+  featured_game_name: string | null;
+  total_games: number;
 }
 
 export default function Marketplace() {
   const navigate = useNavigate();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
+  const [creators, setCreators] = useState<CreatorChannel[]>([]);
+  const [filteredCreators, setFilteredCreators] = useState<CreatorChannel[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchTemplates();
+    fetchCreators();
   }, []);
 
   useEffect(() => {
     applySearch();
-  }, [templates, searchQuery]);
+  }, [creators, searchQuery]);
 
-  const fetchTemplates = async () => {
+  const fetchCreators = async () => {
     try {
-      // Fetch templates
-      const { data: templatesData, error } = await supabase
+      // Fetch all published templates
+      const { data: templatesData, error: templatesError } = await supabase
         .from('game_templates')
-        .select('*')
+        .select('creator_id, name, preview_image')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (templatesError) throw templatesError;
 
-      // Fetch creator profiles for all templates
-      const templatesWithCreators = await Promise.all(
-        (templatesData || []).map(async (template) => {
+      // Group by creator and get unique creators
+      const creatorMap = new Map<string, { games: any[], creator_id: string }>();
+      
+      templatesData?.forEach(template => {
+        if (!creatorMap.has(template.creator_id)) {
+          creatorMap.set(template.creator_id, {
+            creator_id: template.creator_id,
+            games: []
+          });
+        }
+        creatorMap.get(template.creator_id)?.games.push(template);
+      });
+
+      // Fetch creator profiles
+      const creatorsWithProfiles = await Promise.all(
+        Array.from(creatorMap.values()).map(async ({ creator_id, games }) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name')
-            .eq('user_id', template.creator_id)
+            .select('full_name, bio')
+            .eq('user_id', creator_id)
             .single();
 
-          const { data: competency } = await supabase
-            .from('master_competencies')
-            .select('name, cbe_category, departments')
-            .eq('id', template.competency_id)
-            .single();
+          // Use first game's image as featured
+          const featuredGame = games[0];
 
           return {
-            ...template,
-            profiles: profile,
-            master_competencies: competency
+            creator_id,
+            creator_name: profile?.full_name || 'Unknown Creator',
+            creator_bio: profile?.bio || null,
+            featured_game_image: featuredGame?.preview_image || null,
+            featured_game_name: featuredGame?.name || null,
+            total_games: games.length
           };
         })
       );
       
-      setTemplates(templatesWithCreators);
-      setFilteredTemplates(templatesWithCreators);
+      setCreators(creatorsWithProfiles);
+      setFilteredCreators(creatorsWithProfiles);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -88,14 +89,14 @@ export default function Marketplace() {
   const applySearch = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      const filtered = templates.filter(
-        template => 
-          template.name.toLowerCase().includes(query) ||
-          template.description?.toLowerCase().includes(query)
+      const filtered = creators.filter(
+        creator => 
+          creator.creator_name?.toLowerCase().includes(query) ||
+          creator.creator_bio?.toLowerCase().includes(query)
       );
-      setFilteredTemplates(filtered);
+      setFilteredCreators(filtered);
     } else {
-      setFilteredTemplates(templates);
+      setFilteredCreators(creators);
     }
   };
 
@@ -103,7 +104,7 @@ export default function Marketplace() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">Loading marketplace...</p>
+        <p className="text-gray-400">Loading creator channels...</p>
       </div>
     );
   }
@@ -114,13 +115,13 @@ export default function Marketplace() {
       <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="px-4 py-3">
           <h1 className="text-xl md:text-2xl font-bold text-neon-green text-glow-green mb-3">
-            Game Marketplace
+            Creator Channels
           </h1>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search games..."
+              placeholder="Search creators..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full bg-gray-800 border-gray-700"
@@ -131,60 +132,58 @@ export default function Marketplace() {
 
       <div className="px-4 py-4">
         <p className="text-xs md:text-sm text-gray-400 mb-4">
-          {filteredTemplates.length} game{filteredTemplates.length !== 1 ? 's' : ''}
+          {filteredCreators.length} creator{filteredCreators.length !== 1 ? 's' : ''}
         </p>
 
-        {/* Mobile-Optimized Games Grid */}
-        {filteredTemplates.length === 0 ? (
+        {/* Mobile-Optimized Creator Channels Grid */}
+        {filteredCreators.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-400">No games found</p>
+            <p className="text-gray-400">No creators found</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {filteredTemplates.map((template) => (
+            {filteredCreators.map((creator) => (
               <div
-                key={template.id}
-                onClick={() => navigate(`/platform/template/${template.id}`)}
+                key={creator.creator_id}
+                onClick={() => navigate(`/platform/creator/${creator.creator_id}`)}
                 className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden active:bg-gray-800 transition-all cursor-pointer"
               >
-                {/* Game Cover Image */}
+                {/* Featured Game Cover Image */}
                 <div className="relative aspect-video bg-gray-800">
-                  {template.preview_image ? (
+                  {creator.featured_game_image ? (
                     <img 
-                      src={template.preview_image.startsWith('/') ? template.preview_image.slice(1) : template.preview_image}
-                      alt={template.name}
+                      src={creator.featured_game_image.startsWith('/') ? creator.featured_game_image.slice(1) : creator.featured_game_image}
+                      alt={creator.creator_name || 'Creator'}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                      <span className="text-4xl">{template.name.charAt(0)}</span>
+                      <span className="text-4xl">{creator.creator_name?.charAt(0) || '?'}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Game Info */}
+                {/* Creator Info */}
                 <div className="p-4">
                   <h3 className="font-semibold text-base md:text-lg text-white mb-1 truncate">
-                    {template.name}
+                    {creator.creator_name}
                   </h3>
                   
-                  {template.description && (
+                  {creator.creator_bio && (
                     <p className="text-xs md:text-sm text-gray-300 line-clamp-2 mb-2">
-                      {template.description}
+                      {creator.creator_bio}
                     </p>
                   )}
 
-                  {/* Creator Name */}
-                  {template.profiles && (
-                    <p className="text-xs text-gray-400 mb-2">
-                      by {template.profiles.full_name || 'Unknown Creator'}
-                    </p>
-                  )}
+                  {/* Game Count */}
+                  <p className="text-xs text-gray-400 mb-2">
+                    {creator.total_games} game{creator.total_games !== 1 ? 's' : ''}
+                  </p>
 
-                  {/* Play Button */}
+                  {/* View Channel Button */}
                   <div className="pt-2 border-t border-gray-800">
                     <span className="text-xs md:text-sm text-neon-green">
-                      Play Now →
+                      View Channel →
                     </span>
                   </div>
                 </div>
