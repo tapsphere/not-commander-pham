@@ -75,13 +75,22 @@ export function WalletConnect() {
         <div className="text-center space-y-2">
           <h3 className="text-xl font-bold text-white">Connect TON Wallet</h3>
           <p className="text-sm text-gray-400">
-            Connect your TON wallet to access the game grid
+            {typeof window !== 'undefined' && window.innerWidth <= 768 
+              ? 'Connect your TON wallet to access the game grid'
+              : 'Scan QR code with mobile wallet or install Tonkeeper extension'}
           </p>
         </div>
 
         <div className="flex justify-center">
           <TonConnectButton />
         </div>
+
+        {!wallet && (
+          <div className="text-xs text-gray-500 text-center space-y-2">
+            <p>💻 Desktop: Scan QR code or install wallet extension</p>
+            <p>📱 Mobile: Use Telegram Wallet or Tonkeeper app</p>
+          </div>
+        )}
 
         {wallet && (
           <div className="text-center">
