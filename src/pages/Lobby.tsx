@@ -39,6 +39,7 @@ type LiveGame = {
   logo_url: string | null;
   primary_color: string;
   secondary_color: string;
+  brand_name: string | null;
   game_templates: {
     name: string;
     preview_image: string | null;
@@ -50,6 +51,7 @@ const Lobby = () => {
   const wallet = useTonWallet();
   const [activeIndex, setActiveIndex] = useState(0);
   const [liveGames, setLiveGames] = useState<LiveGame[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const menuItems = [
     { icon: Home, label: 'Hub', path: '/lobby' },
@@ -79,6 +81,9 @@ const Lobby = () => {
           game_templates (
             name,
             preview_image
+          ),
+          profiles!brand_customizations_brand_id_fkey (
+            company_name
           )
         `)
         .not('published_at', 'is', null)
@@ -88,7 +93,14 @@ const Lobby = () => {
         .order('published_at', { ascending: false });
 
       if (error) throw error;
-      setLiveGames(data || []);
+      
+      // Transform data to add brand_name
+      const transformedData = (data || []).map((game: any) => ({
+        ...game,
+        brand_name: game.profiles?.company_name || null
+      }));
+      
+      setLiveGames(transformedData);
     } catch (error) {
       console.error('Failed to load live games:', error);
     }
@@ -98,6 +110,16 @@ const Lobby = () => {
     setActiveIndex(index);
     navigate(path);
   };
+
+  // Filter games based on search
+  const filteredGames = liveGames.filter(game => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      game.game_templates?.name?.toLowerCase().includes(query) ||
+      game.brand_name?.toLowerCase().includes(query)
+    );
+  });
 
   // Gate access if wallet not connected
   if (!wallet) {
@@ -161,6 +183,8 @@ const Lobby = () => {
           <input
             type="text"
             placeholder="Search brands, skills, validators..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-black/50 border-2 rounded-lg pl-12 pr-4 py-3 text-sm font-mono focus:outline-none focus:ring-2"
             style={{ 
               borderColor: 'hsl(var(--neon-green))',
@@ -204,7 +228,7 @@ const Lobby = () => {
             {/* Brand Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Live Published Games */}
-              {liveGames.map((game, idx) => {
+              {filteredGames.map((game, idx) => {
                 const useMagenta = idx % 3 === 1;
                 const usePurple = idx % 3 === 2;
                 const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
@@ -232,18 +256,32 @@ const Lobby = () => {
                     />
                     
                     <div className="flex items-start justify-between mb-4 relative z-10">
-                      <div 
-                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center hover:border-primary transition-colors cursor-pointer" 
-                        style={{ borderColor: `${borderColor}33` }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/brand/${game.brand_id}`);
-                        }}
-                      >
-                        {game.logo_url ? (
-                          <img src={game.logo_url} alt="Brand" className="w-full h-full object-contain" />
-                        ) : (
-                          <Building2 className="w-8 h-8" style={{ color: borderColor }} />
+                      <div className="flex flex-col items-center gap-1">
+                        <div 
+                          className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center hover:border-primary transition-colors cursor-pointer" 
+                          style={{ borderColor: `${borderColor}33` }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/brand/${game.brand_id}`);
+                          }}
+                        >
+                          {game.logo_url ? (
+                            <img src={game.logo_url} alt="Brand" className="w-full h-full object-contain" />
+                          ) : (
+                            <Building2 className="w-8 h-8" style={{ color: borderColor }} />
+                          )}
+                        </div>
+                        {game.brand_name && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/brand/${game.brand_id}`);
+                            }}
+                            className="text-xs font-mono hover:underline cursor-pointer"
+                            style={{ color: `${borderColor}dd` }}
+                          >
+                            {game.brand_name}
+                          </button>
                         )}
                       </div>
                       <div className="flex flex-col gap-2">
