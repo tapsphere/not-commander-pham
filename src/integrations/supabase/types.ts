@@ -288,6 +288,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           company_description: string | null
           company_logo_url: string | null
@@ -301,6 +302,7 @@ export type Database = {
           wallet_address: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           company_description?: string | null
           company_logo_url?: string | null
@@ -314,6 +316,7 @@ export type Database = {
           wallet_address?: string | null
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           company_description?: string | null
           company_logo_url?: string | null
