@@ -29,8 +29,8 @@ interface Template {
 
 export default function Marketplace() {
   const navigate = useNavigate();
-  const [creators, setCreators] = useState<{ id: string; name: string; bio?: string; templateCount: number }[]>([]);
-  const [filteredCreators, setFilteredCreators] = useState<{ id: string; name: string; bio?: string; templateCount: number }[]>([]);
+  const [creators, setCreators] = useState<{ id: string; name: string; bio?: string; avatar_url?: string; templateCount: number }[]>([]);
+  const [filteredCreators, setFilteredCreators] = useState<{ id: string; name: string; bio?: string; avatar_url?: string; templateCount: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -61,12 +61,12 @@ export default function Marketplace() {
 
       const uniqueCreatorIds = Array.from(creatorTemplateCount.keys());
       
-      // Fetch creator profiles
+      // Fetch creator profiles with avatar
       const creatorsWithData = await Promise.all(
         uniqueCreatorIds.map(async (creatorId) => {
           const { data } = await supabase
             .from('profiles')
-            .select('full_name, bio')
+            .select('full_name, bio, avatar_url')
             .eq('user_id', creatorId)
             .single();
           
@@ -74,6 +74,7 @@ export default function Marketplace() {
             id: creatorId,
             name: data?.full_name || 'Unknown Creator',
             bio: data?.bio,
+            avatar_url: data?.avatar_url,
             templateCount: creatorTemplateCount.get(creatorId) || 0
           };
         })
@@ -150,9 +151,17 @@ export default function Marketplace() {
               >
                 {/* Creator Avatar */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-2xl flex-shrink-0">
-                    👤
-                  </div>
+                  {creator.avatar_url ? (
+                    <img 
+                      src={creator.avatar_url} 
+                      alt={creator.name}
+                      className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-2xl flex-shrink-0">
+                      {creator.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-base md:text-lg text-white mb-0.5 truncate">
                       {creator.name}
