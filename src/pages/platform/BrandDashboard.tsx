@@ -167,8 +167,25 @@ export default function BrandDashboard() {
         <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
           Brand Dashboard
         </h2>
-        <p className="text-gray-400">Manage your customized game experiences</p>
+        <p className="text-gray-400">Manage your company profile and game experiences</p>
       </div>
+
+      {/* Company Profile Section */}
+      <Card className="bg-gray-900 border-gray-800 p-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-white">Company Profile</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/platform/brand/profile-edit')}
+          >
+            Edit Profile
+          </Button>
+        </div>
+        <p className="text-gray-400 text-sm">
+          Set up your company profile to create a public brand page that showcases all your published games.
+        </p>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card className="p-6 bg-gray-900 border-gray-800">

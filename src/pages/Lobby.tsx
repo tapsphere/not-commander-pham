@@ -255,7 +255,7 @@ const Lobby = () => {
                 );
               })}
 
-              {/* Mock Brands */}
+              {/* Mock Brands - These are just placeholders, won't navigate anywhere */}
               {mockBrands.map((brand, idx) => {
                 const useMagenta = idx === 1;
                 const usePurple = idx === 4;
@@ -265,7 +265,7 @@ const Lobby = () => {
                 return (
                   <Card
                     key={brand.id}
-                    className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all cursor-pointer group relative overflow-hidden"
+                    className="bg-black/50 border-2 p-6 hover:bg-black/70 transition-all group relative overflow-hidden"
                     style={{ borderColor }}
                   >
                     {/* Glow effect on hover */}

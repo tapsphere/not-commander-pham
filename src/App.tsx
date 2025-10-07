@@ -16,6 +16,8 @@ import Play from "./pages/Play";
 import { PlatformLayout } from "./components/platform/PlatformLayout";
 import CreatorDashboard from "./pages/platform/CreatorDashboard";
 import BrandDashboard from "./pages/platform/BrandDashboard";
+import BrandProfileEdit from "./pages/platform/BrandProfileEdit";
+import BrandProfile from "./pages/BrandProfile";
 import Marketplace from "./pages/platform/Marketplace";
 import CreatorPortfolio from "./pages/platform/CreatorPortfolio";
 import TemplateDetail from "./pages/platform/TemplateDetail";
@@ -44,10 +46,14 @@ const App = () => (
           <Route path="/platform" element={<PlatformLayout />}>
             <Route path="creator" element={<CreatorDashboard />} />
             <Route path="brand" element={<BrandDashboard />} />
+            <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
             <Route path="template/:templateId" element={<TemplateDetail />} />
           </Route>
+          
+          {/* Public Brand Profile */}
+          <Route path="/brand/:brandId" element={<BrandProfile />} />
           
           {/* Validator Demo */}
           <Route path="/validator-demo" element={<ValidatorDemo />} />
