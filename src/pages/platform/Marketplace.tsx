@@ -12,6 +12,7 @@ interface CreatorChannel {
   creator_bio: string | null;
   featured_game_image: string | null;
   featured_game_name: string | null;
+  featured_game_id: string | null;
   total_games: number;
 }
 
@@ -35,7 +36,7 @@ export default function Marketplace() {
       // Fetch all published templates
       const { data: templatesData, error: templatesError } = await supabase
         .from('game_templates')
-        .select('creator_id, name, preview_image')
+        .select('id, creator_id, name, preview_image')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
@@ -51,7 +52,11 @@ export default function Marketplace() {
             games: []
           });
         }
-        creatorMap.get(template.creator_id)?.games.push(template);
+        creatorMap.get(template.creator_id)?.games.push({
+          id: template.id,
+          name: template.name,
+          preview_image: template.preview_image
+        });
       });
 
       // Fetch creator profiles
@@ -72,6 +77,7 @@ export default function Marketplace() {
             creator_bio: profile?.bio || null,
             featured_game_image: featuredGame?.preview_image || null,
             featured_game_name: featuredGame?.name || null,
+            featured_game_id: featuredGame?.id || null,
             total_games: games.length
           };
         })
@@ -142,10 +148,21 @@ export default function Marketplace() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {filteredCreators.map((creator) => (
+            {filteredCreators.map((creator) => {
+              // If creator has only one game, go directly to template detail
+              // Otherwise, go to their portfolio
+              const handleClick = () => {
+                if (creator.total_games === 1 && creator.featured_game_id) {
+                  navigate(`/platform/template/${creator.featured_game_id}`);
+                } else {
+                  navigate(`/platform/creator/${creator.creator_id}`);
+                }
+              };
+
+              return (
               <div
                 key={creator.creator_id}
-                onClick={() => navigate(`/platform/creator/${creator.creator_id}`)}
+                onClick={handleClick}
                 className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden active:bg-gray-800 transition-all cursor-pointer"
               >
                 {/* Featured Game Cover Image */}
@@ -188,7 +205,8 @@ export default function Marketplace() {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
