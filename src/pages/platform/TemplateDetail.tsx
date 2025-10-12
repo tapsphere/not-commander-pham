@@ -129,7 +129,7 @@ export default function TemplateDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-safe">
+    <div className="min-h-screen bg-black text-white overflow-y-auto">
       {/* Mobile-First Header */}
       <header className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm sticky top-0 z-10">
         <div className="px-4 py-3">
@@ -167,8 +167,8 @@ export default function TemplateDetail() {
           )}
         </div>
 
-        {/* Content Below Preview */}
-        <div className="px-4 py-4 space-y-4">
+        {/* Content Below Preview - Add bottom padding for fixed prompt panel */}
+        <div className="px-4 py-4 space-y-4 pb-[45vh]">
           {/* Title & Creator */}
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{template.name}</h1>
