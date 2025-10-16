@@ -22,6 +22,7 @@ import Marketplace from "./pages/platform/Marketplace";
 import CreatorPortfolio from "./pages/platform/CreatorPortfolio";
 import TemplateDetail from "./pages/platform/TemplateDetail";
 import ValidatorDemo from "./pages/ValidatorDemo";
+import ValidatorTest from "./pages/platform/ValidatorTest";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
             <Route path="template/:templateId" element={<TemplateDetail />} />
+            <Route path="validator-test" element={<ValidatorTest />} />
           </Route>
           
           {/* Public Brand Profile */}
