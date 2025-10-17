@@ -478,16 +478,12 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                           
                           <div>
                             <p className="text-xs text-gray-400 font-medium">Game Mechanic</p>
-                            <p className="text-sm text-gray-300">
-                              {sub.game_mechanic ? sub.game_mechanic.split('/')[0]?.trim() || 'Not defined' : 'Not defined'}
-                            </p>
+                            <p className="text-sm text-gray-300">{sub.game_mechanic || 'Not defined'}</p>
                           </div>
                           
                           <div>
                             <p className="text-xs text-gray-400 font-medium">Loop</p>
-                            <p className="text-sm text-gray-300">
-                              {sub.game_mechanic ? sub.game_mechanic.split('/')[1]?.trim() || 'Not defined' : 'Not defined'}
-                            </p>
+                            <p className="text-sm text-gray-300">{sub.game_loop || 'Not defined'}</p>
                           </div>
                         </div>
                       </div>

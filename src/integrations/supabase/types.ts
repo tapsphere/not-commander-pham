@@ -338,6 +338,7 @@ export type Database = {
           competency_id: string
           created_at: string | null
           display_order: number | null
+          game_loop: string | null
           game_mechanic: string | null
           id: string
           player_action: string | null
@@ -354,6 +355,7 @@ export type Database = {
           competency_id: string
           created_at?: string | null
           display_order?: number | null
+          game_loop?: string | null
           game_mechanic?: string | null
           id?: string
           player_action?: string | null
@@ -370,6 +372,7 @@ export type Database = {
           competency_id?: string
           created_at?: string | null
           display_order?: number | null
+          game_loop?: string | null
           game_mechanic?: string | null
           id?: string
           player_action?: string | null
