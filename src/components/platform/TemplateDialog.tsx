@@ -187,78 +187,15 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
-          description: `Complete validator walkthrough: ${subCompData.statement}
+          description: `Tests: ${subCompData.statement}`,
+          scenario: `Apply this competency in a realistic work scenario where ${actionCue}. 
 
-📊 PlayOps Framework:
-• Validator: ${validatorType}
-• Mechanic: ${gameMechanic}
-• Data Captured: ${dataTracked}`,
-          scenario: `🎬 GAME START:
-${actionCue}
+You'll interact with a ${gameMechanic.toLowerCase()} interface that requires you to ${subCompData.statement.toLowerCase()}.`,
+          playerActions: `${playerAction}
 
-You see a realistic work interface displaying a ${gameMechanic.toLowerCase()} challenge. The scenario requires you to ${subCompData.statement.toLowerCase()}.
-
-🎮 PLAYER EXPERIENCE:
-${playerAction}
-
-Game Flow: ${gameLoop}
-
-🎯 WHAT'S BEING MEASURED:
-The system silently tracks: ${dataTracked}
-
-Each action you take is evaluated using ${validatorType} against real workplace standards.`,
-          playerActions: `⚡ THE TWIST (Edge Case):
-${edgeCase}
-
-This disruption tests whether you can maintain quality under pressure - the key differentiator between Proficient and Mastery levels.
-
-💡 HOW PLAYERS RESPOND:
-• Basic approach: Complete the original task but ignore the new constraint (Level 1-2)
-• Advanced approach: Rapidly adapt strategy while maintaining quality standards (Level 3)`,
-          edgeCase: `📊 SCORING & RESULTS:
-
-The game ends and shows your proficiency level based on these criteria:
-
-🔴 LEVEL 1 – NEEDS WORK
-${level1Formula}
-Result Screen: "You completed the task, but key aspects need improvement. Review feedback below."
-Feedback: Specific areas where performance fell short
-
-🟡 LEVEL 2 – PROFICIENT  
-${level2Formula}
-Result Screen: "Solid performance! You demonstrated competency at an acceptable level."
-Feedback: Strengths shown + opportunities for mastery
-
-🟢 LEVEL 3 – MASTERY
-${level3Formula}
-Result Screen: "Exceptional! You demonstrated mastery-level competency under pressure."
-Feedback: Recognition of advanced skills + validation details
-
-📈 XP EARNED:
-• Level 1: 50 XP
-• Level 2: 100 XP  
-• Level 3: 200 XP + Achievement Badge
-
-💾 PROOF LEDGER:
-Results are cryptographically signed and stored on-chain as portable credentials.`,
-          uiAesthetic: `🎨 VISUAL DESIGN:
-
-Interface Style: ${gameMechanic} presented in a clean, professional workspace
-Color Scheme: Neutral grays with accent colors for feedback (red/yellow/green)
-Typography: Clear, readable fonts optimized for mobile
-
-Real-time Feedback:
-• Progress bar showing completion
-• Live performance indicators (subtle, non-distracting)
-• Smooth animations for all interactions
-• Clear visual cues for the edge case moment
-
-Results Screen:
-• Large, color-coded proficiency badge (Level 1/2/3)
-• Breakdown of scoring metrics (${dataTracked})
-• Specific feedback tied to performance
-• Share/Download credential button
-• "Try Again" option to improve score`,
+The system tracks your actions throughout the ${gameLoop}.`,
+          edgeCase: `${edgeCase}`,
+          uiAesthetic: `Interface style: ${gameMechanic} in a professional workspace. Clean, mobile-optimized design with clear visual feedback.`,
         };
         
         console.log('Setting sample:', sample);
