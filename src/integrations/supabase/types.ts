@@ -333,34 +333,52 @@ export type Database = {
       }
       sub_competencies: {
         Row: {
+          action_cue: string | null
           backend_data_captured: Json | null
           competency_id: string
           created_at: string | null
           display_order: number | null
+          game_mechanic: string | null
           id: string
           player_action: string | null
+          scoring_formula_level_1: string | null
+          scoring_formula_level_2: string | null
+          scoring_formula_level_3: string | null
           scoring_logic: Json | null
           statement: string
+          validator_type: string | null
         }
         Insert: {
+          action_cue?: string | null
           backend_data_captured?: Json | null
           competency_id: string
           created_at?: string | null
           display_order?: number | null
+          game_mechanic?: string | null
           id?: string
           player_action?: string | null
+          scoring_formula_level_1?: string | null
+          scoring_formula_level_2?: string | null
+          scoring_formula_level_3?: string | null
           scoring_logic?: Json | null
           statement: string
+          validator_type?: string | null
         }
         Update: {
+          action_cue?: string | null
           backend_data_captured?: Json | null
           competency_id?: string
           created_at?: string | null
           display_order?: number | null
+          game_mechanic?: string | null
           id?: string
           player_action?: string | null
+          scoring_formula_level_1?: string | null
+          scoring_formula_level_2?: string | null
+          scoring_formula_level_3?: string | null
           scoring_logic?: Json | null
           statement?: string
+          validator_type?: string | null
         }
         Relationships: [
           {

@@ -450,28 +450,51 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
               </div>
             )}
 
-            {/* Show Player Actions for Selected Sub-Competencies */}
+            {/* Show PlayOps Framework for Selected Sub-Competencies */}
             {selectedSubCompetencies.length > 0 && (
               <div className="bg-gray-800 border border-neon-green/30 rounded-lg p-4">
                 <h4 className="font-semibold mb-3 text-sm" style={{ color: 'hsl(var(--neon-green))' }}>
-                  🎮 Player Actions to Surface
+                  🎮 PlayOps Framework
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {subCompetencies
                     .filter(sub => selectedSubCompetencies.includes(sub.id))
                     .map((sub, idx) => (
-                      <div key={sub.id} className="text-sm">
-                        <p className="font-medium text-gray-300 mb-1">
+                      <div key={sub.id} className="border-b border-gray-700 pb-4 last:border-0 last:pb-0">
+                        <p className="font-semibold text-white mb-3">
                           {idx + 1}. {sub.statement}
                         </p>
-                        <p className="text-gray-400 text-xs pl-4">
-                          → {sub.player_action || 'No action defined'}
-                        </p>
+                        
+                        <div className="space-y-3 pl-4">
+                          <div>
+                            <p className="text-xs text-gray-400 font-medium">Validator Type</p>
+                            <p className="text-sm text-gray-300">{sub.validator_type || 'Not defined'}</p>
+                          </div>
+                          
+                          <div>
+                            <p className="text-xs text-gray-400 font-medium">Action Cue (to surface)</p>
+                            <p className="text-sm text-gray-300">{sub.action_cue || 'Not defined'}</p>
+                          </div>
+                          
+                          <div>
+                            <p className="text-xs text-gray-400 font-medium">Game Mechanic / Loop</p>
+                            <p className="text-sm text-gray-300">{sub.game_mechanic || 'Not defined'}</p>
+                          </div>
+                          
+                          <div>
+                            <p className="text-xs text-gray-400 font-medium">Scoring Formula (Backend)</p>
+                            <div className="text-xs text-gray-300 space-y-1">
+                              <p>Level 1: {sub.scoring_formula_level_1 || 'Not defined'}</p>
+                              <p>Level 2: {sub.scoring_formula_level_2 || 'Not defined'}</p>
+                              <p>Level 3: {sub.scoring_formula_level_3 || 'Not defined'}</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-3 italic">
-                  These actions will be incorporated into your game design. Scoring logic is handled automatically in the backend.
+                  These PlayOps parameters will be incorporated into your validator design. Scoring is handled automatically in the backend.
                 </p>
               </div>
             )}
