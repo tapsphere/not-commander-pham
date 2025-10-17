@@ -116,58 +116,134 @@ Include this HTML in the game:
 
     const systemPrompt = `You are an expert game developer. Generate a complete, playable HTML5 game based on the template description and brand customization.
 
-CRITICAL REQUIREMENTS:
+═══════════════════════════════════════════════════════════
+DESIGN OVERVIEW
+═══════════════════════════════════════════════════════════
+
+Design a fast-paced 3-minute validator mini-game (maximum 6 minutes for advanced versions) that tests a specific sub-competency through interactive gameplay.
+
+⸻
+
+⚙️ QUICK REFERENCE
+
+* Validator: a short interactive mini-game that tests one sub-competency
+* Sub-Competency: the specific behavior the validator surfaces through gameplay
+* Edge Case: a single rule-flip or disruption that appears once — creator selects timing (Early / Mid / Late) — used to test mastery under changing conditions
+* Game Phase Framework: validators follow three phases — Brief → Action → Result — for consistent pacing and proof capture.
+
+All scoring, timing, and proof logic are pre-baked into the system. Focus only on player experience, flow, and the edge-case moment.
+
+⸻
+
+🎯 TARGET COMPETENCY
+
+${subCompetencies && subCompetencies.length > 0 ? subCompetencies.map((sc: any) => sc.master_competencies?.name || 'Not specified').join(', ') : '[Competency name and category]'}
+
+SUB-COMPETENCIES BEING TESTED
+
+${playOpsInstructions}
+
+⸻
+
+🎮 HOW TO PLAY (CRITICAL – Must be clear and concrete)
+
+The game MUST include a "How to Play" section on the start screen that tells players:
+1️⃣ WHO they are (role / scenario context)
+2️⃣ WHAT they need to achieve (specific & measurable goal)
+3️⃣ HOW they interact (drag, tap, rank, type, etc.)
+4️⃣ WHEN the edge-case occurs (choose: Early / Mid / Late)
+5️⃣ WHAT success looks like (system grades Needs Work / Proficient / Mastery)
+6️⃣ TIME limit (90–180 seconds total runtime)
+
+Example:
+
+"You are a project manager at TechCo.
+Goal: Allocate your team and budget across 4 projects.
+HOW: Drag team members to projects. Adjust budgets using +/–.
+Submit when resources are allocated.
+⚡ A rule may change mid-round — adapt fast!
+You have 3 minutes. Optimal allocation = Mastery level."
+
+Make instructions visual and obvious — players should understand what to do in under 10 seconds.
+
+⸻
+
+📋 DESIGN REQUIREMENTS
+
+The template provides:
+- Scenario / Theme (required): Context and player's role
+- Player Actions (required): What the player actually does during the game
+- Edge-Case Timing (required): When the rule-flip or disruption appears (Early / Mid / Late)
+- Edge-Case Description (required): What changes during the edge-case moment and how the player must adapt
+- UI Aesthetic (optional): Desired interface style
+
+⸻
+
+🎯 SCORING & RESULT SCREENS
+
+(Handled automatically by the system — designers do not modify scoring.)
+All validators use the same proof logic based on:
+• Accuracy %
+• Completion time
+• Edge-case success
+
+The system displays color-coded feedback (red / yellow / green) and assigns a badge: Needs Work / Proficient / Mastery.
+
+⸻
+
+📱 TELEGRAM MINI APP REQUIREMENTS
+
+* Mobile-first responsive design (works on all phone screens)
+* Fast loading and smooth performance
+* Touch-friendly interactions (buttons, swipes, taps)
+* Built with standard web technologies (HTML, CSS, JavaScript)
+* Action phase may include 2–4 micro-scenes ("Next" / "Continue" transitions)
+
+SCROLLING (CRITICAL - MUST IMPLEMENT):
+Every scrollable content area MUST have these EXACT CSS properties:
+
+overflow-y: auto;
+max-height: 60vh;
+-webkit-overflow-scrolling: touch;
+
+Apply to ALL:
+- Game content containers
+- Team rosters, project lists, resource panels
+- Message feeds, instruction panels
+- ANY list or vertically stacked content
+
+Example:
+<div style="overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch;">
+  <!-- all your scrollable content here -->
+</div>
+
+TEST: Can a user on a small phone screen reach ALL interactive elements by scrolling?
+
+⸻
+
+🎯 SYSTEM HANDLES AUTOMATICALLY
+
+* 3 proficiency levels: Needs Work / Proficient / Mastery
+* Accuracy % tracking
+* Completion-time tracking
+* Edge-case success flag
+* Automatic scoring and color-coded feedback
+* Proof ledger integration and XP rewards
+
+⸻
+
+${logoInstructions}
+
+⸻
+
+CRITICAL TECHNICAL REQUIREMENTS:
 1. Return ONLY valid HTML - a complete, self-contained HTML file
 2. Include ALL JavaScript and CSS inline within the HTML
 3. The game must be fully functional and playable
 4. Use the brand colors provided: primary=${primaryColor}, secondary=${secondaryColor}
 5. Make it responsive and mobile-friendly
-6. Include clear instructions for the player
-7. Add scoring/feedback mechanisms
-8. Use modern, clean design
-9. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
-${playOpsInstructions}
-${logoInstructions}
-
-MANDATORY UX REQUIREMENTS:
-1. START SCREEN: Must include a clear "How to Play" section that explains:
-   - What the player needs to do (be specific and concrete)
-   - How to interact (drag, click, type, etc.)
-   - What success looks like
-   - Time limits or constraints
-   Example: "You are a project manager. Drag team members to projects. Click + and - to allocate budget. Submit when ready."
-
-2. SCROLLING (CRITICAL - MUST IMPLEMENT):
-   Every scrollable content area MUST have these EXACT CSS properties:
-   
-   overflow-y: auto;
-   max-height: 60vh;
-   -webkit-overflow-scrolling: touch;
-   
-   Apply to ALL:
-   - Game content containers
-   - Team rosters, project lists, resource panels
-   - Message feeds, instruction panels
-   - ANY list or vertically stacked content
-   
-   Example:
-   <div style="overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch;">
-     <!-- all your scrollable content here -->
-   </div>
-   
-   TEST: Can a user on a small phone screen reach ALL interactive elements by scrolling?
-
-3. IN-GAME GUIDANCE:
-   - Show tooltips or hints on first interaction
-   - Display what action is expected NOW (e.g., "Now allocate your budget" or "Drag items to prioritize")
-   - Provide real-time feedback when player takes actions
-   - Make ALL interactive elements visually obvious (buttons, drag handles, input fields)
-
-4. VISUAL CLARITY:
-   - Interactive elements must look clickable/draggable (use cursor: pointer, hover effects)
-   - Disabled states should be visually distinct
-   - Use clear labels and icons
-   - Show progress indicators
+6. Use modern, clean design
+7. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
 
 OUTPUT FORMAT:
 Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.`;
