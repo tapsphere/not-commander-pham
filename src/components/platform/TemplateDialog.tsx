@@ -107,13 +107,14 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
 
         if (subError || !subCompData) return;
 
+        // Create concrete examples based on the PlayOps framework
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
-          description: `Tests ability to demonstrate: ${subCompData.statement}`,
-          scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
-          playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
-          edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || 'validation system'}`,
-          uiAesthetic: `Design matches the ${subCompData.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || 'real-time validation'} to provide immediate player feedback.`,
+          description: `Interactive validator testing: ${subCompData.statement}`,
+          scenario: `You're working on a high-stakes project when ${subCompData.action_cue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.`,
+          playerActions: `${subCompData.player_action}. Each interaction is tracked and validated using ${subCompData.validator_type} to measure performance in real-time.`,
+          edgeCase: `Midway through the game, ${subCompData.game_loop} - a critical disruption that tests your ability to adapt while maintaining quality. Players who successfully navigate this twist demonstrate mastery-level competency.`,
+          uiAesthetic: `Clean, professional interface featuring ${subCompData.game_mechanic} as the core interaction pattern. Real-time feedback displays ${subCompData.validator_type} results with color-coded performance indicators (red/yellow/green) and smooth animations for all player actions.`,
         };
         
         setFormData(sample);
