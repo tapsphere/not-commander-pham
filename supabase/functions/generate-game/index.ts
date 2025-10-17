@@ -21,21 +21,57 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Create the prompt for game generation
-    let scoringInstructions = '';
+    // Create the prompt for game generation with PlayOps Framework integration
+    let playOpsInstructions = '';
     if (subCompetencies && subCompetencies.length > 0) {
-      scoringInstructions = `
+      playOpsInstructions = `
 
-SCORING INTEGRATION (CRITICAL):
-The game must capture these metrics and send them to the backend at the end:
+PLAYOPS FRAMEWORK INTEGRATION (CRITICAL):
+This game must implement the following validated competency mechanics:
 
 ${subCompetencies.map((sc: any, index: number) => `
-Sub-Competency ${index + 1}: ${sc.statement}
-Required Metrics: ${JSON.stringify(sc.backend_data_captured || [])}
-Scoring Logic: ${JSON.stringify(sc.scoring_logic || {})}
+═══════════════════════════════════════════════════════════
+SUB-COMPETENCY ${index + 1}: ${sc.statement}
+═══════════════════════════════════════════════════════════
+
+🎮 GAME MECHANIC: ${sc.game_mechanic || 'Not specified'}
+   How the player interacts with this competency in the game
+
+🎯 ACTION CUE: ${sc.action_cue || 'Not specified'}
+   What prompts/triggers the player to demonstrate this skill
+
+🎬 PLAYER ACTION: ${sc.player_action || 'Not specified'}
+   Specific actions the player must perform
+
+🔄 GAME LOOP: ${sc.game_loop || 'Not specified'}
+   How this mechanic repeats/cycles during gameplay
+
+✅ VALIDATOR TYPE: ${sc.validator_type || 'Not specified'}
+   How the game validates and measures this competency
+
+📊 SCORING FORMULAS:
+   Level 1 (Basic): ${sc.scoring_formula_level_1 || 'Not specified'}
+   Level 2 (Intermediate): ${sc.scoring_formula_level_2 || 'Not specified'}
+   Level 3 (Advanced): ${sc.scoring_formula_level_3 || 'Not specified'}
+
+💾 BACKEND DATA TO CAPTURE: ${JSON.stringify(sc.backend_data_captured || [])}
+   These metrics MUST be tracked and sent at game end
+
+⚙️ SCORING LOGIC: ${JSON.stringify(sc.scoring_logic || {})}
+   How raw metrics translate to proficiency levels
+
 `).join('\n')}
 
-At game completion, the generated HTML must call this JavaScript function:
+IMPLEMENTATION REQUIREMENTS:
+1. Each sub-competency's game mechanic must be clearly implemented in the game
+2. Action cues must be visible and intuitive to the player
+3. Player actions must map directly to the specified interactions
+4. The game loop must create repeated opportunities to demonstrate each skill
+5. Validation must occur in real-time based on the validator type
+6. All backend data points must be captured during gameplay
+7. Scoring formulas determine the final proficiency level (Level 1, 2, or 3)
+
+At game completion, call this function with ALL required metrics:
 \`\`\`javascript
 async function submitScore(metrics) {
   const response = await fetch('${Deno.env.get('SUPABASE_URL')}/functions/v1/submit-score', {
@@ -58,8 +94,6 @@ async function submitScore(metrics) {
   return result;
 }
 \`\`\`
-
-The metrics object MUST include all required fields from backend_data_captured.
 `;
     }
 
@@ -91,7 +125,8 @@ CRITICAL REQUIREMENTS:
 6. Include clear instructions for the player
 7. Add scoring/feedback mechanisms
 8. Use modern, clean design
-${scoringInstructions}
+9. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
+${playOpsInstructions}
 ${logoInstructions}
 
 OUTPUT FORMAT:
