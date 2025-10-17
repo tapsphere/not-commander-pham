@@ -25,8 +25,27 @@ interface TemplateDialogProps {
 }
 
 // Global sample prompt with full scoring and proficiency details
-const SAMPLE_PROMPT_WITH_SCORING = `You are playing as a crisis communication manager at TechFlow Inc., a SaaS company that just experienced a data breach affecting 50,000 customer accounts.
+const SAMPLE_PROMPT_WITH_SCORING = `🎮 HOW TO PLAY:
+You are a crisis communication manager at TechFlow Inc. A data breach just happened affecting 50,000 accounts.
 
+YOUR GOAL: Draft a public statement and response strategy within 2 hours.
+
+HOW TO INTERACT:
+• Read incoming messages from stakeholders (scroll through messages)
+• Type your statement in the composer
+• Click priority buttons to contact stakeholder groups
+• Select communication channels (checkboxes)
+• Set timeline using dropdown
+• Click "Publish" when ready
+
+SUCCESS: 
+- Level 1: Complete task but miss key elements
+- Level 2: Balanced, timely communication
+- Level 3: Perfect execution + adapt to edge case twist
+
+---
+
+SCENARIO:
 Your task: Draft an initial public statement and response strategy within the next 2 hours.
 
 Available information:
@@ -243,6 +262,18 @@ ${selectedSubs.map((sc, idx) => `${idx + 1}. ${sc.statement}
 
 All scoring, timing, and proof logic are pre-baked into the system. Focus only on player experience, flow, and the edge-case moment.
 ${competencySection}
+🎮 HOW TO PLAY (CRITICAL - Must be clear and concrete):
+The game MUST include a "How to Play" section on the start screen that tells players:
+1. WHO they are (role/scenario context)
+2. WHAT they need to do (specific, concrete goal)
+3. HOW to interact (drag items, click buttons, type text, etc.)
+4. WHAT success looks like (what determines Level 1/2/3)
+5. TIME limits or constraints
+
+Example: "You are a project manager at TechCo. Your goal: Allocate your team and budget across 4 projects. HOW: Drag team members to projects. Click +/- buttons to adjust budget. Submit when all resources are allocated. You have 3 minutes. Optimal allocation = Mastery level."
+
+Make instructions VISUAL and OBVIOUS - players should immediately understand what to do.
+
 📋 Design Requirements:
 
 Scenario/Theme:
