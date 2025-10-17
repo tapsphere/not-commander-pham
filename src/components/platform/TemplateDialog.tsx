@@ -163,8 +163,8 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
       setSelectedCompetency(competencies[0].id);
       // Wait a moment for sub-competencies to load
       setTimeout(() => {
-        if (subCompetencies.length >= 2) {
-          setSelectedSubCompetencies([subCompetencies[0].id, subCompetencies[1].id]);
+        if (subCompetencies.length >= 1) {
+          setSelectedSubCompetencies([subCompetencies[0].id]);
         }
       }, 500);
     }
