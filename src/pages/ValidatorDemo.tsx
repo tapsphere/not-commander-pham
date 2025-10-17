@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+/**
+ * KPI Data Structure
+ * Represents a Key Performance Indicator with its current state
+ */
 interface KPI {
   id: string;
   name: string;
@@ -12,13 +16,57 @@ interface KPI {
   trend: 'up' | 'down' | 'stable';
 }
 
+/**
+ * Competency-Based Grading Scale (0-4)
+ * 0 = Not Yet Proficient
+ * 1 = Emerging
+ * 2 = Developing
+ * 3 = Proficient
+ * 4 = Exemplary
+ */
+interface CompetencyFeedback {
+  score: 0 | 1 | 2 | 3 | 4;
+  level: 'Not Yet Proficient' | 'Emerging' | 'Developing' | 'Proficient' | 'Exemplary';
+  message: string;
+  improvement: string;
+}
+
+/**
+ * Round Configuration
+ * Each round lasts exactly 60 seconds with specific challenges
+ */
+type GameRound = 1 | 2 | 3;
+
 export default function ValidatorDemo() {
   const navigate = useNavigate();
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'edge-case' | 'results'>('intro');
-  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
+  
+  /**
+   * Timer Management
+   * Starts at 180 seconds (3 minutes) and counts down to 0
+   * Game automatically ends when timer reaches 0
+   */
+  const [timeLeft, setTimeLeft] = useState(180);
+  
+  /**
+   * Round Tracking
+   * Round 1: 180-121s (Initial KPI assessment)
+   * Round 2: 120-61s (Value fluctuations and adaptation)
+   * Round 3: 60-0s (Edge case crisis management)
+   */
+  const [currentRound, setCurrentRound] = useState<GameRound>(1);
+  
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [edgeCaseTriggered, setEdgeCaseTriggered] = useState(false);
   const [score, setScore] = useState(0);
+  
+  /**
+   * Competency Feedback System
+   * Stores feedback for each player action to provide transparent grading
+   */
+  const [feedbackHistory, setFeedbackHistory] = useState<CompetencyFeedback[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [currentFeedback, setCurrentFeedback] = useState<CompetencyFeedback | null>(null);
   
   const [kpis, setKpis] = useState<KPI[]>([
     { id: '1', name: 'User Retention', value: 78, trend: 'down' },
@@ -31,7 +79,11 @@ export default function ValidatorDemo() {
 
   const [rankedKpis, setRankedKpis] = useState<KPI[]>([]);
 
-  // Timer countdown
+  /**
+   * Timer Countdown Effect
+   * Decrements timer every second and triggers round transitions
+   * Automatically ends game at 0 seconds
+   */
   useEffect(() => {
     if (gameState !== 'playing' && gameState !== 'edge-case') return;
     
@@ -49,33 +101,56 @@ export default function ValidatorDemo() {
     return () => clearInterval(interval);
   }, [gameState]);
 
-  // Edge case trigger at 90 seconds
-  useEffect(() => {
-    if (gameState === 'playing' && timeLeft === 90 && !edgeCaseTriggered) {
-      setEdgeCaseTriggered(true);
-      setGameState('edge-case');
-      setTimeLeft(90);
-    }
-  }, [timeLeft, gameState, edgeCaseTriggered]);
-
-  // Simulate KPI value changes
+  /**
+   * Round Transition Logic
+   * Round 1: 180-121s
+   * Round 2: 120-61s (increased KPI volatility)
+   * Round 3: 60-0s (edge case crisis)
+   */
   useEffect(() => {
     if (gameState !== 'playing' && gameState !== 'edge-case') return;
+    
+    // Transition to Round 2 at 120s
+    if (timeLeft === 120 && currentRound === 1) {
+      setCurrentRound(2);
+      toast.info('Round 2: KPI values are becoming more volatile!');
+    }
+    
+    // Transition to Round 3 at 60s (edge case)
+    if (timeLeft === 60 && currentRound === 2 && !edgeCaseTriggered) {
+      setEdgeCaseTriggered(true);
+      setCurrentRound(3);
+      setGameState('edge-case');
+    }
+  }, [timeLeft, gameState, currentRound, edgeCaseTriggered]);
+
+  /**
+   * KPI Value Simulation
+   * Values fluctuate based on current round
+   * Round 1: Minimal changes (±2%)
+   * Round 2: Moderate volatility (±5%)
+   * Round 3: High volatility (±8%)
+   */
+  useEffect(() => {
+    if (gameState !== 'playing' && gameState !== 'edge-case') return;
+    
+    // Volatility increases with each round
+    const volatility = currentRound === 1 ? 2 : currentRound === 2 ? 5 : 8;
     
     const interval = setInterval(() => {
       setKpis(prev => prev.map(kpi => ({
         ...kpi,
-        value: Math.max(0, Math.min(100, kpi.value + (Math.random() - 0.5) * 5)),
+        value: Math.max(0, Math.min(100, kpi.value + (Math.random() - 0.5) * volatility)),
       })));
       
       setRankedKpis(prev => prev.map(kpi => ({
         ...kpi,
-        value: Math.max(0, Math.min(100, kpi.value + (Math.random() - 0.5) * 5)),
+        value: Math.max(0, Math.min(100, kpi.value + (Math.random() - 0.5) * volatility)),
       })));
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [gameState]);
+  }, [gameState, currentRound]);
 
   const calculateScore = async () => {
     // Sub-competencies for this validator (Pass/Fail logic)
@@ -146,6 +221,89 @@ export default function ValidatorDemo() {
     e.dataTransfer.dropEffect = 'move';
   };
 
+  /**
+   * Competency-Based Grading Function
+   * Evaluates player actions on a 0-4 scale
+   * Provides constructive feedback aligned with competency rubric
+   */
+  const evaluateAction = (kpi: KPI, action: 'ranked' | 'unranked'): CompetencyFeedback => {
+    const isCritical = kpi.id === '3' || kpi.id === '6'; // Bug Count or Tech Debt
+    const isDeclining = kpi.trend === 'down';
+    const isRevenue = kpi.id === '2';
+    const isInRound3 = currentRound === 3;
+    
+    if (action === 'ranked') {
+      // Exemplary (4): Correctly prioritizes critical declining metrics
+      if (isCritical && rankedKpis.length < 3) {
+        return {
+          score: 4,
+          level: 'Exemplary',
+          message: `Excellent decision! You correctly identified ${kpi.name} as a critical priority that requires immediate attention.`,
+          improvement: 'Continue identifying high-impact metrics that affect system stability.'
+        };
+      }
+      
+      // Proficient (3): Addresses declining metrics appropriately
+      if (isDeclining && rankedKpis.length < 4) {
+        return {
+          score: 3,
+          level: 'Proficient',
+          message: `Good choice! Addressing ${kpi.name} shows solid analytical thinking.`,
+          improvement: 'Consider how this metric impacts other KPIs in your ranking.'
+        };
+      }
+      
+      // Proficient (3): Prioritizes revenue in Round 3 edge case
+      if (isRevenue && isInRound3) {
+        return {
+          score: 3,
+          level: 'Proficient',
+          message: `Smart adaptation! Prioritizing ${kpi.name} during the crisis demonstrates stakeholder awareness.`,
+          improvement: 'Balance stakeholder demands with technical realities.'
+        };
+      }
+      
+      // Developing (2): Makes reasonable but non-critical choices
+      if (rankedKpis.length < 4) {
+        return {
+          score: 2,
+          level: 'Developing',
+          message: `${kpi.name} is ranked. Consider whether more urgent metrics need attention first.`,
+          improvement: 'Look for declining trends and critical system issues that impact multiple areas.'
+        };
+      }
+      
+      // Emerging (1): Late or low-priority rankings
+      return {
+        score: 1,
+        level: 'Emerging',
+        message: `You're building your ranking. Think about which metrics have the highest impact on overall success.`,
+        improvement: 'Prioritize metrics that are declining or critical to system stability.'
+      };
+    } else {
+      // Unranking - generally a neutral or negative action
+      if (isCritical && !isInRound3) {
+        return {
+          score: 0,
+          level: 'Not Yet Proficient',
+          message: `Be careful! Removing ${kpi.name} from priorities could lead to system instability.`,
+          improvement: 'Critical metrics like bugs and tech debt usually need consistent attention.'
+        };
+      }
+      
+      return {
+        score: 1,
+        level: 'Emerging',
+        message: `${kpi.name} removed from ranking. Make sure you're not overlooking important trends.`,
+        improvement: 'Re-evaluate your priorities based on current trends and system health.'
+      };
+    }
+  };
+
+  /**
+   * Handle Drop Event with Competency Evaluation
+   * Provides immediate feedback after each ranking decision
+   */
   const handleDrop = (e: React.DragEvent, dropZone: 'ranked' | 'unranked') => {
     e.preventDefault();
     if (!draggedItem) return;
@@ -153,12 +311,22 @@ export default function ValidatorDemo() {
     if (dropZone === 'ranked') {
       const kpi = kpis.find(k => k.id === draggedItem);
       if (kpi && !rankedKpis.find(k => k.id === draggedItem)) {
+        const feedback = evaluateAction(kpi, 'ranked');
+        setCurrentFeedback(feedback);
+        setShowFeedback(true);
+        setFeedbackHistory([...feedbackHistory, feedback]);
+        
         setRankedKpis([...rankedKpis, kpi]);
         setKpis(kpis.filter(k => k.id !== draggedItem));
       }
     } else {
       const kpi = rankedKpis.find(k => k.id === draggedItem);
       if (kpi) {
+        const feedback = evaluateAction(kpi, 'unranked');
+        setCurrentFeedback(feedback);
+        setShowFeedback(true);
+        setFeedbackHistory([...feedbackHistory, feedback]);
+        
         setKpis([...kpis, kpi]);
         setRankedKpis(rankedKpis.filter(k => k.id !== draggedItem));
       }
@@ -174,6 +342,23 @@ export default function ValidatorDemo() {
 
   const continueAfterEdgeCase = () => {
     setGameState('playing');
+  };
+
+  /**
+   * Get Round Description
+   * Provides context for current round challenges
+   */
+  const getRoundDescription = (round: GameRound): string => {
+    switch (round) {
+      case 1:
+        return 'Round 1: Initial Assessment - Identify critical metrics';
+      case 2:
+        return 'Round 2: Adaptation - KPIs are fluctuating rapidly';
+      case 3:
+        return 'Round 3: Crisis Mode - Handle unexpected stakeholder demands';
+      default:
+        return '';
+    }
   };
 
   const getProficiencyLevel = (score: number) => {
@@ -356,6 +541,19 @@ export default function ValidatorDemo() {
           <p className="text-xs text-gray-500 text-center">
             In production, results are stored in your proof ledger and XP is awarded
           </p>
+          
+          {/* Average Competency Score Display */}
+          {feedbackHistory.length > 0 && (
+            <div className="bg-gray-900 rounded-lg p-4 border border-neon-green/30">
+              <h3 className="font-semibold text-neon-green mb-2">Average Competency Score:</h3>
+              <div className="text-3xl font-bold text-center text-neon-magenta">
+                {(feedbackHistory.reduce((sum, f) => sum + f.score, 0) / feedbackHistory.length).toFixed(1)}/4
+              </div>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Based on {feedbackHistory.length} graded actions during gameplay
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -365,22 +563,72 @@ export default function ValidatorDemo() {
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-neon-green text-glow-green">
-            KPI Dashboard Reboot
-          </h1>
-          <div className="text-3xl font-bold text-neon-magenta text-glow-magenta">
-            {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+        {/* Header with Round Indicator */}
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-neon-green text-glow-green">
+              KPI Dashboard Reboot
+            </h1>
+            <p className="text-sm text-gray-400 mt-1">{getRoundDescription(currentRound)}</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-neon-magenta text-glow-magenta">
+              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+            </div>
+            <div className="text-xs text-gray-400">Round {currentRound}/3</div>
           </div>
         </div>
 
         {/* Instructions */}
         <div className="bg-gray-900 border border-neon-green/30 rounded-lg p-4 mb-6">
           <p className="text-sm text-gray-300">
-            🎯 Drag KPIs to the ranking area to prioritize them. System stability depends on your choices!
+            🎯 Drag KPIs to the ranking area to prioritize them. System stability depends on your choices! 
+            You'll receive feedback on each decision.
           </p>
         </div>
+
+        {/* Competency Feedback Pop-up */}
+        {showFeedback && currentFeedback && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-900 border-2 border-neon-green rounded-lg p-6 max-w-md w-full space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <div className="text-2xl font-bold text-neon-green">
+                    Score: {currentFeedback.score}/4
+                  </div>
+                  <div className="text-lg text-gray-300">{currentFeedback.level}</div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowFeedback(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase mb-1">Feedback</div>
+                  <p className="text-sm text-gray-300">{currentFeedback.message}</p>
+                </div>
+                
+                <div>
+                  <div className="text-xs text-gray-500 uppercase mb-1">How to Improve</div>
+                  <p className="text-sm text-gray-300">{currentFeedback.improvement}</p>
+                </div>
+              </div>
+              
+              <Button
+                onClick={() => setShowFeedback(false)}
+                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Available KPIs */}
@@ -492,3 +740,34 @@ export default function ValidatorDemo() {
     </div>
   );
 }
+
+/**
+ * <<END>>
+ * 
+ * AI Generation Stop Marker
+ * ===========================
+ * This marker indicates the end of the structured 180-second game content.
+ * AI-generated content should not extend beyond this point.
+ * 
+ * The game includes:
+ * - Exactly 180 seconds of gameplay (3 minutes total runtime)
+ * - Three distinct 60-second rounds with unique challenges:
+ *   * Round 1 (180-121s): Initial assessment with minimal KPI volatility
+ *   * Round 2 (120-61s): Increased volatility and adaptation challenges
+ *   * Round 3 (60-0s): Crisis management with edge-case scenario
+ * - Competency-based grading on 0-4 scale with transparent feedback
+ * - Real-time competency evaluation with growth-mindset language
+ * - Comprehensive documentation for future modifications
+ * 
+ * Design Identity:
+ * - Maintains existing neon-green/purple cyberpunk aesthetic
+ * - Preserves all original color schemes and typography
+ * - Keeps consistent spacing and layout structure
+ * 
+ * Technical Implementation:
+ * - Timer automatically ends game at 0 seconds
+ * - Round transitions handled by useEffect hooks monitoring timeLeft
+ * - Competency scoring uses evaluateAction() function
+ * - Feedback displayed via modal overlay with dismissible interface
+ * - All grading focuses on evidence of learning, not habits of work
+ */
