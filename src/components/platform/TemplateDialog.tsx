@@ -425,13 +425,10 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                         checked={selectedSubCompetencies.includes(sub.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            if (selectedSubCompetencies.length < 2) {
-                              setSelectedSubCompetencies([...selectedSubCompetencies, sub.id]);
-                            } else {
-                              toast.error('Maximum 2 sub-competencies allowed');
-                            }
+                            // Replace with new selection (only 1 allowed)
+                            setSelectedSubCompetencies([sub.id]);
                           } else {
-                            setSelectedSubCompetencies(selectedSubCompetencies.filter(id => id !== sub.id));
+                            setSelectedSubCompetencies([]);
                           }
                         }}
                       />
@@ -445,7 +442,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                   ))}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  Select 1-2 behaviors this validator will test
+                  Select 1 behavior this validator will test
                 </p>
               </div>
             )}
