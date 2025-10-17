@@ -105,19 +105,31 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
           .eq('id', selectedSub.id)
           .single();
 
-        if (subError || !subCompData) return;
+        if (subError || !subCompData) {
+          console.error('Error loading sub-competency:', subError);
+          return;
+        }
 
-        // Create concrete examples based on the PlayOps framework
+        console.log('Loading sample for:', subCompData.statement);
+
+        // Create concrete examples based on the PlayOps framework with proper fallbacks
+        const actionCue = subCompData.action_cue || 'a critical challenge emerges';
+        const playerAction = subCompData.player_action || 'make strategic decisions';
+        const validatorType = subCompData.validator_type || 'behavioral tracking';
+        const gameLoop = subCompData.game_loop || 'during a key decision point';
+        const gameMechanic = subCompData.game_mechanic || 'interactive decision-making';
+        
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
           description: `Interactive validator testing: ${subCompData.statement}`,
-          scenario: `You're working on a high-stakes project when ${subCompData.action_cue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.`,
-          playerActions: `${subCompData.player_action}. Each interaction is tracked and validated using ${subCompData.validator_type} to measure performance in real-time.`,
-          edgeCase: `Midway through the game, ${subCompData.game_loop} - a critical disruption that tests your ability to adapt while maintaining quality. Players who successfully navigate this twist demonstrate mastery-level competency.`,
-          uiAesthetic: `Clean, professional interface featuring ${subCompData.game_mechanic} as the core interaction pattern. Real-time feedback displays ${subCompData.validator_type} results with color-coded performance indicators (red/yellow/green) and smooth animations for all player actions.`,
+          scenario: `You're working on a high-stakes project when ${actionCue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.`,
+          playerActions: `${playerAction}. Each interaction is tracked and validated using ${validatorType} to measure performance in real-time.`,
+          edgeCase: `Midway through the game, ${gameLoop} - a critical disruption that tests your ability to adapt while maintaining quality. Players who successfully navigate this twist demonstrate mastery-level competency.`,
+          uiAesthetic: `Clean, professional interface featuring ${gameMechanic} as the core interaction pattern. Real-time feedback displays ${validatorType} results with color-coded performance indicators (red/yellow/green) and smooth animations for all player actions.`,
         };
         
-        setFormData(sample);
+        console.log('Setting sample:', sample);
+        setFormData(prev => ({ ...prev, ...sample }));
       };
       
       loadSampleAuto();
