@@ -118,6 +118,24 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         const validatorType = subCompData.validator_type || 'behavioral tracking';
         const gameLoop = subCompData.game_loop || 'during a key decision point';
         const gameMechanic = subCompData.game_mechanic || 'interactive decision-making';
+        const backendData = subCompData.backend_data_captured || [];
+        const scoringLogic = subCompData.scoring_logic || {};
+        
+        // Format backend data captured
+        const dataTracked = Array.isArray(backendData) && backendData.length > 0 
+          ? backendData.join(', ')
+          : 'decision quality, response time, accuracy rate';
+        
+        // Format scoring information
+        const scoringInfo = typeof scoringLogic === 'object' && Object.keys(scoringLogic).length > 0
+          ? JSON.stringify(scoringLogic, null, 2)
+          : 'Automatic scoring based on accuracy, speed, and edge case recovery';
+        
+        const scoringFormulas = [
+          subCompData.scoring_formula_level_1,
+          subCompData.scoring_formula_level_2,
+          subCompData.scoring_formula_level_3
+        ].filter(Boolean).join(' | ') || 'Three-tier proficiency assessment (Needs Work / Proficient / Mastery)';
         
         // Create unique edge cases based on validator type and context
         const edgeCaseScenarios: { [key: string]: string } = {
@@ -132,11 +150,26 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
-          description: `Interactive validator testing: ${subCompData.statement}`,
-          scenario: `You're working on a high-stakes project when ${actionCue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.`,
-          playerActions: `${playerAction}. Each interaction is tracked and validated using ${validatorType} to measure performance in real-time.`,
+          description: `Interactive validator testing: ${subCompData.statement}
+
+📊 PlayOps Framework Alignment:
+• Validator Type: ${validatorType}
+• Game Mechanic: ${gameMechanic}
+• Data Tracked: ${dataTracked}
+• Scoring: ${scoringFormulas}`,
+          scenario: `You're working on a high-stakes project when ${actionCue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.
+
+The game follows this flow: ${gameLoop}`,
+          playerActions: `${playerAction}. 
+
+Behind the scenes, the system tracks: ${dataTracked}. Each interaction is validated using ${validatorType} to measure performance against these criteria: ${scoringInfo}`,
           edgeCase: edgeCase,
-          uiAesthetic: `Clean, professional interface featuring ${gameMechanic} as the core interaction pattern. Real-time feedback displays ${validatorType} results with color-coded performance indicators (red/yellow/green) and smooth animations for all player actions.`,
+          uiAesthetic: `Clean, professional interface featuring ${gameMechanic} as the core interaction pattern. Real-time feedback displays ${validatorType} results with color-coded performance indicators:
+• Red (Needs Work): Below minimum threshold
+• Yellow (Proficient): Meets baseline expectations  
+• Green (Mastery): Exceptional performance including edge case adaptation
+
+Smooth animations for all player actions, with live score updates showing ${dataTracked}.`,
         };
         
         console.log('Setting sample:', sample);
