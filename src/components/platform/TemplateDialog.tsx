@@ -126,16 +126,10 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
           ? backendData.join(', ')
           : 'decision quality, response time, accuracy rate';
         
-        // Format scoring information
-        const scoringInfo = typeof scoringLogic === 'object' && Object.keys(scoringLogic).length > 0
-          ? JSON.stringify(scoringLogic, null, 2)
-          : 'Automatic scoring based on accuracy, speed, and edge case recovery';
-        
-        const scoringFormulas = [
-          subCompData.scoring_formula_level_1,
-          subCompData.scoring_formula_level_2,
-          subCompData.scoring_formula_level_3
-        ].filter(Boolean).join(' | ') || 'Three-tier proficiency assessment (Needs Work / Proficient / Mastery)';
+        // Get scoring formulas
+        const level1Formula = subCompData.scoring_formula_level_1 || 'Accuracy < 60% OR Time > 6min OR Failed edge case';
+        const level2Formula = subCompData.scoring_formula_level_2 || 'Accuracy 60-84% AND Time 3-6min AND Partial edge case recovery';
+        const level3Formula = subCompData.scoring_formula_level_3 || 'Accuracy ≥ 85% AND Time < 3min AND Full edge case recovery';
         
         // Create unique edge cases based on validator type and context
         const edgeCaseScenarios: { [key: string]: string } = {
@@ -150,26 +144,78 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
-          description: `Interactive validator testing: ${subCompData.statement}
+          description: `Complete validator walkthrough: ${subCompData.statement}
 
-📊 PlayOps Framework Alignment:
-• Validator Type: ${validatorType}
-• Game Mechanic: ${gameMechanic}
-• Data Tracked: ${dataTracked}
-• Scoring: ${scoringFormulas}`,
-          scenario: `You're working on a high-stakes project when ${actionCue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.
+📊 PlayOps Framework:
+• Validator: ${validatorType}
+• Mechanic: ${gameMechanic}
+• Data Captured: ${dataTracked}`,
+          scenario: `🎬 GAME START:
+${actionCue}
 
-The game follows this flow: ${gameLoop}`,
-          playerActions: `${playerAction}. 
+You see a realistic work interface displaying a ${gameMechanic.toLowerCase()} challenge. The scenario requires you to ${subCompData.statement.toLowerCase()}.
 
-Behind the scenes, the system tracks: ${dataTracked}. Each interaction is validated using ${validatorType} to measure performance against these criteria: ${scoringInfo}`,
-          edgeCase: edgeCase,
-          uiAesthetic: `Clean, professional interface featuring ${gameMechanic} as the core interaction pattern. Real-time feedback displays ${validatorType} results with color-coded performance indicators:
-• Red (Needs Work): Below minimum threshold
-• Yellow (Proficient): Meets baseline expectations  
-• Green (Mastery): Exceptional performance including edge case adaptation
+🎮 PLAYER EXPERIENCE:
+${playerAction}
 
-Smooth animations for all player actions, with live score updates showing ${dataTracked}.`,
+Game Flow: ${gameLoop}
+
+🎯 WHAT'S BEING MEASURED:
+The system silently tracks: ${dataTracked}
+
+Each action you take is evaluated using ${validatorType} against real workplace standards.`,
+          playerActions: `⚡ THE TWIST (Edge Case):
+${edgeCase}
+
+This disruption tests whether you can maintain quality under pressure - the key differentiator between Proficient and Mastery levels.
+
+💡 HOW PLAYERS RESPOND:
+• Basic approach: Complete the original task but ignore the new constraint (Level 1-2)
+• Advanced approach: Rapidly adapt strategy while maintaining quality standards (Level 3)`,
+          edgeCase: `📊 SCORING & RESULTS:
+
+The game ends and shows your proficiency level based on these criteria:
+
+🔴 LEVEL 1 – NEEDS WORK
+${level1Formula}
+Result Screen: "You completed the task, but key aspects need improvement. Review feedback below."
+Feedback: Specific areas where performance fell short
+
+🟡 LEVEL 2 – PROFICIENT  
+${level2Formula}
+Result Screen: "Solid performance! You demonstrated competency at an acceptable level."
+Feedback: Strengths shown + opportunities for mastery
+
+🟢 LEVEL 3 – MASTERY
+${level3Formula}
+Result Screen: "Exceptional! You demonstrated mastery-level competency under pressure."
+Feedback: Recognition of advanced skills + validation details
+
+📈 XP EARNED:
+• Level 1: 50 XP
+• Level 2: 100 XP  
+• Level 3: 200 XP + Achievement Badge
+
+💾 PROOF LEDGER:
+Results are cryptographically signed and stored on-chain as portable credentials.`,
+          uiAesthetic: `🎨 VISUAL DESIGN:
+
+Interface Style: ${gameMechanic} presented in a clean, professional workspace
+Color Scheme: Neutral grays with accent colors for feedback (red/yellow/green)
+Typography: Clear, readable fonts optimized for mobile
+
+Real-time Feedback:
+• Progress bar showing completion
+• Live performance indicators (subtle, non-distracting)
+• Smooth animations for all interactions
+• Clear visual cues for the edge case moment
+
+Results Screen:
+• Large, color-coded proficiency badge (Level 1/2/3)
+• Breakdown of scoring metrics (${dataTracked})
+• Specific feedback tied to performance
+• Share/Download credential button
+• "Try Again" option to improve score`,
         };
         
         console.log('Setting sample:', sample);
