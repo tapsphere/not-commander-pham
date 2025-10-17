@@ -150,25 +150,43 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
   }, [formData.scenario, formData.playerActions, formData.edgeCase, formData.uiAesthetic, selectedCompetency, selectedSubCompetencies, competencies, subCompetencies]);
 
   const handleLoadSample = () => {
-    setFormData({
-      name: 'Priority Trade-Off Navigator',
-      description: 'Tests ability to make strategic decisions under competing constraints',
-      scenario: 'You\'re a Product Manager during a critical launch week. The KPI dashboard is overloading — you must prioritize which metrics to stabilize first before the system crashes.',
-      playerActions: 'Drag-and-drop to rank 6 competing KPIs (user retention, revenue, bug count, feature completion, team morale, tech debt). Each choice affects other metrics in real-time.',
-      edgeCase: 'Halfway through, the CEO messages: "Revenue must be #1 or we lose funding." Timer cuts to 90 seconds. Players must re-prioritize while maintaining system stability.',
-      uiAesthetic: 'Neon cyberpunk dashboard with glitching effects. Dark background with bright green/pink accent colors. Deloitte branding in corner. Animated metric cards with real-time % changes.',
-    });
-    // Set the sample competency if available
-    if (competencies.length > 0) {
-      setSelectedCompetency(competencies[0].id);
-      // Wait a moment for sub-competencies to load
-      setTimeout(() => {
-        if (subCompetencies.length >= 1) {
-          setSelectedSubCompetencies([subCompetencies[0].id]);
-        }
-      }, 500);
-    }
-    toast.success('Sample template loaded!');
+    // Get the currently selected sub-competency
+    const selectedSub = subCompetencies.find(sub => selectedSubCompetencies[0] === sub.id);
+    
+    // Define sample data for different sub-competencies
+    const samples: Record<string, any> = {
+      'Apply logical reasoning to multi-constraint business problems': {
+        name: 'Resource Allocation Challenge',
+        description: 'Tests ability to allocate resources within time and budget constraints',
+        scenario: 'You\'re a department lead planning Q4 budget. You have $500K to allocate across 5 critical projects, each with different ROI potential and risk levels.',
+        playerActions: 'Drag budget sliders to allocate funds across projects. Watch real-time impact on team capacity, timeline, and expected outcomes.',
+        edgeCase: 'Mid-allocation, CFO announces 20% budget cut. Timer drops to 60 seconds. Re-optimize your allocation to maintain highest-priority deliverables.',
+        uiAesthetic: 'Clean dashboard with budget bars and pie charts. Corporate blue/white theme. Real-time calculation displays. Minimalist finance app aesthetic.',
+      },
+      'Identify and evaluate trade-offs in operational scenarios': {
+        name: 'Priority Trade-Off Navigator',
+        description: 'Tests ability to make strategic decisions under competing constraints',
+        scenario: 'You\'re a Product Manager during a critical launch week. The KPI dashboard is overloading — you must prioritize which metrics to stabilize first before the system crashes.',
+        playerActions: 'Drag-and-drop to rank 6 competing KPIs (user retention, revenue, bug count, feature completion, team morale, tech debt). Each choice affects other metrics in real-time.',
+        edgeCase: 'Halfway through, the CEO messages: "Revenue must be #1 or we lose funding." Timer cuts to 90 seconds. Players must re-prioritize while maintaining system stability.',
+        uiAesthetic: 'Neon cyberpunk dashboard with glitching effects. Dark background with bright green/pink accent colors. Animated metric cards with real-time % changes.',
+      },
+      'Distinguish valid solutions under incomplete or contradictory inputs': {
+        name: 'Data Detective',
+        description: 'Tests ability to identify errors and select valid solutions from flawed data',
+        scenario: 'You\'re a data analyst receiving conflicting reports about customer churn. Three datasets show different numbers. Find the errors and determine the true churn rate.',
+        playerActions: 'Click to flag inconsistencies in data tables. Select which data points are reliable. Choose the most valid conclusion from 4 options.',
+        edgeCase: 'New urgent email arrives: "Executive board needs answer in 2 minutes." A fourth dataset appears with partial information. Must integrate it quickly.',
+        uiAesthetic: 'Spreadsheet/database aesthetic with red error highlights. Detective noir theme with magnifying glass cursor. Data cells pulse when suspicious.',
+      },
+    };
+
+    // Get sample for selected sub-competency, or use default
+    const sampleKey = selectedSub?.statement || 'Identify and evaluate trade-offs in operational scenarios';
+    const sample = samples[sampleKey] || samples['Identify and evaluate trade-offs in operational scenarios'];
+    
+    setFormData(sample);
+    toast.success('Sample demo loaded!');
   };
 
   const handleCopyPrompt = () => {
@@ -326,9 +344,9 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
               variant="outline"
               size="sm"
               onClick={handleLoadSample}
-              className="gap-2"
+              className="gap-2 border-2 border-neon-green hover:bg-neon-green/10"
             >
-              Load Sample Template
+              View Sample Demo
             </Button>
           </div>
         )}
