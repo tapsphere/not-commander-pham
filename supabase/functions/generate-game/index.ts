@@ -129,6 +129,32 @@ CRITICAL REQUIREMENTS:
 ${playOpsInstructions}
 ${logoInstructions}
 
+MANDATORY UX REQUIREMENTS:
+1. START SCREEN: Must include a clear "How to Play" section that explains:
+   - What the player needs to do (be specific and concrete)
+   - How to interact (drag, click, type, etc.)
+   - What success looks like
+   - Time limits or constraints
+   Example: "You are a project manager. Drag team members to projects. Click + and - to allocate budget. Submit when ready."
+
+2. SCROLLING: All content containers MUST have proper scrolling enabled:
+   - Use overflow-y: auto or overflow-y: scroll on content areas
+   - Ensure containers have max-height set appropriately
+   - Test that all interactive elements are accessible via scroll
+   - Mobile users must be able to reach all game elements
+
+3. IN-GAME GUIDANCE:
+   - Show tooltips or hints on first interaction
+   - Display what action is expected NOW (e.g., "Now allocate your budget" or "Drag items to prioritize")
+   - Provide real-time feedback when player takes actions
+   - Make ALL interactive elements visually obvious (buttons, drag handles, input fields)
+
+4. VISUAL CLARITY:
+   - Interactive elements must look clickable/draggable (use cursor: pointer, hover effects)
+   - Disabled states should be visually distinct
+   - Use clear labels and icons
+   - Show progress indicators
+
 OUTPUT FORMAT:
 Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.`;
 
