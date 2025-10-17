@@ -24,6 +24,49 @@ interface TemplateDialogProps {
   onSuccess: () => void;
 }
 
+// Global sample prompt with full scoring and proficiency details
+const SAMPLE_PROMPT_WITH_SCORING = `You are playing as a crisis communication manager at TechFlow Inc., a SaaS company that just experienced a data breach affecting 50,000 customer accounts.
+
+Your task: Draft an initial public statement and response strategy within the next 2 hours.
+
+Available information:
+- Breach discovered 45 minutes ago
+- Engineering team is still investigating the scope
+- Legal team is reviewing disclosure requirements
+- CEO wants to be "transparent but not alarming"
+
+Player actions:
+1. Review incoming stakeholder messages (customers, investors, press)
+2. Draft initial public statement
+3. Prioritize which stakeholder groups to contact first
+4. Decide on communication channels (email, social media, press release)
+5. Set timeline for follow-up communications
+
+Edge case twist: Just as you're about to publish, the engineering team reports the breach may be larger than initially thought, but they need 3 more hours to confirm. Do you:
+- Publish your statement now with current information?
+- Delay and risk news leaking from other sources?
+- Publish a holding statement acknowledging the investigation?
+
+Scoring formulas (from sub_competencies table):
+- Level 1 (Needs Work): Published without acknowledging uncertainty OR delayed more than 4 hours OR failed to contact key stakeholders within 2 hours. Score = (timeliness * 0.3) + (stakeholder_coverage * 0.3) + (transparency * 0.4). XP: 50
+- Level 2 (Proficient): Published holding statement within 1 hour, contacted all key stakeholders, acknowledged investigation ongoing. Score = (timeliness * 0.3) + (stakeholder_coverage * 0.3) + (transparency * 0.4). XP: 150
+- Level 3 (Mastery): Published nuanced holding statement within 45 minutes, proactively set up stakeholder-specific communication channels, framed uncertainty as commitment to accuracy, established clear follow-up timeline. Score = (timeliness * 0.2) + (stakeholder_coverage * 0.3) + (transparency * 0.3) + (strategic_framing * 0.2). XP: 300
+
+Backend data captured:
+- timestamp_first_action
+- statement_draft_versions (array)
+- stakeholder_contact_order (array)
+- communication_channels_selected (array)
+- decision_on_edge_case (string: "publish_now" | "delay" | "holding_statement")
+- time_to_first_publication (seconds)
+
+End result screens:
+- Level 1: "Crisis Escalated" - Shows news headlines about the company's silence, customer complaints on social media, and stock price impact. Feedback: "Speed matters, but so does acknowledging what you don't know."
+- Level 2: "Crisis Contained" - Shows positive reception to transparency, stakeholders appreciate honesty, minimal negative press. Feedback: "Good crisis management. You balanced speed with accuracy."
+- Level 3: "Crisis Transformed" - Shows media praising the company's transparent approach, customers expressing trust, and stakeholders viewing this as a model response. Feedback: "Masterful. You turned a crisis into a trust-building moment."
+
+UI aesthetic: Modern dashboard with a ticking clock, incoming message notifications, and a statement composer with real-time sentiment analysis of your draft.`;
+
 export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: TemplateDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [templateType, setTemplateType] = useState<'ai_generated' | 'custom_upload'>('ai_generated');
@@ -245,7 +288,12 @@ ${selectedSubs.map((sc, idx) => `${idx + 1}. ${sc.statement}
    • Player Action: ${sc.player_action || 'Not specified'}
    • Game Mechanic: ${sc.game_mechanic || 'Not specified'}
    • Game Loop: ${sc.game_loop || 'Not specified'}
-   • Scoring Logic: ${sc.scoring_logic ? JSON.stringify(sc.scoring_logic, null, 2) : 'Not specified'}
+   • Backend Data: ${Array.isArray(sc.backend_data_captured) ? sc.backend_data_captured.join(', ') : 'Not specified'}
+   
+🎯 Scoring Formulas:
+   • Level 1 (Needs Work): ${sc.scoring_formula_level_1 || 'Not specified'}
+   • Level 2 (Proficient): ${sc.scoring_formula_level_2 || 'Not specified'}
+   • Level 3 (Mastery): ${sc.scoring_formula_level_3 || 'Not specified'}
 `).join('\n\n') || '[Select 1 sub-competency]'}
 ` : '';
 
@@ -269,6 +317,9 @@ ${formData.playerActions || '[Define how the skill is expressed - e.g., drag-dro
 Edge-Case Moment:
 ${formData.edgeCase || '[Describe how the disruption appears - e.g., timer cuts in half, data field vanishes, rule changes]'}
 
+Scoring & Result Screens (CRITICAL - include in every game):
+${formData.edgeCase ? '✅ Scoring logic included in edge case section above' : '[MUST include: Level 1/2/3 formulas, XP values, result screen descriptions, backend data tracked]'}
+
 UI Aesthetic:
 ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, neon cyberpunk, branded corporate]'}
 
@@ -285,7 +336,10 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
 • 3 proficiency levels: Needs Work / Proficient / Mastery
 • Accuracy %, time tracking, edge-case recovery rate
 • Result screen with color-coded feedback (red/yellow/green)
-• Proof ledger integration and XP rewards`;
+• Proof ledger integration and XP rewards
+
+📖 EXAMPLE COMPLETE PROMPT (use as reference):
+${SAMPLE_PROMPT_WITH_SCORING}`;
       
       setGeneratedPrompt(prompt);
     }
