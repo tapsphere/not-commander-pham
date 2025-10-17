@@ -119,12 +119,23 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         const gameLoop = subCompData.game_loop || 'during a key decision point';
         const gameMechanic = subCompData.game_mechanic || 'interactive decision-making';
         
+        // Create unique edge cases based on validator type and context
+        const edgeCaseScenarios: { [key: string]: string } = {
+          'Scenario-Based Simulation': 'Suddenly, a key constraint changes: the budget is cut by 40% or a critical resource becomes unavailable. You must quickly reassess your strategy and reallocate without compromising the core objective.',
+          'Communication Product': 'Midway through, the target stakeholder changes - what was meant for executives now needs to be rewritten for frontline staff. The KPIs remain but your messaging must completely shift to match the new audience.',
+          'Data Analysis': 'Halfway through the analysis, new contradictory data appears that challenges your initial pattern recognition. You must reconcile the conflicting information and update your insights under time pressure.',
+          'Performance Assessment': 'The evaluation criteria suddenly shifts - a metric you thought was low priority is now the primary KPI. You must rapidly pivot your approach while maintaining quality in your initial work.',
+        };
+        
+        const edgeCase = edgeCaseScenarios[validatorType] || 
+          `During a critical decision point (${gameLoop}), an unexpected variable changes the rules of engagement - testing whether you can maintain performance quality while adapting your strategy in real-time.`;
+        
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
           description: `Interactive validator testing: ${subCompData.statement}`,
           scenario: `You're working on a high-stakes project when ${actionCue}. The interface shows a realistic work environment with time pressure and competing priorities where you must demonstrate ${subCompData.statement.toLowerCase()}.`,
           playerActions: `${playerAction}. Each interaction is tracked and validated using ${validatorType} to measure performance in real-time.`,
-          edgeCase: `Midway through the game, ${gameLoop} - a critical disruption that tests your ability to adapt while maintaining quality. Players who successfully navigate this twist demonstrate mastery-level competency.`,
+          edgeCase: edgeCase,
           uiAesthetic: `Clean, professional interface featuring ${gameMechanic} as the core interaction pattern. Real-time feedback displays ${validatorType} results with color-coded performance indicators (red/yellow/green) and smooth animations for all player actions.`,
         };
         
