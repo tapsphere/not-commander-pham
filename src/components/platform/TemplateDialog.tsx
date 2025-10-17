@@ -104,7 +104,15 @@ ${selectedComp.name} (${selectedComp.cbe_category})
 
 Sub-Competencies Being Tested:
 ${selectedSubs.map((sc, idx) => `${idx + 1}. ${sc.statement}
-   Player Action: ${sc.player_action || 'Define the player action'}`).join('\n\n') || '[Select 1-2 sub-competencies]'}
+
+📊 PlayOps Framework:
+   • Validator Type: ${sc.validator_type || 'Not specified'}
+   • Action Cue: ${sc.action_cue || 'Not specified'}
+   • Player Action: ${sc.player_action || 'Not specified'}
+   • Game Mechanic: ${sc.game_mechanic || 'Not specified'}
+   • Game Loop: ${sc.game_loop || 'Not specified'}
+   • Scoring Logic: ${sc.scoring_logic ? JSON.stringify(sc.scoring_logic, null, 2) : 'Not specified'}
+`).join('\n\n') || '[Select 1 sub-competency]'}
 ` : '';
 
       const prompt = `Design a 3–6 minute validator mini-game that tests a specific sub-competency through interactive gameplay.
