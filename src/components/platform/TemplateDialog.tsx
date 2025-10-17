@@ -344,9 +344,9 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
               variant="outline"
               size="sm"
               onClick={handleLoadSample}
-              className="gap-2 border-2 border-neon-green hover:bg-neon-green/10"
+              className="gap-2"
             >
-              View Sample Demo
+              Load Sample Template
             </Button>
           </div>
         )}
@@ -589,7 +589,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                       size="sm"
                       onClick={() => window.open('/validator-demo', '_blank')}
                     >
-                      View Demo
+                      View Sample Demo
                     </Button>
                     <Button
                       type="button"
@@ -597,7 +597,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
                       size="sm"
                       onClick={handleTestPreview}
                       disabled={generating}
-                      className="gap-2 bg-neon-green text-white hover:bg-neon-green/90 animate-pulse"
+                      className="gap-2 bg-neon-green text-white hover:bg-neon-green/90 animate-pulse border-2 border-neon-green"
                     >
                       <Eye className="h-4 w-4" />
                       {generating ? 'Generating...' : 'Test Preview 🎮'}
