@@ -92,6 +92,37 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     fetchSubCompetencies();
   }, [selectedCompetency]);
 
+  // Auto-load sample when sub-competency changes
+  useEffect(() => {
+    if (selectedSubCompetencies.length > 0 && subCompetencies.length > 0) {
+      const loadSampleAuto = async () => {
+        const selectedSub = subCompetencies.find(sub => selectedSubCompetencies[0] === sub.id);
+        if (!selectedSub) return;
+
+        const { data: subCompData, error: subError } = await supabase
+          .from('sub_competencies')
+          .select('*')
+          .eq('id', selectedSub.id)
+          .single();
+
+        if (subError || !subCompData) return;
+
+        const sample = {
+          name: `${subCompData.statement.substring(0, 50)}...`,
+          description: `Tests ability to demonstrate: ${subCompData.statement}`,
+          scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
+          playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
+          edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || 'validation system'}`,
+          uiAesthetic: `Design matches the ${subCompData.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || 'real-time validation'} to provide immediate player feedback.`,
+        };
+        
+        setFormData(sample);
+      };
+      
+      loadSampleAuto();
+    }
+  }, [selectedSubCompetencies, subCompetencies]);
+
   // Auto-generate prompt whenever form data changes
   useEffect(() => {
     if (formData.scenario || formData.playerActions || formData.edgeCase) {
