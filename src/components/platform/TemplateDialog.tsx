@@ -179,6 +179,30 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
         edgeCase: 'New urgent email arrives: "Executive board needs answer in 2 minutes." A fourth dataset appears with partial information. Must integrate it quickly.',
         uiAesthetic: 'Spreadsheet/database aesthetic with red error highlights. Detective noir theme with magnifying glass cursor. Data cells pulse when suspicious.',
       },
+      'Adapt reasoning under time pressure and stakeholder conflicts': {
+        name: 'Crisis Response Simulator',
+        description: 'Tests ability to maintain decision quality when rules change mid-task',
+        scenario: 'You\'re an Operations Manager handling a supply chain crisis. A key vendor just failed. You must reroute orders across 4 backup suppliers while maintaining delivery commitments.',
+        playerActions: 'Build a routing plan by assigning orders to suppliers. Monitor cost, speed, and quality metrics in real-time.',
+        edgeCase: 'Suddenly: "Breaking news - Port strike begins in 30 seconds!" Two suppliers become unavailable. Rapidly rebuild your routing plan under extreme time pressure.',
+        uiAesthetic: 'Command center with crisis alerts. Red warning lights, countdown timers. Military/emergency operations aesthetic with urgent notifications.',
+      },
+      'Interpret data patterns to support decision-making': {
+        name: 'Pattern Recognition Dashboard',
+        description: 'Tests ability to identify trends and anomalies in data visualizations',
+        scenario: 'You\'re a Business Analyst reviewing Q3 sales data. The executive team needs to know which regions are underperforming and why.',
+        playerActions: 'Examine charts and graphs. Click to highlight suspicious trends. Tag anomalies (seasonal dip vs actual problem). Select the most actionable insight.',
+        edgeCase: 'New data loads: "Last week\'s numbers just came in!" A hidden pattern emerges that contradicts your initial analysis. Update your conclusion within 45 seconds.',
+        uiAesthetic: 'Modern analytics dashboard. Tableau-style with interactive charts. Clean data viz aesthetic with hover tooltips and trend lines.',
+      },
+      'Communicate conclusions aligned with defined KPIs': {
+        name: 'Executive Brief Builder',
+        description: 'Tests ability to write concise summaries that directly address KPIs',
+        scenario: 'You\'re preparing a 60-second pitch to the board. They care about 3 KPIs: Revenue Growth, Customer Retention, and Market Share. Your analysis is done—now communicate it clearly.',
+        playerActions: 'Select which KPI to lead with. Type a 50-word summary. Drag supporting data points to emphasize key numbers.',
+        edgeCase: 'Mid-writing: "Board member asks: What about profitability?" You must add the profitability angle without exceeding word limit. Timer tightens to 30 seconds.',
+        uiAesthetic: 'Corporate presentation builder. PowerPoint-style interface with word counter. Professional business theme with slide preview.',
+      },
     };
 
     // Get sample for selected sub-competency, or use default
