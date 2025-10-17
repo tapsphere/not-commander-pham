@@ -95,6 +95,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     description: template?.description || '',
     scenario: '',
     playerActions: '',
+    actionScenes: '',
     edgeCase: '',
     uiAesthetic: '',
   });
@@ -213,6 +214,7 @@ You'll interact with a ${gameMechanic.toLowerCase()} interface that requires you
           playerActions: `${playerAction}
 
 The system tracks your actions throughout the ${gameLoop}.`,
+          actionScenes: '',
           edgeCase: `${edgeCase}`,
           uiAesthetic: `Interface style: ${gameMechanic} in a professional workspace. Clean, mobile-optimized design with clear visual feedback.`,
         };
@@ -282,7 +284,10 @@ ${formData.scenario || '[Describe the narrative wrapper and visual tone]'}
 Player Actions:
 ${formData.playerActions || '[Define how the skill is expressed - e.g., drag-drop, select, type, prioritize]'}
 
-Edge-Case Moment:
+${formData.actionScenes ? `Action Scenes / Rounds:
+${formData.actionScenes}
+
+` : ''}Edge-Case Moment:
 ${formData.edgeCase || '[Describe how the disruption appears - e.g., timer cuts in half, data field vanishes, rule changes]'}
 
 Scoring & Result Screens (CRITICAL - include in every game):
@@ -339,6 +344,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
       description: `Tests ability to demonstrate: ${subCompData.statement}`,
       scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
       playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
+      actionScenes: '',
       edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || 'validation system'}`,
       uiAesthetic: `Design matches the ${subCompData.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || 'real-time validation'} to provide immediate player feedback.`,
     };
@@ -470,7 +476,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: '', description: '', scenario: '', playerActions: '', edgeCase: '', uiAesthetic: '' });
+      setFormData({ name: '', description: '', scenario: '', playerActions: '', actionScenes: '', edgeCase: '', uiAesthetic: '' });
       setCustomGameFile(null);
     } catch (error: any) {
       toast.error(error.message);
@@ -700,6 +706,21 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
                 className="bg-gray-800 border-gray-700"
                 placeholder="How the skill is expressed. Example: 'Drag-and-drop to rank priorities' or 'Select trade-offs between competing KPIs'"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="actionScenes">Action Scenes / Rounds (optional)</Label>
+              <Textarea
+                id="actionScenes"
+                value={formData.actionScenes}
+                onChange={(e) => setFormData({ ...formData, actionScenes: e.target.value })}
+                rows={4}
+                className="bg-gray-800 border-gray-700"
+                placeholder="Describe how gameplay unfolds across 2–4 short scenes (each ≈ 30–60 seconds).&#10;Example:&#10;• Scene 1 = Baseline decision&#10;• Scene 2 = New variable introduced&#10;• Scene 3 = Edge-case rule flip&#10;• Scene 4 = Recover and submit final plan&#10;(System will pace scenes automatically based on complexity and time limit.)"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Optional: Break down your validator into 2–4 sequential scenes. System defaults to 3 scenes if left blank.
+              </p>
             </div>
 
             <div>
