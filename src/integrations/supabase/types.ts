@@ -336,6 +336,7 @@ export type Database = {
           backend_data_captured: Json | null
           competency_id: string
           created_at: string | null
+          display_order: number | null
           id: string
           player_action: string | null
           scoring_logic: Json | null
@@ -345,6 +346,7 @@ export type Database = {
           backend_data_captured?: Json | null
           competency_id: string
           created_at?: string | null
+          display_order?: number | null
           id?: string
           player_action?: string | null
           scoring_logic?: Json | null
@@ -354,6 +356,7 @@ export type Database = {
           backend_data_captured?: Json | null
           competency_id?: string
           created_at?: string | null
+          display_order?: number | null
           id?: string
           player_action?: string | null
           scoring_logic?: Json | null

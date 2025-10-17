@@ -79,7 +79,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         .from('sub_competencies')
         .select('*')
         .eq('competency_id', selectedCompetency)
-        .order('statement');
+        .order('display_order', { nullsFirst: false });
       
       if (error) {
         console.error('Error fetching sub-competencies:', error);
