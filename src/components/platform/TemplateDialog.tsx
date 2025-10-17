@@ -163,6 +163,7 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
     
     // Define sample data for different sub-competencies
     const samples: Record<string, any> = {
+      // ============= ANALYTICAL THINKING =============
       'Apply logical reasoning to multi-constraint business problems': {
         name: 'Resource Allocation Challenge',
         description: 'Tests ability to allocate resources within time and budget constraints',
@@ -210,6 +211,156 @@ ${formData.uiAesthetic || '[Define visual style - e.g., greyscale minimalist, ne
         playerActions: 'Select which KPI to lead with. Type a 50-word summary. Drag supporting data points to emphasize key numbers.',
         edgeCase: 'Mid-writing: "Board member asks: What about profitability?" You must add the profitability angle without exceeding word limit. Timer tightens to 30 seconds.',
         uiAesthetic: 'Corporate presentation builder. PowerPoint-style interface with word counter. Professional business theme with slide preview.',
+      },
+      
+      // ============= CREATIVE THINKING =============
+      'Generate multiple innovative ideas under defined constraints': {
+        name: 'Innovation Sprint',
+        description: 'Tests ability to produce multiple novel solutions quickly',
+        scenario: 'You\'re a Product Designer in an ideation session. The CEO wants 5 new product ideas that use our existing tech stack but target a completely different market.',
+        playerActions: 'Type out 5 distinct ideas. Each must fit within 20 words. Drag-and-drop constraint cards (budget, timeline, target audience) to your ideas.',
+        edgeCase: 'Suddenly: "Marketing says 3 of your ideas are too similar to competitors!" Timer drops to 90 seconds. Replace those 3 ideas with genuinely novel concepts.',
+        uiAesthetic: 'Bright ideation board with sticky notes. Colorful Post-it aesthetic. Playful fonts and animated idea bubbles. Creative studio vibe.',
+      },
+      'Reframe problems from new perspectives': {
+        name: 'Perspective Shift Challenge',
+        description: 'Tests ability to redefine problems using different frameworks',
+        scenario: 'You\'re a Strategy Consultant. The client says: "We need to reduce costs." Reframe this problem from 3 different angles (customer value, operational efficiency, innovation).',
+        playerActions: 'Drag problem statement into 3 reframing boxes. Type a "How might we..." question for each perspective. Preview shows impact of each reframe.',
+        edgeCase: 'Mid-reframe: Client clarifies: "Actually, profit margins are fine, it\'s customer acquisition that\'s expensive." Adjust all 3 reframes to address the real issue.',
+        uiAesthetic: 'Mind-map style with branching nodes. Soft pastels with hand-drawn connectors. Consultant workshop aesthetic with visual thinking tools.',
+      },
+      'Combine unrelated concepts to form new solutions': {
+        name: 'Concept Fusion Lab',
+        description: 'Tests ability to synthesize disparate ideas into novel solutions',
+        scenario: 'You\'re an Innovation Lead combining two unrelated industries: Healthcare + Gaming. Create a new product concept that merges these worlds meaningfully.',
+        playerActions: 'Drag elements from Healthcare column and Gaming column into the fusion zone. Build a prototype description. Preview shows how elements interact.',
+        edgeCase: 'Investor feedback: "This is too niche." Add a third industry (Education) and rebuild the concept within 60 seconds to broaden market appeal.',
+        uiAesthetic: 'Science lab aesthetic with beakers and mixing stations. Vibrant colors with chemical reaction animations. Futuristic innovation lab theme.',
+      },
+      'Evaluate creative options against feasibility and impact': {
+        name: 'Idea Triage Simulator',
+        description: 'Tests ability to rank creative ideas by practicality vs. potential',
+        scenario: 'You\'re a Product Lead reviewing 6 brainstormed ideas. Rank them on a 2x2 grid: Feasibility (easy vs. hard) and Impact (low vs. high).',
+        playerActions: 'Drag 6 idea cards onto the grid. Each placement auto-calculates ROI score. Choose the top 2 ideas to pitch.',
+        edgeCase: 'Budget update: "We only have 30% of expected funding." Re-rank ideas based on drastically reduced resources. Timer cuts to 45 seconds.',
+        uiAesthetic: '2x2 matrix visualization with drag-and-drop cards. Clean business strategy aesthetic. Grid with labeled quadrants and score displays.',
+      },
+      'Iterate and improve upon initial prototypes': {
+        name: 'Prototype Refinement Loop',
+        description: 'Tests ability to apply feedback and improve designs iteratively',
+        scenario: 'You\'re a UX Designer. Your first prototype got user feedback: "Too confusing," "Missing key feature," and "Colors are off." Revise the prototype.',
+        playerActions: 'View prototype mockup. Apply 3 required changes from feedback list. Preview shows before/after comparison.',
+        edgeCase: 'User testing update: "The changes work, but now loading time is 5x slower." Optimize the prototype for speed without losing functionality.',
+        uiAesthetic: 'Design tool interface with layers and artboards. Figma-style canvas with feedback comments floating nearby. Modern design app aesthetic.',
+      },
+      'Communicate creative rationale and process clearly': {
+        name: 'Creative Pitch Storyboard',
+        description: 'Tests ability to explain creative decisions persuasively',
+        scenario: 'You\'re a Creative Director pitching a bold new campaign. Build a 4-slide storyboard explaining: Problem → Insight → Creative Solution → Expected Outcome.',
+        playerActions: 'Arrange pre-made content cards into 4 storyboard frames. Type a 30-word narrative for each frame. Preview shows slide flow.',
+        edgeCase: 'Client interrupts: "Why not just do what worked last year?" Add a 5th slide defending your creative risk within 30 seconds.',
+        uiAesthetic: 'Presentation builder with slide sorter. TED Talk aesthetic with spotlight transitions. Professional pitch deck theme.',
+      },
+      
+      // ============= CRITICAL REASONING =============
+      'Identify assumptions underlying an argument': {
+        name: 'Assumption Detective',
+        description: 'Tests ability to uncover hidden assumptions in arguments',
+        scenario: 'You\'re reviewing a business proposal. The exec says: "If we launch in Q1, we\'ll capture 30% market share." What assumptions are hiding here?',
+        playerActions: 'Read the argument. Click to highlight 3 hidden assumptions (e.g., "competitors won\'t respond," "marketing budget is sufficient").',
+        edgeCase: 'New data: "Market research shows competitors are planning a Q1 launch too." Identify which assumptions are now invalid. Timer drops to 60 seconds.',
+        uiAesthetic: 'Legal document aesthetic with highlighting tools. Courtroom drama theme. Text with interactive underline and callout boxes.',
+      },
+      'Distinguish fact, inference, opinion': {
+        name: 'Statement Sorter',
+        description: 'Tests ability to categorize claims by type',
+        scenario: 'You\'re fact-checking a report with 10 statements mixed together. Sort them into 3 buckets: Facts, Inferences, and Opinions.',
+        playerActions: 'Drag 10 statement cards into the correct category columns. Real-time feedback shows accuracy. Must achieve 90% correct.',
+        edgeCase: 'Breaking: "New study contradicts 2 of the "facts" you sorted." Re-categorize those statements based on new information within 45 seconds.',
+        uiAesthetic: 'Newsroom fact-checker interface. Clean typography with colored category bins. Journalism aesthetic with verification badges.',
+      },
+      'Evaluate evidence quality and relevance': {
+        name: 'Evidence Weighing Station',
+        description: 'Tests ability to assess source credibility and relevance',
+        scenario: 'You\'re a Research Analyst building a case. You have 5 sources with varying credibility. Rank them by quality and select the 3 most relevant.',
+        playerActions: 'Review source metadata (date, author, citations). Drag sources onto a credibility scale. Choose top 3 for final conclusion.',
+        edgeCase: 'Peer review: "Source #2 was retracted yesterday." Remove it and re-rank remaining sources without exceeding the 90-second timer.',
+        uiAesthetic: 'Academic research interface with citation cards. Library aesthetic with credibility meters and source quality indicators.',
+      },
+      'Detect logical fallacies in reasoning': {
+        name: 'Fallacy Finder',
+        description: 'Tests ability to identify flawed logic in arguments',
+        scenario: 'You\'re auditing a strategy memo filled with logical errors. Find and label 4 fallacies: Ad Hominem, False Dilemma, Slippery Slope, Straw Man.',
+        playerActions: 'Read argument text. Click sentences to flag them. Select fallacy type from dropdown. Must find all 4 within 120 seconds.',
+        edgeCase: 'Plot twist: "One of the "fallacies" was actually valid reasoning." Identify and unflag the correct statement within 30 seconds.',
+        uiAesthetic: 'Philosophy textbook interface with margin notes. Academic aesthetic with fallacy taxonomy reference sidebar.',
+      },
+      'Draw valid conclusions from incomplete data': {
+        name: 'Incomplete Data Analyzer',
+        description: 'Tests ability to make sound inferences despite missing information',
+        scenario: 'You\'re a Data Scientist with partial survey results (60% response rate, 2 of 5 questions skipped). What can you confidently conclude?',
+        playerActions: 'Review incomplete dataset. Select 1 of 4 conclusion options. Justify why it\'s the most defensible given the data gaps.',
+        edgeCase: 'Additional data arrives: "Late responses change the distribution." Re-evaluate your conclusion with the updated (but still incomplete) data.',
+        uiAesthetic: 'Data science notebook interface with gaps in charts. Minimalist academic aesthetic with confidence interval visualizations.',
+      },
+      'Communicate logical reasoning clearly and persuasively': {
+        name: 'Logic Chain Builder',
+        description: 'Tests ability to articulate reasoning step-by-step',
+        scenario: 'You\'re presenting a recommendation to skeptical stakeholders. Build a 3-step logical argument: Premise → Evidence → Conclusion.',
+        playerActions: 'Type each step (max 30 words). Link steps with logical connectors (therefore, because, since). Preview shows argument flow.',
+        edgeCase: 'Stakeholder challenge: "What if your premise is wrong?" Add a contingency branch addressing the counterargument within 45 seconds.',
+        uiAesthetic: 'Flowchart builder with logical connectors. Clean diagram aesthetic with step-by-step progression arrows.',
+      },
+      
+      // ============= PROBLEM SOLVING =============
+      'Define problems clearly and identify root causes': {
+        name: 'Root Cause Mapper',
+        description: 'Tests ability to trace symptoms back to underlying causes',
+        scenario: 'You\'re troubleshooting declining sales. Symptoms: lower website traffic, higher bounce rate, fewer repeat customers. What\'s the root cause?',
+        playerActions: 'Drag symptom cards onto a 5 Whys diagram. Drill down through causal layers. Select the root cause node.',
+        edgeCase: 'Sales team adds: "Actually, our top competitor just launched a new feature." Reassess the root cause with this new factor. Timer: 60 seconds.',
+        uiAesthetic: 'Systems thinking map with nodes and arrows. Clean causal diagram aesthetic with color-coded problem layers.',
+      },
+      'Generate and compare alternative solutions': {
+        name: 'Solution Generator',
+        description: 'Tests ability to develop and evaluate multiple solution paths',
+        scenario: 'You\'re solving a staffing shortage. Generate 3 different solutions: Hiring, Automation, and Process Redesign. Compare trade-offs.',
+        playerActions: 'Type 3 solution summaries (40 words each). Score each on: Cost, Speed, Risk. Select the best fit for current constraints.',
+        edgeCase: 'Budget cut announced: "Hiring is off the table." Generate a 4th solution combining Automation + Process Redesign within 60 seconds.',
+        uiAesthetic: 'Solution comparison matrix with pros/cons columns. Business strategy aesthetic with decision tree visualization.',
+      },
+      'Apply appropriate methods to reach a solution': {
+        name: 'Method Selector',
+        description: 'Tests ability to choose the right tool for each problem type',
+        scenario: 'You have 4 problems: Data Analysis, Process Optimization, Conflict Resolution, Forecasting. Match each to the right methodology.',
+        playerActions: 'Drag method cards (Regression, Lean Six Sigma, Mediation, Monte Carlo) onto problem tiles. Preview shows method application.',
+        edgeCase: 'Methodology constraint: "We can only use 2 methods due to team expertise." Choose which problems to tackle and with which methods.',
+        uiAesthetic: 'Toolkit interface with method cards and problem tiles. Consultant aesthetic with methodology reference guide.',
+      },
+      'Implement solutions effectively': {
+        name: 'Execution Simulator',
+        description: 'Tests ability to plan and execute solution steps under pressure',
+        scenario: 'You\'re implementing a new CRM system. Plan the rollout: Training → Migration → Testing → Launch. Each step has time and resource costs.',
+        playerActions: 'Sequence the 4 steps. Allocate resources to each. Monitor live KPIs (team readiness, budget remaining, days left).',
+        edgeCase: 'Critical bug found in Testing phase. Choose: Roll back (lose time) or patch forward (risk stability). Timer: 45 seconds to decide.',
+        uiAesthetic: 'Project management dashboard with Gantt chart. Agile sprint aesthetic with task cards and progress bars.',
+      },
+      'Monitor and evaluate outcomes': {
+        name: 'Outcome Tracker',
+        description: 'Tests ability to track results and adjust plans in real-time',
+        scenario: 'You launched a marketing campaign. Monitor 3 KPIs: Impressions, Click-Through Rate, Conversions. One KPI is failing. What do you adjust?',
+        playerActions: 'Watch live KPI dashboard. Click the failing metric to see breakdown. Select 1 of 4 adjustment options. Preview shows projected impact.',
+        edgeCase: 'Emergency: "Budget is 50% depleted, but we\'re only 30% through the campaign." Re-allocate spending to save the campaign.',
+        uiAesthetic: 'Live analytics dashboard with real-time graphs. Mission control aesthetic with alert notifications and metric tickers.',
+      },
+      'Communicate solutions and results clearly': {
+        name: 'Results Retrospective',
+        description: 'Tests ability to summarize learnings and outcomes concisely',
+        scenario: 'You completed a 6-month project. Write a 100-word retrospective covering: What Worked, What Didn\'t, Key Lesson, Next Steps.',
+        playerActions: 'Fill 4 text boxes (25 words each). Word counter tracks progress. Review shows structure and clarity score.',
+        edgeCase: 'Stakeholder asks: "What would you do differently?" Add a 5th section (25 words) within 30 seconds addressing this question.',
+        uiAesthetic: 'Report builder interface with structured sections. Professional business doc aesthetic with word count and readability indicators.',
       },
     };
 
