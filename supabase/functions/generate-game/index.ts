@@ -137,11 +137,25 @@ MANDATORY UX REQUIREMENTS:
    - Time limits or constraints
    Example: "You are a project manager. Drag team members to projects. Click + and - to allocate budget. Submit when ready."
 
-2. SCROLLING: All content containers MUST have proper scrolling enabled:
-   - Use overflow-y: auto or overflow-y: scroll on content areas
-   - Ensure containers have max-height set appropriately
-   - Test that all interactive elements are accessible via scroll
-   - Mobile users must be able to reach all game elements
+2. SCROLLING (CRITICAL - MUST IMPLEMENT):
+   Every scrollable content area MUST have these EXACT CSS properties:
+   
+   overflow-y: auto;
+   max-height: 60vh;
+   -webkit-overflow-scrolling: touch;
+   
+   Apply to ALL:
+   - Game content containers
+   - Team rosters, project lists, resource panels
+   - Message feeds, instruction panels
+   - ANY list or vertically stacked content
+   
+   Example:
+   <div style="overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch;">
+     <!-- all your scrollable content here -->
+   </div>
+   
+   TEST: Can a user on a small phone screen reach ALL interactive elements by scrolling?
 
 3. IN-GAME GUIDANCE:
    - Show tooltips or hints on first interaction
