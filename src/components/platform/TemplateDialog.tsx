@@ -95,10 +95,14 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     description: template?.description || '',
     scenario: '',
     playerActions: '',
-    actionScenes: '',
+    scene1: '',
+    scene2: '',
+    scene3: '',
+    scene4: '',
     edgeCase: '',
     uiAesthetic: '',
   });
+  const [activeScenes, setActiveScenes] = useState(1); // Track how many scene fields are shown
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -214,7 +218,10 @@ You'll interact with a ${gameMechanic.toLowerCase()} interface that requires you
           playerActions: `${playerAction}
 
 The system tracks your actions throughout the ${gameLoop}.`,
-          actionScenes: '',
+          scene1: '',
+          scene2: '',
+          scene3: '',
+          scene4: '',
           edgeCase: `${edgeCase}`,
           uiAesthetic: `Interface style: ${gameMechanic} in a professional workspace. Clean, mobile-optimized design with clear visual feedback.`,
         };
@@ -284,8 +291,11 @@ ${formData.scenario || '[Describe the narrative wrapper and visual tone]'}
 Player Actions:
 ${formData.playerActions || '[Define how the skill is expressed - e.g., drag-drop, select, type, prioritize]'}
 
-${formData.actionScenes ? `Action Scenes / Rounds:
-${formData.actionScenes}
+${formData.scene1 || formData.scene2 || formData.scene3 || formData.scene4 ? `Action Scenes / Rounds:
+${formData.scene1 ? `Scene 1: ${formData.scene1}` : ''}
+${formData.scene2 ? `Scene 2: ${formData.scene2}` : ''}
+${formData.scene3 ? `Scene 3: ${formData.scene3}` : ''}
+${formData.scene4 ? `Scene 4: ${formData.scene4}` : ''}
 
 ` : ''}Edge-Case Moment:
 ${formData.edgeCase || '[Describe how the disruption appears - e.g., timer cuts in half, data field vanishes, rule changes]'}
@@ -344,7 +354,10 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
       description: `Tests ability to demonstrate: ${subCompData.statement}`,
       scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
       playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
-      actionScenes: '',
+      scene1: '',
+      scene2: '',
+      scene3: '',
+      scene4: '',
       edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || 'validation system'}`,
       uiAesthetic: `Design matches the ${subCompData.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || 'real-time validation'} to provide immediate player feedback.`,
     };
@@ -476,7 +489,8 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: '', description: '', scenario: '', playerActions: '', actionScenes: '', edgeCase: '', uiAesthetic: '' });
+      setFormData({ name: '', description: '', scenario: '', playerActions: '', scene1: '', scene2: '', scene3: '', scene4: '', edgeCase: '', uiAesthetic: '' });
+      setActiveScenes(1);
       setCustomGameFile(null);
     } catch (error: any) {
       toast.error(error.message);
@@ -708,19 +722,94 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
               />
             </div>
 
-            <div>
-              <Label htmlFor="actionScenes">Action Scenes / Rounds (optional)</Label>
-              <Textarea
-                id="actionScenes"
-                value={formData.actionScenes}
-                onChange={(e) => setFormData({ ...formData, actionScenes: e.target.value })}
-                rows={4}
-                className="bg-gray-800 border-gray-700"
-                placeholder="Describe how gameplay unfolds across 2–4 short scenes (each ≈ 30–60 seconds).&#10;Example:&#10;• Scene 1 = Baseline decision&#10;• Scene 2 = New variable introduced&#10;• Scene 3 = Edge-case rule flip&#10;• Scene 4 = Recover and submit final plan&#10;(System will pace scenes automatically based on complexity and time limit.)"
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Optional: Break down your validator into 2–4 sequential scenes. System defaults to 3 scenes if left blank.
-              </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Action Scenes / Rounds (optional)</Label>
+                <p className="text-xs text-gray-400">
+                  Break gameplay into 2–4 sequential scenes
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="scene1" className="text-sm">Scene 1</Label>
+                <Input
+                  id="scene1"
+                  value={formData.scene1}
+                  onChange={(e) => setFormData({ ...formData, scene1: e.target.value })}
+                  className="bg-gray-800 border-gray-700"
+                  placeholder="e.g., Baseline decision or initial challenge"
+                />
+              </div>
+
+              {activeScenes >= 2 && (
+                <div>
+                  <Label htmlFor="scene2" className="text-sm">Scene 2</Label>
+                  <Input
+                    id="scene2"
+                    value={formData.scene2}
+                    onChange={(e) => setFormData({ ...formData, scene2: e.target.value })}
+                    className="bg-gray-800 border-gray-700"
+                    placeholder="e.g., New variable introduced"
+                  />
+                </div>
+              )}
+
+              {activeScenes >= 3 && (
+                <div>
+                  <Label htmlFor="scene3" className="text-sm">Scene 3</Label>
+                  <Input
+                    id="scene3"
+                    value={formData.scene3}
+                    onChange={(e) => setFormData({ ...formData, scene3: e.target.value })}
+                    className="bg-gray-800 border-gray-700"
+                    placeholder="e.g., Edge-case rule flip"
+                  />
+                </div>
+              )}
+
+              {activeScenes >= 4 && (
+                <div>
+                  <Label htmlFor="scene4" className="text-sm">Scene 4</Label>
+                  <Input
+                    id="scene4"
+                    value={formData.scene4}
+                    onChange={(e) => setFormData({ ...formData, scene4: e.target.value })}
+                    className="bg-gray-800 border-gray-700"
+                    placeholder="e.g., Recover and submit final plan"
+                  />
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                {activeScenes < 4 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveScenes(prev => Math.min(4, prev + 1))}
+                    className="text-xs"
+                  >
+                    + Add Scene {activeScenes + 1}
+                  </Button>
+                )}
+                {activeScenes > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setActiveScenes(prev => prev - 1);
+                      // Clear the last scene when removing
+                      if (activeScenes === 4) setFormData({ ...formData, scene4: '' });
+                      if (activeScenes === 3) setFormData({ ...formData, scene3: '' });
+                      if (activeScenes === 2) setFormData({ ...formData, scene2: '' });
+                    }}
+                    className="text-xs"
+                  >
+                    Remove Scene {activeScenes}
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div>
