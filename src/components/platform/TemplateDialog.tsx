@@ -95,11 +95,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     description: template?.description || '',
     industry: '',
     roleScenario: '',
-    resourceType1: '',
-    resourceType2: '',
-    itemsToRank: '',
-    dataType: '',
-    constraintType: '',
+    keyElement: '',
     edgeCaseDetails: '',
     visualTheme: 'modern',
     scenario: '',
@@ -126,26 +122,6 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
   
   // Get selected sub-competency data
   const selectedSub = subCompetencies.find(sub => selectedSubCompetencies.includes(sub.id));
-  const gameMechanic = selectedSub?.game_mechanic || '';
-  
-  // Determine which fields to show based on game mechanic
-  const getDynamicFields = () => {
-    if (!gameMechanic) return [];
-    
-    if (gameMechanic.includes('Resource Allocation') || gameMechanic.includes('Allocation')) {
-      return ['resourceType1', 'resourceType2'];
-    }
-    if (gameMechanic.includes('Ranking') || gameMechanic.includes('Prioritization')) {
-      return ['itemsToRank'];
-    }
-    if (gameMechanic.includes('Data Analysis') || gameMechanic.includes('Pattern Recognition')) {
-      return ['dataType'];
-    }
-    if (gameMechanic.includes('Constraint') || gameMechanic.includes('Idea') || gameMechanic.includes('Solution')) {
-      return ['constraintType'];
-    }
-    return [];
-  };
 
   // Fetch competencies on mount
   useEffect(() => {
@@ -474,11 +450,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
       description: `Tests ability to demonstrate: ${subCompData.statement}`,
       industry: 'Technology',
       roleScenario: 'You are a professional working on a time-sensitive challenge',
-      resourceType1: '',
-      resourceType2: '',
-      itemsToRank: '',
-      dataType: '',
-      constraintType: '',
+      keyElement: 'Key resources or data relevant to this challenge',
       edgeCaseDetails: 'Sudden constraint or variable change mid-task',
       visualTheme: 'modern',
       scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
@@ -637,11 +609,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
         description: '', 
         industry: '',
         roleScenario: '',
-        resourceType1: '',
-        resourceType2: '',
-        itemsToRank: '',
-        dataType: '',
-        constraintType: '',
+        keyElement: '',
         edgeCaseDetails: '',
         visualTheme: 'modern',
         scenario: '', 
@@ -894,70 +862,21 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
                     <p className="text-xs text-gray-400 mt-1">{formData.roleScenario.length}/150</p>
                   </div>
 
-                  {/* Dynamic Fields Based on Game Mechanic */}
-                  {getDynamicFields().includes('resourceType1') && (
-                    <>
-                      <div>
-                        <Label htmlFor="resourceType1">Resource Type 1 *</Label>
-                        <Input
-                          id="resourceType1"
-                          value={formData.resourceType1}
-                          onChange={(e) => setFormData({ ...formData, resourceType1: e.target.value })}
-                          className="bg-gray-700 border-gray-600"
-                          placeholder="e.g., Budget, Time, Staff"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="resourceType2">Resource Type 2 *</Label>
-                        <Input
-                          id="resourceType2"
-                          value={formData.resourceType2}
-                          onChange={(e) => setFormData({ ...formData, resourceType2: e.target.value })}
-                          className="bg-gray-700 border-gray-600"
-                          placeholder="e.g., Equipment, Materials, Personnel"
-                        />
-                      </div>
-                    </>
-                  )}
-                  
-                  {getDynamicFields().includes('itemsToRank') && (
-                    <div>
-                      <Label htmlFor="itemsToRank">Items to Rank (comma-separated) *</Label>
-                      <Input
-                        id="itemsToRank"
-                        value={formData.itemsToRank}
-                        onChange={(e) => setFormData({ ...formData, itemsToRank: e.target.value })}
-                        className="bg-gray-700 border-gray-600"
-                        placeholder="e.g., Project A, Project B, Project C, Project D"
-                      />
-                    </div>
-                  )}
-                  
-                  {getDynamicFields().includes('dataType') && (
-                    <div>
-                      <Label htmlFor="dataType">Data Type to Analyze *</Label>
-                      <Input
-                        id="dataType"
-                        value={formData.dataType}
-                        onChange={(e) => setFormData({ ...formData, dataType: e.target.value })}
-                        className="bg-gray-700 border-gray-600"
-                        placeholder="e.g., Sales data, Performance metrics, Survey results"
-                      />
-                    </div>
-                  )}
-                  
-                  {getDynamicFields().includes('constraintType') && (
-                    <div>
-                      <Label htmlFor="constraintType">Main Constraint *</Label>
-                      <Input
-                        id="constraintType"
-                        value={formData.constraintType}
-                        onChange={(e) => setFormData({ ...formData, constraintType: e.target.value })}
-                        className="bg-gray-700 border-gray-600"
-                        placeholder="e.g., 24-hour deadline, $50K budget limit, 5-person team max"
-                      />
-                    </div>
-                  )}
+                  {/* Key Element - Universal Field */}
+                  <div>
+                    <Label htmlFor="keyElement">Key Element (max 100 chars) *</Label>
+                    <Input
+                      id="keyElement"
+                      value={formData.keyElement}
+                      onChange={(e) => setFormData({ ...formData, keyElement: e.target.value.slice(0, 100) })}
+                      className="bg-gray-700 border-gray-600"
+                      placeholder="e.g., Budget & Staff (for allocation), Projects A-D (for ranking), Sales Data (for analysis)"
+                      maxLength={100}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      What will the player work with? Examples: resources, items to rank, data to analyze, constraints, ideas
+                    </p>
+                  </div>
 
                   {/* Edge Case Details */}
                   <div>
