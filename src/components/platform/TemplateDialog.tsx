@@ -813,13 +813,26 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
                 className="bg-gray-800 border-gray-700"
                 placeholder="How the skill is expressed. Example: 'Drag-and-drop to rank priorities' or 'Select trade-offs between competing KPIs'"
               />
+              <p className="text-xs text-gray-400 mt-1">
+                Define the main mechanic the player uses during gameplay.<br />
+                (Example: drag and drop resources, select answers, type responses, match items, tap to allocate, etc.)<br />
+                This describes the overall action type, not each scene.<br />
+                Keep total playtime within 3 minutes (90–180 seconds).
+              </p>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div>
                 <Label>Action Scenes / Rounds (optional)</Label>
-                <p className="text-xs text-gray-400">
-                  Break gameplay into 2–4 sequential scenes
+                <p className="text-xs text-gray-400 mt-1">
+                  Use this section only if your validator has multiple short scenes (2–4).<br />
+                  Each scene is one screen of play (~30–60s).<br />
+                  Example:<br />
+                  • Scene 1 = Baseline decision<br />
+                  • Scene 2 = New variable introduced<br />
+                  • Scene 3 = Edge-case twist<br />
+                  • Scene 4 = Recover & submit final plan<br />
+                  (Leave blank if the validator plays in one continuous round.)
                 </p>
               </div>
 
