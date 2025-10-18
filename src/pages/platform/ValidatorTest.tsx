@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlayCircle, CheckCircle, XCircle, AlertCircle, Bot, Upload } from 'lucide-react';
+import { PlayCircle, CheckCircle, XCircle, AlertCircle, Bot, Upload, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Template {
@@ -134,11 +134,21 @@ export default function ValidatorTest() {
   return (
     <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Validator Testing Dashboard</h1>
-          <p className="text-gray-400">
-            Stress test all validators before publishing • Ensure quality and C-BEN compliance
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Validator Testing Dashboard</h1>
+            <p className="text-gray-400">
+              Stress test all validators before publishing • Ensure quality and C-BEN compliance
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => window.open('/VALIDATOR_TESTING_GUIDE.md', '_blank')}
+            className="border-gray-600 text-gray-300"
+          >
+            <BookOpen className="w-4 h-4 mr-2" />
+            Testing Guide
+          </Button>
         </div>
 
         {/* Filters */}
