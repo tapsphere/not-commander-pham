@@ -262,6 +262,10 @@ The system tracks your actions throughout the ${gameLoop}.`,
         
         console.log('Setting sample:', sample);
         setFormData(prev => ({ ...prev, ...sample }));
+        
+        // Set active scenes based on how many scenes have data
+        const sceneCount = [sample.scene1, sample.scene2, sample.scene3, sample.scene4].filter(s => s).length;
+        setActiveScenes(Math.max(1, sceneCount));
       };
       
       loadSampleAuto();
@@ -448,6 +452,11 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
     };
     
     setFormData(sample);
+    
+    // Set active scenes based on how many scenes have data
+    const sceneCount = [sample.scene1, sample.scene2, sample.scene3, sample.scene4].filter(s => s).length;
+    setActiveScenes(Math.max(1, sceneCount));
+    
     toast.success(`Sample loaded using ${subCompData.statement} framework!`);
   };
 
