@@ -603,7 +603,8 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-neon-green text-white pointer-events-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] bg-gray-900 border-neon-green text-white pointer-events-auto flex flex-col">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 scroll-smooth" style={{ WebkitOverflowScrolling: 'touch' }}>
         <DialogHeader>
           <DialogTitle style={{ color: 'hsl(var(--neon-green))' }}>
             {template ? 'Edit Template' : 'Create Validator Template'}
@@ -1051,6 +1052,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
             </Button>
           </div>
         </form>
+        </div>
       </DialogContent>
 
       {/* Preview Dialog */}
