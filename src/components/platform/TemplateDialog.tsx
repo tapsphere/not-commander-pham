@@ -98,6 +98,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     keyElement: '',
     edgeCaseDetails: '',
     visualTheme: 'modern',
+    interactionMethod: '',
     scenario: '',
     playerActions: '',
     scene1: '',
@@ -122,6 +123,55 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
   
   // Get selected sub-competency data
   const selectedSub = subCompetencies.find(sub => selectedSubCompetencies.includes(sub.id));
+  
+  // Get interaction method options based on game mechanic
+  const getInteractionMethods = () => {
+    if (!selectedSub?.game_mechanic) return [];
+    
+    const mechanic = selectedSub.game_mechanic;
+    if (mechanic.includes('Resource Allocation')) {
+      return ['Drag-and-drop resource tiles', 'Slider-based percentage allocation', 'Click +/- buttons to distribute', 'Type numerical values'];
+    }
+    if (mechanic.includes('Ranking') || mechanic.includes('Prioritization')) {
+      return ['Drag items to reorder list', 'Click arrows to move up/down', 'Select ranking number per item', 'Drop into priority buckets'];
+    }
+    if (mechanic.includes('Data Analysis') || mechanic.includes('Pattern Recognition')) {
+      return ['Click data points to tag patterns', 'Draw trend lines on charts', 'Select filters and view results', 'Highlight matching data'];
+    }
+    if (mechanic.includes('Error-Detection') || mechanic.includes('Diagnosis')) {
+      return ['Click on errors to flag them', 'Select from error type dropdown', 'Drag items to correct/incorrect bins', 'Type error descriptions'];
+    }
+    if (mechanic.includes('Divergent') || mechanic.includes('Idea Builder')) {
+      return ['Type ideas in text fields', 'Select from idea cards and remix', 'Click prompts to generate variants', 'Drag concepts to combine'];
+    }
+    if (mechanic.includes('Constraint Challenge') || mechanic.includes('Convergent')) {
+      return ['Select best option from list', 'Rate ideas with star ratings', 'Drag to feasibility matrix', 'Click checkboxes for criteria'];
+    }
+    if (mechanic.includes('Logic') || mechanic.includes('Argument')) {
+      return ['Highlight text to mark assumptions', 'Click statements to tag logic', 'Drag claims to conclusion boxes', 'Select fallacy types from dropdown'];
+    }
+    if (mechanic.includes('Evidence') || mechanic.includes('Weighing')) {
+      return ['Drag sources into ranking order', 'Rate reliability with sliders', 'Click to select best evidence', 'Type justification for ranking'];
+    }
+    if (mechanic.includes('Mapping') || mechanic.includes('Systems') || mechanic.includes('Causal')) {
+      return ['Drag boxes to create flowchart', 'Click to add nodes and connections', 'Draw lines between causes/effects', 'Select relationships from dropdown'];
+    }
+    if (mechanic.includes('Prototype') || mechanic.includes('Refinement')) {
+      return ['Upload/modify design iterations', 'Click feedback points to adjust', 'Type changes to implement', 'Select improvement options'];
+    }
+    if (mechanic.includes('Communication') || mechanic.includes('Report') || mechanic.includes('Pitch')) {
+      return ['Type message in text editor', 'Select template and customize', 'Drag content blocks to structure', 'Click tone/style options'];
+    }
+    if (mechanic.includes('Decision-Tree') || mechanic.includes('Simulation')) {
+      return ['Click choice buttons at each fork', 'Select from dropdown decisions', 'Type rationale for decisions', 'Drag actions to timeline'];
+    }
+    if (mechanic.includes('Retrospective') || mechanic.includes('Reflective')) {
+      return ['Type observations in text fields', 'Select insights from categories', 'Rate performance aspects', 'Drag lessons to priority list'];
+    }
+    
+    // Default for any other mechanic
+    return ['Click to select options', 'Type responses in text fields', 'Drag elements to interact', 'Use buttons to make choices'];
+  };
 
   // Fetch competencies on mount
   useEffect(() => {
@@ -275,6 +325,23 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
           return 'Unexpected variable changes the rules mid-task';
         };
         
+        const getDefaultInteraction = (mechanic: string) => {
+          if (mechanic.includes('Resource Allocation')) return 'Drag-and-drop resource tiles';
+          if (mechanic.includes('Ranking') || mechanic.includes('Prioritization')) return 'Drag items to reorder list';
+          if (mechanic.includes('Data Analysis') || mechanic.includes('Pattern Recognition')) return 'Click data points to tag patterns';
+          if (mechanic.includes('Error-Detection') || mechanic.includes('Diagnosis')) return 'Click on errors to flag them';
+          if (mechanic.includes('Divergent') || mechanic.includes('Idea Builder')) return 'Type ideas in text fields';
+          if (mechanic.includes('Constraint Challenge') || mechanic.includes('Convergent')) return 'Rate ideas with star ratings';
+          if (mechanic.includes('Logic') || mechanic.includes('Argument')) return 'Highlight text to mark assumptions';
+          if (mechanic.includes('Evidence') || mechanic.includes('Weighing')) return 'Drag sources into ranking order';
+          if (mechanic.includes('Mapping') || mechanic.includes('Systems') || mechanic.includes('Causal')) return 'Drag boxes to create flowchart';
+          if (mechanic.includes('Prototype') || mechanic.includes('Refinement')) return 'Click feedback points to adjust';
+          if (mechanic.includes('Communication') || mechanic.includes('Report') || mechanic.includes('Pitch')) return 'Type message in text editor';
+          if (mechanic.includes('Decision-Tree') || mechanic.includes('Simulation')) return 'Click choice buttons at each fork';
+          if (mechanic.includes('Retrospective') || mechanic.includes('Reflective')) return 'Type observations in text fields';
+          return 'Click to select options';
+        };
+        
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
           description: `Tests: ${subCompData.statement}`,
@@ -283,10 +350,13 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
           keyElement: getKeyElementDefault(gameMechanic),
           edgeCaseDetails: getEdgeCaseDefault(gameMechanic),
           visualTheme: 'modern',
+          interactionMethod: getDefaultInteraction(gameMechanic),
           scenario: `Apply this competency in a realistic work scenario where ${actionCue}. 
 
 You'll interact with a ${gameMechanic.toLowerCase()} interface that requires you to ${subCompData.statement.toLowerCase()}.`,
-          playerActions: `${playerAction}
+          playerActions: `ACTION CUE (C-BEN): ${actionCue}
+
+HOW: ${getDefaultInteraction(gameMechanic)} to ${actionCue.toLowerCase()}
 
 The system tracks your actions throughout the ${gameLoop}.`,
           scene1: scenes.scene1,
@@ -483,8 +553,13 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
       keyElement: 'Key resources or data relevant to this challenge',
       edgeCaseDetails: 'Sudden constraint or variable change mid-task',
       visualTheme: 'modern',
+      interactionMethod: 'Click to select options',
       scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
-      playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
+      playerActions: `ACTION CUE (C-BEN): ${subCompData.action_cue || 'Demonstrate this competency'}
+
+HOW: Click to select options to ${(subCompData.action_cue || '').toLowerCase() || 'interact with the challenge'}
+
+The system tracks your actions throughout the ${subCompData.game_loop || 'gameplay'}.`,
       scene1: scenes.scene1,
       scene2: scenes.scene2,
       scene3: scenes.scene3,
@@ -642,6 +717,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
         keyElement: '',
         edgeCaseDetails: '',
         visualTheme: 'modern',
+        interactionMethod: '',
         scenario: '', 
         playerActions: '', 
         scene1: '', 
@@ -940,6 +1016,41 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Interaction Method - Contextual Dropdown */}
+                  {getInteractionMethods().length > 0 && (
+                    <div>
+                      <Label htmlFor="interactionMethod">How Players Interact (updates Player Actions) *</Label>
+                      <Select 
+                        value={formData.interactionMethod} 
+                        onValueChange={(value) => {
+                          setFormData({ ...formData, interactionMethod: value });
+                          // Auto-update playerActions template
+                          const actionCue = selectedSub?.action_cue || 'perform this action';
+                          const updatedActions = `ACTION CUE (C-BEN): ${actionCue}
+
+HOW: ${value} to ${actionCue.toLowerCase()}
+
+The system tracks your actions throughout the ${selectedSub?.game_loop || 'gameplay'}.`;
+                          setFormData(prev => ({ ...prev, interactionMethod: value, playerActions: updatedActions }));
+                        }}
+                      >
+                        <SelectTrigger className="bg-gray-700 border-gray-600">
+                          <SelectValue placeholder="Select interaction method" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700 text-white z-50">
+                          {getInteractionMethods().map((method) => (
+                            <SelectItem key={method} value={method} className="cursor-pointer hover:bg-gray-700 focus:bg-gray-700">
+                              {method}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-400 mt-1">
+                        ⚡ This auto-fills the "Player Actions" field below with C-BEN-aligned implementation
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 mt-3 italic">
                   🎨 These fields customize the theme and context only - the core mechanics remain locked per C-BEN.
@@ -970,20 +1081,19 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
             </div>
 
             <div>
-              <Label htmlFor="playerActions">Player Actions *</Label>
+              <Label htmlFor="playerActions">Player Actions (auto-generated from interaction method) *</Label>
               <Textarea
                 id="playerActions"
                 value={formData.playerActions}
                 onChange={(e) => setFormData({ ...formData, playerActions: e.target.value })}
-                rows={3}
-                className="bg-gray-800 border-gray-700"
-                placeholder="How the skill is expressed. Example: 'Drag-and-drop to rank priorities' or 'Select trade-offs between competing KPIs'"
+                rows={5}
+                className="bg-gray-800 border-gray-700 font-mono text-sm"
+                placeholder="Select interaction method above to auto-fill this template..."
               />
               <p className="text-xs text-gray-400 mt-1">
-                Define the main mechanic the player uses during gameplay.<br />
-                (Example: drag and drop resources, select answers, type responses, match items, tap to allocate, etc.)<br />
-                This describes the overall action type, not each scene.<br />
-                Keep total playtime within 3 minutes (90–180 seconds).
+                ⚠️ CRITICAL: This must implement the locked Action Cue from PlayOps Framework.<br />
+                ✅ Auto-filled when you select interaction method - you can edit but must keep Action Cue aligned.<br />
+                Template structure: ACTION CUE (locked) + HOW (interaction method) + Tracking note
               </p>
             </div>
 
