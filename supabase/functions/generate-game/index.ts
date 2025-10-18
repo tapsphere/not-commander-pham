@@ -157,23 +157,22 @@ The game MUST start with an intro screen that includes:
   6️⃣ TIME limit (90–180 seconds total runtime)
 
 - A PROMINENT "START GAME" or "PLAY" BUTTON that begins gameplay when clicked
-  The button must be:
-  * Large and visible (at least 48px height for mobile)
-  * Clearly labeled ("Start Game", "Begin", "Play", or similar)
-  * Styled with the primary brand color
-  * Positioned below the instructions
+  The button MUST be:
+  * Large and visible (minimum 60px height, full-width on mobile)
+  * Clearly labeled ("START GAME", "BEGIN", "PLAY" in all caps)
+  * Styled with bright primary brand color with high contrast text
+  * ALWAYS VISIBLE - use position sticky or fixed positioning at bottom of screen
   * The ONLY way to start the game (no auto-start)
+  * Placed OUTSIDE any scrollable containers so it stays always on screen
 
-Example intro screen:
+CRITICAL LAYOUT REQUIREMENTS:
+- Keep instructions concise (under 300 words total)
+- If instructions are long, make ONLY the instructions scrollable, NOT the button
+- Button must be in a fixed/sticky footer that stays visible even when scrolling
+- On mobile, button should span full width and be at bottom of viewport
+- Use CSS like position sticky bottom 0 or similar to keep button always visible
 
-"You are a project manager at TechCo.
-Goal: Allocate your team and budget across 4 projects.
-HOW: Drag team members to projects. Adjust budgets using +/–.
-Submit when resources are allocated.
-⚡ A rule may change mid-round — adapt fast!
-You have 3 minutes. Optimal allocation = Mastery level.
-
-[START GAME] ← Big, visible button"
+Example structure: Put instructions in a scrollable div, then button outside that div with sticky positioning at the bottom.
 
 Make instructions visual and obvious — players should understand what to do in under 10 seconds.
 The game must NOT start automatically — it must wait for the player to click the start button.
