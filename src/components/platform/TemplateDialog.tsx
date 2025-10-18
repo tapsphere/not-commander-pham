@@ -638,7 +638,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
 
             {selectedCompetency && subCompetencies.length > 0 && (
               <div>
-                <Label>Select 1-2 Sub-Competencies *</Label>
+                <Label>Select 1 Sub-Competency *</Label>
                 <div className="space-y-2 mt-2 max-h-60 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md p-3">
                   {subCompetencies.map((sub) => (
                     <div key={sub.id} className="flex items-start space-x-2">
