@@ -210,6 +210,38 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
         const edgeCase = edgeCaseScenarios[validatorType] || 
           `During a critical decision point (${gameLoop}), an unexpected variable changes the rules of engagement - testing whether you can maintain performance quality while adapting your strategy in real-time.`;
         
+        // Create scene progression based on validator type
+        const sceneExamples: { [key: string]: { scene1: string, scene2: string, scene3: string, scene4?: string } } = {
+          'Scenario-Based Simulation': {
+            scene1: 'Review initial scenario data and make baseline decisions using normal constraints',
+            scene2: 'New variable introduced - adjust strategy while maintaining core objectives',
+            scene3: '⚡ EDGE CASE: Budget cut 40% - rapidly reallocate resources',
+            scene4: 'Finalize and submit optimized plan under new constraints'
+          },
+          'Communication Product': {
+            scene1: 'Draft initial message for target audience with given KPIs',
+            scene2: 'Refine messaging based on feedback and additional context',
+            scene3: '⚡ EDGE CASE: Audience changed - rewrite for different stakeholder group'
+          },
+          'Data Analysis': {
+            scene1: 'Analyze baseline dataset and identify initial patterns',
+            scene2: 'Apply filters and validate findings against criteria',
+            scene3: '⚡ EDGE CASE: Contradictory data appears - reconcile and update insights',
+            scene4: 'Present final analysis with updated recommendations'
+          },
+          'Performance Assessment': {
+            scene1: 'Evaluate performance using primary metrics',
+            scene2: 'Compare against benchmarks and identify gaps',
+            scene3: '⚡ EDGE CASE: Priority KPI suddenly changes - pivot evaluation focus'
+          }
+        };
+        
+        const scenes = sceneExamples[validatorType] || {
+          scene1: 'Complete baseline task using standard approach',
+          scene2: 'Adapt to new information or constraint',
+          scene3: '⚡ EDGE CASE: Critical rule change - adjust strategy in real-time'
+        };
+        
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
           description: `Tests: ${subCompData.statement}`,
@@ -219,10 +251,10 @@ You'll interact with a ${gameMechanic.toLowerCase()} interface that requires you
           playerActions: `${playerAction}
 
 The system tracks your actions throughout the ${gameLoop}.`,
-          scene1: '',
-          scene2: '',
-          scene3: '',
-          scene4: '',
+          scene1: scenes.scene1,
+          scene2: scenes.scene2,
+          scene3: scenes.scene3,
+          scene4: scenes.scene4 || '',
           edgeCaseTiming: 'mid' as 'early' | 'mid' | 'late',
           edgeCase: `${edgeCase}`,
           uiAesthetic: `Interface style: ${gameMechanic} in a professional workspace. Clean, mobile-optimized design with clear visual feedback.`,
@@ -366,15 +398,50 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
     }
 
     // Build sample using actual PlayOps framework data from the database
+    const gameMechanic = subCompData.game_mechanic || 'Interactive Simulation';
+    const validatorType = subCompData.validator_type || 'Scenario-Based Simulation';
+    
+    // Create scene progression based on validator type
+    const sceneExamples: { [key: string]: { scene1: string, scene2: string, scene3: string, scene4?: string } } = {
+      'Scenario-Based Simulation': {
+        scene1: 'Review initial scenario data and make baseline decisions using normal constraints',
+        scene2: 'New variable introduced - adjust strategy while maintaining core objectives',
+        scene3: '⚡ EDGE CASE: Budget cut 40% - rapidly reallocate resources',
+        scene4: 'Finalize and submit optimized plan under new constraints'
+      },
+      'Communication Product': {
+        scene1: 'Draft initial message for target audience with given KPIs',
+        scene2: 'Refine messaging based on feedback and additional context',
+        scene3: '⚡ EDGE CASE: Audience changed - rewrite for different stakeholder group'
+      },
+      'Data Analysis': {
+        scene1: 'Analyze baseline dataset and identify initial patterns',
+        scene2: 'Apply filters and validate findings against criteria',
+        scene3: '⚡ EDGE CASE: Contradictory data appears - reconcile and update insights',
+        scene4: 'Present final analysis with updated recommendations'
+      },
+      'Performance Assessment': {
+        scene1: 'Evaluate performance using primary metrics',
+        scene2: 'Compare against benchmarks and identify gaps',
+        scene3: '⚡ EDGE CASE: Priority KPI suddenly changes - pivot evaluation focus'
+      }
+    };
+    
+    const scenes = sceneExamples[validatorType] || {
+      scene1: 'Complete baseline task using standard approach',
+      scene2: 'Adapt to new information or constraint',
+      scene3: '⚡ EDGE CASE: Critical rule change - adjust strategy in real-time'
+    };
+    
     const sample = {
       name: `${subCompData.statement.substring(0, 50)}...`,
       description: `Tests ability to demonstrate: ${subCompData.statement}`,
       scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
       playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
-      scene1: '',
-      scene2: '',
-      scene3: '',
-      scene4: '',
+      scene1: scenes.scene1,
+      scene2: scenes.scene2,
+      scene3: scenes.scene3,
+      scene4: scenes.scene4 || '',
       edgeCaseTiming: 'mid' as 'early' | 'mid' | 'late',
       edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || 'validation system'}`,
       uiAesthetic: `Design matches the ${subCompData.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || 'real-time validation'} to provide immediate player feedback.`,
