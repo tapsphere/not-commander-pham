@@ -99,6 +99,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     scene2: '',
     scene3: '',
     scene4: '',
+    edgeCaseTiming: 'mid' as 'early' | 'mid' | 'late',
     edgeCase: '',
     uiAesthetic: '',
   });
@@ -222,6 +223,7 @@ The system tracks your actions throughout the ${gameLoop}.`,
           scene2: '',
           scene3: '',
           scene4: '',
+          edgeCaseTiming: 'mid' as 'early' | 'mid' | 'late',
           edgeCase: `${edgeCase}`,
           uiAesthetic: `Interface style: ${gameMechanic} in a professional workspace. Clean, mobile-optimized design with clear visual feedback.`,
         };
@@ -292,10 +294,25 @@ Player Actions:
 ${formData.playerActions || '[Define how the skill is expressed - e.g., drag-drop, select, type, prioritize]'}
 
 ${formData.scene1 || formData.scene2 || formData.scene3 || formData.scene4 ? `Action Scenes / Rounds:
-${formData.scene1 ? `Scene 1: ${formData.scene1}` : ''}
+${formData.scene1 ? `Scene 1 (Baseline): ${formData.scene1}` : ''}
 ${formData.scene2 ? `Scene 2: ${formData.scene2}` : ''}
 ${formData.scene3 ? `Scene 3: ${formData.scene3}` : ''}
 ${formData.scene4 ? `Scene 4: ${formData.scene4}` : ''}
+
+Edge-Case Timing: ${formData.edgeCaseTiming.toUpperCase()}
+${(() => {
+  const filledScenes = [formData.scene1, formData.scene2, formData.scene3, formData.scene4].filter(s => s).length;
+  if (filledScenes === 2) return '(Edge-case occurs in Scene 2)';
+  if (filledScenes === 3) return formData.edgeCaseTiming === 'early' ? '(Edge-case in Scene 2)' : '(Edge-case in Scene 3)';
+  if (filledScenes === 4) {
+    if (formData.edgeCaseTiming === 'early') return '(Edge-case in Scene 2)';
+    if (formData.edgeCaseTiming === 'mid') return '(Edge-case in Scene 3)';
+    return '(Edge-case in Scene 4)';
+  }
+  return '(System defaults to 3 scenes with Mid timing)';
+})()}
+
+Time Allocation: System auto-divides 3 minutes (±30s) across ${[formData.scene1, formData.scene2, formData.scene3, formData.scene4].filter(s => s).length || 3} scenes
 
 ` : ''}Edge-Case Moment:
 ${formData.edgeCase || '[Describe how the disruption appears - e.g., timer cuts in half, data field vanishes, rule changes]'}
@@ -358,6 +375,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
       scene2: '',
       scene3: '',
       scene4: '',
+      edgeCaseTiming: 'mid' as 'early' | 'mid' | 'late',
       edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || 'validation system'}`,
       uiAesthetic: `Design matches the ${subCompData.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || 'real-time validation'} to provide immediate player feedback.`,
     };
@@ -431,6 +449,14 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Validate scene requirements if any scene is filled
+      const filledScenes = [formData.scene1, formData.scene2, formData.scene3, formData.scene4].filter(s => s.trim()).length;
+      if (filledScenes === 1 && formData.edgeCase) {
+        toast.error('Edge-case requires at least 2 scenes. Please add Scene 2 or remove Scene 1.');
+        setLoading(false);
+        return;
+      }
+
       let customGameUrl = null;
 
       // Handle custom game upload
@@ -489,7 +515,7 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: '', description: '', scenario: '', playerActions: '', scene1: '', scene2: '', scene3: '', scene4: '', edgeCase: '', uiAesthetic: '' });
+      setFormData({ name: '', description: '', scenario: '', playerActions: '', scene1: '', scene2: '', scene3: '', scene4: '', edgeCaseTiming: 'mid', edgeCase: '', uiAesthetic: '' });
       setActiveScenes(1);
       setCustomGameFile(null);
     } catch (error: any) {
@@ -810,6 +836,28 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
                   </Button>
                 )}
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="edgeCaseTiming">Edge-Case Timing *</Label>
+              <Select
+                value={formData.edgeCaseTiming}
+                onValueChange={(value: 'early' | 'mid' | 'late') => 
+                  setFormData({ ...formData, edgeCaseTiming: value })
+                }
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-700">
+                  <SelectValue placeholder="Select timing" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="early">Early (Scene 2 of 3-4)</SelectItem>
+                  <SelectItem value="mid">Mid (Scene 2-3 of 3-4)</SelectItem>
+                  <SelectItem value="late">Late (Scene 3-4 of 3-4)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400 mt-1">
+                When should the rule-flip or disruption occur during gameplay?
+              </p>
             </div>
 
             <div>
