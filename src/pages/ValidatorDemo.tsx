@@ -364,12 +364,12 @@ export default function ValidatorDemo() {
   const getProficiencyLevel = (score: number) => {
     // Mastery: ≥ 95% pass and all edge-case triggers passed
     if (score >= 95 && edgeCaseTriggered && rankedKpis[0]?.id === '2') {
-      return { level: 'Mastery', color: 'text-neon-green', bg: 'bg-neon-green/10' };
+      return { level: 'Mastery', numericLevel: 3, color: 'text-neon-green', bg: 'bg-neon-green/10' };
     }
     // Proficient: ≥ 80% and < 95% pass
-    if (score >= 80) return { level: 'Proficient', color: 'text-yellow-400', bg: 'bg-yellow-400/10' };
+    if (score >= 80) return { level: 'Proficient', numericLevel: 2, color: 'text-yellow-400', bg: 'bg-yellow-400/10' };
     // Needs Work: < 80% pass
-    return { level: 'Needs Work', color: 'text-red-400', bg: 'bg-red-400/10' };
+    return { level: 'Needs Work', numericLevel: 1, color: 'text-red-400', bg: 'bg-red-400/10' };
   };
 
   if (gameState === 'intro') {
@@ -481,7 +481,7 @@ export default function ValidatorDemo() {
               </div>
               
               <div className={`text-2xl font-semibold ${proficiency.color}`}>
-                {proficiency.level}
+                Level {proficiency.numericLevel} - {proficiency.level}
               </div>
             </div>
             
