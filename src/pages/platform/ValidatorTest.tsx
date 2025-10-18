@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlayCircle, CheckCircle, XCircle, AlertCircle, Bot, Upload, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
+import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
 
 interface Template {
   id: string;
@@ -41,6 +42,8 @@ export default function ValidatorTest() {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<'all' | 'ai_generated' | 'custom_upload'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'not_started' | 'in_progress' | 'passed' | 'failed'>('all');
+  const [testingTemplate, setTestingTemplate] = useState<Template | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     checkAccess();
@@ -152,9 +155,9 @@ export default function ValidatorTest() {
     };
   };
 
-  const startTest = (templateId: string, templateType: string) => {
-    // Navigate to test wizard (to be implemented)
-    toast.info('Test wizard opening soon...');
+  const startTest = (template: Template) => {
+    setTestingTemplate(template);
+    setWizardOpen(true);
   };
 
   const filteredTemplates = templates.filter(t => {
@@ -307,7 +310,7 @@ export default function ValidatorTest() {
                       {/* Actions */}
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => startTest(template.id, template.template_type)}
+                          onClick={() => startTest(template)}
                           className="bg-neon-green text-black hover:bg-neon-green/80"
                         >
                           <PlayCircle className="w-4 h-4 mr-2" />
@@ -331,6 +334,21 @@ export default function ValidatorTest() {
             })
           )}
         </div>
+
+        {/* Test Wizard */}
+        {testingTemplate && (
+          <ValidatorTestWizard
+            open={wizardOpen}
+            onOpenChange={setWizardOpen}
+            template={testingTemplate}
+            subCompetency={
+              testingTemplate.selected_sub_competencies[0]
+                ? subCompetencies.get(testingTemplate.selected_sub_competencies[0]) || null
+                : null
+            }
+            onComplete={fetchData}
+          />
+        )}
     </div>
   );
 }
