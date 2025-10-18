@@ -156,7 +156,7 @@ The game MUST start with an intro screen that includes:
   5️⃣ WHAT success looks like (system grades Needs Work / Proficient / Mastery)
   6️⃣ TIME limit (90–180 seconds total runtime)
 
-- A PROMINENT "START GAME" or "PLAY" BUTTON that begins gameplay when clicked
+- A PROMINENT "START GAME" or "PLAY" BUTTON on the intro screen
   The button MUST be:
   * Large and visible (minimum 60px height, full-width on mobile)
   * Clearly labeled ("START GAME", "BEGIN", "PLAY" in all caps)
@@ -165,16 +165,23 @@ The game MUST start with an intro screen that includes:
   * The ONLY way to start the game (no auto-start)
   * Placed OUTSIDE any scrollable containers so it stays always on screen
 
-CRITICAL LAYOUT REQUIREMENTS:
-- Keep instructions concise (under 300 words total)
-- If instructions are long, make ONLY the instructions scrollable, NOT the button
-- Button must be in a fixed/sticky footer that stays visible even when scrolling
+CRITICAL SCREEN FLOW:
+- INTRO SCREEN (Scene 0): Shows game title, brief instructions (under 200 words), and START GAME button
+- When START is clicked → TRANSITION TO SCENE 1 (the actual first gameplay scene)
+- Scene 1 should be CLEAN with minimal text, just the gameplay interface (KPIs, choices, etc.)
+- DO NOT put all instructions on Scene 1 - that should be the gameplay screen with more room
+- Keep intro concise so when player clicks START, they go to a spacious gameplay scene
+
+LAYOUT REQUIREMENTS:
+- Intro screen: scrollable instructions + sticky START button at bottom
+- Scene 1+: Clean gameplay interface without repeating all the instructions
 - On mobile, button should span full width and be at bottom of viewport
-- Use CSS like position sticky bottom 0 or similar to keep button always visible
 
-Example structure: Put instructions in a scrollable div, then button outside that div with sticky positioning at the bottom.
+Example flow: 
+1. Intro screen shows game premise + START button
+2. Click START → Scene 1 appears with just the game interface (no long instructions)
+3. Player has room to interact with the game elements
 
-Make instructions visual and obvious — players should understand what to do in under 10 seconds.
 The game must NOT start automatically — it must wait for the player to click the start button.
 
 ⸻
