@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PlatformLayout } from '@/components/platform/PlatformLayout';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +34,7 @@ interface TestResult {
 }
 
 export default function ValidatorTest() {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [subCompetencies, setSubCompetencies] = useState<Map<string, SubCompetency>>(new Map());
   const [testResults, setTestResults] = useState<Map<string, TestResult>>(new Map());
@@ -42,8 +43,40 @@ export default function ValidatorTest() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'not_started' | 'in_progress' | 'passed' | 'failed'>('all');
 
   useEffect(() => {
-    fetchData();
+    checkAccess();
   }, []);
+
+  const checkAccess = async () => {
+    // TEMP: Check if user is creator (in demo mode, check URL path)
+    // In production, this will check the actual user role from database
+    if (window.location.pathname.includes('brand')) {
+      toast.error('Access denied: Only creators can test validators');
+      navigate('/platform/brand');
+      return;
+    }
+
+    /* ORIGINAL CODE - Re-enable after demo:
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (roleData?.role !== 'creator') {
+      toast.error('Access denied: Only creators can test validators');
+      navigate('/platform/brand');
+      return;
+    }
+    */
+
+    fetchData();
+  };
 
   const fetchData = async () => {
     try {
