@@ -1,217 +1,293 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { PlatformLayout } from '@/components/platform/PlatformLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PlayCircle, CheckCircle, XCircle, AlertCircle, Bot, Upload } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface Template {
+  id: string;
+  name: string;
+  template_type: string; // Changed from strict union to string
+  selected_sub_competencies: string[];
+  is_published: boolean;
+}
+
+interface SubCompetency {
+  id: string;
+  statement: string;
+  action_cue: string;
+}
+
+interface TestResult {
+  id: string;
+  template_id: string;
+  overall_status: string;
+  phase1_status: string;
+  phase2_status: string;
+  phase3_status: string;
+  approved_for_publish: boolean;
+  tested_at: string;
+}
 
 export default function ValidatorTest() {
-  const [loading, setLoading] = useState(false);
-  const [generatedHtml, setGeneratedHtml] = useState<string | null>(null);
-  const [metrics, setMetrics] = useState<any>(null);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [subCompetencies, setSubCompetencies] = useState<Map<string, SubCompetency>>(new Map());
+  const [testResults, setTestResults] = useState<Map<string, TestResult>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState<'all' | 'ai_generated' | 'custom_upload'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'not_started' | 'in_progress' | 'passed' | 'failed'>('all');
 
-  const generateValidator = async () => {
-    setLoading(true);
-    setGeneratedHtml(null);
-    setMetrics(null);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
+  const fetchData = async () => {
     try {
-      console.log('Calling generate-game function...');
-      
-      const { data, error } = await supabase.functions.invoke('generate-game', {
-        body: {
-          templatePrompt: `VALIDATOR: Analytical Thinking - Multi-Step Problem Solving
+      setLoading(true);
 
-CBE FRAMEWORK:
-Sub-Competency: Breaks down complex problems into manageable parts to identify solutions
-Action Cue: You need to solve this puzzle by breaking it into smaller steps
-Game Mechanic: Multi-step puzzle game
-Performance Indicator: Solves multi-step problems logically
+      // Fetch user's templates
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-SCORING FORMULA:
-Score = (constraints_met / total_constraints) × 100
+      const { data: templatesData, error: templatesError } = await supabase
+        .from('game_templates')
+        .select('*')
+        .eq('creator_id', user.id)
+        .order('created_at', { ascending: false });
 
-REQUIRED METRICS TO CAPTURE:
-- constraints_met: number of constraints satisfied
-- total_constraints: total number of constraints in puzzle
-- solve_time_ms: time taken to complete
+      if (templatesError) throw templatesError;
 
-CREATIVE SCENARIO:
-You're a product manager during a critical product launch. Your dashboard shows 5 interconnected systems that need to be optimized. Each system has dependencies and constraints. Solve the crisis by addressing issues in the correct order.
+      // Fetch all sub-competencies
+      const { data: subComps, error: subError } = await supabase
+        .from('sub_competencies')
+        .select('id, statement, action_cue');
 
-UI AESTHETIC:
-Neon cyberpunk dashboard with glowing data panels, dark background with electric blue (#00F0FF) and hot pink (#FF006E) accents. Clean, modern interface with subtle animations.
+      if (subError) throw subError;
 
-EDGE CASE:
-If player tries to solve steps out of order, show warning: 'Dependencies not met! Check prerequisite systems first.'
+      const subMap = new Map(subComps?.map(s => [s.id, s]) || []);
+      setSubCompetencies(subMap);
 
-GAME STRUCTURE:
-1. Show 5 interconnected system cards with dependency arrows
-2. Each card shows: System name, Status (red/yellow/green), Constraints
-3. Player must click systems in correct dependency order
-4. Visual feedback when dependencies are met
-5. Timer counts solve_time_ms
-6. Success screen shows score and metrics
+      // Fetch test results
+      const { data: results, error: resultsError } = await supabase
+        .from('validator_test_results')
+        .select('*')
+        .order('tested_at', { ascending: false });
 
-BRANDING:
-- Primary: #00F0FF (electric blue)
-- Secondary: #FF006E (hot pink)
-- Background: #0A0A0F (deep space black)`,
-          primaryColor: "#00F0FF",
-          secondaryColor: "#FF006E",
-          previewMode: true,
-          subCompetencies: [
-            {
-              id: "test-analytical-1",
-              competency_id: "analytical-thinking",
-              statement: "Breaks down complex problems into manageable parts to identify solutions",
-              player_action: "You need to solve this puzzle by breaking it into smaller steps",
-              backend_data_captured: ["constraints_met", "total_constraints", "solve_time_ms"],
-              scoring_logic: {
-                formula: "Score = (constraints_met / total_constraints) × 100",
-                performance_indicator: "Solves multi-step problems logically"
-              }
-            }
-          ]
-        }
-      });
+      if (resultsError) throw resultsError;
 
-      if (error) {
-        console.error('Function error:', error);
-        toast.error(`Generation failed: ${error.message}`);
-        return;
-      }
+      const resultsMap = new Map(results?.map(r => [r.template_id, r]) || []);
+      setTestResults(resultsMap);
 
-      console.log('Function response:', data);
-
-      if (data?.success && data?.html) {
-        setGeneratedHtml(data.html);
-        toast.success("Validator generated successfully!");
-      } else {
-        toast.error("No HTML received from generator");
-      }
+      setTemplates(templatesData || []);
     } catch (error: any) {
-      console.error('Generation error:', error);
-      toast.error(`Error: ${error.message}`);
+      console.error('Error fetching data:', error);
+      toast.error('Failed to load templates');
     } finally {
       setLoading(false);
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      not_started: { icon: AlertCircle, color: 'bg-gray-500', label: 'Not Tested' },
+      in_progress: { icon: PlayCircle, color: 'bg-blue-500', label: 'In Progress' },
+      passed: { icon: CheckCircle, color: 'bg-green-500', label: 'Passed' },
+      failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
+      needs_review: { icon: AlertCircle, color: 'bg-yellow-500', label: 'Needs Review' },
+    };
+
+    const { icon: Icon, color, label } = variants[status as keyof typeof variants] || variants.not_started;
+
+    return (
+      <Badge className={`${color} text-white`}>
+        <Icon className="w-3 h-3 mr-1" />
+        {label}
+      </Badge>
+    );
+  };
+
+  const getPhaseStatus = (testResult: TestResult | undefined) => {
+    if (!testResult) return { p1: 'not_started', p2: 'not_started', p3: 'not_started' };
+    return {
+      p1: testResult.phase1_status,
+      p2: testResult.phase2_status,
+      p3: testResult.phase3_status,
+    };
+  };
+
+  const startTest = (templateId: string, templateType: string) => {
+    // Navigate to test wizard (to be implemented)
+    toast.info('Test wizard opening soon...');
+  };
+
+  const filteredTemplates = templates.filter(t => {
+    const typeMatch = filterType === 'all' || t.template_type === filterType;
+    const statusMatch = filterStatus === 'all' || 
+      (testResults.get(t.id)?.overall_status || 'not_started') === filterStatus;
+    return typeMatch && statusMatch;
+  });
+
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">Validator Test: Analytical Thinking</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Validator Testing Dashboard</h1>
           <p className="text-gray-400">
-            Testing Phase 1: Structured Creativity approach with CBE framework + Creative input
+            Stress test all validators before publishing • Ensure quality and C-BEN compliance
           </p>
         </div>
 
-        {/* Test Scenario Info */}
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-[#00F0FF]">Test Configuration</h2>
-          
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h3 className="font-semibold text-gray-300 mb-2">CBE Framework (from Excel)</h3>
-              <ul className="space-y-1 text-gray-400">
-                <li>• Sub-Competency: Breaks down complex problems</li>
-                <li>• Action Cue: Solve by breaking into steps</li>
-                <li>• Game Mechanic: Multi-step puzzle</li>
-                <li>• Scoring: (constraints_met / total) × 100</li>
-                <li>• Metrics: constraints_met, total_constraints, solve_time_ms</li>
-              </ul>
+        {/* Filters */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white">Filters</CardTitle>
+          </CardHeader>
+          <CardContent className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-sm text-gray-400 mb-2 block">Template Type</label>
+              <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="ai_generated">🤖 AI Generated</SelectItem>
+                  <SelectItem value="custom_upload">📤 Custom Upload</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-300 mb-2">Creative Input (Creator adds)</h3>
-              <ul className="space-y-1 text-gray-400">
-                <li>• Scenario: Product launch crisis</li>
-                <li>• UI: Cyberpunk dashboard (blue/pink)</li>
-                <li>• Edge Case: Dependency order warnings</li>
-                <li>• Branding: Electric blue + hot pink</li>
-              </ul>
+
+            <div className="flex-1">
+              <label className="text-sm text-gray-400 mb-2 block">Test Status</label>
+              <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
+                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="not_started">Not Tested</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="passed">Passed</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Validators', value: templates.length, color: 'text-blue-400' },
+            { label: 'Not Tested', value: templates.filter(t => !testResults.has(t.id)).length, color: 'text-yellow-400' },
+            { label: 'Passed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'passed').length, color: 'text-green-400' },
+            { label: 'Failed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'failed').length, color: 'text-red-400' },
+          ].map((stat, i) => (
+            <Card key={i} className="bg-gray-800 border-gray-700">
+              <CardContent className="pt-6">
+                <p className="text-sm text-gray-400">{stat.label}</p>
+                <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Generate Button */}
-        <Button
-          onClick={generateValidator}
-          disabled={loading}
-          size="lg"
-          className="w-full bg-[#00F0FF] hover:bg-[#00F0FF]/80 text-black font-semibold"
-        >
+        {/* Templates List */}
+        <div className="space-y-4">
           {loading ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Generating Validator...
-            </>
+            <p className="text-gray-400">Loading validators...</p>
+          ) : filteredTemplates.length === 0 ? (
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="pt-6 text-center text-gray-400">
+                No validators found. Create a validator template first.
+              </CardContent>
+            </Card>
           ) : (
-            "Generate Validator from Excel Data"
+            filteredTemplates.map((template) => {
+              const testResult = testResults.get(template.id);
+              const phases = getPhaseStatus(testResult);
+              const subComp = template.selected_sub_competencies[0] 
+                ? subCompetencies.get(template.selected_sub_competencies[0])
+                : null;
+
+              return (
+                <Card key={template.id} className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {template.template_type === 'ai_generated' ? (
+                            <Bot className="w-5 h-5 text-purple-400" />
+                          ) : (
+                            <Upload className="w-5 h-5 text-blue-400" />
+                          )}
+                          <CardTitle className="text-white">{template.name}</CardTitle>
+                        </div>
+                        {subComp && (
+                          <CardDescription className="text-gray-400">
+                            Sub: {subComp.statement}
+                          </CardDescription>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        {getStatusBadge(testResult?.overall_status || 'not_started')}
+                        {template.is_published && (
+                          <Badge variant="outline" className="border-green-500 text-green-500">
+                            Published
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Phase Progress */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500 mb-1">Phase 1: UX Flow</p>
+                          {getStatusBadge(phases.p1)}
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500 mb-1">Phase 2: Action Cue</p>
+                          {getStatusBadge(phases.p2)}
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500 mb-1">Phase 3: Scoring</p>
+                          {getStatusBadge(phases.p3)}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => startTest(template.id, template.template_type)}
+                          className="bg-neon-green text-black hover:bg-neon-green/80"
+                        >
+                          <PlayCircle className="w-4 h-4 mr-2" />
+                          {testResult ? 'Re-test' : 'Start Test'}
+                        </Button>
+                        {testResult && (
+                          <Button variant="outline" className="border-gray-600 text-gray-300">
+                            View Results
+                          </Button>
+                        )}
+                        {testResult?.overall_status === 'passed' && !testResult.approved_for_publish && (
+                          <Button variant="outline" className="border-green-500 text-green-500">
+                            Approve for Publish
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
-        </Button>
-
-        {/* Generated Game Preview */}
-        {generatedHtml && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-[#FF006E]">Generated Validator Game</h2>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const blob = new Blob([generatedHtml], { type: 'text/html' });
-                  const url = URL.createObjectURL(blob);
-                  window.open(url, '_blank');
-                }}
-              >
-                Open in New Tab
-              </Button>
-            </div>
-
-            <div className="border-2 border-[#00F0FF] rounded-lg overflow-hidden">
-              <iframe
-                srcDoc={generatedHtml}
-                className="w-full h-[800px] bg-white"
-                title="Generated Validator Game"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
-              />
-            </div>
-
-            {/* Validation Checklist */}
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-[#FF006E] mb-4">Validation Checklist</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="text-[#00F0FF] mt-1">✓</span>
-                  <span className="text-gray-300">Does the game show 5 interconnected system cards?</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#00F0FF] mt-1">✓</span>
-                  <span className="text-gray-300">Are dependencies visualized with arrows?</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#00F0FF] mt-1">✓</span>
-                  <span className="text-gray-300">Does clicking out-of-order show warning?</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#00F0FF] mt-1">✓</span>
-                  <span className="text-gray-300">Is timer tracking solve_time_ms?</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#00F0FF] mt-1">✓</span>
-                  <span className="text-gray-300">Does end screen show: constraints_met, total_constraints, score?</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#00F0FF] mt-1">✓</span>
-                  <span className="text-gray-300">Is UI cyberpunk styled with blue/pink colors?</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
     </div>
   );
 }

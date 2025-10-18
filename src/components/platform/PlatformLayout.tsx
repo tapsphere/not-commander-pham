@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { LogOut, Palette, Building2, Store } from 'lucide-react';
+import { LogOut, Palette, Building2, Store, TestTube } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const PlatformLayout = () => {
@@ -102,6 +102,14 @@ export const PlatformLayout = () => {
                   >
                     <Palette className="w-4 h-4" />
                     My Templates
+                  </Button>
+                  <Button
+                    variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
+                    onClick={() => navigate('/platform/validator-test')}
+                    className="gap-2"
+                  >
+                    <TestTube className="w-4 h-4" />
+                    Test Validators
                   </Button>
                 </>
               )}

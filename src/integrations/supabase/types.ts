@@ -485,6 +485,96 @@ export type Database = {
         }
         Relationships: []
       }
+      validator_test_results: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_for_publish: boolean | null
+          backend_data_captured: Json | null
+          created_at: string | null
+          id: string
+          overall_status: string | null
+          phase1_checklist: Json | null
+          phase1_notes: string | null
+          phase1_status: string | null
+          phase2_notes: string | null
+          phase2_status: string | null
+          phase3_notes: string | null
+          phase3_status: string | null
+          phase3_test_runs: Json | null
+          sub_competency_id: string
+          template_id: string
+          template_type: string
+          test_version: string
+          tested_at: string | null
+          tester_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_for_publish?: boolean | null
+          backend_data_captured?: Json | null
+          created_at?: string | null
+          id?: string
+          overall_status?: string | null
+          phase1_checklist?: Json | null
+          phase1_notes?: string | null
+          phase1_status?: string | null
+          phase2_notes?: string | null
+          phase2_status?: string | null
+          phase3_notes?: string | null
+          phase3_status?: string | null
+          phase3_test_runs?: Json | null
+          sub_competency_id: string
+          template_id: string
+          template_type: string
+          test_version?: string
+          tested_at?: string | null
+          tester_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_for_publish?: boolean | null
+          backend_data_captured?: Json | null
+          created_at?: string | null
+          id?: string
+          overall_status?: string | null
+          phase1_checklist?: Json | null
+          phase1_notes?: string | null
+          phase1_status?: string | null
+          phase2_notes?: string | null
+          phase2_status?: string | null
+          phase3_notes?: string | null
+          phase3_status?: string | null
+          phase3_test_runs?: Json | null
+          sub_competency_id?: string
+          template_id?: string
+          template_type?: string
+          test_version?: string
+          tested_at?: string | null
+          tester_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validator_test_results_sub_competency_id_fkey"
+            columns: ["sub_competency_id"]
+            isOneToOne: false
+            referencedRelation: "sub_competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "validator_test_results_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "game_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_preferences: {
         Row: {
           created_at: string | null

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
@@ -18,6 +19,7 @@ type Template = {
 };
 
 export default function CreatorDashboard() {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -106,16 +108,26 @@ export default function CreatorDashboard() {
           </h2>
           <p className="text-gray-400 mt-2">Create game templates with CBE competencies built in</p>
         </div>
-        <Button 
-          onClick={() => {
-            setSelectedTemplate(null);
-            setDialogOpen(true);
-          }} 
-          className="gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Template
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => navigate('/platform/validator-test')}
+            variant="outline"
+            className="gap-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
+          >
+            <TestTube className="w-4 h-4" />
+            Test Validators
+          </Button>
+          <Button 
+            onClick={() => {
+              setSelectedTemplate(null);
+              setDialogOpen(true);
+            }} 
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Template
+          </Button>
+        </div>
       </div>
 
       {templates.length === 0 ? (
