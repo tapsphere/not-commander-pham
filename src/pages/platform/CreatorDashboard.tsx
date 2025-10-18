@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Template = {
   id: string;
@@ -18,9 +19,16 @@ type Template = {
   preview_image?: string;
 };
 
+type TestResult = {
+  template_id: string;
+  overall_status: string;
+  approved_for_publish: boolean;
+};
+
 export default function CreatorDashboard() {
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [testResults, setTestResults] = useState<Map<string, TestResult>>(new Map());
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [competenciesDialogOpen, setCompetenciesDialogOpen] = useState(false);
@@ -46,6 +54,16 @@ export default function CreatorDashboard() {
 
       if (error) throw error;
       setTemplates(data || []);
+
+      // Fetch test results for all templates
+      const { data: results, error: resultsError } = await supabase
+        .from('validator_test_results')
+        .select('template_id, overall_status, approved_for_publish');
+
+      if (resultsError) throw resultsError;
+
+      const resultsMap = new Map(results?.map(r => [r.template_id, r]) || []);
+      setTestResults(resultsMap);
     } catch (error: any) {
       toast.error('Failed to load templates');
     } finally {
@@ -82,6 +100,19 @@ export default function CreatorDashboard() {
 
   const handleTogglePublish = async (id: string, currentStatus: boolean) => {
     try {
+      // Check if trying to publish (not unpublish)
+      if (!currentStatus) {
+        const testResult = testResults.get(id);
+        
+        // Block publishing if not tested or not passed
+        if (!testResult || testResult.overall_status !== 'passed' || !testResult.approved_for_publish) {
+          toast.error('Cannot publish: Validator must pass all tests and be approved first', {
+            description: 'Go to Test Validators to complete testing'
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('game_templates')
         .update({ is_published: !currentStatus })
@@ -93,6 +124,11 @@ export default function CreatorDashboard() {
     } catch (error: any) {
       toast.error('Failed to update template');
     }
+  };
+
+  const canPublish = (templateId: string) => {
+    const testResult = testResults.get(templateId);
+    return testResult?.overall_status === 'passed' && testResult?.approved_for_publish;
   };
 
   if (loading) {
@@ -144,65 +180,90 @@ export default function CreatorDashboard() {
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <Card key={template.id} className="bg-gray-900 border-gray-800 overflow-hidden">
-              <div className="aspect-video bg-gray-800 flex items-center justify-center">
-                {template.preview_image ? (
-                  <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
-                ) : (
-                  <Eye className="w-12 h-12 text-gray-600" />
-                )}
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-lg text-white">{template.name}</h3>
-                  <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      template.is_published
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-gray-700 text-gray-400'
-                    }`}
-                  >
-                    {template.is_published ? 'Published' : 'Draft'}
-                  </span>
-                </div>
-                <p className="text-gray-400 text-sm mb-4 line-clamp-2">{template.description}</p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEdit(template)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleManageCompetencies(template)}
-                    title="Manage Competencies"
-                  >
-                    <Layers className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleTogglePublish(template.id, template.is_published)}
-                  >
-                    {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(template.id)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-400" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {templates.map((template) => {
+              const isPublishable = canPublish(template.id);
+              const testResult = testResults.get(template.id);
+              
+              return (
+                <Card key={template.id} className="bg-gray-900 border-gray-800 overflow-hidden">
+                  <div className="aspect-video bg-gray-800 flex items-center justify-center">
+                    {template.preview_image ? (
+                      <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Eye className="w-12 h-12 text-gray-600" />
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-lg text-white">{template.name}</h3>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          template.is_published
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-gray-700 text-gray-400'
+                        }`}
+                      >
+                        {template.is_published ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">{template.description}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(template)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleManageCompetencies(template)}
+                        title="Manage Competencies"
+                      >
+                        <Layers className="w-4 h-4" />
+                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleTogglePublish(template.id, template.is_published)}
+                              disabled={!template.is_published && !isPublishable}
+                            >
+                              {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        {!template.is_published && !isPublishable && (
+                          <TooltipContent>
+                            <p className="text-xs">
+                              {!testResult 
+                                ? 'Must complete testing before publishing' 
+                                : testResult.overall_status !== 'passed'
+                                ? 'All test phases must pass before publishing'
+                                : 'Must be approved for publish after passing tests'}
+                            </p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(template.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </TooltipProvider>
       )}
 
       <TemplateDialog
