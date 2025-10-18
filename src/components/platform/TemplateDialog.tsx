@@ -144,6 +144,15 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
     if (mechanic.includes('Divergent') || mechanic.includes('Idea Builder')) {
       return ['Type ideas in text fields', 'Select from idea cards and remix', 'Click prompts to generate variants', 'Drag concepts to combine'];
     }
+    if (mechanic.includes('Concept Remix')) {
+      return ['Type "How might we..." reframe statements', 'Select reframing prompts and customize', 'Drag word tiles to create new phrasing', 'Click perspective cards to shift viewpoint'];
+    }
+    if (mechanic.includes('Bias Detector')) {
+      return ['Drag statements into category bins (fact/inference/opinion)', 'Click category button for each statement', 'Swipe cards left/right to categorize', 'Select category from dropdown per statement'];
+    }
+    if (mechanic.includes('Pattern Transfer') && mechanic.includes('application scenario')) {
+      return ['Click feedback points to adjust design', 'Toggle design options based on feedback', 'Type adjustments in response to feedback', 'Drag sliders to refine based on input'];
+    }
     if (mechanic.includes('Constraint Challenge') || mechanic.includes('Convergent')) {
       return ['Select best option from list', 'Rate ideas with star ratings', 'Drag to feasibility matrix', 'Click checkboxes for criteria'];
     }
@@ -331,6 +340,9 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
           if (mechanic.includes('Data Analysis') || mechanic.includes('Pattern Recognition')) return 'Click data points to tag patterns';
           if (mechanic.includes('Error-Detection') || mechanic.includes('Diagnosis')) return 'Click on errors to flag them';
           if (mechanic.includes('Divergent') || mechanic.includes('Idea Builder')) return 'Type ideas in text fields';
+          if (mechanic.includes('Concept Remix')) return 'Type "How might we..." reframe statements';
+          if (mechanic.includes('Bias Detector')) return 'Drag statements into category bins (fact/inference/opinion)';
+          if (mechanic.includes('Pattern Transfer') && mechanic.includes('application scenario')) return 'Click feedback points to adjust design';
           if (mechanic.includes('Constraint Challenge') || mechanic.includes('Convergent')) return 'Rate ideas with star ratings';
           if (mechanic.includes('Logic') || mechanic.includes('Argument')) return 'Highlight text to mark assumptions';
           if (mechanic.includes('Evidence') || mechanic.includes('Weighing')) return 'Drag sources into ranking order';
