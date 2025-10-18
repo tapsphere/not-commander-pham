@@ -147,24 +147,36 @@ ${playOpsInstructions}
 
 🎮 HOW TO PLAY (CRITICAL – Must be clear and concrete)
 
-The game MUST include a "How to Play" section on the start screen that tells players:
-1️⃣ WHO they are (role / scenario context)
-2️⃣ WHAT they need to achieve (specific & measurable goal)
-3️⃣ HOW they interact (drag, tap, rank, type, etc.)
-4️⃣ WHEN the edge-case occurs (choose: Early / Mid / Late)
-5️⃣ WHAT success looks like (system grades Needs Work / Proficient / Mastery)
-6️⃣ TIME limit (90–180 seconds total runtime)
+The game MUST start with an intro screen that includes:
+- A clear "How to Play" section that tells players:
+  1️⃣ WHO they are (role / scenario context)
+  2️⃣ WHAT they need to achieve (specific & measurable goal)
+  3️⃣ HOW they interact (drag, tap, rank, type, etc.)
+  4️⃣ WHEN the edge-case occurs (choose: Early / Mid / Late)
+  5️⃣ WHAT success looks like (system grades Needs Work / Proficient / Mastery)
+  6️⃣ TIME limit (90–180 seconds total runtime)
 
-Example:
+- A PROMINENT "START GAME" or "PLAY" BUTTON that begins gameplay when clicked
+  The button must be:
+  * Large and visible (at least 48px height for mobile)
+  * Clearly labeled ("Start Game", "Begin", "Play", or similar)
+  * Styled with the primary brand color
+  * Positioned below the instructions
+  * The ONLY way to start the game (no auto-start)
+
+Example intro screen:
 
 "You are a project manager at TechCo.
 Goal: Allocate your team and budget across 4 projects.
 HOW: Drag team members to projects. Adjust budgets using +/–.
 Submit when resources are allocated.
 ⚡ A rule may change mid-round — adapt fast!
-You have 3 minutes. Optimal allocation = Mastery level."
+You have 3 minutes. Optimal allocation = Mastery level.
+
+[START GAME] ← Big, visible button"
 
 Make instructions visual and obvious — players should understand what to do in under 10 seconds.
+The game must NOT start automatically — it must wait for the player to click the start button.
 
 ⸻
 
