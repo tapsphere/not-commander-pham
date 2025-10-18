@@ -145,44 +145,68 @@ ${playOpsInstructions}
 
 ⸻
 
-🎮 HOW TO PLAY (CRITICAL – Must be clear and concrete)
+🎮 CRITICAL GAME ARCHITECTURE (MANDATORY STRUCTURE)
 
-The game MUST start with an intro screen that includes:
-- A clear "How to Play" section that tells players:
+═══════════════════════════════════════════════════════════════
+SCENE 0: INTRO SCREEN (Before gameplay starts)
+═══════════════════════════════════════════════════════════════
+
+This screen contains ALL game directions and instructions:
   1️⃣ WHO they are (role / scenario context)
   2️⃣ WHAT they need to achieve (specific & measurable goal)
   3️⃣ HOW they interact (drag, tap, rank, type, etc.)
-  4️⃣ WHEN the edge-case occurs (choose: Early / Mid / Late)
-  5️⃣ WHAT success looks like (system grades Needs Work / Proficient / Mastery)
-  6️⃣ TIME limit (90–180 seconds total runtime)
+  4️⃣ WHEN the edge-case occurs (Early / Mid / Late)
+  5️⃣ WHAT success looks like (Needs Work / Proficient / Mastery levels)
+  6️⃣ TIME limit (90–180 seconds total)
 
-- A PROMINENT "START GAME" or "PLAY" BUTTON on the intro screen
-  The button MUST be:
-  * Large and visible (minimum 60px height, full-width on mobile)
-  * Clearly labeled ("START GAME", "BEGIN", "PLAY" in all caps)
-  * Styled with bright primary brand color with high contrast text
-  * ALWAYS VISIBLE - use position sticky or fixed positioning at bottom of screen
-  * The ONLY way to start the game (no auto-start)
-  * Placed OUTSIDE any scrollable containers so it stays always on screen
+MANDATORY START BUTTON REQUIREMENTS:
+  ✓ Position: Fixed at bottom OR sticky at bottom with position sticky and bottom 0
+  ✓ Size: Minimum 60px height, full-width on mobile, 80% width minimum on desktop
+  ✓ Label: "START GAME" or "PLAY" in ALL CAPS
+  ✓ Style: Bright brand primary color, high contrast text, bold font
+  ✓ Visibility: ALWAYS visible even when scrolling instructions
+  ✓ Container: Place OUTSIDE any scrollable divs
+  ✓ Z-index: High z-index (100 or higher)
+  ✓ The game CANNOT start without clicking this button
 
-CRITICAL SCREEN FLOW:
-- INTRO SCREEN (Scene 0): Shows game title, brief instructions (under 200 words), and START GAME button
-- When START is clicked → TRANSITION TO SCENE 1 (the actual first gameplay scene)
-- Scene 1 should be CLEAN with minimal text, just the gameplay interface (KPIs, choices, etc.)
-- DO NOT put all instructions on Scene 1 - that should be the gameplay screen with more room
-- Keep intro concise so when player clicks START, they go to a spacious gameplay scene
+LAYOUT STRUCTURE FOR INTRO:
+- Wrapper container: full viewport height with flex column layout
+- Top section: scrollable area containing all instructions
+- Bottom section: fixed/sticky button that stays visible
+- Instructions can scroll, button never scrolls away
 
-LAYOUT REQUIREMENTS:
-- Intro screen: scrollable instructions + sticky START button at bottom
-- Scene 1+: Clean gameplay interface without repeating all the instructions
-- On mobile, button should span full width and be at bottom of viewport
+═══════════════════════════════════════════════════════════════
+SCENE 1: FIRST ACTION (Actual gameplay begins)
+═══════════════════════════════════════════════════════════════
 
-Example flow: 
-1. Intro screen shows game premise + START button
-2. Click START → Scene 1 appears with just the game interface (no long instructions)
-3. Player has room to interact with the game elements
+When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
+  ✓ CLEAN interface - NO repeated instructions from Scene 0
+  ✓ Only show: timer, score/KPIs, interactive elements (buttons, sliders, drag items)
+  ✓ Brief context reminder (1 sentence max): "You are allocating budget..." 
+  ✓ Ample space for player actions - not cramped
+  ✓ No scrolling needed - everything fits on screen
+  ✓ Scene 1 is where actual gameplay mechanic starts
 
-The game must NOT start automatically — it must wait for the player to click the start button.
+═══════════════════════════════════════════════════════════════
+SCENE 2+: SUBSEQUENT ACTIONS
+═══════════════════════════════════════════════════════════════
+
+Each scene after Scene 1 continues gameplay:
+  ✓ Maintain clean interface
+  ✓ Show progression (Scene 2 of 4, etc.)
+  ✓ Keep interactive elements visible without scrolling
+  ✓ Edge-case changes happen in designated scene (Early/Mid/Late)
+
+═══════════════════════════════════════════════════════════════
+
+CRITICAL: The game architecture MUST be:
+Scene 0 (Intro + ALL directions + START button) → 
+  Click START → 
+    Scene 1 (First action, clean interface) → 
+      Scene 2 (Second action) → 
+        Scene 3 (etc.)
+
+DO NOT auto-start. DO NOT put instructions on Scene 1. DO NOT make Scene 1 scrollable.
 
 ⸻
 
