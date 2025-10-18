@@ -250,9 +250,39 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
           scene3: '⚡ EDGE CASE: Critical rule change - adjust strategy in real-time'
         };
         
+        // Generate context-specific defaults based on game mechanic
+        const getKeyElementDefault = (mechanic: string) => {
+          if (mechanic.includes('Resource Allocation')) return 'Budget, Staff, Time';
+          if (mechanic.includes('Ranking') || mechanic.includes('Prioritization')) return 'Projects A, B, C, D';
+          if (mechanic.includes('Data Analysis') || mechanic.includes('Pattern Recognition')) return 'Sales data, performance metrics';
+          if (mechanic.includes('Error-Detection') || mechanic.includes('Diagnosis')) return 'System logs, diagnostic reports';
+          if (mechanic.includes('Divergent') || mechanic.includes('Idea Builder')) return 'Brainstorming tools, ideation prompts';
+          if (mechanic.includes('Constraint Challenge')) return '24-hour deadline, $50K budget limit';
+          if (mechanic.includes('Logic') || mechanic.includes('Argument')) return 'Claims, evidence, reasoning chains';
+          if (mechanic.includes('Evidence')) return 'Data sources, stakeholder inputs';
+          if (mechanic.includes('Mapping') || mechanic.includes('Systems')) return 'Process flows, dependencies, bottlenecks';
+          return 'Key decision factors and constraints';
+        };
+        
+        const getEdgeCaseDefault = (mechanic: string) => {
+          if (mechanic.includes('Resource Allocation')) return 'Budget suddenly cut by 40%';
+          if (mechanic.includes('Ranking')) return 'Priority criteria flips mid-task';
+          if (mechanic.includes('Data Analysis')) return 'Contradictory data appears requiring reconciliation';
+          if (mechanic.includes('Error-Detection')) return 'New error type emerges not in initial framework';
+          if (mechanic.includes('Divergent')) return 'Client adds major constraint after ideation phase';
+          if (mechanic.includes('Logic')) return 'Key assumption proven false mid-analysis';
+          if (mechanic.includes('Mapping')) return 'Critical dependency changes requiring re-evaluation';
+          return 'Unexpected variable changes the rules mid-task';
+        };
+        
         const sample = {
           name: `${subCompData.statement.substring(0, 50)}...`,
           description: `Tests: ${subCompData.statement}`,
+          industry: 'Technology',
+          roleScenario: `You are a professional applying ${subCompData.statement.toLowerCase()} in a realistic scenario`,
+          keyElement: getKeyElementDefault(gameMechanic),
+          edgeCaseDetails: getEdgeCaseDefault(gameMechanic),
+          visualTheme: 'modern',
           scenario: `Apply this competency in a realistic work scenario where ${actionCue}. 
 
 You'll interact with a ${gameMechanic.toLowerCase()} interface that requires you to ${subCompData.statement.toLowerCase()}.`,
