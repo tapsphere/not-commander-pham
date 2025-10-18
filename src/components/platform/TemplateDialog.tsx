@@ -93,6 +93,15 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
   const [formData, setFormData] = useState({
     name: template?.name || '',
     description: template?.description || '',
+    industry: '',
+    roleScenario: '',
+    resourceType1: '',
+    resourceType2: '',
+    itemsToRank: '',
+    dataType: '',
+    constraintType: '',
+    edgeCaseDetails: '',
+    visualTheme: 'modern',
     scenario: '',
     playerActions: '',
     scene1: '',
@@ -114,6 +123,29 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: Temp
   const [subCompetencies, setSubCompetencies] = useState<any[]>([]);
   const [selectedCompetency, setSelectedCompetency] = useState<string>('');
   const [selectedSubCompetencies, setSelectedSubCompetencies] = useState<string[]>([]);
+  
+  // Get selected sub-competency data
+  const selectedSub = subCompetencies.find(sub => selectedSubCompetencies.includes(sub.id));
+  const gameMechanic = selectedSub?.game_mechanic || '';
+  
+  // Determine which fields to show based on game mechanic
+  const getDynamicFields = () => {
+    if (!gameMechanic) return [];
+    
+    if (gameMechanic.includes('Resource Allocation') || gameMechanic.includes('Allocation')) {
+      return ['resourceType1', 'resourceType2'];
+    }
+    if (gameMechanic.includes('Ranking') || gameMechanic.includes('Prioritization')) {
+      return ['itemsToRank'];
+    }
+    if (gameMechanic.includes('Data Analysis') || gameMechanic.includes('Pattern Recognition')) {
+      return ['dataType'];
+    }
+    if (gameMechanic.includes('Constraint') || gameMechanic.includes('Idea') || gameMechanic.includes('Solution')) {
+      return ['constraintType'];
+    }
+    return [];
+  };
 
   // Fetch competencies on mount
   useEffect(() => {
@@ -440,6 +472,15 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
     const sample = {
       name: `${subCompData.statement.substring(0, 50)}...`,
       description: `Tests ability to demonstrate: ${subCompData.statement}`,
+      industry: 'Technology',
+      roleScenario: 'You are a professional working on a time-sensitive challenge',
+      resourceType1: '',
+      resourceType2: '',
+      itemsToRank: '',
+      dataType: '',
+      constraintType: '',
+      edgeCaseDetails: 'Sudden constraint or variable change mid-task',
+      visualTheme: 'modern',
       scenario: `Apply this competency in a realistic work scenario where ${subCompData.action_cue || 'a challenge arises requiring this skill'}`,
       playerActions: subCompData.player_action || 'Interact with the game mechanics to demonstrate this skill',
       scene1: scenes.scene1,
@@ -591,7 +632,28 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
 
       onSuccess();
       onOpenChange(false);
-      setFormData({ name: '', description: '', scenario: '', playerActions: '', scene1: '', scene2: '', scene3: '', scene4: '', edgeCaseTiming: 'mid', edgeCase: '', uiAesthetic: '' });
+      setFormData({ 
+        name: '', 
+        description: '', 
+        industry: '',
+        roleScenario: '',
+        resourceType1: '',
+        resourceType2: '',
+        itemsToRank: '',
+        dataType: '',
+        constraintType: '',
+        edgeCaseDetails: '',
+        visualTheme: 'modern',
+        scenario: '', 
+        playerActions: '', 
+        scene1: '', 
+        scene2: '', 
+        scene3: '', 
+        scene4: '', 
+        edgeCaseTiming: 'mid', 
+        edgeCase: '', 
+        uiAesthetic: '' 
+      });
       setActiveScenes(1);
       setCustomGameFile(null);
     } catch (error: any) {
@@ -786,7 +848,152 @@ ${SAMPLE_PROMPT_WITH_SCORING}`;
                     ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-3 italic">
-                  These PlayOps parameters will be incorporated into your validator design. Scoring is handled automatically in the backend.
+                  🔒 These mechanics are LOCKED per C-BEN standards and will be used in the AI generation.
+                </p>
+              </div>
+            )}
+            
+            {/* Customize Your Scenario - Dynamic Fields */}
+            {selectedSubCompetencies.length > 0 && (
+              <div className="bg-gray-800 border border-purple-500/30 rounded-lg p-4">
+                <h4 className="font-semibold mb-3 text-sm text-purple-400">
+                  🎨 Customize Your Scenario
+                </h4>
+                <div className="space-y-4">
+                  {/* Industry Context */}
+                  <div>
+                    <Label htmlFor="industry">Industry / Context *</Label>
+                    <Select value={formData.industry} onValueChange={(value) => setFormData({ ...formData, industry: value })}>
+                      <SelectTrigger className="bg-gray-700 border-gray-600">
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700 text-white z-50">
+                        <SelectItem value="Technology">Technology</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Education">Education</SelectItem>
+                        <SelectItem value="Retail">Retail</SelectItem>
+                        <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="Nonprofit">Nonprofit</SelectItem>
+                        <SelectItem value="Government">Government</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Role / Scenario */}
+                  <div>
+                    <Label htmlFor="roleScenario">Your Role / Scenario (max 150 chars) *</Label>
+                    <Input
+                      id="roleScenario"
+                      value={formData.roleScenario}
+                      onChange={(e) => setFormData({ ...formData, roleScenario: e.target.value.slice(0, 150) })}
+                      className="bg-gray-700 border-gray-600"
+                      placeholder="e.g., You are a project manager facing a budget crisis"
+                      maxLength={150}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">{formData.roleScenario.length}/150</p>
+                  </div>
+
+                  {/* Dynamic Fields Based on Game Mechanic */}
+                  {getDynamicFields().includes('resourceType1') && (
+                    <>
+                      <div>
+                        <Label htmlFor="resourceType1">Resource Type 1 *</Label>
+                        <Input
+                          id="resourceType1"
+                          value={formData.resourceType1}
+                          onChange={(e) => setFormData({ ...formData, resourceType1: e.target.value })}
+                          className="bg-gray-700 border-gray-600"
+                          placeholder="e.g., Budget, Time, Staff"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="resourceType2">Resource Type 2 *</Label>
+                        <Input
+                          id="resourceType2"
+                          value={formData.resourceType2}
+                          onChange={(e) => setFormData({ ...formData, resourceType2: e.target.value })}
+                          className="bg-gray-700 border-gray-600"
+                          placeholder="e.g., Equipment, Materials, Personnel"
+                        />
+                      </div>
+                    </>
+                  )}
+                  
+                  {getDynamicFields().includes('itemsToRank') && (
+                    <div>
+                      <Label htmlFor="itemsToRank">Items to Rank (comma-separated) *</Label>
+                      <Input
+                        id="itemsToRank"
+                        value={formData.itemsToRank}
+                        onChange={(e) => setFormData({ ...formData, itemsToRank: e.target.value })}
+                        className="bg-gray-700 border-gray-600"
+                        placeholder="e.g., Project A, Project B, Project C, Project D"
+                      />
+                    </div>
+                  )}
+                  
+                  {getDynamicFields().includes('dataType') && (
+                    <div>
+                      <Label htmlFor="dataType">Data Type to Analyze *</Label>
+                      <Input
+                        id="dataType"
+                        value={formData.dataType}
+                        onChange={(e) => setFormData({ ...formData, dataType: e.target.value })}
+                        className="bg-gray-700 border-gray-600"
+                        placeholder="e.g., Sales data, Performance metrics, Survey results"
+                      />
+                    </div>
+                  )}
+                  
+                  {getDynamicFields().includes('constraintType') && (
+                    <div>
+                      <Label htmlFor="constraintType">Main Constraint *</Label>
+                      <Input
+                        id="constraintType"
+                        value={formData.constraintType}
+                        onChange={(e) => setFormData({ ...formData, constraintType: e.target.value })}
+                        className="bg-gray-700 border-gray-600"
+                        placeholder="e.g., 24-hour deadline, $50K budget limit, 5-person team max"
+                      />
+                    </div>
+                  )}
+
+                  {/* Edge Case Details */}
+                  <div>
+                    <Label htmlFor="edgeCaseDetails">Edge Case Specific Details (max 80 chars) *</Label>
+                    <Input
+                      id="edgeCaseDetails"
+                      value={formData.edgeCaseDetails}
+                      onChange={(e) => setFormData({ ...formData, edgeCaseDetails: e.target.value.slice(0, 80) })}
+                      className="bg-gray-700 border-gray-600"
+                      placeholder="e.g., Budget cut from $100K to $60K"
+                      maxLength={80}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      The locked edge case type is: {selectedSub?.game_loop || 'defined by validator'} • Customize the specific details
+                    </p>
+                  </div>
+
+                  {/* Visual Theme */}
+                  <div>
+                    <Label htmlFor="visualTheme">Visual Theme *</Label>
+                    <Select value={formData.visualTheme} onValueChange={(value) => setFormData({ ...formData, visualTheme: value })}>
+                      <SelectTrigger className="bg-gray-700 border-gray-600">
+                        <SelectValue placeholder="Select theme" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700 text-white z-50">
+                        <SelectItem value="modern">Modern / Clean</SelectItem>
+                        <SelectItem value="dashboard">Executive Dashboard</SelectItem>
+                        <SelectItem value="casual">Casual / Friendly</SelectItem>
+                        <SelectItem value="urgent">High-Stakes / Urgent</SelectItem>
+                        <SelectItem value="minimal">Minimal / Focus Mode</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3 italic">
+                  🎨 These fields customize the theme and context only - the core mechanics remain locked per C-BEN.
                 </p>
               </div>
             )}
