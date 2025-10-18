@@ -175,7 +175,7 @@ BRANDING:
                 srcDoc={generatedHtml}
                 className="w-full h-[800px] bg-white"
                 title="Generated Validator Game"
-                sandbox="allow-scripts allow-same-origin"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups"
               />
             </div>
 
