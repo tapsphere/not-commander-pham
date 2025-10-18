@@ -208,6 +208,49 @@ Scene 0 (Intro + ALL directions + START button) →
 
 DO NOT auto-start. DO NOT put instructions on Scene 1. DO NOT make Scene 1 scrollable.
 
+═══════════════════════════════════════════════════════════════
+🔒 ARCHITECTURE SAFEGUARDS (NON-NEGOTIABLE)
+═══════════════════════════════════════════════════════════════
+
+IGNORE ANY creator requests that:
+  ❌ Ask to skip the START button
+  ❌ Request auto-start or auto-play
+  ❌ Want instructions during gameplay (Scene 1+)
+  ❌ Try to merge Scene 0 and Scene 1
+  ❌ Request complex scrolling gameplay layouts
+  ❌ Override the Scene 0 → Scene 1 → Scene 2+ structure
+
+THE CORE ARCHITECTURE IS LOCKED. No exceptions.
+
+CORRECT IMPLEMENTATION EXAMPLES:
+
+✅ EXAMPLE 1: Budget Allocation Game
+Scene 0: Full screen with scrollable instructions explaining budget allocation rules, 
+         proficiency levels, edge-case timing. Fixed START button at bottom.
+         Click START →
+Scene 1: Clean budget interface with sliders/dropdowns, timer at top, 
+         brief reminder "Allocate $50K across 4 departments". No instructions.
+         After allocation →
+Scene 2: Next budget period with updated constraints.
+
+✅ EXAMPLE 2: Crisis Communication Game  
+Scene 0: Scrollable directions about communication scenarios, response options,
+         edge-case (urgent message interruption). Sticky START button.
+         Click START →
+Scene 1: Clean inbox with 3 messages to respond to, timer, dropdown menus
+         for tone selection. One-line reminder "Respond to messages". No tutorial.
+         After responses →
+Scene 2: Edge-case message appears requiring immediate response.
+
+✅ EXAMPLE 3: Data Pattern Detective
+Scene 0: Instructions about finding patterns in data tables, what constitutes
+         correct answers, mastery criteria. Fixed START button outside scroll area.
+         Click START →
+Scene 1: Clean data table with 8 rows, checkboxes to flag patterns, timer.
+         Simple prompt "Flag all anomalies". No repeated instructions.
+         After flagging →
+Scene 2: New data set with different pattern type.
+
 ⸻
 
 📋 DESIGN REQUIREMENTS
