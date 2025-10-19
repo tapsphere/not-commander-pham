@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit, Trash2 } from "lucide-react";
@@ -58,6 +59,7 @@ export function CourseGamifier() {
   const [assessmentMethods, setAssessmentMethods] = useState<string[]>([]);
   const [courseDuration, setCourseDuration] = useState("4");
   const [prerequisites, setPrerequisites] = useState("");
+  const [industry, setIndustry] = useState(""); // Industry/Context field
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<any>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -102,6 +104,7 @@ export function CourseGamifier() {
     setSelectedAnalysisId(analysis.id);
     setAnalysisResult(analysis.analysis_results);
     setCourseDescription(analysis.course_description || "");
+    setIndustry(analysis.industry || "");
     toast({
       title: "Analysis loaded",
       description: "Using saved analysis. You can edit it below.",
@@ -327,6 +330,14 @@ export function CourseGamifier() {
         });
         return;
       }
+      if (!industry.trim()) {
+        toast({
+          title: "Industry/Context required",
+          description: "Please select an industry or context",
+          variant: "destructive",
+        });
+        return;
+      }
       // Note: Assessment methods no longer required here - they're auto-determined from sub-competency matching
       const durationNum = parseInt(courseDuration);
       if (isNaN(durationNum) || durationNum < 3 || durationNum > 6) {
@@ -449,6 +460,7 @@ ${courseDescription}
             course_description: courseDescription,
             file_url: fileUrl,
             file_type: selectedFile?.type || 'text',
+            industry: industry || null,
             analysis_results: analysisData.analysis,
             competency_mappings: analysisData.analysis.competency_mappings,
             recommended_validators: analysisData.analysis.recommended_validators
@@ -599,6 +611,28 @@ ${courseDescription}
                   onChange={(e) => setTargetAudience(e.target.value)}
                   placeholder="Who is this course designed for?"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="industry">Industry / Context *</Label>
+                <Select value={industry} onValueChange={setIndustry}>
+                  <SelectTrigger id="industry" className="bg-gray-800 border-gray-700">
+                    <SelectValue placeholder="Select industry or context..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                    <SelectItem value="school">School / K-12 Education</SelectItem>
+                    <SelectItem value="higher-ed">Higher Education / University</SelectItem>
+                    <SelectItem value="corporate">Corporate Training</SelectItem>
+                    <SelectItem value="healthcare">Healthcare</SelectItem>
+                    <SelectItem value="tech">Technology / IT</SelectItem>
+                    <SelectItem value="finance">Finance / Banking</SelectItem>
+                    <SelectItem value="retail">Retail</SelectItem>
+                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="nonprofit">Non-Profit / NGO</SelectItem>
+                    <SelectItem value="government">Government</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

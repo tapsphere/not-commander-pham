@@ -114,6 +114,7 @@ export type Database = {
           file_type: string | null
           file_url: string | null
           id: string
+          industry: string | null
           recommended_validators: Json | null
           updated_at: string | null
         }
@@ -127,6 +128,7 @@ export type Database = {
           file_type?: string | null
           file_url?: string | null
           id?: string
+          industry?: string | null
           recommended_validators?: Json | null
           updated_at?: string | null
         }
@@ -140,6 +142,7 @@ export type Database = {
           file_type?: string | null
           file_url?: string | null
           id?: string
+          industry?: string | null
           recommended_validators?: Json | null
           updated_at?: string | null
         }
