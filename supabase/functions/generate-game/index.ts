@@ -215,8 +215,15 @@ When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
   ✓ Only show: timer, score/KPIs, draggable/clickable elements
   ✓ Brief context reminder (1 sentence max): "You are allocating budget..." 
   ✓ Ample space for player actions - not cramped
-  ✓ No scrolling needed - everything fits on screen
   ✓ Scene 1 is where actual gameplay mechanic starts
+  
+  🚫 CRITICAL NO-SCROLL REQUIREMENTS:
+  ✓ Container MUST have: height: 100vh; overflow: hidden;
+  ✓ All gameplay elements MUST fit within viewport - NO vertical scrolling
+  ✓ Use flex or grid layout to distribute space, never rely on scrolling
+  ✓ If content is too long, use tabs, accordions, or pagination - NEVER scroll
+  ✓ Test on mobile viewport (390px x 844px) - everything must be visible
+  ✓ Buttons and interactive elements MUST be reachable without scrolling
   
   INTERACTION PRIORITY (Use in this order):
   1. DRAG & DROP - Best for sorting, allocating, organizing
@@ -231,8 +238,14 @@ SCENE 2+: SUBSEQUENT ACTIONS
 Each scene after Scene 1 continues gameplay:
   ✓ Maintain clean interface
   ✓ Show progression using player-friendly terms (Challenge 2 of 4, Round 2, etc.) - NEVER "Scene X"
-  ✓ Keep interactive elements visible without scrolling
   ✓ Edge-case changes happen organically without warning or scene number references
+  
+  🚫 NO-SCROLL ENFORCEMENT (ALL GAMEPLAY SCENES):
+  ✓ Every gameplay screen: height: 100vh; overflow: hidden;
+  ✓ Content must always fit in viewport - use compact layouts
+  ✓ Stack elements efficiently with flexbox/grid
+  ✓ If showing multiple options, limit to 3-4 visible choices max
+  ✓ Use fixed positioning for headers/timers to save space
 
 ═══════════════════════════════════════════════════════════════
 
@@ -244,6 +257,43 @@ Scene 0 (Intro + ALL directions + START button) →
         Scene 3 (etc.)
 
 DO NOT auto-start. DO NOT put instructions on Scene 1. DO NOT make Scene 1 scrollable.
+
+═══════════════════════════════════════════════════════════════
+💻 MANDATORY HTML STRUCTURE FOR NO-SCROLL GAMEPLAY
+═══════════════════════════════════════════════════════════════
+
+ALL gameplay screens (Scene 1, 2, 3, etc.) MUST use this structure:
+
+HTML EXAMPLE - No Scroll Container:
+  body and html: margin 0, padding 0, overflow hidden, height 100vh
+  
+  gameplay-container div: 
+    display flex, flex-direction column, height 100vh, overflow hidden
+  
+  game-header div: flex-shrink 0, padding 12px 16px (Timer, Progress)
+  
+  game-content div: 
+    flex 1 (takes remaining space)
+    display flex, flex-direction column
+    justify-content center, align-items center
+    overflow hidden (CRITICAL)
+  
+  game-footer div: flex-shrink 0, padding 16px (Action buttons)
+
+STRUCTURE:
+  div#gameScreen.gameplay-container (display none initially)
+    - div.game-header (Timer + Progress)
+    - div.game-content (All interactive gameplay - MUST fit here)
+      - h2 (Brief 1-line context)
+      - Interactive elements (Limit to 3-4 options max)
+    - div.game-footer (Continue button)
+
+KEY ENFORCEMENT:
+- Parent container MUST have: height 100vh and overflow hidden
+- Content area MUST use: flex 1 to fill space
+- Limit choices to 3-4 max so everything fits
+- Headers/footers use: flex-shrink 0
+- NEVER use: height auto or overflow scroll on gameplay screens
 
 ═══════════════════════════════════════════════════════════════
 🔒 ARCHITECTURE SAFEGUARDS (NON-NEGOTIABLE)
