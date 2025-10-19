@@ -52,8 +52,8 @@ export function CourseGamifier() {
   const [learningObjectives, setLearningObjectives] = useState<string[]>([""]);
   const [targetAudience, setTargetAudience] = useState("");
   const [keyTopics, setKeyTopics] = useState<string[]>([""]);
-  const [assessmentMethods, setAssessmentMethods] = useState("");
-  const [courseDuration, setCourseDuration] = useState("");
+  const [assessmentMethods, setAssessmentMethods] = useState<string[]>([]);
+  const [courseDuration, setCourseDuration] = useState("4");
   const [prerequisites, setPrerequisites] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedData, setExtractedData] = useState<any>(null);
@@ -192,8 +192,8 @@ export function CourseGamifier() {
         setLearningObjectives(data.extractedInfo.learningObjectives || [""]);
         setTargetAudience(data.extractedInfo.targetAudience || "");
         setKeyTopics(data.extractedInfo.keyTopics || [""]);
-        setAssessmentMethods(data.extractedInfo.assessmentMethods || "");
-        setCourseDuration(data.extractedInfo.courseDuration || "");
+        setAssessmentMethods(data.extractedInfo.assessmentMethods || []);
+        setCourseDuration(data.extractedInfo.estimatedDuration || "4");
         setPrerequisites(data.extractedInfo.prerequisites || "");
         setExtractedData(data.extractedInfo);
       }

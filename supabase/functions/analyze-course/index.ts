@@ -76,13 +76,49 @@ OUTPUT FORMAT (JSON only, no markdown):
   }
 }`;
 
+const EXTRACTION_PROMPT = `You are a course content extractor. Extract structured information from course materials.
+
+Extract the following information and return ONLY JSON (no markdown):
+{
+  "courseName": "Full course name",
+  "courseDescription": "2-3 sentence description",
+  "learningObjectives": ["objective 1", "objective 2", "..."],
+  "targetAudience": "Who this course is for",
+  "keyTopics": ["topic 1", "topic 2", "..."],
+  "assessmentMethods": ["validator 1", "validator 2"],
+  "estimatedDuration": "3-6",
+  "prerequisites": "What learners need before taking this"
+}
+
+IMPORTANT FOR ASSESSMENT METHODS:
+Map any assessment, evaluation, or testing methods to these PlayOps validators ONLY:
+- "Mood Mapper" - for emotion identification tests
+- "Respond Loop" - for emotional regulation scenarios
+- "Empathy Scenario" - for empathy exercises
+- "Tone Match Game" - for communication tone assessment
+- "Resilience Path" - for resilience building
+- "Breath Timer" - for stress management
+- "Speak-Out Tree" - for ethical communication
+- "Integrity Dilemma" - for integrity scenarios
+- "Kindness Simulation" - for compassion exercises
+- "Consensus Builder" - for collaborative decision-making
+- "Data Pattern Detective" - for analytical thinking
+- "Budget Allocation" - for resource management
+- "Crisis Communication" - for pressure communication
+- "Narrative Builder" - for creative thinking
+
+DURATION CONSTRAINTS:
+- Estimate 3-6 minutes based on content depth
+- Return just the number (e.g., "4" for 4 minutes)
+- Consider: 3 min = simple/introductory, 6 min = complex/comprehensive`;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { courseText, courseName, courseDescription } = await req.json();
+    const { courseText, courseName, courseDescription, extractMode } = await req.json();
 
     if (!courseText) {
       return new Response(
@@ -91,6 +127,67 @@ serve(async (req) => {
       );
     }
 
+    // Handle extraction mode - just extract structured info, don't analyze
+    if (extractMode) {
+      console.log('Extracting course information...');
+      
+      const extractPrompt = `Extract structured information from this course content:
+
+COURSE CONTENT:
+${courseText}
+
+Return ONLY the JSON structure as specified.`;
+
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: EXTRACTION_PROMPT },
+            { role: 'user', content: extractPrompt }
+          ],
+          temperature: 0.3,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Extraction failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const extractedText = data.choices[0].message.content;
+      
+      let extractedInfo;
+      try {
+        const jsonMatch = extractedText.match(/```json\n?([\s\S]*?)\n?```/) || 
+                          extractedText.match(/```\n?([\s\S]*?)\n?```/);
+        const jsonText = jsonMatch ? jsonMatch[1] : extractedText;
+        extractedInfo = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        extractedInfo = {
+          courseName: courseName || "Untitled Course",
+          courseDescription: "",
+          learningObjectives: [""],
+          targetAudience: "",
+          keyTopics: [""],
+          assessmentMethods: ["Mood Mapper"],
+          estimatedDuration: "4",
+          prerequisites: ""
+        };
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, extractedInfo }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Regular analysis mode
     console.log('Analyzing course:', courseName);
 
     const userPrompt = `Analyze this course and generate a PlayOps × C-BEN competency alignment.
