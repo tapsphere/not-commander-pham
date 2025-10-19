@@ -327,14 +327,7 @@ export function CourseGamifier() {
         });
         return;
       }
-      if (assessmentMethods.length === 0) {
-        toast({
-          title: "Assessment methods required",
-          description: "Please select at least one validator",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Note: Assessment methods no longer required here - they're auto-determined from sub-competency matching
       const durationNum = parseInt(courseDuration);
       if (isNaN(durationNum) || durationNum < 3 || durationNum > 6) {
         toast({
@@ -443,6 +436,11 @@ ${courseDescription}
 
       // Save to database
       if (user) {
+        // Auto-extract assessment methods from competency mappings
+        const autoAssessmentMethods = Array.from(
+          new Set(analysisData.analysis.competency_mappings.map((m: CompetencyMapping) => m.validator_type))
+        );
+
         const { error: saveError } = await supabase
           .from('course_gamification')
           .insert({
@@ -462,9 +460,19 @@ ${courseDescription}
       setProgress(100);
       setAnalysisResult(analysisData.analysis);
 
+      // Auto-populate assessment methods from matched sub-competencies
+      const autoMethods: string[] = Array.from(
+        new Set(
+          analysisData.analysis.competency_mappings
+            .map((m: CompetencyMapping) => m.validator_type)
+            .filter((v: string | undefined): v is string => !!v)
+        )
+      );
+      setAssessmentMethods(autoMethods);
+
       toast({
         title: "Analysis complete!",
-        description: `Identified ${analysisData.analysis.summary.total_competencies} competencies across ${analysisData.analysis.summary.domains_covered.length} domains`,
+        description: `Identified ${analysisData.analysis.summary.total_competencies} competencies with ${autoMethods.length} validator types`,
       });
 
     } catch (error) {
@@ -623,30 +631,21 @@ ${courseDescription}
               </div>
 
               <div className="space-y-2">
-                <Label>Assessment Methods (Validators) *</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    "Mood Mapper", "Respond Loop", "Empathy Scenario", "Tone Match Game",
-                    "Resilience Path", "Breath Timer", "Speak-Out Tree", "Integrity Dilemma",
-                    "Kindness Simulation", "Consensus Builder", "Data Pattern Detective",
-                    "Budget Allocation", "Crisis Communication", "Narrative Builder"
-                  ].map((validator) => (
-                    <label key={validator} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={assessmentMethods.includes(validator)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setAssessmentMethods([...assessmentMethods, validator]);
-                          } else {
-                            setAssessmentMethods(assessmentMethods.filter(v => v !== validator));
-                          }
-                        }}
-                      />
-                      {validator}
-                    </label>
-                  ))}
-                </div>
+                <Label>Assessment Methods (Validators)</Label>
+                <Alert>
+                  <AlertDescription className="text-xs">
+                    ℹ️ Assessment methods are automatically determined from matched sub-competencies. They will appear after analysis.
+                  </AlertDescription>
+                </Alert>
+                {assessmentMethods.length > 0 && (
+                  <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-lg">
+                    {assessmentMethods.map((method) => (
+                      <span key={method} className="text-xs bg-neon-green/20 text-neon-green px-2 py-1 rounded border border-neon-green/30">
+                        {method}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
