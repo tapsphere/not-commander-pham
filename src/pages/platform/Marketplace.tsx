@@ -38,21 +38,22 @@ export default function Marketplace() {
         .from('game_templates')
         .select('id, creator_id, name, preview_image')
         .eq('is_published', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
       if (templatesError) throw templatesError;
 
       // Group by creator and get unique creators
-      const creatorMap = new Map<string, { games: any[], creator_id: string }>();
+      const creatorMap = new Map<string, { games: any[], creator_id: string | null }>();
       
       templatesData?.forEach(template => {
-        if (!creatorMap.has(template.creator_id)) {
-          creatorMap.set(template.creator_id, {
+        const creatorKey = template.creator_id || 'playops-sample';
+        if (!creatorMap.has(creatorKey)) {
+          creatorMap.set(creatorKey, {
             creator_id: template.creator_id,
             games: []
           });
         }
-        creatorMap.get(template.creator_id)?.games.push({
+        creatorMap.get(creatorKey)?.games.push({
           id: template.id,
           name: template.name,
           preview_image: template.preview_image
@@ -62,6 +63,20 @@ export default function Marketplace() {
       // Fetch creator profiles
       const creatorsWithProfiles = await Promise.all(
         Array.from(creatorMap.values()).map(async ({ creator_id, games }) => {
+          // Handle sample validators (no creator)
+          if (!creator_id) {
+            const featuredGame = games[0];
+            return {
+              creator_id: 'playops-sample',
+              creator_name: 'PlayOps Sample Validators',
+              creator_bio: 'Official PlayOps validator templates for common competency assessments',
+              featured_game_image: featuredGame?.preview_image || null,
+              featured_game_name: featuredGame?.name || null,
+              featured_game_id: featuredGame?.id || null,
+              total_games: games.length
+            };
+          }
+
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, bio')

@@ -221,7 +221,7 @@ export type Database = {
           base_prompt: string | null
           competency_id: string | null
           created_at: string | null
-          creator_id: string
+          creator_id: string | null
           custom_game_url: string | null
           description: string | null
           game_config: Json
@@ -237,7 +237,7 @@ export type Database = {
           base_prompt?: string | null
           competency_id?: string | null
           created_at?: string | null
-          creator_id: string
+          creator_id?: string | null
           custom_game_url?: string | null
           description?: string | null
           game_config?: Json
@@ -253,7 +253,7 @@ export type Database = {
           base_prompt?: string | null
           competency_id?: string | null
           created_at?: string | null
-          creator_id?: string
+          creator_id?: string | null
           custom_game_url?: string | null
           description?: string | null
           game_config?: Json

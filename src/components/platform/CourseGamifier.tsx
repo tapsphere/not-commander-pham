@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Loader2, FileText, Brain, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { CourseGameCustomizationDialog } from "./CourseGameCustomizationDialog";
+import { ValidatorTemplateCard } from "./ValidatorTemplateCard";
 
 interface CompetencyMapping {
   domain: string;
@@ -318,57 +318,24 @@ export function CourseGamifier() {
 
             <div>
               <h3 className="font-semibold mb-3">Recommended Validators</h3>
-              <div className="grid gap-3">
+              <p className="text-sm text-muted-foreground mb-4">
+                These validator templates match your course competencies. Select one to customize for your learners.
+              </p>
+              <div className="grid gap-4">
                 {analysisResult.recommended_validators.map((validator, idx) => (
-                  <Card key={idx} className="border-l-4" style={{
-                    borderLeftColor: validator.priority === 'high' ? 'hsl(var(--destructive))' :
-                                    validator.priority === 'medium' ? 'hsl(var(--warning))' : 
-                                    'hsl(var(--muted))'
-                  }}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <p className="font-medium">{validator.validator_name}</p>
-                        <span className="text-xs uppercase px-2 py-1 rounded bg-muted">
-                          {validator.priority} priority
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{validator.reason}</p>
-                      <p className="text-xs">
-                        <strong>Tests:</strong> {validator.competencies_tested.join(', ')}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <ValidatorTemplateCard
+                    key={idx}
+                    validator={validator}
+                    courseName={courseName}
+                    competencyMappings={analysisResult.competency_mappings.filter(
+                      m => m.validator_type === validator.validator_name
+                    )}
+                  />
                 ))}
               </div>
             </div>
-
-            <div className="flex justify-end pt-4 border-t">
-              <Button 
-                onClick={() => setShowCustomizationDialog(true)}
-                className="gap-2 bg-neon-green text-white hover:bg-neon-green/90"
-                size="lg"
-              >
-                <Sparkles className="w-4 h-4" />
-                Create Game from Analysis
-              </Button>
-            </div>
           </CardContent>
         </Card>
-      )}
-
-      {analysisResult && (
-        <CourseGameCustomizationDialog
-          open={showCustomizationDialog}
-          onOpenChange={setShowCustomizationDialog}
-          courseName={courseName}
-          competencyMappings={analysisResult.competency_mappings}
-          onSuccess={() => {
-            toast({
-              title: "Success!",
-              description: "Your game has been generated and saved to your dashboard.",
-            });
-          }}
-        />
       )}
     </div>
   );
