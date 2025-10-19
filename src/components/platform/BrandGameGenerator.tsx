@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Loader2, Copy, Check } from 'lucide-react';
+import { Sparkles, Loader2, Play, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
 
@@ -30,6 +31,24 @@ interface BrandGameGeneratorProps {
   brandId: string;
 }
 
+interface FormData {
+  industry: string;
+  roleScenario: string;
+  keyElement: string;
+  edgeCaseDetails: string;
+  visualTheme: string;
+  interactionMethod: string;
+  scenario: string;
+  playerActions: string;
+  scene1: string;
+  scene2: string;
+  scene3: string;
+  scene4: string;
+  edgeCaseTiming: 'early' | 'mid' | 'late';
+  edgeCase: string;
+  uiAesthetic: string;
+}
+
 export const BrandGameGenerator = ({
   open,
   onOpenChange,
@@ -39,18 +58,35 @@ export const BrandGameGenerator = ({
 }: BrandGameGeneratorProps) => {
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [customizationPrompt, setCustomizationPrompt] = useState('');
   const [gameHtml, setGameHtml] = useState('');
-  const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [activeScenes, setActiveScenes] = useState(3);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  const [formData, setFormData] = useState<FormData>({
+    industry: 'Technology',
+    roleScenario: '',
+    keyElement: '',
+    edgeCaseDetails: '',
+    visualTheme: 'modern',
+    interactionMethod: 'Click to select options',
+    scenario: '',
+    playerActions: '',
+    scene1: '',
+    scene2: '',
+    scene3: '',
+    scene4: '',
+    edgeCaseTiming: 'mid',
+    edgeCase: '',
+    uiAesthetic: '',
+  });
 
   const handleAutoFill = async () => {
     try {
       setGenerating(true);
       setProgress(10);
 
-      // Fetch the full sub-competency data from database
+      // Fetch full sub-competency data
       const { data: subCompData, error: subError } = await supabase
         .from('sub_competencies')
         .select('*')
@@ -60,72 +96,74 @@ export const BrandGameGenerator = ({
       if (subError) throw subError;
       
       if (!subCompData) {
-        toast.error('Sub-competency data not found in database');
+        toast.error('Sub-competency data not found');
         return;
       }
 
       setProgress(30);
 
-      // Build auto-filled prompt using database data
-      const autoPrompt = `
-🎯 VALIDATOR: ${courseName} - ${mapping.sub_competency}
-
-📋 C-BEN COMPETENCY FRAMEWORK
-Domain: ${mapping.domain}
-Competency: ${mapping.competency}
-Sub-Competency: ${mapping.sub_competency}
-Validator Type: ${subCompData.validator_type || mapping.validator_type}
-
-🎮 GAME DESIGN (PlayOps Framework)
-Action Cue: ${subCompData.action_cue || mapping.action_cue || 'Demonstrate this competency in realistic scenario'}
-Game Mechanic: ${subCompData.game_mechanic || 'Interactive simulation'}
-Game Loop: ${subCompData.game_loop || 'Input → Action → Feedback → Adjust → Submit'}
-
-📊 SCORING & PROFICIENCY LEVELS
-Level 1 (Needs Work): ${subCompData.scoring_formula_level_1 || '<80% accuracy'}
-Level 2 (Proficient): ${subCompData.scoring_formula_level_2 || '80-94% accuracy'}
-Level 3 (Mastery): ${subCompData.scoring_formula_level_3 || '≥95% accuracy + edge case handled'}
-
-Evidence Metric: ${mapping.evidence_metric}
-
-🎯 SCENARIO
-Context: ${mapping.alignment_summary}
-Course Application: "${courseName}" training module
-
-Player Task:
-• ${subCompData.action_cue || 'Complete the challenge'}
-• Demonstrate mastery of: ${mapping.sub_competency}
-• Meet scoring criteria for proficiency levels
-
-📱 TECHNICAL REQUIREMENTS
-• Mobile-first design (Telegram Mini App)
-• 3-6 minute gameplay
-• Real-time scoring
-• Clear visual feedback
-• Touch-friendly controls
-• Auto-submit on completion
-
-🎨 UI AESTHETIC
-Clean, professional interface matching validator type: ${subCompData.validator_type}
-Color scheme: Grayscale with neon accent for feedback
-Typography: Clear, readable fonts for mobile
-
-⚡ EDGE CASE
-Include mid-game disruption that tests adaptability:
-${subCompData.game_loop ? `Based on: ${subCompData.game_loop}` : 'Introduce unexpected constraint or rule change'}
-
-📈 RESULT SCREEN
-Display:
-• Performance level (color-coded: red/yellow/green)
-• Score breakdown by criteria
-• Evidence statement: "${mapping.evidence_metric}"
-• Next steps for improvement
-`;
-
-      setGeneratedPrompt(autoPrompt);
-      setProgress(50);
+      // Create scene progression based on validator type
+      const sceneExamples: { [key: string]: { scene1: string, scene2: string, scene3: string, scene4?: string } } = {
+        'Scenario-Based Simulation': {
+          scene1: 'Review initial scenario data and make baseline decisions using normal constraints',
+          scene2: 'New variable introduced - adjust strategy while maintaining core objectives',
+          scene3: '⚡ EDGE CASE: Budget cut 40% - rapidly reallocate resources',
+          scene4: 'Finalize and submit optimized plan under new constraints'
+        },
+        'Communication Product': {
+          scene1: 'Draft initial message for target audience with given KPIs',
+          scene2: 'Refine messaging based on feedback and additional context',
+          scene3: '⚡ EDGE CASE: Audience changed - rewrite for different stakeholder group'
+        },
+        'Data Analysis': {
+          scene1: 'Analyze baseline dataset and identify initial patterns',
+          scene2: 'Apply filters and validate findings against criteria',
+          scene3: '⚡ EDGE CASE: Contradictory data appears - reconcile and update insights',
+          scene4: 'Present final analysis with updated recommendations'
+        },
+        'Performance Demonstration': {
+          scene1: 'Evaluate performance using primary metrics',
+          scene2: 'Compare against benchmarks and identify gaps',
+          scene3: '⚡ EDGE CASE: Priority KPI suddenly changes - pivot evaluation focus'
+        }
+      };
       
-      toast.success('Game template auto-filled from framework data!');
+      const scenes = sceneExamples[subCompData.validator_type || mapping.validator_type] || {
+        scene1: 'Complete baseline task using standard approach',
+        scene2: 'Adapt to new information or constraint',
+        scene3: '⚡ EDGE CASE: Critical rule change - adjust strategy in real-time'
+      };
+
+      const autoFilled: FormData = {
+        industry: 'Technology',
+        roleScenario: `You are working on ${courseName} training challenge`,
+        keyElement: 'Key resources or data relevant to this challenge',
+        edgeCaseDetails: 'Sudden constraint or variable change mid-task',
+        visualTheme: 'modern',
+        interactionMethod: 'Click to select options',
+        scenario: `Apply "${mapping.sub_competency}" in a realistic ${courseName} scenario where ${subCompData.action_cue || 'a challenge arises'}`,
+        playerActions: `ACTION CUE (C-BEN): ${subCompData.action_cue || mapping.action_cue || 'Demonstrate this competency'}
+
+HOW: Click to select options to ${(subCompData.action_cue || '').toLowerCase() || 'interact with the challenge'}
+
+The system tracks your actions throughout the ${subCompData.game_loop || 'gameplay'}.`,
+        scene1: scenes.scene1,
+        scene2: scenes.scene2,
+        scene3: scenes.scene3,
+        scene4: scenes.scene4 || '',
+        edgeCaseTiming: 'mid',
+        edgeCase: `${subCompData.game_loop || 'During gameplay'}, introduce an unexpected challenge that tests adaptability using the ${subCompData.validator_type || mapping.validator_type}`,
+        uiAesthetic: `Design matches the ${subCompData.game_mechanic || mapping.game_mechanic || 'core mechanic'} with clear visual feedback. Use ${subCompData.validator_type || mapping.validator_type} to provide immediate player feedback.`,
+      };
+
+      setFormData(autoFilled);
+      
+      // Set active scenes
+      const sceneCount = [scenes.scene1, scenes.scene2, scenes.scene3, scenes.scene4].filter(s => s).length;
+      setActiveScenes(Math.max(1, sceneCount));
+      
+      setProgress(50);
+      toast.success('Game template auto-filled from C-BEN framework!');
       
     } catch (error) {
       console.error('Auto-fill error:', error);
@@ -135,9 +173,65 @@ Display:
     }
   };
 
+  const buildGamePrompt = () => {
+    const sceneSection = [formData.scene1, formData.scene2, formData.scene3, formData.scene4]
+      .filter(s => s)
+      .length > 0
+      ? `
+Action Scenes:
+${formData.scene1 ? `Scene 1: ${formData.scene1}` : ''}
+${formData.scene2 ? `Scene 2: ${formData.scene2}` : ''}
+${formData.scene3 ? `Scene 3: ${formData.scene3}` : ''}
+${formData.scene4 ? `Scene 4: ${formData.scene4}` : ''}
+` : '';
+
+    return `🎯 VALIDATOR: ${courseName} - ${mapping.sub_competency}
+
+📋 C-BEN COMPETENCY FRAMEWORK
+Domain: ${mapping.domain}
+Competency: ${mapping.competency}
+Sub-Competency: ${mapping.sub_competency}
+Validator Type: ${mapping.validator_type}
+Action Cue: ${mapping.action_cue || formData.playerActions}
+Game Mechanic: ${mapping.game_mechanic || 'Interactive simulation'}
+
+🎮 SCENARIO DESIGN
+Industry/Context: ${formData.industry}
+Role: ${formData.roleScenario}
+Key Element: ${formData.keyElement}
+Visual Theme: ${formData.visualTheme}
+Interaction: ${formData.interactionMethod}
+
+Scenario: ${formData.scenario}
+
+Player Actions:
+${formData.playerActions}
+${sceneSection}
+Edge-Case Moment (${formData.edgeCaseTiming} game):
+${formData.edgeCase}
+Specific Edge Case Details: ${formData.edgeCaseDetails}
+
+Scoring & Result Screens (CRITICAL):
+✅ Level 1 (Needs Work): ${mapping.scoring_formula || '<80% accuracy'}
+✅ Level 2 (Proficient): 80-94% accuracy
+✅ Level 3 (Mastery): ≥95% accuracy + edge case handled
+
+UI Aesthetic:
+${formData.uiAesthetic}
+
+📱 Telegram Mini App Requirements:
+• Mobile-first responsive design
+• Fast loading and smooth performance
+• Touch-friendly interactions
+• Built with standard web technologies (React, TypeScript)
+• Integrates with Telegram Web App SDK
+• 3-6 minute gameplay
+• Real-time scoring and feedback`;
+  };
+
   const handleGenerate = async () => {
-    if (!generatedPrompt && !customizationPrompt) {
-      toast.error('Please auto-fill or enter a custom prompt first');
+    if (!formData.scenario || !formData.playerActions) {
+      toast.error('Please fill in scenario and player actions first');
       return;
     }
 
@@ -145,11 +239,11 @@ Display:
       setGenerating(true);
       setProgress(60);
 
-      const finalPrompt = customizationPrompt || generatedPrompt;
+      const gamePrompt = buildGamePrompt();
 
       const { data, error } = await supabase.functions.invoke('generate-game', {
         body: {
-          templatePrompt: finalPrompt,
+          templatePrompt: gamePrompt,
           previewMode: true,
         },
       });
@@ -165,11 +259,11 @@ Display:
     } catch (error: any) {
       console.error('Generation error:', error);
       if (error.message?.includes('429')) {
-        toast.error('Rate limit exceeded. Please wait a moment and try again.');
+        toast.error('Rate limit exceeded. Please wait a moment.');
       } else if (error.message?.includes('402')) {
-        toast.error('Credits depleted. Please add funds to continue.');
+        toast.error('Credits depleted. Please add funds.');
       } else {
-        toast.error('Failed to generate game. Please try again.');
+        toast.error('Failed to generate game.');
       }
     } finally {
       setGenerating(false);
@@ -191,23 +285,21 @@ Display:
         return;
       }
 
-      // Find matching template for this validator type
-      const { data: template, error: templateError } = await supabase
+      // Find matching template
+      const { data: template } = await supabase
         .from('game_templates')
         .select('id')
         .eq('name', mapping.validator_type)
         .eq('is_published', true)
         .maybeSingle();
 
-      if (templateError) throw templateError;
-
-      // Create brand customization
+      // Create customization
       const { error: saveError } = await supabase
         .from('brand_customizations')
         .insert({
           brand_id: user.id,
           template_id: template?.id || null,
-          customization_prompt: customizationPrompt || generatedPrompt,
+          customization_prompt: buildGamePrompt(),
           generated_game_html: gameHtml,
         });
 
@@ -224,57 +316,42 @@ Display:
     }
   };
 
-  const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(generatedPrompt);
-    setCopied(true);
-    toast.success('Prompt copied!');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-neon-green" />
-            Generate Game: {courseName}
+          <DialogTitle className="flex items-center gap-2 text-neon-green">
+            <Sparkles className="w-5 h-5" />
+            Generate Validator: {courseName}
           </DialogTitle>
-          <DialogDescription>
-            Auto-fill game design from C-BEN framework data, then generate your custom validator
+          <DialogDescription className="text-gray-400">
+            Auto-fill game design from C-BEN framework, then customize and generate
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Competency Info */}
-          <Card className="bg-muted/50">
+          <Card className="bg-gray-800 border-gray-700">
             <CardContent className="pt-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Sub-Competency</p>
-                  <p className="font-medium">{mapping.sub_competency}</p>
+                  <p className="text-gray-400">Sub-Competency</p>
+                  <p className="font-medium text-white">{mapping.sub_competency}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Validator Type</p>
-                  <p className="font-medium">{mapping.validator_type}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Action Cue</p>
-                  <p className="font-medium">{mapping.action_cue || 'Will be loaded from database'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Game Mechanic</p>
-                  <p className="font-medium">{mapping.game_mechanic || 'Will be loaded from database'}</p>
+                  <p className="text-gray-400">Validator Type</p>
+                  <p className="font-medium text-white">{mapping.validator_type}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Auto-Fill Button */}
-          {!generatedPrompt && (
+          {!formData.scenario && (
             <Button
               onClick={handleAutoFill}
               disabled={generating}
-              className="w-full bg-neon-green text-white hover:bg-neon-green/90"
+              className="w-full bg-neon-green text-black hover:bg-neon-green/90 font-semibold"
               size="lg"
             >
               {generating ? (
@@ -291,103 +368,277 @@ Display:
             </Button>
           )}
 
-          {/* Generated Prompt */}
-          {generatedPrompt && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Auto-Generated Game Prompt</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyPrompt}
-                  className="gap-2"
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copied!' : 'Copy'}
-                </Button>
+          {/* Game Design Form */}
+          {formData.scenario && (
+            <div className="space-y-6">
+              {/* Basic Customization */}
+              <Card className="bg-gray-800 border-purple-500/30">
+                <CardContent className="pt-4 space-y-4">
+                  <h3 className="font-semibold text-purple-400">🎨 Customize Your Scenario</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="industry">Industry / Context</Label>
+                      <Select value={formData.industry} onValueChange={(value) => setFormData({ ...formData, industry: value })}>
+                        <SelectTrigger className="bg-gray-700 border-gray-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700 text-white z-[9999]">
+                          <SelectItem value="Technology">Technology</SelectItem>
+                          <SelectItem value="Healthcare">Healthcare</SelectItem>
+                          <SelectItem value="Finance">Finance</SelectItem>
+                          <SelectItem value="Education">Education</SelectItem>
+                          <SelectItem value="Retail">Retail</SelectItem>
+                          <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                          <SelectItem value="Nonprofit">Nonprofit</SelectItem>
+                          <SelectItem value="Government">Government</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="visualTheme">Visual Theme</Label>
+                      <Select value={formData.visualTheme} onValueChange={(value) => setFormData({ ...formData, visualTheme: value })}>
+                        <SelectTrigger className="bg-gray-700 border-gray-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700 text-white z-[9999]">
+                          <SelectItem value="modern">Modern / Clean</SelectItem>
+                          <SelectItem value="dashboard">Executive Dashboard</SelectItem>
+                          <SelectItem value="casual">Casual / Friendly</SelectItem>
+                          <SelectItem value="urgent">High-Stakes / Urgent</SelectItem>
+                          <SelectItem value="minimal">Minimal / Focus Mode</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Your Role / Scenario (max 150 chars)</Label>
+                    <Input
+                      value={formData.roleScenario}
+                      onChange={(e) => setFormData({ ...formData, roleScenario: e.target.value.slice(0, 150) })}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="e.g., You are a manager facing a budget crisis"
+                      maxLength={150}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">{formData.roleScenario.length}/150</p>
+                  </div>
+
+                  <div>
+                    <Label>Key Element (max 100 chars)</Label>
+                    <Input
+                      value={formData.keyElement}
+                      onChange={(e) => setFormData({ ...formData, keyElement: e.target.value.slice(0, 100) })}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="e.g., Budget & Staff, Projects A-D, Sales Data"
+                      maxLength={100}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">What will the player work with?</p>
+                  </div>
+
+                  <div>
+                    <Label>Edge Case Details (max 80 chars)</Label>
+                    <Input
+                      value={formData.edgeCaseDetails}
+                      onChange={(e) => setFormData({ ...formData, edgeCaseDetails: e.target.value.slice(0, 80) })}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="e.g., Budget cut from $100K to $60K"
+                      maxLength={80}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Designer-Controlled Elements */}
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="pt-4 space-y-4">
+                  <h3 className="font-semibold text-neon-green">Designer-Controlled Elements</h3>
+
+                  <div>
+                    <Label>Scenario / Theme</Label>
+                    <Textarea
+                      value={formData.scenario}
+                      onChange={(e) => setFormData({ ...formData, scenario: e.target.value })}
+                      rows={3}
+                      className="bg-gray-700 border-gray-600 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Player Actions</Label>
+                    <Textarea
+                      value={formData.playerActions}
+                      onChange={(e) => setFormData({ ...formData, playerActions: e.target.value })}
+                      rows={5}
+                      className="bg-gray-700 border-gray-600 text-white font-mono text-sm"
+                    />
+                  </div>
+
+                  {/* Scenes */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Action Scenes ({activeScenes})</Label>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4].map(num => (
+                          <Button
+                            key={num}
+                            type="button"
+                            variant={activeScenes === num ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setActiveScenes(num)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {num}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Input
+                      value={formData.scene1}
+                      onChange={(e) => setFormData({ ...formData, scene1: e.target.value })}
+                      className="bg-gray-700 border-gray-600 text-white"
+                      placeholder="Scene 1"
+                    />
+                    {activeScenes >= 2 && (
+                      <Input
+                        value={formData.scene2}
+                        onChange={(e) => setFormData({ ...formData, scene2: e.target.value })}
+                        className="bg-gray-700 border-gray-600 text-white"
+                        placeholder="Scene 2"
+                      />
+                    )}
+                    {activeScenes >= 3 && (
+                      <Input
+                        value={formData.scene3}
+                        onChange={(e) => setFormData({ ...formData, scene3: e.target.value })}
+                        className="bg-gray-700 border-gray-600 text-white"
+                        placeholder="Scene 3 (⚡ Edge Case)"
+                      />
+                    )}
+                    {activeScenes >= 4 && (
+                      <Input
+                        value={formData.scene4}
+                        onChange={(e) => setFormData({ ...formData, scene4: e.target.value })}
+                        className="bg-gray-700 border-gray-600 text-white"
+                        placeholder="Scene 4"
+                      />
+                    )}
+                  </div>
+
+                  {/* Advanced Options */}
+                  <div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="gap-2 text-gray-400"
+                    >
+                      {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      Advanced Options
+                    </Button>
+
+                    {showAdvanced && (
+                      <div className="mt-4 space-y-4 pl-4 border-l-2 border-gray-700">
+                        <div>
+                          <Label>Edge Case Description</Label>
+                          <Textarea
+                            value={formData.edgeCase}
+                            onChange={(e) => setFormData({ ...formData, edgeCase: e.target.value })}
+                            rows={3}
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <Label>UI Aesthetic</Label>
+                          <Textarea
+                            value={formData.uiAesthetic}
+                            onChange={(e) => setFormData({ ...formData, uiAesthetic: e.target.value })}
+                            rows={2}
+                            className="bg-gray-700 border-gray-600 text-white"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Progress */}
+              {generating && progress > 0 && progress < 100 && (
+                <Progress value={progress} className="w-full" />
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                {!gameHtml && (
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={generating}
+                    className="flex-1 bg-primary hover:bg-primary/90"
+                  >
+                    {generating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating Game...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Generate Game
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {gameHtml && (
+                  <>
+                    <Button
+                      onClick={handleGenerate}
+                      variant="outline"
+                      disabled={generating}
+                      className="flex-1"
+                    >
+                      Regenerate
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="flex-1 bg-neon-green text-black hover:bg-neon-green/90"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save to Dashboard'
+                      )}
+                    </Button>
+                  </>
+                )}
               </div>
-              <Textarea
-                value={generatedPrompt}
-                onChange={(e) => setGeneratedPrompt(e.target.value)}
-                rows={15}
-                className="font-mono text-xs"
-              />
+
+              {/* Preview */}
+              {gameHtml && (
+                <Card className="bg-black border-neon-green/30">
+                  <CardContent className="pt-4">
+                    <Label className="mb-2 block text-neon-green">Game Preview</Label>
+                    <div className="border border-gray-700 rounded-lg overflow-hidden">
+                      <iframe
+                        srcDoc={gameHtml}
+                        className="w-full h-[500px]"
+                        title="Game Preview"
+                        sandbox="allow-scripts"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          )}
-
-          {/* Custom Prompt Override */}
-          {generatedPrompt && (
-            <div className="space-y-2">
-              <Label>Customize Prompt (Optional)</Label>
-              <Textarea
-                value={customizationPrompt}
-                onChange={(e) => setCustomizationPrompt(e.target.value)}
-                placeholder="Add custom instructions or modifications here..."
-                rows={5}
-              />
-            </div>
-          )}
-
-          {/* Progress */}
-          {generating && progress > 0 && progress < 100 && (
-            <Progress value={progress} className="w-full" />
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            {generatedPrompt && !gameHtml && (
-              <Button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="flex-1 bg-primary"
-              >
-                {generating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating Game...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate Game
-                  </>
-                )}
-              </Button>
-            )}
-
-            {gameHtml && (
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save to Dashboard'
-                )}
-              </Button>
-            )}
-          </div>
-
-          {/* Preview */}
-          {gameHtml && (
-            <Card>
-              <CardContent className="pt-4">
-                <Label className="mb-2 block">Game Preview</Label>
-                <div className="border rounded-lg overflow-hidden bg-black">
-                  <iframe
-                    srcDoc={gameHtml}
-                    className="w-full h-[500px]"
-                    title="Game Preview"
-                    sandbox="allow-scripts"
-                  />
-                </div>
-              </CardContent>
-            </Card>
           )}
         </div>
       </DialogContent>
