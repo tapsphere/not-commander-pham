@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, FileText, Brain } from "lucide-react";
+import { Upload, Loader2, FileText, Brain, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { CourseGameCustomizationDialog } from "./CourseGameCustomizationDialog";
 
 interface CompetencyMapping {
   domain: string;
@@ -48,6 +49,7 @@ export function CourseGamifier() {
   const [courseDescription, setCourseDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [showCustomizationDialog, setShowCustomizationDialog] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -339,8 +341,34 @@ export function CourseGamifier() {
                 ))}
               </div>
             </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button 
+                onClick={() => setShowCustomizationDialog(true)}
+                className="gap-2 bg-neon-green text-white hover:bg-neon-green/90"
+                size="lg"
+              >
+                <Sparkles className="w-4 h-4" />
+                Create Game from Analysis
+              </Button>
+            </div>
           </CardContent>
         </Card>
+      )}
+
+      {analysisResult && (
+        <CourseGameCustomizationDialog
+          open={showCustomizationDialog}
+          onOpenChange={setShowCustomizationDialog}
+          courseName={courseName}
+          competencyMappings={analysisResult.competency_mappings}
+          onSuccess={() => {
+            toast({
+              title: "Success!",
+              description: "Your game has been generated and saved to your dashboard.",
+            });
+          }}
+        />
       )}
     </div>
   );
