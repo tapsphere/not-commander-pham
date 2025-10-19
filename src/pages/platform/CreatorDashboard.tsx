@@ -20,6 +20,7 @@ type Template = {
   preview_image?: string;
   template_type: string;
   custom_game_url?: string;
+  selected_sub_competencies?: string[];
 };
 
 type TestResult = {
@@ -116,26 +117,46 @@ export default function CreatorDashboard() {
     }
   };
 
-  const handlePreviewGame = (template: Template) => {
+  const handlePreviewGame = async (template: Template) => {
     if (template.template_type === 'custom_upload' && template.custom_game_url) {
       // Open custom game in new tab
       window.open(template.custom_game_url, '_blank');
     } else {
-      // Open testing wizard to test/retest the game
-      supabase
-        .from('game_templates')
-        .select('id, name, template_type, custom_game_url, selected_sub_competencies')
-        .eq('id', template.id)
-        .single()
-        .then(({ data, error }) => {
-          if (error || !data) {
-            toast.error('Failed to load template');
-            return;
+      // For AI generated, generate preview and open
+      try {
+        toast.info('Generating game preview...');
+        
+        // Fetch sub-competency data
+        const subCompIds = template.selected_sub_competencies || [];
+        const { data: subComps } = await supabase
+          .from('sub_competencies')
+          .select('*')
+          .in('id', subCompIds);
+        
+        const { data, error } = await supabase.functions.invoke('generate-game', {
+          body: {
+            templatePrompt: template.base_prompt,
+            primaryColor: '#00FF00',
+            secondaryColor: '#9945FF',
+            logoUrl: null,
+            customizationId: null,
+            previewMode: true,
+            subCompetencies: subComps || []
           }
-          
-          setTestingTemplate(data);
-          setTestWizardOpen(true);
         });
+
+        if (error) throw error;
+
+        // Open the generated HTML in a new window
+        const gameWindow = window.open('', '_blank');
+        if (gameWindow) {
+          gameWindow.document.write(data.html);
+          gameWindow.document.close();
+        }
+      } catch (error: any) {
+        console.error('Preview error:', error);
+        toast.error('Failed to generate preview');
+      }
     }
   };
 
