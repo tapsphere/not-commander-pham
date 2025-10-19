@@ -103,6 +103,48 @@ export type Database = {
           },
         ]
       }
+      course_gamification: {
+        Row: {
+          analysis_results: Json | null
+          brand_id: string
+          competency_mappings: Json | null
+          course_description: string | null
+          course_name: string
+          created_at: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          recommended_validators: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          analysis_results?: Json | null
+          brand_id: string
+          competency_mappings?: Json | null
+          course_description?: string | null
+          course_name: string
+          created_at?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          recommended_validators?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          analysis_results?: Json | null
+          brand_id?: string
+          competency_mappings?: Json | null
+          course_description?: string | null
+          course_name?: string
+          created_at?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          recommended_validators?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       game_results: {
         Row: {
           competency_id: string | null
