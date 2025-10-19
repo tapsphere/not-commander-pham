@@ -196,10 +196,60 @@ Return ONLY the JSON structure as specified.`;
       );
     }
 
-    // Regular analysis mode
+    // Regular analysis mode - fetch available sub-competencies from database
     console.log('Analyzing course:', courseName);
 
-    const userPrompt = `Analyze this course and generate a PlayOps × C-BEN competency alignment.
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch all available sub-competencies with their game design data
+    const { data: subCompetencies, error: subCompError } = await supabaseClient
+      .from('sub_competencies')
+      .select(`
+        id,
+        statement,
+        action_cue,
+        game_mechanic,
+        game_loop,
+        validator_type,
+        scoring_formula_level_1,
+        scoring_formula_level_2,
+        scoring_formula_level_3,
+        master_competencies!inner(
+          name,
+          cbe_category,
+          departments
+        )
+      `);
+
+    if (subCompError) {
+      console.error('Failed to fetch sub-competencies:', subCompError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to load competency framework data' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Build enhanced prompt with actual database sub-competencies
+    const competencyList = subCompetencies?.map(sub => {
+      const comp = Array.isArray(sub.master_competencies) ? sub.master_competencies[0] : sub.master_competencies;
+      return `
+Sub-Competency: ${sub.statement}
+Competency: ${comp?.name || 'Unknown'}
+Domain: ${comp?.cbe_category || 'Unknown'}
+Action Cue: ${sub.action_cue || 'N/A'}
+Game Mechanic: ${sub.game_mechanic || 'N/A'}
+Validator Type: ${sub.validator_type || 'N/A'}
+Scoring: ${sub.scoring_formula_level_1 || 'N/A'}`;
+    }).join('\n\n') || 'No competencies available';
+
+    const userPrompt = `Analyze this course and map it to the available PlayOps sub-competencies from our database.
+
+AVAILABLE SUB-COMPETENCIES:
+${competencyList}
 
 COURSE NAME: ${courseName || 'Untitled Course'}
 COURSE DESCRIPTION: ${courseDescription || 'N/A'}
@@ -207,7 +257,13 @@ COURSE DESCRIPTION: ${courseDescription || 'N/A'}
 COURSE CONTENT:
 ${courseText}
 
-Provide a comprehensive mapping in the exact JSON format specified.`;
+Your task:
+1. Identify which sub-competencies from the list above best match this course content
+2. For each match, use the EXACT sub_competency statement from the list
+3. Include the corresponding action_cue, game_mechanic, validator_type, and scoring
+4. Provide a comprehensive mapping in the exact JSON format specified
+
+CRITICAL: Only use sub-competencies that exist in the AVAILABLE SUB-COMPETENCIES list above.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
