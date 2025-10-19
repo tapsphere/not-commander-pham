@@ -281,6 +281,7 @@ export type Database = {
           created_at: string | null
           departments: string[]
           id: string
+          is_active: boolean | null
           name: string
         }
         Insert: {
@@ -288,6 +289,7 @@ export type Database = {
           created_at?: string | null
           departments?: string[]
           id?: string
+          is_active?: boolean | null
           name: string
         }
         Update: {
@@ -295,6 +297,7 @@ export type Database = {
           created_at?: string | null
           departments?: string[]
           id?: string
+          is_active?: boolean | null
           name?: string
         }
         Relationships: []

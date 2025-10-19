@@ -42,10 +42,11 @@ export const CompetenciesDialog = ({ open, onOpenChange, templateId, templateNam
 
   const loadCompetencies = async () => {
     try {
-      // Load master competencies with their sub-competencies
+      // Load master competencies with their sub-competencies (only active ones)
       const { data: masterCompetencies, error: compError } = await supabase
         .from('master_competencies')
         .select('*')
+        .eq('is_active', true)
         .order('name');
 
       if (compError) throw compError;

@@ -189,6 +189,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
       const { data, error } = await supabase
         .from('master_competencies')
         .select('*')
+        .eq('is_active', true)
         .order('name');
       
       if (error) {
