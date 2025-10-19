@@ -221,9 +221,25 @@ When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
   ✓ Container MUST have: height: 100vh; overflow: hidden;
   ✓ All gameplay elements MUST fit within viewport - NO vertical scrolling
   ✓ Use flex or grid layout to distribute space, never rely on scrolling
-  ✓ If content is too long, use tabs, accordions, or pagination - NEVER scroll
   ✓ Test on mobile viewport (390px x 844px) - everything must be visible
   ✓ Buttons and interactive elements MUST be reachable without scrolling
+  
+  📏 STRICT CONTENT LIMITS (ENFORCE THESE):
+  ✓ Maximum 3 options/choices per screen (NEVER 4 or more)
+  ✓ Option text: Maximum 25 words per option (keep it concise!)
+  ✓ Context text at top: Maximum 15 words
+  ✓ Use icons + short labels instead of long descriptions
+  ✓ Button height: 60-80px max with padding: 12px
+  ✓ Gap between elements: 12px max (not 20px+)
+  ✓ Total vertical space budget: 700px for content area
+  
+  LAYOUT MATH (Mobile 390x844):
+  - Header (timer/progress): 60px
+  - Context text: 60px
+  - 3 Options @ 70px each: 210px
+  - Gaps (4 x 12px): 48px
+  - Footer button: 80px
+  - TOTAL: 458px (fits comfortably in 844px viewport)
   
   INTERACTION PRIORITY (Use in this order):
   1. DRAG & DROP - Best for sorting, allocating, organizing
@@ -244,8 +260,10 @@ Each scene after Scene 1 continues gameplay:
   ✓ Every gameplay screen: height: 100vh; overflow: hidden;
   ✓ Content must always fit in viewport - use compact layouts
   ✓ Stack elements efficiently with flexbox/grid
-  ✓ If showing multiple options, limit to 3-4 visible choices max
+  ✓ Maximum 3 choices per scene (NEVER exceed this)
+  ✓ Each choice text: 25 words maximum
   ✓ Use fixed positioning for headers/timers to save space
+  ✓ Minimize padding: 12px gaps, not 20px+
 
 ═══════════════════════════════════════════════════════════════
 
@@ -340,6 +358,37 @@ Scene 1: Clean data cards (not table rows). Player TAPS cards to flip and reveal
          Simple prompt "Tap to reveal, drag to flag anomalies". No repeated instructions.
          After flagging →
 Scene 2: New set of data cards with more subtle pattern differences.
+
+═══════════════════════════════════════════════════════════════
+❌ WRONG vs ✅ RIGHT - SCROLL PREVENTION
+═══════════════════════════════════════════════════════════════
+
+❌ WRONG (Causes Scroll):
+Scene with 4 options, each with 40+ word descriptions:
+- Header: 60px
+- Context: "You need to decide..." (100px with long text)
+- Option 1: "Integrate the new feature, believing the delay is worth..." (90px)
+- Option 2: "Stick to the original plan and launch without..." (90px)  
+- Option 3: "Release with the known bug, providing a known..." (90px)
+- Option 4: "Conduct a rapid user survey to gauge priority..." (90px)
+- Footer: 80px
+TOTAL: 600px+ → SCROLLS on mobile! ❌
+
+✅ RIGHT (Fits Perfectly):
+Scene with 3 options, each under 25 words:
+- Header: 50px (Timer: 2:45 | Phase 2)
+- Context: "Critical decision needed" (40px - brief!)
+- Option A: "Launch now - fast but risky" (70px)
+- Option B: "Delay 1 week - safer approach" (70px)
+- Option C: "Test with users first" (70px)
+- Footer: 70px (CONTINUE button)
+TOTAL: 370px → FITS EASILY! ✅
+
+KEY DIFFERENCES:
+- 3 options vs 4 options
+- 10-15 words per option vs 40+ words
+- Compact spacing (12px gaps) vs loose spacing (20px+ gaps)
+- Brief context vs verbose explanation
 
 ⸻
 
