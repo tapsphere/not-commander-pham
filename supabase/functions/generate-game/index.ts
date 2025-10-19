@@ -160,11 +160,12 @@ This screen contains ALL game directions and instructions:
 
 ⚠️ CRITICAL - HIDE INTERNAL STRUCTURE FROM PLAYERS:
   ✓ NEVER mention "Scene 1", "Scene 2", "Scene 3" etc. in player-facing text
-  ✓ NEVER reveal when the edge-case will occur (don't say "Mid-game" or specific timing)
-  ✓ Only hint that "unexpected challenges may occur" - keep it mysterious
-  ✓ Edge case should feel surprising, not telegraphed
+  ✓ NEVER mention "edge case", "twist", "disruption", or reveal any surprises
+  ✓ Do NOT warn players that challenges will change or intensify
+  ✓ Let the edge case be a complete surprise - no hints, no foreshadowing
   ✓ Use natural language like "Phase", "Round", "Challenge" if you need to show progression
   ✓ Example: Instead of "Scene 3 of 4" → use "Challenge 3 of 4" or just a progress bar
+  ✓ Players should only know: their role, goal, how to interact, success criteria, and time limit
 
 MANDATORY START BUTTON REQUIREMENTS:
   ✓ Position: Fixed at bottom OR sticky at bottom with position sticky and bottom 0
