@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit } from "lucide-react";
+import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit, Trash2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ValidatorTemplateCard } from "./ValidatorTemplateCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -89,6 +89,38 @@ export function CourseGamifier() {
       title: "Analysis loaded",
       description: "Using saved analysis. You can edit it below.",
     });
+  };
+
+  const deleteAnalysis = async (analysisId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      const { error } = await supabase
+        .from('course_gamification')
+        .delete()
+        .eq('id', analysisId);
+
+      if (error) throw error;
+
+      setExistingAnalyses(prev => prev.filter(a => a.id !== analysisId));
+      
+      if (selectedAnalysisId === analysisId) {
+        setSelectedAnalysisId(null);
+        setAnalysisResult(null);
+      }
+
+      toast({
+        title: "Analysis deleted",
+        description: "The saved analysis has been removed.",
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete failed",
+        description: error instanceof Error ? error.message : "Could not delete analysis",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,16 +357,25 @@ export function CourseGamifier() {
                   <p className="font-medium">Found {existingAnalyses.length} previous analysis for similar courses:</p>
                   <div className="space-y-2">
                     {existingAnalyses.slice(0, 3).map((analysis) => (
-                      <Button
-                        key={analysis.id}
-                        variant="outline"
-                        size="sm"
-                        className="w-full justify-start"
-                        onClick={() => loadExistingAnalysis(analysis)}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        {analysis.course_name} ({new Date(analysis.created_at).toLocaleDateString()})
-                      </Button>
+                      <div key={analysis.id} className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 justify-start"
+                          onClick={() => loadExistingAnalysis(analysis)}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          {analysis.course_name} ({new Date(analysis.created_at).toLocaleDateString()})
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => deleteAnalysis(analysis.id, e)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
