@@ -57,6 +57,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "neon-green": "hsl(var(--neon-green))",
+        "neon-purple": "hsl(var(--neon-purple))",
+        "neon-magenta": "hsl(var(--neon-magenta))",
       },
       spacing: {
         'safe': 'env(safe-area-inset-bottom)',
