@@ -167,7 +167,20 @@ MANDATORY START BUTTON REQUIREMENTS:
   ✓ Visibility: ALWAYS visible even when scrolling instructions
   ✓ Container: Place OUTSIDE any scrollable divs
   ✓ Z-index: High z-index (100 or higher)
+  ✓ JavaScript: MUST have onclick="startGame()" or addEventListener('click', startGame)
+  ✓ Function: startGame() function MUST hide Scene 0 and show Scene 1
   ✓ The game CANNOT start without clicking this button
+  
+  EXAMPLE WORKING IMPLEMENTATION:
+  <button id="startBtn" onclick="startGame()" style="...">START GAME</button>
+  
+  <script>
+  function startGame() {
+    document.getElementById('introScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+    // Start game logic here
+  }
+  </script>
 
 LAYOUT STRUCTURE FOR INTRO:
 - Wrapper container: full viewport height with flex column layout
@@ -181,11 +194,19 @@ SCENE 1: FIRST ACTION (Actual gameplay begins)
 
 When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
   ✓ CLEAN interface - NO repeated instructions from Scene 0
-  ✓ Only show: timer, score/KPIs, interactive elements (buttons, sliders, drag items)
+  ✓ Interactive mechanics: DRAG-AND-DROP, CLICK-TO-SELECT, TAP-AND-HOLD (NOT forms/text inputs)
+  ✓ Visual feedback: items light up, snap into place, animate on interaction
+  ✓ Only show: timer, score/KPIs, draggable/clickable elements
   ✓ Brief context reminder (1 sentence max): "You are allocating budget..." 
   ✓ Ample space for player actions - not cramped
   ✓ No scrolling needed - everything fits on screen
   ✓ Scene 1 is where actual gameplay mechanic starts
+  
+  INTERACTION PRIORITY (Use in this order):
+  1. DRAG & DROP - Best for sorting, allocating, organizing
+  2. TAP/CLICK - Best for selecting, activating, choosing
+  3. SLIDERS - Only for values/amounts
+  4. DROPDOWNS/FORMS - AVOID unless absolutely necessary
 
 ═══════════════════════════════════════════════════════════════
 SCENE 2+: SUBSEQUENT ACTIONS
@@ -228,28 +249,31 @@ CORRECT IMPLEMENTATION EXAMPLES:
 Scene 0: Full screen with scrollable instructions explaining budget allocation rules, 
          proficiency levels, edge-case timing. Fixed START button at bottom.
          Click START →
-Scene 1: Clean budget interface with sliders/dropdowns, timer at top, 
-         brief reminder "Allocate $50K across 4 departments". No instructions.
+Scene 1: Clean interface with DRAGGABLE budget tokens that snap into 4 department boxes.
+         Visual feedback when hovering over drop zones. Timer at top.
+         Brief reminder "Drag budget tokens to departments". No instructions.
          After allocation →
-Scene 2: Next budget period with updated constraints.
+Scene 2: Next budget period with different constraints and drag mechanics.
 
 ✅ EXAMPLE 2: Crisis Communication Game  
 Scene 0: Scrollable directions about communication scenarios, response options,
          edge-case (urgent message interruption). Sticky START button.
          Click START →
-Scene 1: Clean inbox with 3 messages to respond to, timer, dropdown menus
-         for tone selection. One-line reminder "Respond to messages". No tutorial.
+Scene 1: Clean inbox with 3 messages. Player CLICKS/TAPS each message to expand,
+         then CLICKS one of 3 tone-indicator buttons (icons, not dropdowns).
+         Visual feedback: selected tone glows. One-line reminder "Respond to messages". No tutorial.
          After responses →
-Scene 2: Edge-case message appears requiring immediate response.
+Scene 2: Edge-case urgent message appears with countdown timer requiring quick tap response.
 
 ✅ EXAMPLE 3: Data Pattern Detective
 Scene 0: Instructions about finding patterns in data tables, what constitutes
          correct answers, mastery criteria. Fixed START button outside scroll area.
          Click START →
-Scene 1: Clean data table with 8 rows, checkboxes to flag patterns, timer.
-         Simple prompt "Flag all anomalies". No repeated instructions.
+Scene 1: Clean data cards (not table rows). Player TAPS cards to flip and reveal data,
+         then DRAGS suspicious cards into a "flagged" zone at the bottom. Timer visible.
+         Simple prompt "Tap to reveal, drag to flag anomalies". No repeated instructions.
          After flagging →
-Scene 2: New data set with different pattern type.
+Scene 2: New set of data cards with more subtle pattern differences.
 
 ⸻
 
