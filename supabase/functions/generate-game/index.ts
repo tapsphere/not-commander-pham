@@ -155,9 +155,16 @@ This screen contains ALL game directions and instructions:
   1️⃣ WHO they are (role / scenario context)
   2️⃣ WHAT they need to achieve (specific & measurable goal)
   3️⃣ HOW they interact (drag, tap, rank, type, etc.)
-  4️⃣ WHEN the edge-case occurs (Early / Mid / Late)
-  5️⃣ WHAT success looks like (Needs Work / Proficient / Mastery levels)
-  6️⃣ TIME limit (90–180 seconds total)
+  4️⃣ WHAT success looks like (Needs Work / Proficient / Mastery levels)
+  5️⃣ TIME limit (90–180 seconds total)
+
+⚠️ CRITICAL - HIDE INTERNAL STRUCTURE FROM PLAYERS:
+  ✓ NEVER mention "Scene 1", "Scene 2", "Scene 3" etc. in player-facing text
+  ✓ NEVER reveal when the edge-case will occur (don't say "Mid-game" or specific timing)
+  ✓ Only hint that "unexpected challenges may occur" - keep it mysterious
+  ✓ Edge case should feel surprising, not telegraphed
+  ✓ Use natural language like "Phase", "Round", "Challenge" if you need to show progression
+  ✓ Example: Instead of "Scene 3 of 4" → use "Challenge 3 of 4" or just a progress bar
 
 MANDATORY START BUTTON REQUIREMENTS:
   ✓ Position: Fixed at bottom OR sticky at bottom with position sticky and bottom 0
@@ -168,17 +175,25 @@ MANDATORY START BUTTON REQUIREMENTS:
   ✓ Container: Place OUTSIDE any scrollable divs
   ✓ Z-index: High z-index (100 or higher)
   ✓ JavaScript: MUST have onclick="startGame()" or addEventListener('click', startGame)
-  ✓ Function: startGame() function MUST hide Scene 0 and show Scene 1
+  ✓ Function: startGame() MUST hide intro screen and show first gameplay screen
+  ✓ CRITICAL: Button must be clickable and functional - test by adding console.log('START clicked')
   ✓ The game CANNOT start without clicking this button
   
   EXAMPLE WORKING IMPLEMENTATION:
-  <button id="startBtn" onclick="startGame()" style="...">START GAME</button>
+  <button id="startBtn" onclick="startGame()" 
+    style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+           width: 90%; max-width: 400px; height: 60px; font-size: 20px; 
+           background: #00FF00; color: black; border: none; border-radius: 8px; 
+           cursor: pointer; z-index: 100; font-weight: bold;">
+    START GAME
+  </button>
   
   <script>
   function startGame() {
+    console.log('START button clicked - game starting');
     document.getElementById('introScreen').style.display = 'none';
     document.getElementById('gameScreen').style.display = 'flex';
-    // Start game logic here
+    // Initialize game timer, state, etc.
   }
   </script>
 
@@ -214,9 +229,9 @@ SCENE 2+: SUBSEQUENT ACTIONS
 
 Each scene after Scene 1 continues gameplay:
   ✓ Maintain clean interface
-  ✓ Show progression (Scene 2 of 4, etc.)
+  ✓ Show progression using player-friendly terms (Challenge 2 of 4, Round 2, etc.) - NEVER "Scene X"
   ✓ Keep interactive elements visible without scrolling
-  ✓ Edge-case changes happen in designated scene (Early/Mid/Late)
+  ✓ Edge-case changes happen organically without warning or scene number references
 
 ═══════════════════════════════════════════════════════════════
 
