@@ -68,27 +68,27 @@ OUTPUT FORMAT (JSON only, no markdown):
   },
   "competency_mappings": [
     {
-      "domain": "Professionalism / Self-Development|Communication & Collaboration|Adaptability & Well-Being|Ethics & Leadership",
-      "competency": "Emotional Intelligence & Self-Management|Communication & Interpersonal Fluency|Adaptive Mindset & Resilience|Ethical & Purpose-Driven Leadership",
-      "sub_competency": "Emotional Regulation|Empathy & Compassion|Resilience & Optimism|Ethical Communication & Courage",
+      "domain": "Domain from database",
+      "competency": "Competency name from database",
+      "sub_competency": "EXACT sub_competency statement from database",
       "alignment_summary": "How course aligns with this",
-      "validator_type": "Type from above",
-      "action_cue": "Action cue from above",
-      "game_mechanic": "Game mechanic from above",
+      "validator_type": "Type from database",
+      "action_cue": "Action cue from database",
+      "game_mechanic": "Game mechanic from database",
       "evidence_metric": "metric description",
-      "scoring_formula": "formula from above"
+      "scoring_formula": "formula from database"
     }
   ],
   "recommended_validators": [
     {
-      "validator_name": "RESPOND Loop|Tone Match Dialogue|Resilience Path Challenge|Speak-Out Decision Tree",
-      "competencies_tested": ["sub-competency from above"],
+      "validator_name": "Game Mechanic Name from database",
+      "competencies_tested": ["sub-competency 1", "sub-competency 2"],
       "priority": "high|medium|low",
       "reason": "Why this validator is recommended"
     }
   ],
   "summary": {
-    "total_competencies": 4,
+    "total_competencies": 10,
     "domains_covered": ["list of domains"],
     "implementation_note": "Brief note on implementing these validators"
   }

@@ -10,6 +10,7 @@ import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit, Trash2 } fro
 import { Progress } from "@/components/ui/progress";
 import { ValidatorTemplateCard } from "./ValidatorTemplateCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BrandGameGenerator } from "./BrandGameGenerator";
 
 interface CompetencyMapping {
   domain: string;
@@ -17,6 +18,8 @@ interface CompetencyMapping {
   sub_competency: string;
   alignment_summary: string;
   validator_type: string;
+  action_cue?: string;
+  game_mechanic?: string;
   evidence_metric: string;
   scoring_formula: string;
 }
@@ -62,6 +65,9 @@ export function CourseGamifier() {
   const [existingAnalyses, setExistingAnalyses] = useState<any[]>([]);
   const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
   const [showCustomizationDialog, setShowCustomizationDialog] = useState(false);
+  const [selectedMapping, setSelectedMapping] = useState<CompetencyMapping | null>(null);
+  const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [brandId, setBrandId] = useState<string>('');
 
   // Check for existing analyses when course name changes
   useEffect(() => {
@@ -73,6 +79,8 @@ export function CourseGamifier() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      setBrandId(user.id);
 
       const { data, error } = await supabase
         .from('course_gamification')
@@ -769,17 +777,40 @@ ${courseDescription}
                   <Card key={idx} className="bg-muted/50">
                     <CardContent className="pt-4 space-y-2">
                       <div className="flex items-start justify-between">
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{mapping.sub_competency}</p>
                           <p className="text-sm text-muted-foreground">{mapping.domain}</p>
                         </div>
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                          {mapping.validator_type}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded whitespace-nowrap">
+                            {mapping.validator_type}
+                          </span>
+                          <Button
+                            onClick={() => {
+                              setSelectedMapping(mapping);
+                              setGeneratorOpen(true);
+                            }}
+                            size="sm"
+                            className="bg-neon-green text-white hover:bg-neon-green/90 whitespace-nowrap"
+                          >
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            Auto-Generate
+                          </Button>
+                        </div>
                       </div>
                       <p className="text-sm">{mapping.alignment_summary}</p>
+                      {mapping.action_cue && (
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Action Cue:</strong> {mapping.action_cue}
+                        </p>
+                      )}
+                      {mapping.game_mechanic && (
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Game Mechanic:</strong> {mapping.game_mechanic}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
-                        <strong>Metric:</strong> {mapping.evidence_metric}
+                        <strong>Evidence Metric:</strong> {mapping.evidence_metric}
                       </p>
                     </CardContent>
                   </Card>
@@ -807,6 +838,17 @@ ${courseDescription}
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Brand Game Generator Dialog */}
+      {selectedMapping && (
+        <BrandGameGenerator
+          open={generatorOpen}
+          onOpenChange={setGeneratorOpen}
+          courseName={courseName}
+          mapping={selectedMapping}
+          brandId={brandId}
+        />
       )}
     </div>
   );
