@@ -123,13 +123,21 @@ export const CustomGameUpload = ({ onFileSelect, selectedFile }: CustomGameUploa
         <div className="flex gap-3">
           <AlertCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-300 space-y-2">
-            <p className="font-semibold text-blue-300">Game Requirements:</p>
+            <p className="font-semibold text-blue-300">PlayOps Framework Requirements:</p>
             <ul className="space-y-1 text-xs">
+              <li>• Must follow Scene 0 (Intro) → Scene 1 (Gameplay) architecture</li>
+              <li>• START button required on Scene 0 - NO auto-start allowed</li>
+              <li>• Supports brand customization via URL parameters</li>
+              <li>• Mobile-optimized with touch-friendly interactions</li>
               <li>• Single HTML file or ZIP bundle with index.html entry point</li>
-              <li>• Supports brand customization via URL parameters (optional)</li>
-              <li>• Use ?primaryColor=hex&secondaryColor=hex&logoUrl=url</li>
-              <li>• Game should be self-contained (all assets included)</li>
             </ul>
+            <a 
+              href="/CUSTOM_GAME_TEMPLATE_GUIDE.md" 
+              target="_blank"
+              className="text-blue-400 hover:text-blue-300 underline text-xs font-medium block mt-2"
+            >
+              📖 View Complete Custom Game Template Guide
+            </a>
           </div>
         </div>
       </div>

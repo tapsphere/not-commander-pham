@@ -21,6 +21,8 @@ type ValidatorData = {
     name: string;
     description: string | null;
     preview_image: string | null;
+    template_type: string;
+    custom_game_url: string | null;
   };
 };
 
@@ -55,7 +57,9 @@ export default function Play() {
           game_templates (
             name,
             description,
-            preview_image
+            preview_image,
+            template_type,
+            custom_game_url
           )
         `);
 
@@ -153,18 +157,28 @@ export default function Play() {
           </div>
         </div>
 
-        {validator.generated_game_html ? (
-          /* Render the generated game in mobile viewport */
+        {(validator.generated_game_html || validator.game_templates.custom_game_url) ? (
+          /* Render the game in mobile viewport */
           <div className="pt-16">
             <MobileViewport>
               <div className="w-full" style={{ minHeight: 'calc(100vh - 4rem)' }}>
-                <iframe
-                  srcDoc={validator.generated_game_html}
-                  className="w-full border-0 rounded-lg shadow-2xl"
-                  style={{ height: '812px' }} // iPhone 13 height
-                  title="Game Validator"
-                  sandbox="allow-scripts allow-same-origin allow-forms"
-                />
+                {validator.game_templates.template_type === 'custom_upload' && validator.game_templates.custom_game_url ? (
+                  <iframe
+                    src={`${validator.game_templates.custom_game_url}?primaryColor=${encodeURIComponent(validator.primary_color)}&secondaryColor=${encodeURIComponent(validator.secondary_color)}&logoUrl=${encodeURIComponent(validator.logo_url || '')}`}
+                    className="w-full border-0 rounded-lg shadow-2xl"
+                    style={{ height: '812px' }} // iPhone 13 height
+                    title="Custom Game Validator"
+                    sandbox="allow-scripts allow-same-origin allow-forms"
+                  />
+                ) : (
+                  <iframe
+                    srcDoc={validator.generated_game_html || ''}
+                    className="w-full border-0 rounded-lg shadow-2xl"
+                    style={{ height: '812px' }} // iPhone 13 height
+                    title="Game Validator"
+                    sandbox="allow-scripts allow-same-origin allow-forms"
+                  />
+                )}
               </div>
             </MobileViewport>
 
