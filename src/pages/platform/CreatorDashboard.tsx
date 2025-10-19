@@ -45,6 +45,23 @@ export default function CreatorDashboard() {
   const [subCompetencies, setSubCompetencies] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
+    const ensureCreatorRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Ensure current user has creator role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ user_id: user.id, role: 'creator' })
+          .select()
+          .maybeSingle();
+        
+        if (error && !error.message.includes('duplicate')) {
+          console.error('Error assigning creator role:', error);
+        }
+      }
+    };
+    
+    ensureCreatorRole();
     loadTemplates();
     loadSubCompetencies();
   }, []);
