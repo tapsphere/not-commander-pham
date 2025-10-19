@@ -18,6 +18,8 @@ type Template = {
   is_published: boolean;
   created_at: string;
   preview_image?: string;
+  template_type: string;
+  custom_game_url?: string;
 };
 
 type TestResult = {
@@ -111,6 +113,17 @@ export default function CreatorDashboard() {
       toast.error('Failed to load templates');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePreviewGame = (template: Template) => {
+    if (template.template_type === 'custom_upload' && template.custom_game_url) {
+      // Open custom game in new tab
+      window.open(template.custom_game_url, '_blank');
+    } else {
+      // Open template dialog to generate/view preview
+      setSelectedTemplate(template);
+      setDialogOpen(true);
     }
   };
 
@@ -251,7 +264,11 @@ export default function CreatorDashboard() {
               const testResult = testResults.get(template.id);
               
               return (
-                <Card key={template.id} className="bg-gray-900 border-gray-800 overflow-hidden">
+                <Card 
+                  key={template.id} 
+                  className="bg-gray-900 border-gray-800 overflow-hidden hover:border-neon-green/50 transition-colors cursor-pointer"
+                  onClick={() => handlePreviewGame(template)}
+                >
                   <div className="aspect-video bg-gray-800 flex items-center justify-center">
                     {template.preview_image ? (
                       <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
@@ -273,11 +290,12 @@ export default function CreatorDashboard() {
                       </span>
                     </div>
                     <p className="text-gray-400 text-sm mb-4 line-clamp-2">{template.description}</p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleEdit(template)}
+                        title="Edit Template"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -297,6 +315,7 @@ export default function CreatorDashboard() {
                               variant="ghost"
                               onClick={() => handleTogglePublish(template.id, template.is_published)}
                               disabled={!template.is_published && !isPublishable}
+                              title={template.is_published ? 'Unpublish' : 'Publish'}
                             >
                               {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </Button>
@@ -318,6 +337,7 @@ export default function CreatorDashboard() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDelete(template.id)}
+                        title="Delete Template"
                       >
                         <Trash2 className="w-4 h-4 text-red-400" />
                       </Button>
