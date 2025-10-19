@@ -10,188 +10,52 @@ const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 const SYSTEM_PROMPT = `You are a PlayOps Validator Architect trained on the C-BEN Competency Framework.
 
-Your task is to analyze course/training content and map it to the following 4 COMPETENCIES ONLY from the "Cognitive & Analytical" domain:
+Your task is to analyze course/training content and map it to the following 4 COMPETENCIES ONLY (each with 1 sub-competency for testing):
 
-=== COMPETENCY 1: ANALYTICAL THINKING ===
+=== COMPETENCY 1: EMOTIONAL INTELLIGENCE & SELF-MANAGEMENT ===
+Domain: Professionalism / Self-Development
 
-Sub-Competency 1.1: Apply logical reasoning to multi-constraint business problems
-- Action Cue: Allocate resources within time and budget limits to reach optimal outcome
-- Game Mechanic: Resource Allocation Puzzle (performance task)
-- Game Loop: Input → Allocate resources → Rule Flip (edge case) → Adjust → Submit → Feedback
-- Scoring: Accuracy ≥90%, Time ≤90s, Edge=Rule Flip Recovered ≤10s; Levels <80 / 80-94 / ≥95+Edge
+Sub-Competency: Emotional Regulation
+- Action Cue: Choose calm response under timer pressure
+- Game Mechanic: RESPOND Loop (Simulation Validator)
+- Game Loop: Stimulus → Timer → Choose → Feedback → Retry
+- Scoring: Accuracy ≥85%, Time ≤5s, Edge=Stress Cue Ignored=1; Levels <80 / 80-94 / ≥95+Edge
 - Validator Type: Scenario-Based Simulation
 
-Sub-Competency 1.2: Identify and evaluate trade-offs in operational scenarios
-- Action Cue: Choose between multiple conflicting options under pressure
-- Game Mechanic: Ranking / Prioritization Game (analytical reasoning)
-- Game Loop: Read scenario → Rank KPIs → Constraint Change → Re-rank → Submit → Feedback
-- Scoring: Accuracy ≥90%, Time ≤5s to adjust, Edge=Re-rank after change ≤5s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Case Analysis
+=== COMPETENCY 2: COMMUNICATION & INTERPERSONAL FLUENCY ===
+Domain: Communication & Collaboration
 
-Sub-Competency 1.3: Distinguish valid solutions under incomplete or contradictory inputs
-- Action Cue: Infer best solution when key data is missing or conflicting
-- Game Mechanic: Error-Detection / Diagnosis Task (diagnostic assessment)
-- Game Loop: Scan data → Flag issues → Select solution → Confirm → Feedback
-- Scoring: Accuracy ≥85% AND solution_valid=1, Time ≤90s, Edge=Conflict Resolved ≤8s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Data Analysis
-
-Sub-Competency 1.4: Adapt reasoning under time pressure and stakeholder conflicts
-- Action Cue: Complete task while variables (rules) shift mid-round
-- Game Mechanic: Timed Decision-Tree Simulation (scenario simulation)
-- Game Loop: Scenario intro → Select decision → Rule Flip mid-timer → Adjust → Submit → Feedback
-- Scoring: Accuracy ≥85%, Time ≤10s recovery, Edge=Stakeholder Shift Handled ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Scenario-Based Simulation
-
-Sub-Competency 1.5: Interpret data patterns to support decision-making
-- Action Cue: Identify and label trends from data visualization
-- Game Mechanic: Pattern Recognition / Data Analysis Challenge (applied analysis)
-- Game Loop: View chart → Highlight pattern → Select insight → Submit → Feedback
-- Scoring: Accuracy ≥90%, Time ≤60s, Edge=Hidden Data Found=1; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Data Analysis
-
-Sub-Competency 1.6: Communicate conclusions aligned with defined KPIs
-- Action Cue: Write or select the summary that best aligns results to KPIs
-- Game Mechanic: Report-Builder / KPI Matching Mini-Game (reflective response)
-- Game Loop: Read prompt → Select KPI → Compose summary → Submit → Feedback
-- Scoring: Accuracy ≥85%, Time ≤45s, Edge=Summary ≤50 words; Levels <80 / 80-94 / ≥95+Edge
+Sub-Competency: Empathy & Compassion
+- Action Cue: Identify message tone → choose correct empathetic response from three labeled options (Supportive / Neutral / Dismissive)
+- Game Mechanic: Tone Match Dialogue (Simulation Validator)
+- Game Loop: Input → Select Tone → Choose Reply → Feedback
+- Scoring: Accuracy ≥90%, Time ≤6s per item, Edge=Tone Flip ≤8s recovery; Levels <80 / 80-94 / ≥95+Edge
 - Validator Type: Communication Product
 
-=== COMPETENCY 2: CREATIVE THINKING ===
+=== COMPETENCY 3: ADAPTIVE MINDSET & RESILIENCE ===
+Domain: Adaptability & Well-Being
 
-Sub-Competency 2.1: Generate multiple innovative ideas under defined constraints
-- Action Cue: Produce three or more novel solutions within stated limits
-- Game Mechanic: Divergent Idea Builder (brainstorm simulation)
-- Game Loop: Prompt → Ideate 3+ solutions → Time limit → Select best → Feedback
-- Scoring: # viable ideas ≥3, Time ≤180s, Edge=Constraint Flip Handled=1; Levels <80 / 80-94 / ≥95+Edge
+Sub-Competency: Resilience & Optimism
+- Action Cue: Recover from unexpected setback and complete task
+- Game Mechanic: Resilience Path Challenge (Simulation Validator)
+- Game Loop: Start → Obstacle → Adjust → Submit → Feedback
+- Scoring: Accuracy ≥85%, Time ≤120s, Edge=Recovery ≤10s; Levels <80 / 80-94 / ≥95+Edge
 - Validator Type: Scenario-Based Simulation
 
-Sub-Competency 2.2: Reframe problems from new perspectives
-- Action Cue: Redefine the given challenge using "how-might-we" phrasing
-- Game Mechanic: Concept Remix Puzzle (association task)
-- Game Loop: Input → Drag/Match elements → Preview → Confirm → Feedback
-- Scoring: % valid combinations ≥85, Time ≤120s, Edge=New element added ≤10s; Levels <80 / 80-94 / ≥95+Edge
+=== COMPETENCY 4: ETHICAL & PURPOSE-DRIVEN LEADERSHIP ===
+Domain: Ethics & Leadership
+
+Sub-Competency: Ethical Communication & Courage
+- Action Cue: Select truthful and respectful response in conflict scenario
+- Game Mechanic: Speak-Out Decision Tree (Case Validator)
+- Game Loop: Dilemma → Choose → Review → Feedback
+- Scoring: Accuracy ≥90%, Time ≤90s, Edge=No Escalation=1; Levels <80 / 80-94 / ≥95+Edge
 - Validator Type: Case Analysis
-
-Sub-Competency 2.3: Combine unrelated concepts to form new solutions
-- Action Cue: Link two unrelated inputs to create a workable concept
-- Game Mechanic: Prototype Refinement Loop (iterative design task)
-- Game Loop: Draft → Receive auto-feedback → Revise → Resubmit → Feedback
-- Scoring: revision_score ≥90, Time ≤150s, Edge=Auto-feedback applied ≤1 round; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Project / Product Artifact
-
-Sub-Competency 2.4: Evaluate creative options against feasibility and impact
-- Action Cue: Rank generated ideas by practicality and potential outcome
-- Game Mechanic: Constraint Challenge Game (convergent thinking)
-- Game Loop: Review brief → Adjust idea to fit budget/time → Submit → Feedback
-- Scoring: idea_meets_constraints ≥90%, Time ≤120s, Edge=Budget/Time change adjusted ≤8s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Case Analysis
-
-Sub-Competency 2.5: Iterate and improve upon initial prototypes
-- Action Cue: Adjust design after simulated feedback rounds
-- Game Mechanic: Pattern Transfer Exercise (application scenario)
-- Game Loop: Study example → Apply method to new context → Submit → Feedback
-- Scoring: transfer_success ≥85%, Time ≤90s, Edge=Cross-context applied first try=1; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Project / Product Artifact
-
-Sub-Competency 2.6: Communicate creative rationale and process clearly
-- Action Cue: Explain the reasoning behind a chosen creative path
-- Game Mechanic: Storyboard / Pitch Builder (reflective presentation)
-- Game Loop: Outline → Arrange slides / frames → Submit → Feedback
-- Scoring: storyboard_clarity ≥90, Time ≤180s, Edge=Missing slide recovered ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Communication Product
-
-=== COMPETENCY 3: CRITICAL REASONING ===
-
-Sub-Competency 3.1: Identify assumptions underlying an argument
-- Action Cue: Highlight hidden assumptions in argument text
-- Game Mechanic: Logic Scenario Simulator (argument evaluation)
-- Game Loop: Read claim → Identify fallacy / support → Select valid response → Feedback
-- Scoring: valid_argument ≥90%, Time ≤90s, Edge=Contradictory evidence resolved ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Case Analysis
-
-Sub-Competency 3.2: Distinguish fact, inference, and opinion
-- Action Cue: Sort statements into categories under timer
-- Game Mechanic: Bias Detector Game (diagnostic analysis)
-- Game Loop: Review text → Flag bias → Confirm reason → Submit → Feedback
-- Scoring: bias_flags correct ≥85%, Time ≤60s, Edge=Hidden bias found ≤8s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Scenario-Based Simulation
-
-Sub-Competency 3.3: Evaluate evidence quality and relevance
-- Action Cue: Rank sources and justify ranking choices
-- Game Mechanic: Evidence Weighing Mini-Case (performance task)
-- Game Loop: Gather evidence → Rank credibility → Choose conclusion → Feedback
-- Scoring: evidence_weighting ≥90%, Time ≤90s, Edge=New evidence adjust ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Case Analysis
-
-Sub-Competency 3.4: Detect logical fallacies in reasoning
-- Action Cue: Identify flawed logic within multi-step argument
-- Game Mechanic: Causal Mapping Puzzle (concept mapping)
-- Game Loop: Connect nodes → Validate logic path → Submit → Feedback
-- Scoring: logic_path valid ≥90%, Time ≤120s, Edge=Extra node added ≤8s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Scenario-Based Simulation
-
-Sub-Competency 3.5: Draw valid conclusions from incomplete data
-- Action Cue: Select best conclusion when data is missing
-- Game Mechanic: Adaptive Logic Loop (rule-flip scenario)
-- Game Loop: Initial decision → New data appears → Revise → Resubmit → Feedback
-- Scoring: revised_decision ≥85%, Time ≤10s after new data, Edge=Re-evaluation ≤1 try; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Data Analysis
-
-Sub-Competency 3.6: Communicate logical reasoning clearly and persuasively
-- Action Cue: Craft concise summary aligning facts to argument
-- Game Mechanic: Debate Response Builder (communication assessment)
-- Game Loop: Read prompt → Select stance → Write / record summary → Feedback
-- Scoring: judgment_clarity ≥90%, Time ≤90s, Edge=Cross-question response ≤5s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Communication Product
-
-=== COMPETENCY 4: PROBLEM SOLVING ===
-
-Sub-Competency 4.1: Define problems clearly and identify root causes
-- Action Cue: Map inputs to root causes using limited clues
-- Game Mechanic: Systems Mapping Puzzle (root-cause analysis)
-- Game Loop: View system map → Select key node → Submit → Feedback
-- Scoring: root_cause_identified=1, Time ≤90s, Edge=Hidden factor found ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Case Analysis
-
-Sub-Competency 4.2: Generate and compare alternative solutions
-- Action Cue: Produce 3 possible solutions and select best fit
-- Game Mechanic: Solution Generator (simulation task)
-- Game Loop: Problem brief → List 3+ solutions → Select best fit → Feedback
-- Scoring: # solutions ≥3 AND best_fit=1, Time ≤180s, Edge=Constraint change adapted ≤8s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Scenario-Based Simulation
-
-Sub-Competency 4.3: Apply appropriate methods to reach a solution
-- Action Cue: Choose and apply correct tool for problem type
-- Game Mechanic: Criteria Scoring Mini-Game (performance rating)
-- Game Loop: Review options → Score vs criteria → Submit → Feedback
-- Scoring: criteria_match ≥90%, Time ≤90s, Edge=Weight re-adjust ≤5s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Performance Demonstration
-
-Sub-Competency 4.4: Implement solutions effectively
-- Action Cue: Execute solution sequence under time pressure
-- Game Mechanic: Execution Simulation (task management game)
-- Game Loop: Plan → Execute → Track KPIs → Adjust → Feedback
-- Scoring: execution_success ≥85%, Time ≤120s, Edge=Realtime adjust ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Project / Artifact
-
-Sub-Competency 4.5: Monitor and evaluate outcomes
-- Action Cue: Track results and adjust plan in real time
-- Game Mechanic: Adaptive Fix-Flow Simulation (rule-flip task)
-- Game Loop: Apply solution → Unexpected failure → Adjust → Resubmit → Feedback
-- Scoring: fix_applied ≥90%, Time ≤8s after failure, Edge=Second attempt success=1; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Portfolio / Reflection
-
-Sub-Competency 4.6: Communicate solutions and results clearly
-- Action Cue: Write or speak a 150-word summary matching metrics
-- Game Mechanic: Retrospective Builder (reflective task)
-- Game Loop: Review steps → Select lesson → Submit → Feedback
-- Scoring: reflection_quality ≥85%, Time ≤90s, Edge=Lesson logged=1; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Communication Product
 
 === YOUR TASK ===
 
-Analyze the provided course content and:
-1. Identify which of these 24 sub-competencies are most relevant
+Analyze the provided course content (especially "power words" lessons) and:
+1. Identify which of these 4 sub-competencies are most relevant
 2. Map course outcomes to the appropriate sub-competencies
 3. Assign the matching validator types and game mechanics
 4. Return structured JSON only
@@ -204,9 +68,9 @@ OUTPUT FORMAT (JSON only, no markdown):
   },
   "competency_mappings": [
     {
-      "domain": "Cognitive & Analytical",
-      "competency": "Analytical Thinking|Creative Thinking|Critical Reasoning|Problem Solving",
-      "sub_competency": "Full sub-competency statement from above",
+      "domain": "Professionalism / Self-Development|Communication & Collaboration|Adaptability & Well-Being|Ethics & Leadership",
+      "competency": "Emotional Intelligence & Self-Management|Communication & Interpersonal Fluency|Adaptive Mindset & Resilience|Ethical & Purpose-Driven Leadership",
+      "sub_competency": "Emotional Regulation|Empathy & Compassion|Resilience & Optimism|Ethical Communication & Courage",
       "alignment_summary": "How course aligns with this",
       "validator_type": "Type from above",
       "action_cue": "Action cue from above",
@@ -217,15 +81,15 @@ OUTPUT FORMAT (JSON only, no markdown):
   ],
   "recommended_validators": [
     {
-      "validator_name": "Game Mechanic Name from above",
-      "competencies_tested": ["sub-competency 1", "sub-competency 2"],
+      "validator_name": "RESPOND Loop|Tone Match Dialogue|Resilience Path Challenge|Speak-Out Decision Tree",
+      "competencies_tested": ["sub-competency from above"],
       "priority": "high|medium|low",
       "reason": "Why this validator is recommended"
     }
   ],
   "summary": {
-    "total_competencies": 10,
-    "domains_covered": ["Cognitive & Analytical"],
+    "total_competencies": 4,
+    "domains_covered": ["list of domains"],
     "implementation_note": "Brief note on implementing these validators"
   }
 }`;
@@ -245,39 +109,12 @@ Extract the following information and return ONLY JSON (no markdown):
 }
 
 IMPORTANT FOR ASSESSMENT METHODS:
-Map any assessment, evaluation, or testing methods to these PlayOps validators based on the Cognitive & Analytical domain:
+Map any assessment, evaluation, or testing methods to these 4 PlayOps validators ONLY:
 
-ANALYTICAL THINKING VALIDATORS:
-- "Resource Allocation Puzzle" - for multi-constraint business problems
-- "Ranking / Prioritization Game" - for trade-off evaluation
-- "Error-Detection / Diagnosis Task" - for incomplete/contradictory data
-- "Timed Decision-Tree Simulation" - for time pressure scenarios
-- "Pattern Recognition / Data Analysis Challenge" - for data interpretation
-- "Report-Builder / KPI Matching Mini-Game" - for communicating conclusions
-
-CREATIVE THINKING VALIDATORS:
-- "Divergent Idea Builder" - for generating innovative ideas
-- "Concept Remix Puzzle" - for reframing problems
-- "Prototype Refinement Loop" - for combining concepts
-- "Constraint Challenge Game" - for evaluating creative options
-- "Pattern Transfer Exercise" - for iterating prototypes
-- "Storyboard / Pitch Builder" - for communicating creative process
-
-CRITICAL REASONING VALIDATORS:
-- "Logic Scenario Simulator" - for identifying assumptions
-- "Bias Detector Game" - for distinguishing fact/inference/opinion
-- "Evidence Weighing Mini-Case" - for evaluating evidence
-- "Causal Mapping Puzzle" - for detecting logical fallacies
-- "Adaptive Logic Loop" - for drawing conclusions from incomplete data
-- "Debate Response Builder" - for communicating logical reasoning
-
-PROBLEM SOLVING VALIDATORS:
-- "Systems Mapping Puzzle" - for defining problems and root causes
-- "Solution Generator" - for generating alternative solutions
-- "Criteria Scoring Mini-Game" - for applying appropriate methods
-- "Execution Simulation" - for implementing solutions
-- "Adaptive Fix-Flow Simulation" - for monitoring and evaluating outcomes
-- "Retrospective Builder" - for communicating solutions
+1. "RESPOND Loop" - for emotional regulation, managing stress, choosing calm responses
+2. "Tone Match Dialogue" - for empathy, compassion, identifying tone, empathetic responses
+3. "Resilience Path Challenge" - for resilience, optimism, recovering from setbacks
+4. "Speak-Out Decision Tree" - for ethical communication, courage, conflict scenarios
 
 DURATION CONSTRAINTS:
 - Estimate 3-6 minutes based on content depth
