@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -160,6 +160,50 @@ export default function BrandDashboard() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDeleteGame = async (customizationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      console.log('Deleting game:', customizationId, 'for user:', user.id);
+
+      const { error, count } = await supabase
+        .from('brand_customizations')
+        .delete({ count: 'exact' })
+        .eq('id', customizationId)
+        .eq('brand_id', user.id);
+
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+
+      console.log('Delete successful, rows affected:', count);
+
+      // Update local state immediately
+      setCustomizations(prev => {
+        const filtered = prev.filter(c => c.id !== customizationId);
+        console.log('Remaining games:', filtered.length);
+        return filtered;
+      });
+
+      toast.success('Game deleted successfully');
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete game: ' + error.message);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-12">Loading dashboard...</div>;
   }
@@ -284,7 +328,7 @@ export default function BrandDashboard() {
                   <Play className="w-12 h-12 text-gray-600" />
                 )}
               </div>
-              <div className="p-4">
+               <div className="p-4">
                 <h3 className="font-semibold text-white mb-2">
                   {custom.game_templates?.name || 'Course-Generated Game'}
                 </h3>
@@ -331,6 +375,14 @@ export default function BrandDashboard() {
                       >
                         <Link2 className="h-3 w-3" />
                       </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={(e) => handleDeleteGame(custom.id, e)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   ) : (
                     <div className="flex gap-2">
@@ -361,6 +413,14 @@ export default function BrandDashboard() {
                         className="bg-neon-green text-white hover:bg-neon-green/90"
                       >
                         Publish
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={(e) => handleDeleteGame(custom.id, e)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   )}
