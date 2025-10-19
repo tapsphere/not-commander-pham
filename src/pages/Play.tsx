@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, ArrowLeft, Edit, Share2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MobileViewport } from '@/components/MobileViewport';
 
 type ValidatorData = {
   id: string;
@@ -153,16 +154,19 @@ export default function Play() {
         </div>
 
         {validator.generated_game_html ? (
-          /* Render the generated game */
+          /* Render the generated game in mobile viewport */
           <div className="pt-16">
-            <div className="w-full" style={{ height: 'calc(100vh - 4rem)' }}>
-              <iframe
-                srcDoc={validator.generated_game_html}
-                className="w-full h-full border-0"
-                title="Game Validator"
-                sandbox="allow-scripts allow-same-origin allow-forms"
-              />
-            </div>
+            <MobileViewport>
+              <div className="w-full" style={{ minHeight: 'calc(100vh - 4rem)' }}>
+                <iframe
+                  srcDoc={validator.generated_game_html}
+                  className="w-full border-0 rounded-lg shadow-2xl"
+                  style={{ height: '812px' }} // iPhone 13 height
+                  title="Game Validator"
+                  sandbox="allow-scripts allow-same-origin allow-forms"
+                />
+              </div>
+            </MobileViewport>
 
             {/* Owner Controls Section - Scrollable */}
             {isOwner && (

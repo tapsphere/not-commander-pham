@@ -4,6 +4,7 @@ import { ArrowLeft, AlertTriangle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { MobileViewport } from '@/components/MobileViewport';
 
 /**
  * KPI Data Structure
