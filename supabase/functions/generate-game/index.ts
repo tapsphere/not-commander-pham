@@ -403,15 +403,59 @@ The template provides:
 
 ⸻
 
-🎯 SCORING & RESULT SCREENS
+🎯 SCORING & RESULT SCREENS (CRITICAL - MUST IMPLEMENT)
 
-(Handled automatically by the system — designers do not modify scoring.)
-All validators use the same proof logic based on:
-• Accuracy %
-• Completion time
-• Edge-case success
+The game MUST include a detailed results screen that appears after gameplay completes.
 
-The system displays color-coded feedback (red / yellow / green) and assigns a badge: Needs Work / Proficient / Mastery.
+MANDATORY RESULTS SCREEN ELEMENTS:
+
+1. PROFICIENCY BADGE (Large, prominent, color-coded):
+   - MASTERY (green #00FF00) if accuracy ≥95% AND edge case handled
+   - PROFICIENT (yellow/gold #FFD700) if accuracy 80-94%
+   - NEEDS WORK (red #FF4444) if accuracy < 80%
+
+2. SCORE DISPLAY:
+   - Large percentage score (48px font, bold)
+   - Color matches proficiency level
+
+3. METRICS BREAKDOWN:
+   - Accuracy percentage
+   - Time taken vs total time (e.g., "120s / 180s")
+   - Edge Case status (Handled / Not Handled)
+   - Number of optimal decisions made
+   - Any other relevant gameplay metrics
+
+4. PERFORMANCE FEEDBACK:
+   - Specific text about what player did well
+   - Constructive suggestions for improvement
+   - Context-specific to their actual choices
+
+5. ACTION BUTTONS:
+   - PLAY AGAIN button (reloads game)
+   - Close button
+
+IMPLEMENTATION REQUIREMENTS:
+
+Create a hidden div with id="resultsScreen" that gets shown when game completes.
+Include a showResults(metrics) JavaScript function that:
+  - Calculates proficiency level from metrics
+  - Applies correct color coding
+  - Populates ALL metric displays with actual values
+  - Hides game screen and shows results screen
+
+Track these metrics during gameplay:
+  - Total actions taken
+  - Optimal vs suboptimal choices
+  - Time from start to completion
+  - Whether edge case was successfully handled
+  - Any validator-specific metrics
+
+Calculate final accuracy score based on:
+  - Percentage of optimal choices made
+  - Speed bonuses/penalties if applicable
+  - Edge case success/failure
+
+CRITICAL: Results must show ACTUAL calculated values, not just "Challenge Complete!"
 
 ⸻
 
