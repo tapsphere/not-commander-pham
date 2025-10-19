@@ -509,12 +509,116 @@ CRITICAL TECHNICAL REQUIREMENTS:
 2. Include ALL JavaScript and CSS inline within the HTML
 3. The game must be fully functional and playable
 4. Use the brand colors provided: primary=${primaryColor}, secondary=${secondaryColor}
-5. Make it responsive and mobile-friendly
-6. Use modern, clean design
-7. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
+5. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
+
+⚠️ MANDATORY MOBILE-FIRST REQUIREMENTS (NON-NEGOTIABLE):
+═══════════════════════════════════════════════════════════════
+
+📱 VIEWPORT META TAG (MUST BE FIRST IN <head>):
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+This MUST be the first tag in the <head> section of the HTML. Without this, the game will not display correctly on mobile devices.
+
+🎨 MOBILE-FIRST CSS ARCHITECTURE:
+- Design for 375px-414px width first (iPhone/Android standard sizes)
+- Use relative units: vh, vw, %, em, rem (NEVER fixed px for layouts)
+- Body/HTML: margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw;
+- All containers: box-sizing: border-box;
+- Touch targets: minimum 44px x 44px for buttons (iOS Human Interface Guidelines)
+- Font sizes: minimum 16px for body text (prevents iOS zoom on input focus)
+
+🖱️ TOUCH-OPTIMIZED INTERACTIONS:
+- All buttons must work with touch events
+- Use cursor: pointer on all interactive elements
+- Add active states: button:active { transform: scale(0.95); }
+- Drag-and-drop: implement both mouse and touch event handlers
+- No hover-only interactions (touch devices don't have hover)
+
+✅ START BUTTON CRITICAL IMPLEMENTATION:
+The START button must be implemented EXACTLY like this:
+
+HTML:
+<button id="startBtn" class="start-button">START GAME</button>
+
+CSS:
+.start-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  height: 60px;
+  font-size: 20px;
+  background: ${primaryColor};
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 100;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-button:active {
+  transform: translateX(-50%) scale(0.98);
+}
+
+JAVASCRIPT (MUST RUN AFTER DOM LOADS):
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const startBtn = document.getElementById('startBtn');
+  const introScreen = document.getElementById('introScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  
+  if (startBtn && introScreen && gameScreen) {
+    startBtn.addEventListener('click', function() {
+      console.log('START clicked - transitioning to game');
+      introScreen.style.display = 'none';
+      gameScreen.style.display = 'flex';
+      // Start game timer, initialize state, etc.
+      initializeGame();
+    });
+  } else {
+    console.error('Required elements not found:', {
+      startBtn: !!startBtn,
+      introScreen: !!introScreen, 
+      gameScreen: !!gameScreen
+    });
+  }
+});
+
+function initializeGame() {
+  console.log('Game initialized');
+  // Add your game initialization code here
+}
+</script>
+
+CRITICAL: The DOMContentLoaded wrapper ensures the script runs AFTER all HTML elements are loaded.
+
+🚨 COMMON MOBILE ISSUES TO AVOID:
+❌ Missing viewport meta tag → causes desktop rendering on mobile
+❌ Fixed pixel widths → causes horizontal scroll
+❌ JavaScript executing before DOM ready → buttons don't work
+❌ Hover-only interactions → don't work on touch devices
+❌ Small touch targets (<44px) → hard to tap accurately
+❌ Desktop-first layouts → poor mobile experience
+
+✅ MOBILE TESTING CHECKLIST:
+Before returning the HTML, mentally verify:
+□ Viewport meta tag is present in <head>
+□ All widths use % or vw, not fixed px
+□ START button has DOMContentLoaded wrapper
+□ All interactive elements have cursor: pointer
+□ Touch targets are minimum 44px
+□ No horizontal scrolling possible
+□ Game fits in 375px x 667px viewport (iPhone SE)
 
 OUTPUT FORMAT:
-Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.`;
+Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.
+The HTML must start with <!DOCTYPE html> and include the viewport meta tag.`;
 
     const userPrompt = `Create a game based on this template:
 ${templatePrompt}
