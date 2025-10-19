@@ -175,7 +175,7 @@ REQUIREMENTS:
         .from('brand_customizations')
         .insert({
           brand_id: user.id,
-          template_id: '00000000-0000-0000-0000-000000000000', // Placeholder for course-generated
+          template_id: null, // Course-generated games don't have a template
           primary_color: primaryColor,
           secondary_color: secondaryColor,
           logo_url: logoUrl,

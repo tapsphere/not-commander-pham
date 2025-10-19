@@ -52,11 +52,8 @@ export default function BrandDashboard() {
 
   const loadCustomizations = async () => {
     try {
-      // TEMP: Skip auth check for demo
-      /* ORIGINAL CODE - Re-enable after demo:
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      */
 
       const { data, error } = await supabase
         .from('brand_customizations')
@@ -67,7 +64,7 @@ export default function BrandDashboard() {
             preview_image
           )
         `)
-        // .eq('brand_id', user.id)  // TEMP: Commented for demo
+        .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -288,7 +285,9 @@ export default function BrandDashboard() {
                 )}
               </div>
               <div className="p-4">
-                <h3 className="font-semibold text-white mb-2">{custom.game_templates?.name}</h3>
+                <h3 className="font-semibold text-white mb-2">
+                  {custom.game_templates?.name || 'Course-Generated Game'}
+                </h3>
                 <p className="text-xs text-gray-500 mb-3 line-clamp-2">
                   {custom.customization_prompt || 'No customization prompt'}
                 </p>

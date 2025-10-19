@@ -52,7 +52,7 @@ export type Database = {
           primary_color: string | null
           published_at: string | null
           secondary_color: string | null
-          template_id: string
+          template_id: string | null
           unique_code: string | null
           updated_at: string | null
           visibility: Database["public"]["Enums"]["game_visibility"]
@@ -70,7 +70,7 @@ export type Database = {
           primary_color?: string | null
           published_at?: string | null
           secondary_color?: string | null
-          template_id: string
+          template_id?: string | null
           unique_code?: string | null
           updated_at?: string | null
           visibility?: Database["public"]["Enums"]["game_visibility"]
@@ -88,7 +88,7 @@ export type Database = {
           primary_color?: string | null
           published_at?: string | null
           secondary_color?: string | null
-          template_id?: string
+          template_id?: string | null
           unique_code?: string | null
           updated_at?: string | null
           visibility?: Database["public"]["Enums"]["game_visibility"]
