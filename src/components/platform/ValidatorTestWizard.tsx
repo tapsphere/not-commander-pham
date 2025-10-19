@@ -289,8 +289,16 @@ export function ValidatorTestWizard({
           )}
 
           {/* Status Selection */}
-          <div>
-            <h4 className="font-semibold text-white mb-3">Phase Status</h4>
+          <div className="bg-neon-green/10 border-2 border-neon-green/50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-neon-green text-black flex items-center justify-center font-bold">
+                ✓
+              </div>
+              <h4 className="font-semibold text-white text-lg">After Testing: Mark Phase Status</h4>
+            </div>
+            <p className="text-sm text-gray-300 mb-4">
+              Complete the checklist above, then click one button below to mark how this phase went:
+            </p>
             <div className="grid grid-cols-3 gap-2">
               <StatusButton status="passed" label="Passed" icon={CheckCircle} />
               <StatusButton status="failed" label="Failed" icon={XCircle} />
