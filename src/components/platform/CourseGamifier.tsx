@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, FileText, Brain, Sparkles } from "lucide-react";
+import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ValidatorTemplateCard } from "./ValidatorTemplateCard";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CompetencyMapping {
   domain: string;
@@ -49,7 +50,46 @@ export function CourseGamifier() {
   const [courseDescription, setCourseDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [existingAnalyses, setExistingAnalyses] = useState<any[]>([]);
+  const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
   const [showCustomizationDialog, setShowCustomizationDialog] = useState(false);
+
+  // Check for existing analyses when course name changes
+  useEffect(() => {
+    const checkExistingAnalyses = async () => {
+      if (!courseName.trim() || courseName.length < 3) {
+        setExistingAnalyses([]);
+        return;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('course_gamification')
+        .select('*')
+        .eq('brand_id', user.id)
+        .ilike('course_name', `%${courseName}%`)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setExistingAnalyses(data);
+      }
+    };
+
+    const debounce = setTimeout(checkExistingAnalyses, 500);
+    return () => clearTimeout(debounce);
+  }, [courseName]);
+
+  const loadExistingAnalysis = (analysis: any) => {
+    setSelectedAnalysisId(analysis.id);
+    setAnalysisResult(analysis.analysis_results);
+    setCourseDescription(analysis.course_description || "");
+    toast({
+      title: "Analysis loaded",
+      description: "Using saved analysis. You can edit it below.",
+    });
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -254,6 +294,31 @@ export function CourseGamifier() {
             </div>
           )}
 
+          {existingAnalyses.length > 0 && !analysisResult && (
+            <Alert>
+              <History className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-medium">Found {existingAnalyses.length} previous analysis for similar courses:</p>
+                  <div className="space-y-2">
+                    {existingAnalyses.slice(0, 3).map((analysis) => (
+                      <Button
+                        key={analysis.id}
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => loadExistingAnalysis(analysis)}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        {analysis.course_name} ({new Date(analysis.created_at).toLocaleDateString()})
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Button 
             onClick={handleAnalyze}
             disabled={loading}
@@ -267,8 +332,8 @@ export function CourseGamifier() {
               </>
             ) : (
               <>
-                <Upload className="w-4 h-4 mr-2" />
-                Analyze Course
+                <Sparkles className="w-4 h-4 mr-2" />
+                {analysisResult ? "Generate New Analysis" : "Analyze Course"}
               </>
             )}
           </Button>
