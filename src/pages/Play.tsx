@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, ArrowLeft, Edit, Share2 } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft, Edit, Share2, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -24,22 +24,23 @@ type ValidatorData = {
 };
 
 export default function Play() {
-  const { code } = useParams<{ code: string }>();
+  const { code, customizationId } = useParams<{ code?: string; customizationId?: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [validator, setValidator] = useState<ValidatorData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const isPreviewMode = !!customizationId;
 
   useEffect(() => {
-    if (code) {
+    if (code || customizationId) {
       loadValidator();
     }
-  }, [code]);
+  }, [code, customizationId]);
 
   const loadValidator = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('brand_customizations')
         .select(`
           id,
@@ -55,15 +56,22 @@ export default function Play() {
             description,
             preview_image
           )
-        `)
-        .eq('unique_code', code)
-        .not('published_at', 'is', null)
-        .maybeSingle();
+        `);
+
+      // Preview mode: load by ID (no publish check)
+      if (customizationId) {
+        query = query.eq('id', customizationId);
+      } else {
+        // Public mode: load by code (must be published)
+        query = query.eq('unique_code', code).not('published_at', 'is', null);
+      }
+
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
 
       if (!data) {
-        setError('Validator not found or not published');
+        setError(isPreviewMode ? 'Game not found' : 'Validator not found or not published');
         return;
       }
 
@@ -124,14 +132,23 @@ export default function Play() {
         {/* Return Button Header */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b-2" style={{ borderColor: 'hsl(var(--neon-green))' }}>
           <div className="max-w-7xl mx-auto p-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/lobby')}
-              style={{ color: 'hsl(var(--neon-green))' }}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Return to Hub
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                onClick={() => navigate(isPreviewMode ? '/platform/brand' : '/lobby')}
+                style={{ color: 'hsl(var(--neon-green))' }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                {isPreviewMode ? 'Back to Dashboard' : 'Return to Hub'}
+              </Button>
+              
+              {isPreviewMode && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
+                  <Eye className="w-4 h-4 text-yellow-400" />
+                  <span className="text-sm font-medium text-yellow-400">Preview Mode</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -333,17 +333,36 @@ export default function BrandDashboard() {
                       </Button>
                     </div>
                   ) : (
-                    <Button 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('🟢 Publish button clicked!');
-                        handlePublishClick(custom);
-                      }}
-                      className="bg-neon-green text-white hover:bg-neon-green/90"
-                    >
-                      Publish
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Preview mode - view the game HTML directly
+                          if (custom.id) {
+                            navigate(`/play/preview/${custom.id}`);
+                          } else {
+                            toast.error('Cannot preview this game');
+                          }
+                        }}
+                        className="gap-2"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Preview
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('🟢 Publish button clicked!');
+                          handlePublishClick(custom);
+                        }}
+                        className="bg-neon-green text-white hover:bg-neon-green/90"
+                      >
+                        Publish
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

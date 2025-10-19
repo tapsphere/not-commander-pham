@@ -62,6 +62,7 @@ const App = () => (
           
           {/* Public Play Route */}
           <Route path="/play/:code" element={<Play />} />
+          <Route path="/play/preview/:customizationId" element={<Play />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
