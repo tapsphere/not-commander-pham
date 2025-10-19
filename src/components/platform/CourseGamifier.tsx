@@ -101,8 +101,11 @@ export function CourseGamifier() {
       setAnalyzing(true);
       setProgress(0);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // Get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("Please log in to use this feature");
+      }
 
       let fileUrl = null;
       let courseText = courseDescription;
@@ -113,7 +116,7 @@ export function CourseGamifier() {
         setUploading(true);
         
         const fileExt = selectedFile.name.split('.').pop();
-        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+        const filePath = `${session.user.id}/${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('course-files')
@@ -149,7 +152,7 @@ export function CourseGamifier() {
       const { error: saveError } = await supabase
         .from('course_gamification')
         .insert({
-          brand_id: user.id,
+          brand_id: session.user.id,
           course_name: courseName,
           course_description: courseDescription,
           file_url: fileUrl,
