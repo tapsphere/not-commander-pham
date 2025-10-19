@@ -292,7 +292,42 @@ export function CourseGamifier() {
       return;
     }
 
-    if (!courseDescription.trim() && !selectedFile) {
+    if (showReviewForm) {
+      // Validate review form fields
+      if (learningObjectives.filter(o => o.trim()).length === 0) {
+        toast({
+          title: "Learning objectives required",
+          description: "Please add at least one learning objective",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!targetAudience.trim()) {
+        toast({
+          title: "Target audience required",
+          description: "Please specify the target audience",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (assessmentMethods.length === 0) {
+        toast({
+          title: "Assessment methods required",
+          description: "Please select at least one validator",
+          variant: "destructive",
+        });
+        return;
+      }
+      const durationNum = parseInt(courseDuration);
+      if (isNaN(durationNum) || durationNum < 3 || durationNum > 6) {
+        toast({
+          title: "Invalid duration",
+          description: "Duration must be between 3-6 minutes",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (!courseDescription.trim() && !selectedFile) {
       toast({
         title: "Course content required",
         description: "Please upload a file or provide a description",
@@ -346,13 +381,41 @@ export function CourseGamifier() {
         setProgress(40);
       }
 
+      // Prepare enhanced course text with structured details
+      if (showReviewForm) {
+        const structuredInfo = `
+COURSE NAME: ${courseName}
+
+LEARNING OBJECTIVES:
+${learningObjectives.filter(o => o.trim()).map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
+
+TARGET AUDIENCE:
+${targetAudience}
+
+KEY TOPICS COVERED:
+${keyTopics.filter(t => t.trim()).map((topic, i) => `${i + 1}. ${topic}`).join('\n')}
+
+ASSESSMENT METHODS:
+${assessmentMethods.join(', ')}
+
+ESTIMATED DURATION: ${courseDuration} minutes
+
+PREREQUISITES:
+${prerequisites || 'None specified'}
+
+ADDITIONAL DESCRIPTION:
+${courseDescription}
+`;
+        courseText = structuredInfo;
+      }
+
       // Call AI analysis
       setProgress(60);
       const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-course', {
         body: {
           courseText,
           courseName,
-          courseDescription
+          courseDescription: showReviewForm ? courseText : courseDescription
         }
       });
 
@@ -437,35 +500,179 @@ export function CourseGamifier() {
                 disabled={loading}
                 className="cursor-pointer"
               />
-              {selectedFile && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  {selectedFile.name}
-                </div>
+              {selectedFile && !showReviewForm && (
+                <Button
+                  onClick={extractAndPrefillFromPDF}
+                  disabled={extracting}
+                  variant="secondary"
+                  size="sm"
+                >
+                  {extracting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Extracting...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Extract Details
+                    </>
+                  )}
+                </Button>
               )}
             </div>
+            {selectedFile && !showReviewForm && (
+              <p className="text-xs text-muted-foreground">
+                Click "Extract Details" to automatically fill in course information from your PDF
+              </p>
+            )}
           </div>
 
+          {showReviewForm && (
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Review & Edit Course Details</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReviewForm(false)}
+                >
+                  Hide
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Learning Objectives *</Label>
+                {learningObjectives.map((obj, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input
+                      value={obj}
+                      onChange={(e) => updateArrayItem(setLearningObjectives, idx, e.target.value)}
+                      placeholder={`Objective ${idx + 1}`}
+                    />
+                    {learningObjectives.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeArrayItem(setLearningObjectives, idx)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addArrayItem(setLearningObjectives)}
+                >
+                  + Add Objective
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="targetAudience">Target Audience *</Label>
+                <Input
+                  id="targetAudience"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="Who is this course designed for?"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Key Topics Covered *</Label>
+                {keyTopics.map((topic, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <Input
+                      value={topic}
+                      onChange={(e) => updateArrayItem(setKeyTopics, idx, e.target.value)}
+                      placeholder={`Topic ${idx + 1}`}
+                    />
+                    {keyTopics.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeArrayItem(setKeyTopics, idx)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addArrayItem(setKeyTopics)}
+                >
+                  + Add Topic
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Assessment Methods (Validators) *</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    "Mood Mapper", "Respond Loop", "Empathy Scenario", "Tone Match Game",
+                    "Resilience Path", "Breath Timer", "Speak-Out Tree", "Integrity Dilemma",
+                    "Kindness Simulation", "Consensus Builder", "Data Pattern Detective",
+                    "Budget Allocation", "Crisis Communication", "Narrative Builder"
+                  ].map((validator) => (
+                    <label key={validator} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={assessmentMethods.includes(validator)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAssessmentMethods([...assessmentMethods, validator]);
+                          } else {
+                            setAssessmentMethods(assessmentMethods.filter(v => v !== validator));
+                          }
+                        }}
+                      />
+                      {validator}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="courseDuration">Estimated Duration (minutes) *</Label>
+                <Input
+                  id="courseDuration"
+                  type="number"
+                  min="3"
+                  max="6"
+                  value={courseDuration}
+                  onChange={(e) => setCourseDuration(e.target.value)}
+                  placeholder="3-6 minutes"
+                />
+                <p className="text-xs text-muted-foreground">Duration must be between 3-6 minutes</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="prerequisites">Prerequisites</Label>
+                <Textarea
+                  id="prerequisites"
+                  value={prerequisites}
+                  onChange={(e) => setPrerequisites(e.target.value)}
+                  placeholder="What should learners know before taking this course?"
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="courseDescription">Course Description *</Label>
+            <Label htmlFor="courseDescription">Course Description</Label>
             <Textarea
               id="courseDescription"
-              placeholder="Provide detailed course content including:
-• Learning objectives and outcomes
-• Key topics and themes covered
-• Skills and competencies taught
-• Example scenarios or case studies
-• Assessment methods used
-
-The more detail you provide, the more accurate the competency mapping will be."
+              placeholder="Additional course details or context..."
               value={courseDescription}
               onChange={(e) => setCourseDescription(e.target.value)}
               disabled={loading}
-              rows={8}
+              rows={4}
             />
-            <p className="text-xs text-muted-foreground">
-              💡 Tip: Include specific examples from your course content for the most accurate validator recommendations.
-            </p>
           </div>
 
           {loading && (
