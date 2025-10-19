@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Upload, Copy, Palette } from 'lucide-react';
+import { Upload, Copy, Palette, Plus, Minus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface BrandCustomizationDialogProps {
   open: boolean;
@@ -38,6 +39,12 @@ export const BrandCustomizationDialog = ({
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+  
+  // Course-specific customization fields
+  const [numScenarios, setNumScenarios] = useState(5);
+  const [difficultyLevel, setDifficultyLevel] = useState('medium');
+  const [customScenarios, setCustomScenarios] = useState<string[]>(['']);
+  const [focusAreas, setFocusAreas] = useState('');
 
   useEffect(() => {
     if (template.base_prompt && !editablePrompt) {
@@ -72,10 +79,21 @@ Please ensure the validator content and scenarios are relevant to this course ma
     if (editablePrompt) {
       generateBrandedPrompt();
     }
-  }, [editablePrompt, primaryColor, secondaryColor]);
+  }, [editablePrompt, primaryColor, secondaryColor, numScenarios, difficultyLevel, customScenarios, focusAreas]);
 
   const generateBrandedPrompt = () => {
-    const brandSection = `
+    const customizationSection = `
+
+🎯 VALIDATOR CUSTOMIZATION:
+
+Difficulty Level: ${difficultyLevel}
+Number of Scenarios: ${numScenarios}
+${focusAreas ? `Focus Areas: ${focusAreas}` : ''}
+
+${customScenarios.filter(s => s.trim()).length > 0 ? `
+Custom Scenarios to Include:
+${customScenarios.filter(s => s.trim()).map((scenario, idx) => `${idx + 1}. ${scenario}`).join('\n')}
+` : ''}
 
 🎨 BRAND CUSTOMIZATION:
 
@@ -91,7 +109,7 @@ UI Styling Instructions:
 • Apply brand colors to buttons, progress bars, and success states
 `;
 
-    const modifiedPrompt = editablePrompt + '\n\n' + brandSection;
+    const modifiedPrompt = editablePrompt + '\n\n' + customizationSection;
     setGeneratedPrompt(modifiedPrompt);
   };
 
@@ -202,6 +220,106 @@ UI Styling Instructions:
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Course-Specific Customization */}
+          {courseInfo && (
+            <div className="space-y-4 bg-gray-800/50 border border-neon-green/30 rounded-lg p-4">
+              <h3 className="font-semibold text-lg text-neon-green">
+                📝 Validator Content Customization
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="numScenarios">Number of Scenarios/Questions</Label>
+                  <Input
+                    id="numScenarios"
+                    type="number"
+                    min="3"
+                    max="20"
+                    value={numScenarios}
+                    onChange={(e) => setNumScenarios(parseInt(e.target.value) || 5)}
+                    className="mt-2 bg-gray-800 border-gray-700"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="difficulty">Difficulty Level</Label>
+                  <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
+                    <SelectTrigger className="mt-2 bg-gray-800 border-gray-700">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="easy">Easy - Basic concepts</SelectItem>
+                      <SelectItem value="medium">Medium - Standard assessment</SelectItem>
+                      <SelectItem value="hard">Hard - Advanced challenges</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="focusAreas">Focus Areas (optional)</Label>
+                <Input
+                  id="focusAreas"
+                  value={focusAreas}
+                  onChange={(e) => setFocusAreas(e.target.value)}
+                  placeholder="e.g., workplace scenarios, interpersonal communication"
+                  className="mt-2 bg-gray-800 border-gray-700"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Specify particular contexts or themes for the scenarios
+                </p>
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Custom Scenarios (specific to "{courseInfo.courseName}")</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setCustomScenarios([...customScenarios, ''])}
+                    className="text-neon-green hover:text-neon-green"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Scenario
+                  </Button>
+                </div>
+                
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {customScenarios.map((scenario, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <Textarea
+                        value={scenario}
+                        onChange={(e) => {
+                          const newScenarios = [...customScenarios];
+                          newScenarios[idx] = e.target.value;
+                          setCustomScenarios(newScenarios);
+                        }}
+                        placeholder={`Scenario ${idx + 1}: Describe a situation related to ${courseInfo.courseName}...`}
+                        rows={2}
+                        className="flex-1 bg-gray-800 border-gray-700 text-sm"
+                      />
+                      {customScenarios.length > 1 && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setCustomScenarios(customScenarios.filter((_, i) => i !== idx))}
+                          className="text-red-400 hover:text-red-500"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Add specific scenarios from your course that should be included in the validator
+                </p>
+              </div>
+            </div>
+          )}
+          
           {/* Editable AI Prompt Area */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
