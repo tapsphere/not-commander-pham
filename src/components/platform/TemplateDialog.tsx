@@ -22,6 +22,7 @@ interface TemplateDialogProps {
     base_prompt: string | null;
   } | null;
   onSuccess: () => void;
+  onTemplateCreated?: (templateId: string, templateName: string, subCompetencyId: string) => void;
 }
 
 // Global sample prompt with full scoring and proficiency details
@@ -86,7 +87,7 @@ End result screens:
 
 UI aesthetic: Modern dashboard with a ticking clock, incoming message notifications, and a statement composer with real-time sentiment analysis of your draft.`;
 
-export const TemplateDialog = ({ open, onOpenChange, template, onSuccess }: TemplateDialogProps) => {
+export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemplateCreated }: TemplateDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [templateType, setTemplateType] = useState<'ai_generated' | 'custom_upload'>('ai_generated');
   const [customGameFile, setCustomGameFile] = useState<File | null>(null);
@@ -679,7 +680,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveAsDraft: boolean = false) => {
     e.preventDefault();
     setLoading(true);
 
@@ -734,7 +735,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         toast.success('Template updated!');
       } else {
         // Create new template
-        const { error } = await supabase
+        const { data: newTemplate, error } = await supabase
           .from('game_templates')
           .insert({
             creator_id: user.id,
@@ -745,10 +746,21 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             custom_game_url: customGameUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
-        toast.success('Template created!');
+        
+        if (saveAsDraft) {
+          toast.success('Template saved as draft! Test it when ready.');
+        } else {
+          toast.success('Template created! Opening test wizard...');
+          // Trigger test wizard if not saving as draft and callback exists
+          if (onTemplateCreated && newTemplate && selectedSubCompetencies[0]) {
+            onTemplateCreated(newTemplate.id, formData.name, selectedSubCompetencies[0]);
+          }
+        }
       }
 
       onSuccess();
@@ -1354,12 +1366,33 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
-            >
-              {loading ? 'Saving...' : template ? 'Update Template' : 'Create Template'}
-            </Button>
+            {template ? (
+              <Button 
+                type="submit" 
+                disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+              >
+                {loading ? 'Updating...' : 'Update Template'}
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={(e) => handleSubmit(e, true)}
+                  disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+                  className="border-gray-600 text-gray-300"
+                >
+                  {loading ? 'Saving...' : 'Save as Draft'}
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+                  className="bg-neon-green text-black hover:bg-neon-green/80"
+                >
+                  {loading ? 'Creating...' : 'Create & Test'}
+                </Button>
+              </>
+            )}
           </div>
         </form>
         </div>

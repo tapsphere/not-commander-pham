@@ -171,7 +171,23 @@ export function ValidatorTestWizard({
         if (error) throw error;
       }
 
-      toast.success('Test results saved successfully!');
+      // Provide contextual feedback based on test results
+      if (overallStatus === 'passed') {
+        toast.success('🎉 All tests passed! You can now approve this validator for publishing.', {
+          description: 'Go to your dashboard to approve and publish to marketplace'
+        });
+      } else if (overallStatus === 'failed') {
+        toast.error('Tests failed. Review your notes and improve the validator.', {
+          description: 'Fix the issues and re-test before publishing'
+        });
+      } else if (overallStatus === 'needs_review') {
+        toast.info('Test marked for review. Address concerns before publishing.', {
+          description: 'Review the noted issues and re-test when ready'
+        });
+      } else {
+        toast.success('Test results saved!');
+      }
+      
       onComplete();
       onOpenChange(false);
       

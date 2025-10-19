@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
+import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Template = {
@@ -33,10 +34,35 @@ export default function CreatorDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [competenciesDialogOpen, setCompetenciesDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [testWizardOpen, setTestWizardOpen] = useState(false);
+  const [testingTemplate, setTestingTemplate] = useState<{ 
+    id: string; 
+    name: string; 
+    template_type: string;
+    selected_sub_competencies: string[];
+    custom_game_url?: string;
+  } | null>(null);
+  const [subCompetencies, setSubCompetencies] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
     loadTemplates();
+    loadSubCompetencies();
   }, []);
+
+  const loadSubCompetencies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sub_competencies')
+        .select('*');
+      
+      if (error) throw error;
+      
+      const subMap = new Map(data?.map(s => [s.id, s]) || []);
+      setSubCompetencies(subMap);
+    } catch (error: any) {
+      console.error('Failed to load sub-competencies:', error);
+    }
+  };
 
   const loadTemplates = async () => {
     try {
@@ -129,6 +155,27 @@ export default function CreatorDashboard() {
   const canPublish = (templateId: string) => {
     const testResult = testResults.get(templateId);
     return testResult?.overall_status === 'passed' && testResult?.approved_for_publish;
+  };
+
+  const handleTemplateCreated = (templateId: string, templateName: string, subCompetencyId: string) => {
+    // Fetch the full template to get template_type
+    supabase
+      .from('game_templates')
+      .select('id, name, template_type, custom_game_url, selected_sub_competencies')
+      .eq('id', templateId)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to fetch template:', error);
+          toast.error('Failed to open test wizard');
+          return;
+        }
+        
+        if (data) {
+          setTestingTemplate(data);
+          setTestWizardOpen(true);
+        }
+      });
   };
 
   if (loading) {
@@ -271,6 +318,7 @@ export default function CreatorDashboard() {
         onOpenChange={setDialogOpen}
         template={selectedTemplate}
         onSuccess={loadTemplates}
+        onTemplateCreated={handleTemplateCreated}
       />
 
       <CompetenciesDialog
@@ -279,6 +327,20 @@ export default function CreatorDashboard() {
         templateId={selectedTemplate?.id || ''}
         templateName={selectedTemplate?.name || ''}
       />
+
+      {testingTemplate && (
+        <ValidatorTestWizard
+          open={testWizardOpen}
+          onOpenChange={setTestWizardOpen}
+          template={testingTemplate}
+          subCompetency={
+            testingTemplate.selected_sub_competencies[0]
+              ? subCompetencies.get(testingTemplate.selected_sub_competencies[0]) || null
+              : null
+          }
+          onComplete={loadTemplates}
+        />
+      )}
     </div>
   );
 }
