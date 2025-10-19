@@ -144,9 +144,9 @@ export default function TemplateDetail() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              // Navigate back based on where we came from
+              // Use browser back if from course to preserve state
               if (location.state?.fromCourse) {
-                navigate('/platform/brand');
+                navigate(-1);
               } else {
                 navigate('/platform/marketplace');
               }
