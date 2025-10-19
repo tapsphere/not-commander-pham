@@ -53,8 +53,11 @@ This validator is being customized for the course: "${courseInfo.courseName}"
 
 Mapped Competencies:
 ${courseInfo.competencyMappings.map((mapping: any, idx: number) => 
-  `${idx + 1}. ${mapping.competency_name}${mapping.sub_competencies?.length ? `\n   Sub-competencies: ${mapping.sub_competencies.join(', ')}` : ''}`
-).join('\n')}
+  `${idx + 1}. ${mapping.sub_competency || mapping.competency}
+   Domain: ${mapping.domain}
+   Alignment: ${mapping.alignment_summary}
+   Evidence Metric: ${mapping.evidence_metric}`
+).join('\n\n')}
 
 Please ensure the validator content and scenarios are relevant to this course material.
 `;
