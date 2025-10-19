@@ -121,9 +121,21 @@ export default function CreatorDashboard() {
       // Open custom game in new tab
       window.open(template.custom_game_url, '_blank');
     } else {
-      // Open template dialog to generate/view preview
-      setSelectedTemplate(template);
-      setDialogOpen(true);
+      // Open testing wizard to test/retest the game
+      supabase
+        .from('game_templates')
+        .select('id, name, template_type, custom_game_url, selected_sub_competencies')
+        .eq('id', template.id)
+        .single()
+        .then(({ data, error }) => {
+          if (error || !data) {
+            toast.error('Failed to load template');
+            return;
+          }
+          
+          setTestingTemplate(data);
+          setTestWizardOpen(true);
+        });
     }
   };
 
