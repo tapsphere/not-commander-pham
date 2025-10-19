@@ -101,22 +101,18 @@ export function CourseGamifier() {
       setAnalyzing(true);
       setProgress(0);
 
-      // Get the current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        throw new Error("Please log in to use this feature");
-      }
-
+      const { data: { user } } = await supabase.auth.getUser();
+      
       let fileUrl = null;
       let courseText = courseDescription;
 
       // Upload file if selected
-      if (selectedFile) {
+      if (selectedFile && user) {
         setProgress(20);
         setUploading(true);
         
         const fileExt = selectedFile.name.split('.').pop();
-        const filePath = `${session.user.id}/${Date.now()}.${fileExt}`;
+        const filePath = `${user.id}/${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('course-files')
@@ -149,20 +145,22 @@ export function CourseGamifier() {
       setProgress(80);
 
       // Save to database
-      const { error: saveError } = await supabase
-        .from('course_gamification')
-        .insert({
-          brand_id: session.user.id,
-          course_name: courseName,
-          course_description: courseDescription,
-          file_url: fileUrl,
-          file_type: selectedFile?.type || 'text',
-          analysis_results: analysisData.analysis,
-          competency_mappings: analysisData.analysis.competency_mappings,
-          recommended_validators: analysisData.analysis.recommended_validators
-        });
+      if (user) {
+        const { error: saveError } = await supabase
+          .from('course_gamification')
+          .insert({
+            brand_id: user.id,
+            course_name: courseName,
+            course_description: courseDescription,
+            file_url: fileUrl,
+            file_type: selectedFile?.type || 'text',
+            analysis_results: analysisData.analysis,
+            competency_mappings: analysisData.analysis.competency_mappings,
+            recommended_validators: analysisData.analysis.recommended_validators
+          });
 
-      if (saveError) throw saveError;
+        if (saveError) throw saveError;
+      }
 
       setProgress(100);
       setAnalysisResult(analysisData.analysis);
