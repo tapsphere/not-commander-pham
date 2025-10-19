@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -29,6 +29,7 @@ interface Template {
 export default function TemplateDetail() {
   const { templateId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
@@ -137,9 +138,12 @@ export default function TemplateDetail() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              // Navigate back to creator portfolio if we came from there
-              const creatorId = template.creator_id;
-              navigate(`/platform/creator/${creatorId}`);
+              // Navigate back based on where we came from
+              if (location.state?.fromCourse) {
+                navigate('/platform/brand');
+              } else {
+                navigate('/platform/marketplace');
+              }
             }}
             className="gap-1 text-gray-400 hover:text-white -ml-2"
           >
