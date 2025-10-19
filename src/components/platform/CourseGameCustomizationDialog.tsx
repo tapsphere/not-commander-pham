@@ -218,14 +218,14 @@ REQUIREMENTS:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-neon-green text-white">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] bg-gray-900 border-neon-green text-white overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-neon-green text-glow-green">
             Customize Game for "{courseName}"
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto flex-1 pr-2">
           {/* Brand Colors */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -343,7 +343,7 @@ REQUIREMENTS:
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 justify-end border-t border-gray-700 pt-4">
+          <div className="flex gap-3 justify-end border-t border-gray-700 pt-4 flex-shrink-0 bg-gray-900 -mx-6 px-6 -mb-6 pb-6">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
