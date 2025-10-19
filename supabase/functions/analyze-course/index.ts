@@ -324,6 +324,65 @@ CRITICAL: Only use sub-competencies that exist in the AVAILABLE SUB-COMPETENCIES
       };
     }
 
+    // Fetch actual game templates and replace validator type names with template names
+    const validatorTypes = analysisResult.recommended_validators?.map((v: any) => v.validator_name) || [];
+    const { data: templates, error: templatesError } = await supabaseClient
+      .from('game_templates')
+      .select('name, description, preview_image, selected_sub_competencies')
+      .eq('is_published', true);
+
+    if (!templatesError && templates && templates.length > 0) {
+      // Create a mapping from validator types to actual templates
+      const validatorToTemplates: Record<string, typeof templates> = {};
+      
+      templates.forEach(template => {
+        // Match templates to competencies from the analysis
+        const matchingCompetencies = analysisResult.competency_mappings?.filter(
+          (mapping: any) => {
+            // Check if template's sub_competencies match any of the mapped competencies
+            const mappingSubCompIds = subCompetencies?.filter(
+              sc => sc.statement === mapping.sub_competency
+            ).map(sc => sc.id) || [];
+            
+            return template.selected_sub_competencies?.some(
+              (id: string) => mappingSubCompIds.includes(id)
+            );
+          }
+        ) || [];
+
+        if (matchingCompetencies.length > 0) {
+          const validatorType = matchingCompetencies[0].validator_type;
+          if (!validatorToTemplates[validatorType]) {
+            validatorToTemplates[validatorType] = [];
+          }
+          validatorToTemplates[validatorType].push(template);
+        }
+      });
+
+      // Replace recommended validators with actual template data
+      const enhancedValidators = [];
+      for (const validator of analysisResult.recommended_validators || []) {
+        const matchingTemplates = validatorToTemplates[validator.validator_name] || [];
+        
+        if (matchingTemplates.length > 0) {
+          // Add each matching template as a separate recommendation
+          matchingTemplates.forEach(template => {
+            enhancedValidators.push({
+              ...validator,
+              validator_name: template.name, // Use actual template name
+              template_description: template.description,
+              template_preview: template.preview_image
+            });
+          });
+        } else {
+          // Keep original if no template match found
+          enhancedValidators.push(validator);
+        }
+      }
+      
+      analysisResult.recommended_validators = enhancedValidators;
+    }
+
     return new Response(
       JSON.stringify({ success: true, analysis: analysisResult }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
