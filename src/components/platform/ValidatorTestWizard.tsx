@@ -18,6 +18,7 @@ interface ValidatorTestWizardProps {
     custom_game_url?: string;
   };
   subCompetency: {
+    id: string;
     statement: string;
     action_cue: string;
   } | null;
@@ -40,6 +41,8 @@ export function ValidatorTestWizard({
 }: ValidatorTestWizardProps) {
   const [currentPhase, setCurrentPhase] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testComplete, setTestComplete] = useState(false);
   
   const [phase1, setPhase1] = useState<PhaseData>({ status: 'not_started', notes: '' });
   const [phase2, setPhase2] = useState<PhaseData>({ status: 'not_started', notes: '' });
@@ -102,14 +105,6 @@ export function ValidatorTestWizard({
   const currentPhaseData = phases[currentPhase - 1];
   const progress = (currentPhase / 3) * 100;
 
-  const setPhaseStatus = (status: PhaseStatus) => {
-    currentPhaseData.setData({ ...currentPhaseData.data, status });
-  };
-
-  const setPhaseNotes = (notes: string) => {
-    currentPhaseData.setData({ ...currentPhaseData.data, notes });
-  };
-
   const canProceed = currentPhaseData.data.status !== 'not_started';
 
   const getOverallStatus = (): PhaseStatus => {
@@ -120,95 +115,65 @@ export function ValidatorTestWizard({
     return 'not_started';
   };
 
-  const handleSaveAndFinish = async () => {
-    if (!canProceed) {
-      toast.error('Please mark the current phase status before finishing');
+  const handleRunAutomatedTests = async () => {
+    if (!subCompetency) {
+      toast.error('Sub-competency data required for testing');
       return;
     }
 
     try {
-      setSaving(true);
+      setTesting(true);
+      toast.info('🤖 Running automated stress tests...', {
+        description: 'This will take a few moments'
+      });
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const overallStatus = getOverallStatus();
+      // Call the stress-test-validator edge function
+      const { data, error } = await supabase.functions.invoke('stress-test-validator', {
+        body: {
+          templateId: template.id,
+          subCompetencyId: subCompetency?.id || null,
+          testerId: user.id
+        }
+      });
 
-      // Check if test result already exists
-      const { data: existing } = await supabase
-        .from('validator_test_results')
-        .select('id')
-        .eq('template_id', template.id)
-        .maybeSingle();
+      if (error) throw error;
 
-      const testData = {
-        template_id: template.id,
-        tester_id: user.id,
-        template_type: template.template_type,
-        sub_competency_id: subCompetency ? '00000000-0000-0000-0000-000000000000' : null, // Replace with actual ID if available
-        phase1_status: phase1.status,
-        phase1_notes: phase1.notes,
-        phase2_status: phase2.status,
-        phase2_notes: phase2.notes,
-        phase3_status: phase3.status,
-        phase3_notes: phase3.notes,
-        overall_status: overallStatus,
-        tested_at: new Date().toISOString(),
-      };
+      // Update local state with results
+      const results = data.results;
+      setPhase1({ status: results[0].status, notes: results[0].notes });
+      setPhase2({ status: results[1].status, notes: results[1].notes });
+      setPhase3({ status: results[2].status, notes: results[2].notes });
+      setTestComplete(true);
 
-      if (existing) {
-        const { error } = await supabase
-          .from('validator_test_results')
-          .update(testData)
-          .eq('id', existing.id);
-        
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('validator_test_results')
-          .insert(testData);
-        
-        if (error) throw error;
-      }
-
-      // Provide contextual feedback based on test results
-      if (overallStatus === 'passed') {
-        toast.success('🎉 All tests passed! You can now approve this validator for publishing.', {
-          description: 'Go to your dashboard to approve and publish to marketplace'
+      // Show appropriate feedback
+      if (data.overallStatus === 'passed') {
+        toast.success('✅ All automated tests passed!', {
+          description: 'Validator approved for publishing'
         });
-      } else if (overallStatus === 'failed') {
-        toast.error('Tests failed. Review your notes and improve the validator.', {
-          description: 'Fix the issues and re-test before publishing'
-        });
-      } else if (overallStatus === 'needs_review') {
-        toast.info('Test marked for review. Address concerns before publishing.', {
-          description: 'Review the noted issues and re-test when ready'
+      } else if (data.overallStatus === 'failed') {
+        toast.error('❌ Tests failed', {
+          description: 'Review issues and fix before publishing'
         });
       } else {
-        toast.success('Test results saved!');
+        toast.warning('⚠️ Tests need review', {
+          description: 'Some concerns detected'
+        });
       }
       
       onComplete();
-      onOpenChange(false);
       
-      // Reset for next test
-      setCurrentPhase(1);
-      setPhase1({ status: 'not_started', notes: '' });
-      setPhase2({ status: 'not_started', notes: '' });
-      setPhase3({ status: 'not_started', notes: '' });
     } catch (error: any) {
-      console.error('Save error:', error);
-      toast.error('Failed to save test results');
+      console.error('Automated test error:', error);
+      toast.error('Failed to run automated tests: ' + error.message);
     } finally {
-      setSaving(false);
+      setTesting(false);
     }
   };
 
   const handleNext = () => {
-    if (!canProceed) {
-      toast.error('Please mark the phase status before continuing');
-      return;
-    }
     if (currentPhase < 3) {
       setCurrentPhase(currentPhase + 1);
     }
@@ -219,17 +184,6 @@ export function ValidatorTestWizard({
       setCurrentPhase(currentPhase - 1);
     }
   };
-
-  const StatusButton = ({ status, label, icon: Icon }: { status: PhaseStatus; label: string; icon: any }) => (
-    <Button
-      variant={currentPhaseData.data.status === status ? 'default' : 'outline'}
-      onClick={() => setPhaseStatus(status)}
-      className="flex-1 gap-2"
-    >
-      <Icon className="w-4 h-4" />
-      {label}
-    </Button>
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -288,34 +242,41 @@ export function ValidatorTestWizard({
             </Button>
           )}
 
-          {/* Status Selection */}
-          <div className="bg-neon-green/10 border-2 border-neon-green/50 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-full bg-neon-green text-black flex items-center justify-center font-bold">
-                ✓
+          {/* Automated Test Results */}
+          {currentPhaseData.data.status !== 'not_started' ? (
+            <div className={`border-2 rounded-lg p-4 ${
+              currentPhaseData.data.status === 'passed' ? 'bg-green-500/10 border-green-500' :
+              currentPhaseData.data.status === 'failed' ? 'bg-red-500/10 border-red-500' :
+              'bg-yellow-500/10 border-yellow-500'
+            }`}>
+              <div className="flex items-center gap-2 mb-2">
+                {currentPhaseData.data.status === 'passed' && <CheckCircle className="w-6 h-6 text-green-500" />}
+                {currentPhaseData.data.status === 'failed' && <XCircle className="w-6 h-6 text-red-500" />}
+                {currentPhaseData.data.status === 'needs_review' && <AlertCircle className="w-6 h-6 text-yellow-500" />}
+                <h4 className="font-semibold text-white text-lg">
+                  Automated Test Result: {currentPhaseData.data.status.replace('_', ' ').toUpperCase()}
+                </h4>
               </div>
-              <h4 className="font-semibold text-white text-lg">After Testing: Mark Phase Status</h4>
+              <p className="text-sm text-gray-300">
+                {currentPhaseData.data.notes}
+              </p>
             </div>
-            <p className="text-sm text-gray-300 mb-4">
-              Complete the checklist above, then click one button below to mark how this phase went:
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              <StatusButton status="passed" label="Passed" icon={CheckCircle} />
-              <StatusButton status="failed" label="Failed" icon={XCircle} />
-              <StatusButton status="needs_review" label="Needs Review" icon={AlertCircle} />
+          ) : (
+            <div className="bg-gray-800 border-2 border-gray-600 rounded-lg p-4 text-center">
+              <p className="text-gray-400 mb-2">Automated testing not yet run for this phase</p>
+              <p className="text-sm text-gray-500">Click "Run Automated Tests" below to begin</p>
             </div>
-          </div>
+          )}
 
-          {/* Notes */}
-          <div>
-            <h4 className="font-semibold text-white mb-2">Notes (Optional)</h4>
-            <Textarea
-              value={currentPhaseData.data.notes}
-              onChange={(e) => setPhaseNotes(e.target.value)}
-              placeholder="Add any observations, issues found, or recommendations..."
-              className="bg-gray-800 border-gray-700 text-white min-h-24"
-            />
-          </div>
+          {/* Notes - Hidden since automated */}
+          {currentPhaseData.data.notes && (
+            <div>
+              <h4 className="font-semibold text-white mb-2">Test Details</h4>
+              <div className="bg-gray-800 border border-gray-700 rounded p-3 text-sm text-gray-300">
+                {currentPhaseData.data.notes}
+              </div>
+            </div>
+          )}
 
           {/* Phase Summary */}
           <div className="flex gap-2 justify-center">
@@ -338,34 +299,58 @@ export function ValidatorTestWizard({
 
         {/* Navigation */}
         <div className="flex justify-between gap-3 pt-4 border-t border-gray-700">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={currentPhase === 1}
-            className="gap-2 border-gray-600"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-
-          {currentPhase < 3 ? (
+          {!testComplete ? (
             <Button
-              onClick={handleNext}
-              disabled={!canProceed}
-              className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+              onClick={handleRunAutomatedTests}
+              disabled={testing}
+              className="flex-1 gap-2 bg-neon-green text-black hover:bg-neon-green/80 text-lg py-6"
             >
-              Next Phase
-              <ArrowRight className="w-4 h-4" />
+              {testing ? (
+                <>
+                  <div className="animate-spin h-5 w-5 border-2 border-black border-t-transparent rounded-full" />
+                  Running Automated Tests...
+                </>
+              ) : (
+                <>
+                  <PlayCircle className="w-6 h-6" />
+                  Run Automated Stress Tests
+                </>
+              )}
             </Button>
           ) : (
-            <Button
-              onClick={handleSaveAndFinish}
-              disabled={!canProceed || saving}
-              className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
-            >
-              {saving ? 'Saving...' : 'Save & Finish'}
-              <CheckCircle className="w-4 h-4" />
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={currentPhase === 1}
+                className="gap-2 border-gray-600"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </Button>
+
+              {currentPhase < 3 ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed}
+                  className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+                >
+                  Next Phase
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    toast.success('Tests complete! Closing wizard.');
+                    onOpenChange(false);
+                  }}
+                  className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+                >
+                  Done
+                  <CheckCircle className="w-4 h-4" />
+                </Button>
+              )}
+            </>
           )}
         </div>
       </DialogContent>
