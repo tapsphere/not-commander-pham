@@ -500,7 +500,7 @@ ${courseDescription}
                 disabled={loading}
                 className="cursor-pointer"
               />
-              {selectedFile && !showReviewForm && (
+              {selectedFile && (
                 <Button
                   onClick={extractAndPrefillFromPDF}
                   disabled={extracting}
@@ -514,32 +514,28 @@ ${courseDescription}
                     </>
                   ) : (
                     <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Extract Details
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      AI Extract & Prefill
                     </>
                   )}
                 </Button>
               )}
             </div>
-            {selectedFile && !showReviewForm && (
+            {selectedFile && (
               <p className="text-xs text-muted-foreground">
-                Click "Extract Details" to automatically fill in course information from your PDF
+                {showReviewForm 
+                  ? "Review and edit the course details below, or use AI to extract and prefill from your PDF" 
+                  : "Fill in the course details below, or click 'AI Extract & Prefill' to automatically extract from your PDF"}
               </p>
             )}
           </div>
 
-          {showReviewForm && (
+          {(selectedFile || courseName) && (
             <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Review & Edit Course Details</h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowReviewForm(false)}
-                >
-                  Hide
-                </Button>
-              </div>
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Edit className="w-4 h-4" />
+                Course Details for Analysis
+              </h3>
 
               <div className="space-y-2">
                 <Label>Learning Objectives *</Label>
