@@ -35,6 +35,12 @@ export default function TemplateDetail() {
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   const [isBrand, setIsBrand] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Extract course info from navigation state
+  const courseInfo = location.state?.fromCourse ? {
+    courseName: location.state?.courseName,
+    competencyMappings: location.state?.competencyMappings
+  } : null;
 
   useEffect(() => {
     loadTemplate();
@@ -259,6 +265,7 @@ export default function TemplateDetail() {
           open={customizeDialogOpen}
           onOpenChange={setCustomizeDialogOpen}
           template={template}
+          courseInfo={courseInfo}
           onSuccess={() => {
             navigate('/platform/brand');
           }}

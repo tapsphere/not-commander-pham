@@ -17,6 +17,10 @@ interface BrandCustomizationDialogProps {
     description: string | null;
     base_prompt: string | null;
   };
+  courseInfo?: {
+    courseName: string;
+    competencyMappings: any[];
+  } | null;
   onSuccess: () => void;
 }
 
@@ -24,6 +28,7 @@ export const BrandCustomizationDialog = ({
   open,
   onOpenChange,
   template,
+  courseInfo,
   onSuccess,
 }: BrandCustomizationDialogProps) => {
   const [loading, setLoading] = useState(false);
@@ -36,9 +41,29 @@ export const BrandCustomizationDialog = ({
 
   useEffect(() => {
     if (template.base_prompt && !editablePrompt) {
-      setEditablePrompt(template.base_prompt);
+      let prompt = template.base_prompt;
+      
+      // If we have course info, append it to the prompt
+      if (courseInfo) {
+        const courseContext = `
+
+📚 COURSE CONTEXT:
+
+This validator is being customized for the course: "${courseInfo.courseName}"
+
+Mapped Competencies:
+${courseInfo.competencyMappings.map((mapping: any, idx: number) => 
+  `${idx + 1}. ${mapping.competency_name}${mapping.sub_competencies?.length ? `\n   Sub-competencies: ${mapping.sub_competencies.join(', ')}` : ''}`
+).join('\n')}
+
+Please ensure the validator content and scenarios are relevant to this course material.
+`;
+        prompt = prompt + courseContext;
+      }
+      
+      setEditablePrompt(prompt);
     }
-  }, [template]);
+  }, [template, courseInfo]);
 
   useEffect(() => {
     if (editablePrompt) {
