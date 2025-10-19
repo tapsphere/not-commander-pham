@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { CourseGamifier } from '@/components/platform/CourseGamifier';
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ export default function BrandDashboard() {
   const [liveEndDate, setLiveEndDate] = useState<Date>();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [visibility, setVisibility] = useState<'public' | 'unlisted' | 'private'>('public');
+  const [showCourseGamifier, setShowCourseGamifier] = useState(false);
 
   useEffect(() => {
     loadCustomizations();
@@ -189,6 +191,31 @@ export default function BrandDashboard() {
         <p className="text-gray-400 text-sm">
           Set up your company profile to create a public brand page that showcases all your published games.
         </p>
+      </Card>
+
+      {/* Course Gamifier Section */}
+      <Card className="bg-gray-900 border-gray-800 mb-8">
+        <button
+          onClick={() => setShowCourseGamifier(!showCourseGamifier)}
+          className="w-full p-6 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+        >
+          <div className="text-left">
+            <h3 className="text-xl font-semibold text-white mb-2">Course Gamifier</h3>
+            <p className="text-gray-400 text-sm">
+              Upload your training courses and we'll map them to C-BEN competencies and recommend validators
+            </p>
+          </div>
+          {showCourseGamifier ? (
+            <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          )}
+        </button>
+        {showCourseGamifier && (
+          <div className="px-6 pb-6 border-t border-gray-800 pt-6">
+            <CourseGamifier />
+          </div>
+        )}
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
