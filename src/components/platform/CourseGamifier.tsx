@@ -285,8 +285,8 @@ export function CourseGamifier() {
             <div>
               <h3 className="font-semibold mb-2">Summary</h3>
               <div className="space-y-1 text-sm">
-                <p>Total Competencies: {analysisResult.summary.total_competencies}</p>
-                <p>Domains: {analysisResult.summary.domains_covered.join(', ')}</p>
+                <p>Total Sub-Competencies: {analysisResult.summary.total_competencies}</p>
+                <p>Across {analysisResult.summary.domains_covered.length} C-BEN Domains: {analysisResult.summary.domains_covered.join(', ')}</p>
                 <p className="text-muted-foreground">{analysisResult.summary.implementation_note}</p>
               </div>
             </div>
