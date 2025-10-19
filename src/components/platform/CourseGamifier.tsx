@@ -104,14 +104,38 @@ export function CourseGamifier() {
     e.stopPropagation();
     
     try {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to delete analyses",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Deleting analysis:', analysisId, 'for user:', user.id);
+
+      const { error, count } = await supabase
         .from('course_gamification')
-        .delete()
-        .eq('id', analysisId);
+        .delete({ count: 'exact' })
+        .eq('id', analysisId)
+        .eq('brand_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
 
-      setExistingAnalyses(prev => prev.filter(a => a.id !== analysisId));
+      console.log('Delete successful, rows affected:', count);
+
+      // Update local state immediately
+      setExistingAnalyses(prev => {
+        const filtered = prev.filter(a => a.id !== analysisId);
+        console.log('Remaining analyses:', filtered.length);
+        return filtered;
+      });
       
       if (selectedAnalysisId === analysisId) {
         setSelectedAnalysisId(null);
