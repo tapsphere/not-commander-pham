@@ -45,10 +45,19 @@ export function CourseGamifier() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [courseName, setCourseName] = useState("");
   const [courseDescription, setCourseDescription] = useState("");
+  const [learningObjectives, setLearningObjectives] = useState<string[]>([""]);
+  const [targetAudience, setTargetAudience] = useState("");
+  const [keyTopics, setKeyTopics] = useState<string[]>([""]);
+  const [assessmentMethods, setAssessmentMethods] = useState("");
+  const [courseDuration, setCourseDuration] = useState("");
+  const [prerequisites, setPrerequisites] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [existingAnalyses, setExistingAnalyses] = useState<any[]>([]);
   const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
@@ -138,6 +147,88 @@ export function CourseGamifier() {
     }
 
     setSelectedFile(file);
+  };
+
+  const extractAndPrefillFromPDF = async () => {
+    if (!selectedFile) return;
+
+    try {
+      setExtracting(true);
+      setProgress(20);
+
+      // Extract text from PDF
+      const extractedText = await extractTextFromFile(selectedFile);
+      
+      if (!extractedText) {
+        toast({
+          title: "Extraction failed",
+          description: "Could not extract text from PDF. Please fill in manually.",
+          variant: "destructive",
+        });
+        setShowReviewForm(true);
+        return;
+      }
+
+      setProgress(50);
+
+      // Use AI to extract structured data from the text
+      const { data, error } = await supabase.functions.invoke('analyze-course', {
+        body: {
+          courseText: extractedText,
+          courseName: courseName || "Untitled Course",
+          courseDescription: "Extract structured course information",
+          extractMode: true
+        }
+      });
+
+      if (error) throw error;
+
+      setProgress(80);
+
+      // Pre-fill form fields with extracted data
+      if (data.extractedInfo) {
+        setCourseName(data.extractedInfo.courseName || courseName);
+        setCourseDescription(data.extractedInfo.courseDescription || "");
+        setLearningObjectives(data.extractedInfo.learningObjectives || [""]);
+        setTargetAudience(data.extractedInfo.targetAudience || "");
+        setKeyTopics(data.extractedInfo.keyTopics || [""]);
+        setAssessmentMethods(data.extractedInfo.assessmentMethods || "");
+        setCourseDuration(data.extractedInfo.courseDuration || "");
+        setPrerequisites(data.extractedInfo.prerequisites || "");
+        setExtractedData(data.extractedInfo);
+      }
+
+      setProgress(100);
+      setShowReviewForm(true);
+
+      toast({
+        title: "PDF extracted!",
+        description: "Review the extracted information below and make any adjustments.",
+      });
+
+    } catch (error) {
+      console.error('Extraction error:', error);
+      toast({
+        title: "Extraction failed",
+        description: "Please fill in the course details manually.",
+        variant: "destructive",
+      });
+      setShowReviewForm(true);
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const addArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+    setter(prev => [...prev, ""]);
+  };
+
+  const updateArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
+    setter(prev => prev.map((item, i) => i === index ? value : item));
+  };
+
+  const removeArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
+    setter(prev => prev.filter((_, i) => i !== index));
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
