@@ -257,25 +257,34 @@ export function CourseGamifier() {
 
   const extractTextFromFile = async (file: File): Promise<string> => {
     try {
-      // Create a temporary file path for parsing
-      const arrayBuffer = await file.arrayBuffer();
-      const blob = new Blob([arrayBuffer]);
+      console.log('Extracting text from:', file.name, file.type);
       
-      // For now, we'll prompt the user to provide detailed content
-      // A production implementation would use a proper PDF parser library
-      toast({
-        title: "File uploaded",
-        description: "Please ensure your course description includes key learning objectives and content details for accurate analysis.",
+      // Create FormData to send the file
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Call parse-document edge function
+      const { data, error } = await supabase.functions.invoke('parse-document', {
+        body: formData,
       });
       
-      // Return empty string to rely on manual description
-      // This encourages users to provide comprehensive course content
-      return '';
+      if (error) {
+        console.error('Parse document error:', error);
+        throw error;
+      }
+      
+      console.log('Extracted content length:', data?.content?.length);
+      
+      if (!data?.content) {
+        throw new Error('No content extracted from document');
+      }
+      
+      return data.content;
     } catch (error) {
       console.error('Document parsing error:', error);
       toast({
-        title: "Could not process file",
-        description: "Please provide detailed course content in the description field.",
+        title: "Could not extract text",
+        description: "The PDF parser had trouble reading your file. You can still fill in the details manually.",
         variant: "destructive",
       });
       return '';
