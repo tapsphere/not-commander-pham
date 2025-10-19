@@ -1414,7 +1414,7 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                   srcDoc={previewHtml}
                   className="w-full h-full"
                   title="Game Preview"
-                  sandbox="allow-scripts allow-same-origin"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
                 />
               )}
             </div>

@@ -632,7 +632,7 @@ ${formData.uiAesthetic}
                         srcDoc={gameHtml}
                         className="w-full h-[500px]"
                         title="Game Preview"
-                        sandbox="allow-scripts"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
                       />
                     </div>
                   </CardContent>
