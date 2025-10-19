@@ -133,7 +133,7 @@ export default function CreatorDashboard() {
           .select('*')
           .in('id', subCompIds);
         
-        const { data, error } = await supabase.functions.invoke('generate-game', {
+        const { data: response, error } = await supabase.functions.invoke('generate-game', {
           body: {
             templatePrompt: template.base_prompt,
             primaryColor: '#00FF00',
@@ -145,17 +145,29 @@ export default function CreatorDashboard() {
           }
         });
 
-        if (error) throw error;
+        console.log('Generate game response:', response);
+
+        if (error) {
+          console.error('Generate game error:', error);
+          throw error;
+        }
+
+        if (!response || !response.html) {
+          throw new Error('No HTML received from game generator');
+        }
 
         // Open the generated HTML in a new window
         const gameWindow = window.open('', '_blank');
         if (gameWindow) {
-          gameWindow.document.write(data.html);
+          gameWindow.document.write(response.html);
           gameWindow.document.close();
+          toast.success('Game preview opened!');
+        } else {
+          toast.error('Please allow pop-ups to preview games');
         }
       } catch (error: any) {
         console.error('Preview error:', error);
-        toast.error('Failed to generate preview');
+        toast.error(error.message || 'Failed to generate preview');
       }
     }
   };
