@@ -109,14 +109,25 @@ export function CourseGamifier() {
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
-    // For PDF/DOCX, we'll use the document parser tool results
-    // In a real implementation, you'd use a proper parser
-    // For now, we'll return a placeholder that prompts for manual input
-    toast({
-      title: "File selected",
-      description: `${file.name} selected. Please provide course description below.`,
-    });
-    return "";
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const { data, error } = await supabase.functions.invoke('parse-document', {
+        body: formData,
+      });
+      
+      if (error) throw error;
+      return data?.content || '';
+    } catch (error) {
+      console.error('Document parsing error:', error);
+      toast({
+        title: "Could not parse file",
+        description: "Please provide course content in the description field instead.",
+        variant: "destructive",
+      });
+      return '';
+    }
   };
 
   const handleAnalyze = async () => {
@@ -148,7 +159,7 @@ export function CourseGamifier() {
       let fileUrl = null;
       let courseText = courseDescription;
 
-      // Upload file if selected
+      // Upload and parse file if selected
       if (selectedFile && user) {
         setProgress(20);
         setUploading(true);
@@ -167,6 +178,18 @@ export function CourseGamifier() {
           .getPublicUrl(filePath);
         
         fileUrl = publicUrl;
+        
+        // Extract text from the file
+        toast({
+          title: "Extracting content",
+          description: "Reading your course file...",
+        });
+        
+        const extractedText = await extractTextFromFile(selectedFile);
+        if (extractedText) {
+          courseText = extractedText + '\n\n' + courseDescription;
+        }
+        
         setUploading(false);
         setProgress(40);
       }
