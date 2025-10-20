@@ -86,14 +86,16 @@ export const BrandGameGenerator = ({
       setGenerating(true);
       setProgress(10);
 
-      // Fetch full sub-competency data
-      const { data: subCompData, error: subError } = await supabase
+      // Fetch full sub-competency data (use limit + first to handle duplicates)
+      const { data: subCompDataArray, error: subError } = await supabase
         .from('sub_competencies')
         .select('*')
         .eq('statement', mapping.sub_competency)
-        .maybeSingle();
+        .limit(1);
 
       if (subError) throw subError;
+      
+      const subCompData = subCompDataArray?.[0];
       
       if (!subCompData) {
         toast.error('Sub-competency data not found');
