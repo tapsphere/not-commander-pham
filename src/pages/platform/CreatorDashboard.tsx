@@ -86,16 +86,13 @@ export default function CreatorDashboard() {
 
   const loadTemplates = async () => {
     try {
-      // TEMP: Skip auth check for demo
-      /* ORIGINAL CODE - Re-enable after demo:
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      */
 
       const { data, error } = await supabase
         .from('game_templates')
         .select('*')
-        // .eq('creator_id', user.id)  // TEMP: Commented for demo
+        .eq('creator_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
