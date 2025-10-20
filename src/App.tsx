@@ -22,6 +22,7 @@ import Marketplace from "./pages/platform/Marketplace";
 import CreatorPortfolio from "./pages/platform/CreatorPortfolio";
 import TemplateDetail from "./pages/platform/TemplateDetail";
 import ValidatorDemo from "./pages/ValidatorDemo";
+import BreathBalance from "./pages/BreathBalance";
 import ValidatorTest from "./pages/platform/ValidatorTest";
 import TestingGuide from "./pages/platform/TestingGuide";
 
@@ -59,8 +60,9 @@ const App = () => (
           {/* Public Brand Profile */}
           <Route path="/brand/:brandId" element={<BrandProfile />} />
           
-          {/* Validator Demo */}
+          {/* Validator Demos */}
           <Route path="/validator-demo" element={<ValidatorDemo />} />
+          <Route path="/breath-balance" element={<BreathBalance />} />
           
           {/* Public Play Route */}
           <Route path="/play/:code" element={<Play />} />
