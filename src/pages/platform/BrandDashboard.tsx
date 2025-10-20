@@ -27,6 +27,7 @@ type Customization = {
   customization_prompt: string;
   published_at: string | null;
   created_at: string;
+  updated_at: string;
   unique_code: string | null;
   game_templates: {
     name: string;
@@ -348,9 +349,13 @@ export default function BrandDashboard() {
                 <h3 className="font-semibold text-white mb-2">
                   {custom.game_templates?.name || 'Course-Generated Game'}
                 </h3>
-                <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+                <p className="text-xs text-gray-500 mb-2 line-clamp-2">
                   {custom.customization_prompt || 'No customization prompt'}
                 </p>
+                <div className="text-xs text-gray-600 mb-3 space-y-0.5">
+                  <p>Created: {format(new Date(custom.created_at), 'MMM d, yyyy h:mm a')}</p>
+                  <p>Last edited: {format(new Date(custom.updated_at), 'MMM d, yyyy h:mm a')}</p>
+                </div>
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-xs px-2 py-1 rounded ${
