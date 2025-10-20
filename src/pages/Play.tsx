@@ -156,6 +156,16 @@ export default function Play() {
     };
   };
 
+  // Calculate if a color is light or dark for text contrast
+  const isLightColor = (hex: string) => {
+    const rgb = parseInt(hex.replace('#', ''), 16);
+    const r = (rgb >> 16) & 0xff;
+    const g = (rgb >> 8) & 0xff;
+    const b = (rgb >> 0) & 0xff;
+    const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luma > 128;
+  };
+
   // Inject remixed colors into the HTML
   const getRemixedHtml = () => {
     if (!validator.generated_game_html) return '';
@@ -164,11 +174,62 @@ export default function Play() {
     let html = validator.generated_game_html;
     
     // Replace original colors with new colors throughout the HTML
-    // This handles both style attributes and CSS
     html = html.replace(new RegExp(validator.primary_color, 'gi'), colors.primary);
     html = html.replace(new RegExp(validator.secondary_color, 'gi'), colors.secondary);
     html = html.replace(new RegExp(validator.accent_color || validator.primary_color, 'gi'), colors.accent);
     html = html.replace(new RegExp(validator.background_color || '#1A1A1A', 'gi'), colors.background);
+    
+    // Calculate contrasting text colors
+    const primaryText = isLightColor(colors.primary) ? '#000000' : '#FFFFFF';
+    const secondaryText = isLightColor(colors.secondary) ? '#000000' : '#FFFFFF';
+    const accentText = isLightColor(colors.accent) ? '#000000' : '#FFFFFF';
+    const bgText = isLightColor(colors.background) ? '#000000' : '#FFFFFF';
+    
+    // Inject contrast CSS to ensure text is always readable
+    const contrastStyles = `
+      <style>
+        /* Ensure text contrast on colored backgrounds */
+        body { color: ${bgText} !important; }
+        
+        /* Primary color elements need contrasting text */
+        [style*="${colors.primary}"] { color: ${primaryText} !important; }
+        .primary-bg, .btn-primary, button[style*="${colors.primary}"] { 
+          background-color: ${colors.primary} !important; 
+          color: ${primaryText} !important;
+          border-color: ${primaryText}44 !important;
+        }
+        
+        /* Secondary color elements */
+        [style*="${colors.secondary}"] { color: ${secondaryText} !important; }
+        .secondary-bg { 
+          background-color: ${colors.secondary} !important; 
+          color: ${secondaryText} !important; 
+        }
+        
+        /* Accent color elements */
+        [style*="${colors.accent}"] { color: ${accentText} !important; }
+        .accent-bg { 
+          background-color: ${colors.accent} !important; 
+          color: ${accentText} !important; 
+        }
+        
+        /* Headers and important text */
+        h1, h2, h3, h4, h5, h6 { color: ${bgText} !important; }
+        p, span, div { color: inherit; }
+        
+        /* Buttons need high contrast */
+        button { 
+          color: ${primaryText} !important;
+          font-weight: 600;
+        }
+        button:hover {
+          opacity: 0.9;
+        }
+      </style>
+    `;
+    
+    // Insert contrast styles right after opening <head> tag
+    html = html.replace('<head>', '<head>' + contrastStyles);
     
     return html;
   };
