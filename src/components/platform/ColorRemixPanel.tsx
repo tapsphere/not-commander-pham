@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,41 +12,6 @@ interface ColorRemixPanelProps {
   onRemix: (colors: { primary: string; secondary: string; accent: string; background: string }) => void;
 }
 
-// Define color arrangements - using the SAME 4 colors in different positions
-const colorArrangements = [
-  {
-    name: "Original Layout",
-    description: "Your default setup",
-    // [Primary, Secondary, Accent, Background]
-    mapping: [0, 1, 2, 3] 
-  },
-  {
-    name: "Bold Buttons",
-    description: "Accent on buttons",
-    mapping: [2, 0, 1, 3] // Accent -> Primary (buttons), Primary -> Secondary, Secondary -> Accent
-  },
-  {
-    name: "Dark Background",
-    description: "Primary as background",
-    mapping: [1, 2, 0, 0] // Secondary -> Primary, Accent -> Secondary, Primary -> Accent, Primary -> Background
-  },
-  {
-    name: "Bright Pop",
-    description: "Secondary on buttons",
-    mapping: [1, 0, 2, 3] // Secondary -> Primary (buttons), Primary -> Secondary
-  },
-  {
-    name: "Inverted",
-    description: "Swap main colors",
-    mapping: [2, 3, 0, 1] // Accent -> Primary, Background -> Secondary, Primary -> Accent, Secondary -> Background
-  },
-  {
-    name: "Accent Focus",
-    description: "Accent everywhere",
-    mapping: [2, 2, 1, 3] // Accent as both Primary and Secondary
-  }
-];
-
 export const ColorRemixPanel = ({
   primaryColor,
   secondaryColor,
@@ -53,157 +19,85 @@ export const ColorRemixPanel = ({
   backgroundColor,
   onRemix
 }: ColorRemixPanelProps) => {
-  const [selectedArrangement, setSelectedArrangement] = useState(0);
-
   // All 4 brand colors in an array
   const brandColors = [primaryColor, secondaryColor, accentColor, backgroundColor];
+  
+  const [currentArrangement, setCurrentArrangement] = useState([0, 1, 2, 3]);
 
-  const getArrangement = (arrangementIndex: number) => {
-    const mapping = colorArrangements[arrangementIndex].mapping;
-    return {
-      primary: brandColors[mapping[0]],      // Buttons/Main actions
-      secondary: brandColors[mapping[1]],    // Supporting elements
-      accent: brandColors[mapping[2]],       // Highlights/Warnings
-      background: brandColors[mapping[3]]    // Background
-    };
+  const shuffleColors = () => {
+    // Fisher-Yates shuffle algorithm
+    const shuffled = [...currentArrangement];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    setCurrentArrangement(shuffled);
+    
+    onRemix({
+      primary: brandColors[shuffled[0]],      // Buttons/Main actions
+      secondary: brandColors[shuffled[1]],    // Supporting elements
+      accent: brandColors[shuffled[2]],       // Highlights/Warnings
+      background: brandColors[shuffled[3]]    // Background
+    });
+    
+    toast.success('Colors shuffled!');
   };
 
-  const handleApplyArrangement = (arrangementIndex: number) => {
-    setSelectedArrangement(arrangementIndex);
-    const colors = getArrangement(arrangementIndex);
-    onRemix(colors);
-    toast.success(`Applied ${colorArrangements[arrangementIndex].name}`);
-  };
+  const getCurrentColors = () => ({
+    primary: brandColors[currentArrangement[0]],
+    secondary: brandColors[currentArrangement[1]],
+    accent: brandColors[currentArrangement[2]],
+    background: brandColors[currentArrangement[3]]
+  });
 
   return (
     <Card className="bg-gray-800 border-gray-700 p-6">
-      <div className="flex items-start gap-4 mb-6">
-        <div className="p-3 bg-purple-500/10 rounded-lg">
-          <Shuffle className="w-6 h-6 text-purple-400" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-semibold text-white mb-2">Color Remix</h3>
-          <p className="text-gray-400 text-sm">
-            See your brand colors in different arrangements - same colors, different layouts
-          </p>
-        </div>
-      </div>
-
-      {/* Your Brand Colors */}
-      <div className="mb-6 p-4 bg-gray-900 rounded-lg">
-        <p className="text-sm text-gray-400 mb-3">Your Brand Colors:</p>
-        <div className="grid grid-cols-4 gap-2">
-          {brandColors.map((color, idx) => (
-            <div key={idx} className="text-center">
-              <div
-                className="w-full h-12 rounded-lg border-2 border-gray-600"
-                style={{ backgroundColor: color }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Current Layout Preview */}
       <div className="mb-6">
-        <p className="text-sm text-gray-400 mb-3">Current Layout:</p>
-        <div className="grid grid-cols-4 gap-3">
-          <div className="text-center">
-            <div
-              className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: getArrangement(selectedArrangement).primary }}
-            />
-            <p className="text-xs text-gray-500">Buttons</p>
-          </div>
-          <div className="text-center">
-            <div
-              className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: getArrangement(selectedArrangement).secondary }}
-            />
-            <p className="text-xs text-gray-500">Text</p>
-          </div>
-          <div className="text-center">
-            <div
-              className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: getArrangement(selectedArrangement).accent }}
-            />
-            <p className="text-xs text-gray-500">Accents</p>
-          </div>
-          <div className="text-center">
-            <div
-              className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: getArrangement(selectedArrangement).background }}
-            />
-            <p className="text-xs text-gray-500">Background</p>
-          </div>
+        <h3 className="text-lg font-semibold text-white mb-2">Color Palette</h3>
+        <p className="text-sm text-gray-400">
+          Your brand colors in different positions
+        </p>
+      </div>
+
+      {/* Color Palette Display */}
+      <div className="mb-4">
+        <div className="flex rounded-lg overflow-hidden border-2 border-gray-600" style={{ height: '80px' }}>
+          <div 
+            className="flex-1 transition-all" 
+            style={{ backgroundColor: getCurrentColors().primary }}
+            title="Buttons/Primary"
+          />
+          <div 
+            className="flex-1 transition-all" 
+            style={{ backgroundColor: getCurrentColors().secondary }}
+            title="Text/Secondary"
+          />
+          <div 
+            className="flex-1 transition-all" 
+            style={{ backgroundColor: getCurrentColors().accent }}
+            title="Accents"
+          />
+          <div 
+            className="flex-1 transition-all" 
+            style={{ backgroundColor: getCurrentColors().background }}
+            title="Background"
+          />
         </div>
       </div>
 
-      {/* Layout Options */}
-      <div className="space-y-2">
-        <p className="text-sm text-gray-400 mb-3">Try different layouts:</p>
-        {colorArrangements.map((arrangement, idx) => {
-          const colors = getArrangement(idx);
-          const isSelected = selectedArrangement === idx;
-          
-          return (
-            <button
-              key={idx}
-              onClick={() => handleApplyArrangement(idx)}
-              className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                isSelected 
-                  ? 'border-neon-green bg-neon-green/10' 
-                  : 'border-gray-600 hover:border-gray-500 bg-gray-900'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className={`font-medium ${isSelected ? 'text-neon-green' : 'text-white'}`}>
-                    {arrangement.name}
-                  </p>
-                  <p className="text-xs text-gray-500">{arrangement.description}</p>
-                </div>
-                <div className="flex gap-1 ml-4">
-                  <div className="text-center">
-                    <div
-                      className="w-8 h-8 rounded border border-gray-600"
-                      style={{ backgroundColor: colors.primary }}
-                      title="Buttons"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <div
-                      className="w-8 h-8 rounded border border-gray-600"
-                      style={{ backgroundColor: colors.secondary }}
-                      title="Text"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <div
-                      className="w-8 h-8 rounded border border-gray-600"
-                      style={{ backgroundColor: colors.accent }}
-                      title="Accents"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <div
-                      className="w-8 h-8 rounded border border-gray-600"
-                      style={{ backgroundColor: colors.background }}
-                      title="Background"
-                    />
-                  </div>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {/* Shuffle Button */}
+      <Button
+        onClick={shuffleColors}
+        className="w-full bg-gray-700 hover:bg-gray-600 text-white border-2 border-gray-600 h-12"
+        size="lg"
+      >
+        <Shuffle className="w-5 h-5 mr-2" />
+        Shuffle
+      </Button>
 
-      <div className="mt-6 pt-6 border-t border-gray-700">
-        <p className="text-xs text-gray-500">
-          <Shuffle className="w-3 h-3 inline mr-1" />
-          Click any layout to instantly see your colors rearranged. These are preview-only changes.
-        </p>
+      <div className="mt-4 text-xs text-gray-500 text-center">
+        Click to randomly rearrange your brand colors
       </div>
     </Card>
   );
