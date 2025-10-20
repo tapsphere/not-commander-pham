@@ -29,6 +29,7 @@ interface BrandGameGeneratorProps {
   courseName: string;
   mapping: CompetencyMapping;
   brandId: string;
+  onSuccess?: () => void; // Add callback for when game is saved
 }
 
 interface FormData {
@@ -55,6 +56,7 @@ export const BrandGameGenerator = ({
   courseName,
   mapping,
   brandId,
+  onSuccess,
 }: BrandGameGeneratorProps) => {
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -309,6 +311,11 @@ ${formData.uiAesthetic}
 
       toast.success('Game saved to your dashboard!');
       onOpenChange(false);
+      
+      // Call success callback to refresh dashboard
+      if (onSuccess) {
+        onSuccess();
+      }
       
     } catch (error) {
       console.error('Save error:', error);

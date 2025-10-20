@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ interface AnalysisResult {
 
 export function CourseGamifier() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -502,6 +504,25 @@ ${courseDescription}
     }
   };
 
+  const handleGameSaved = () => {
+    // Close the generator
+    setGeneratorOpen(false);
+    setSelectedMapping(null);
+    
+    // Show success message
+    toast({
+      title: "Game saved!",
+      description: "Redirecting to your dashboard...",
+    });
+    
+    // Navigate to dashboard after short delay
+    setTimeout(() => {
+      navigate('/platform/brand');
+      // Force page reload to refresh the games list
+      window.location.reload();
+    }, 1000);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -891,6 +912,7 @@ ${courseDescription}
           courseName={courseName}
           mapping={selectedMapping}
           brandId={brandId}
+          onSuccess={handleGameSaved}
         />
       )}
     </div>
