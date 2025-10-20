@@ -369,6 +369,7 @@ export type Database = {
           game_avatar_url: string | null
           id: string
           location: string | null
+          mascot_animation_type: string | null
           updated_at: string | null
           user_id: string
           wallet_address: string | null
@@ -386,6 +387,7 @@ export type Database = {
           game_avatar_url?: string | null
           id?: string
           location?: string | null
+          mascot_animation_type?: string | null
           updated_at?: string | null
           user_id: string
           wallet_address?: string | null
@@ -403,6 +405,7 @@ export type Database = {
           game_avatar_url?: string | null
           id?: string
           location?: string | null
+          mascot_animation_type?: string | null
           updated_at?: string | null
           user_id?: string
           wallet_address?: string | null

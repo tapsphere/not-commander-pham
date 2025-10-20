@@ -211,17 +211,19 @@ export default function CreatorDashboard() {
         let designPalette: any = null;
         let avatarUrl: string | null = null;
         let particleEffect: string = 'sparkles';
+        let mascotAnimationType: string = 'static';
         
         if ((template as any).design_settings) {
           designPalette = (template as any).design_settings;
           avatarUrl = designPalette.avatar || null;
           particleEffect = designPalette.particleEffect || 'sparkles';
+          mascotAnimationType = designPalette.mascotAnimationType || 'static';
           console.log('Using per-game design settings');
         } else {
           // Fall back to creator's default palette
           const { data: profile } = await supabase
             .from('profiles')
-            .select('design_palette, game_avatar_url, default_particle_effect')
+            .select('design_palette, game_avatar_url, default_particle_effect, mascot_animation_type')
             .eq('user_id', user.id)
             .maybeSingle();
           
@@ -237,6 +239,7 @@ export default function CreatorDashboard() {
           };
           avatarUrl = profile?.game_avatar_url || null;
           particleEffect = profile?.default_particle_effect || 'sparkles';
+          mascotAnimationType = profile?.mascot_animation_type || 'static';
           console.log('Using creator default design settings');
         }
         
@@ -259,6 +262,7 @@ export default function CreatorDashboard() {
             fontFamily: designPalette.font,
             avatarUrl: avatarUrl,
             particleEffect: particleEffect,
+            mascotAnimationType: mascotAnimationType,
             logoUrl: null,
             customizationId: null,
             previewMode: true,

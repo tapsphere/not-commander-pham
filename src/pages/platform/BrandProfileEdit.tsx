@@ -27,6 +27,7 @@ export default function BrandProfileEdit() {
   const [userRole, setUserRole] = useState<'brand' | 'creator' | null>(null);
   const [gameAvatarUrl, setGameAvatarUrl] = useState('');
   const [particleEffect, setParticleEffect] = useState('sparkles');
+  const [mascotAnimationType, setMascotAnimationType] = useState<'static' | 'gif' | 'lottie' | 'sprite'>('static');
   const [designPalette, setDesignPalette] = useState({
     primary: '#C8DBDB',
     secondary: '#6C8FA4',
@@ -69,7 +70,7 @@ export default function BrandProfileEdit() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette, game_avatar_url, default_particle_effect')
+        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette, game_avatar_url, default_particle_effect, mascot_animation_type')
         .eq('user_id', user.id)
         .single();
 
@@ -84,6 +85,8 @@ export default function BrandProfileEdit() {
         setCompanyLogoUrl(data.company_logo_url || '');
         setGameAvatarUrl(data.game_avatar_url || '');
         setParticleEffect(data.default_particle_effect || 'sparkles');
+        const animType = data.mascot_animation_type as 'static' | 'gif' | 'lottie' | 'sprite';
+        setMascotAnimationType(animType || 'static');
         
         // Load design palette if exists
         if (data.design_palette) {
@@ -174,6 +177,14 @@ export default function BrandProfileEdit() {
       const fileName = `${type}-${Date.now()}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
 
+      // Detect animation type
+      let animType: 'static' | 'gif' | 'lottie' | 'sprite' = 'static';
+      if (file.type === 'image/gif') {
+        animType = 'gif';
+      } else if (file.name.endsWith('.json')) {
+        animType = 'lottie';
+      }
+
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('profiles')
@@ -194,11 +205,12 @@ export default function BrandProfileEdit() {
         setAvatarUrl(publicUrl);
       } else if (type === 'game-avatar') {
         setGameAvatarUrl(publicUrl);
+        setMascotAnimationType(animType);
       } else {
         setCompanyLogoUrl(publicUrl);
       }
 
-      toast.success('Animation uploaded successfully!');
+      toast.success(`${animType === 'static' ? 'Image' : 'Animation'} uploaded successfully!`);
     } catch (error: any) {
       console.error('Failed to upload file:', error);
       toast.error('Failed to upload file: ' + error.message);
@@ -260,6 +272,7 @@ export default function BrandProfileEdit() {
         updates.design_palette = designPalette;
         updates.game_avatar_url = gameAvatarUrl;
         updates.default_particle_effect = particleEffect;
+        updates.mascot_animation_type = mascotAnimationType;
       } else {
         updates.company_name = companyName;
         updates.company_description = companyDescription;
@@ -409,11 +422,19 @@ export default function BrandProfileEdit() {
                     style={{ borderColor: 'hsl(var(--neon-purple))' }}
                   >
                     {gameAvatarUrl ? (
-                      <img
-                        src={gameAvatarUrl}
-                        alt="Game Mascot"
-                        className="w-full h-full object-cover"
-                      />
+                      mascotAnimationType === 'gif' ? (
+                        <img
+                          src={gameAvatarUrl}
+                          alt="Game Mascot"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <img
+                          src={gameAvatarUrl}
+                          alt="Game Mascot"
+                          className="w-full h-full object-contain"
+                        />
+                      )
                     ) : (
                       <User className="w-12 h-12 text-gray-600" />
                     )}
@@ -442,6 +463,11 @@ export default function BrandProfileEdit() {
                     <p className="text-xs text-gray-500 mt-2">
                       Upload PNG, GIF (animated), or Lottie JSON. Your mascot will animate and react during gameplay.
                     </p>
+                    {gameAvatarUrl && (
+                      <p className="text-xs text-green-400 mt-1">
+                        Current: {mascotAnimationType === 'gif' ? '🎬 Animated GIF' : mascotAnimationType === 'lottie' ? '✨ Lottie Animation' : '🖼️ Static Image'}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

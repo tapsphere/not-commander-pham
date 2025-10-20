@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies } = await req.json();
+     const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, mascotAnimationType, customizationId, previewMode, subCompetencies } = await req.json();
     
-    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies });
+    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, mascotAnimationType, customizationId, previewMode, subCompetencies });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -156,10 +156,35 @@ setTimeout(() => {
 
     let avatarInstructions = '';
     if (avatarUrl) {
+      const isAnimated = mascotAnimationType && mascotAnimationType !== 'static';
+      const animType = mascotAnimationType || 'static';
+      
       avatarInstructions = `
 
-AVATAR/MASCOT INTEGRATION (GAME CHARACTER):
+AVATAR/MASCOT INTEGRATION (GAME CHARACTER) - ${animType.toUpperCase()} TYPE:
 Avatar URL: ${avatarUrl}
+Animation Type: ${animType}
+
+${isAnimated ? `
+🎬 ANIMATED MASCOT DETECTED!
+This is ${animType === 'gif' ? 'an animated GIF' : animType === 'lottie' ? 'a Lottie animation' : 'a sprite sheet'}.
+
+CRITICAL - PRESERVE ANIMATION:
+${animType === 'gif' ? `
+- Use <img> tag directly for GIF animations
+- DO NOT apply CSS transforms that break the GIF loop
+- GIF will animate automatically
+- Only apply position/size changes, not filters or distortions
+` : animType === 'lottie' ? `
+- Load Lottie player library: <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+- Use <lottie-player> component
+- Set autoplay and loop attributes
+- Example: <lottie-player src="${avatarUrl}" background="transparent" speed="1" style="width: 200px; height: 200px;" loop autoplay></lottie-player>
+` : `
+- Implement sprite sheet animation using CSS animation steps
+- Calculate frame count and timing
+`}
+` : ''}
 
 The avatar/mascot is the STAR of the game and should be prominently featured:
 
@@ -168,10 +193,13 @@ The avatar/mascot is the STAR of the game and should be prominently featured:
    - Make it large enough to be the visual focal point (150-250px depending on screen)
    - Position it where players naturally look (center or upper-center of gameplay area)
 
-2. ANIMATIONS & REACTIONS:
+2. ANIMATIONS & REACTIONS${isAnimated ? ' (LAYER ON TOP OF BASE ANIMATION)' : ''}:
+   ${isAnimated ? `- The mascot already has built-in animation from the ${animType}
+   - ADD extra effects on top: scale, rotation, glow, bounce
+   - DO NOT replace the base animation` : ''}
    - Add idle animation when waiting (gentle breathing, floating, subtle movement)
-   - Celebration animation on correct answers (jump, spin, confetti burst around it)
-   - Disappointed/thinking animation on wrong answers (shake head, look down)
+   - Celebration animation on correct answers (scale up, rotate, add glow)
+   - Disappointed/thinking animation on wrong answers (shake, scale down)
    - Excited animation at game start
    - Victory dance/celebration at game end
 
@@ -181,9 +209,50 @@ The avatar/mascot is the STAR of the game and should be prominently featured:
    - Use the avatar as the emotional guide through the game
    - On results screen, show avatar celebrating or encouraging based on score
 
-4. CSS IMPLEMENTATION:
-   \`\`\`css
-   .game-avatar {
+4. ${animType === 'gif' ? 'HTML IMPLEMENTATION' : animType === 'lottie' ? 'LOTTIE IMPLEMENTATION' : 'CSS IMPLEMENTATION'}:
+   \`\`\`${animType === 'lottie' ? 'html' : 'css'}
+   ${animType === 'gif' ? `.game-avatar {
+     position: relative;
+     margin: 20px auto;
+   }
+   
+   .game-avatar img {
+     width: 200px;
+     height: 200px;
+     object-fit: contain;
+   }
+   
+   .avatar-celebrate {
+     animation: celebrate-scale 0.6s ease-out;
+   }
+   
+   @keyframes celebrate-scale {
+     0%, 100% { transform: scale(1); }
+     50% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
+   }` : animType === 'lottie' ? `<div class="game-avatar">
+  <lottie-player 
+    id="mascot" 
+    src="${avatarUrl}" 
+    background="transparent" 
+    speed="1" 
+    style="width: 200px; height: 200px;" 
+    loop 
+    autoplay>
+  </lottie-player>
+</div>
+
+<script>
+// Trigger celebration by changing speed or adding effects
+function celebrateMascot() {
+  const mascot = document.getElementById('mascot');
+  mascot.style.transform = 'scale(1.2)';
+  mascot.style.filter = 'drop-shadow(0 0 20px gold)';
+  setTimeout(() => {
+    mascot.style.transform = 'scale(1)';
+    mascot.style.filter = 'none';
+  }, 600);
+}
+</script>` : `.game-avatar {
      position: relative;
      width: 200px;
      height: 200px;
@@ -204,7 +273,7 @@ The avatar/mascot is the STAR of the game and should be prominently featured:
      0%, 100% { transform: scale(1) rotate(0deg); }
      25% { transform: scale(1.2) rotate(-10deg); }
      75% { transform: scale(1.2) rotate(10deg); }
-   }
+   }`}
    \`\`\`
 `;
     }
