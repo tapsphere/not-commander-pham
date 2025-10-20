@@ -195,7 +195,7 @@ This screen contains ALL game directions and instructions:
   1️⃣ WHO they are (role / scenario context)
   2️⃣ WHAT they need to achieve (specific & measurable goal)
   3️⃣ HOW they interact (drag, tap, rank, type, etc.)
-  4️⃣ WHAT success looks like (Needs Work / Proficient / Mastery levels)
+  4️⃣ WHAT success looks like (Level 1 – Needs Work / Level 2 – Proficient / Level 3 – Mastery)
   5️⃣ TIME limit (90–180 seconds total)
 
 ⚠️ CRITICAL - HIDE INTERNAL STRUCTURE FROM PLAYERS:
@@ -535,9 +535,9 @@ The game MUST include a detailed results screen that appears after gameplay comp
 MANDATORY RESULTS SCREEN ELEMENTS:
 
 1. PROFICIENCY BADGE (Large, prominent, color-coded):
-   - MASTERY (green #00FF00) if accuracy ≥95% AND edge case handled
-   - PROFICIENT (yellow/gold #FFD700) if accuracy 80-94%
-   - NEEDS WORK (red #FF4444) if accuracy < 80%
+   - Level 3 – Mastery (green #00FF00) if accuracy ≥95% AND edge case handled
+   - Level 2 – Proficient (yellow/gold #FFD700) if accuracy 80-94%
+   - Level 1 – Needs Work (red #FF4444) if accuracy < 80%
 
 2. SCORE DISPLAY:
    - Large percentage score (48px font, bold)
@@ -616,7 +616,7 @@ TEST: Can a user on a small phone screen reach ALL interactive elements by scrol
 
 🎯 SYSTEM HANDLES AUTOMATICALLY
 
-* 3 proficiency levels: Needs Work / Proficient / Mastery
+* 3 proficiency levels: Level 1 – Needs Work / Level 2 – Proficient / Level 3 – Mastery
 * Accuracy % tracking
 * Completion-time tracking
 * Edge-case success flag
