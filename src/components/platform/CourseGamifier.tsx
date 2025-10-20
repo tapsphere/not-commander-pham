@@ -230,6 +230,7 @@ export function CourseGamifier() {
         setAssessmentMethods(data.extractedInfo.assessmentMethods || []);
         setCourseDuration(data.extractedInfo.estimatedDuration || "4");
         setPrerequisites(data.extractedInfo.prerequisites || "");
+        setIndustry(data.extractedInfo.industry || "");
         setExtractedData(data.extractedInfo);
       }
 
