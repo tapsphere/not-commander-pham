@@ -106,11 +106,22 @@ export default function CreatorDashboard() {
 
       if (error) throw error;
       
-      // Generate default covers for templates without preview images
+      // Generate default covers for templates without preview images or old generic ones
+      const oldGenericCovers = [
+        'budget-allocation.jpg',
+        'crisis-communication.jpg',
+        'data-pattern-detective.jpg',
+        'narrative-builder.jpg'
+      ];
+      
       const templatesWithCovers = await Promise.all(
         (data || []).map(async (template) => {
-          // If template already has a preview image, use it
-          if (template.preview_image) {
+          // Check if this is an old generic cover that should be replaced
+          const isOldGenericCover = template.preview_image && 
+            oldGenericCovers.some(oldCover => template.preview_image?.includes(oldCover));
+          
+          // If template has a custom preview image (not old generic), keep it
+          if (template.preview_image && !isOldGenericCover) {
             return {
               ...template,
               creator_name: profile?.full_name || 'You',
@@ -330,47 +341,48 @@ export default function CreatorDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-3xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-            My Templates
-          </h2>
-          <p className="text-gray-400 mt-2">Create game templates with CBE competencies built in</p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-md mx-auto p-4">
+        <div className="flex flex-col gap-6 mb-8">
+          <div>
+            <h2 className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+              My Templates
+            </h2>
+            <p className="text-gray-400 mt-2 text-sm">Create game templates with CBE competencies built in</p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={() => navigate('/platform/brand/profile-edit')}
+              variant="outline"
+              className="w-full gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
+            >
+              <Edit className="w-4 h-4" />
+              Edit Profile
+            </Button>
+            <Button 
+              onClick={() => navigate('/platform/validator-test')}
+              variant="outline"
+              className="w-full gap-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
+            >
+              <TestTube className="w-4 h-4" />
+              Test Validators
+            </Button>
+            <Button 
+              onClick={() => {
+                setSelectedTemplate(null);
+                setDialogOpen(true);
+              }} 
+              className="w-full gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New Template
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button 
-            onClick={() => navigate('/platform/brand/profile-edit')}
-            variant="outline"
-            className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
-          >
-            <Edit className="w-4 h-4" />
-            Edit Profile
-          </Button>
-          <Button 
-            onClick={() => navigate('/platform/validator-test')}
-            variant="outline"
-            className="gap-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
-          >
-            <TestTube className="w-4 h-4" />
-            Test Validators
-          </Button>
-          <Button 
-            onClick={() => {
-              setSelectedTemplate(null);
-              setDialogOpen(true);
-            }} 
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            New Template
-          </Button>
-        </div>
-      </div>
 
       {templates.length === 0 ? (
-        <Card className="p-12 text-center bg-gray-900 border-gray-800">
-          <p className="text-gray-400 mb-4">No templates yet</p>
+        <Card className="p-8 text-center bg-gray-900 border-gray-800">
+          <p className="text-gray-400 mb-4 text-sm">No templates yet</p>
           <Button 
             onClick={() => {
               setSelectedTemplate(null);
@@ -383,7 +395,7 @@ export default function CreatorDashboard() {
         </Card>
       ) : (
         <TooltipProvider>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             {templates.map((template) => {
               const isPublishable = canPublish(template.id);
               const testResult = testResults.get(template.id);
@@ -435,7 +447,7 @@ export default function CreatorDashboard() {
                       </span>
                     </div>
                     <p className="text-gray-400 text-sm mb-4 line-clamp-2">{template.description}</p>
-                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -523,6 +535,7 @@ export default function CreatorDashboard() {
           onComplete={loadTemplates}
         />
       )}
+      </div>
     </div>
   );
 }
