@@ -620,14 +620,22 @@ ${courseDescription}
                     <SelectValue placeholder="Select industry or context..." />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="operations">Operations</SelectItem>
+                    <SelectItem value="sales">Sales</SelectItem>
+                    <SelectItem value="finance">Finance</SelectItem>
+                    <SelectItem value="hr">Human Resources</SelectItem>
+                    <SelectItem value="communications">Communications</SelectItem>
+                    <SelectItem value="customer-service">Customer Service</SelectItem>
+                    <SelectItem value="tech">Technology / IT</SelectItem>
+                    <SelectItem value="healthcare">Healthcare</SelectItem>
                     <SelectItem value="school">School / K-12 Education</SelectItem>
                     <SelectItem value="higher-ed">Higher Education / University</SelectItem>
                     <SelectItem value="corporate">Corporate Training</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="tech">Technology / IT</SelectItem>
-                    <SelectItem value="finance">Finance / Banking</SelectItem>
                     <SelectItem value="retail">Retail</SelectItem>
                     <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="legal">Legal</SelectItem>
+                    <SelectItem value="supply-chain">Supply Chain</SelectItem>
                     <SelectItem value="nonprofit">Non-Profit / NGO</SelectItem>
                     <SelectItem value="government">Government</SelectItem>
                     <SelectItem value="other">Other</SelectItem>

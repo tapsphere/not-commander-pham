@@ -999,12 +999,20 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                         <SelectValue placeholder="Select industry" />
                       </SelectTrigger>
                       <SelectContent className="bg-gray-800 border-gray-700 text-white z-50">
-                        <SelectItem value="Technology">Technology</SelectItem>
-                        <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
+                        <SelectItem value="Operations">Operations</SelectItem>
+                        <SelectItem value="Sales">Sales</SelectItem>
                         <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Human Resources">Human Resources</SelectItem>
+                        <SelectItem value="Communications">Communications</SelectItem>
+                        <SelectItem value="Customer Service">Customer Service</SelectItem>
+                        <SelectItem value="Technology">Technology / IT</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare</SelectItem>
                         <SelectItem value="Education">Education</SelectItem>
                         <SelectItem value="Retail">Retail</SelectItem>
                         <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="Legal">Legal</SelectItem>
+                        <SelectItem value="Supply Chain">Supply Chain</SelectItem>
                         <SelectItem value="Nonprofit">Nonprofit</SelectItem>
                         <SelectItem value="Government">Government</SelectItem>
                       </SelectContent>
