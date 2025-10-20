@@ -9,6 +9,7 @@ import { TemplateDialog } from '@/components/platform/TemplateDialog';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
 import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatDistanceToNow } from 'date-fns';
 
 type Template = {
   id: string;
@@ -17,6 +18,7 @@ type Template = {
   base_prompt: string | null;
   is_published: boolean;
   created_at: string;
+  updated_at: string;
   preview_image?: string;
   template_type: string;
   custom_game_url?: string;
@@ -520,6 +522,9 @@ export default function CreatorDashboard() {
                             </p>
                           </div>
                         )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          Edited {formatDistanceToNow(new Date(template.updated_at), { addSuffix: true })}
+                        </p>
                       </div>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
