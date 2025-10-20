@@ -40,6 +40,9 @@ export const BrandCustomizationDialog = ({
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
   const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [particleEffect, setParticleEffect] = useState('sparkles');
   const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
@@ -76,7 +79,7 @@ Please ensure the validator content and scenarios are relevant to this course ma
     if (editablePrompt) {
       generateBrandedPrompt();
     }
-  }, [editablePrompt, primaryColor, secondaryColor, accentColor, backgroundColor]);
+  }, [editablePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, particleEffect, avatarPreview]);
 
   const generateBrandedPrompt = () => {
     const brandSection = `
@@ -89,12 +92,22 @@ Brand Colors:
 • Accent: ${accentColor} - Accent color for emphasis and call-to-actions
 • Background: ${backgroundColor} - Background color for the main interface
 
+Game Character & Effects:
+• ${avatarPreview ? 'MASCOT/AVATAR: Include the uploaded mascot/character prominently in the game (center stage, animated reactions to player actions)' : 'No custom mascot provided - use generic game elements'}
+• PARTICLE EFFECT: ${particleEffect} - Use this particle effect for ALL positive feedback (correct answers, successful actions, score increases)
+  - On button clicks: burst of ${particleEffect}
+  - On correct answers: celebration with ${particleEffect}
+  - On score increases: ${particleEffect} animation around the score counter
+  - On game completion: screen-wide ${particleEffect} effect
+
 UI Styling Instructions:
 • Use ${primaryColor} for primary buttons, key UI elements, and main highlights
 • Use ${secondaryColor} for secondary buttons, borders, and supporting elements
 • Use ${accentColor} for warnings, important notifications, and accents
 • Use ${backgroundColor} as the base background color for the interface
-• ${logoPreview ? 'Display brand logo prominently in the corner' : 'Reserve space for brand logo placement'}
+• ${logoPreview ? 'Display brand logo in the top corner' : 'Reserve space for brand logo placement'}
+• ${avatarPreview ? 'Make the mascot/avatar the visual focal point with idle animations and reactions' : ''}
+• Add particle effects liberally - on every tap, click, and success moment
 • Maintain high contrast for accessibility
 • Apply brand colors consistently throughout all UI components
 `;
@@ -149,6 +162,29 @@ UI Styling Instructions:
     reader.readAsDataURL(file);
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error('Avatar must be less than 3MB');
+      return;
+    }
+
+    setAvatarFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
     toast.success('Branded prompt copied! Paste it into Lovable to build your custom validator.');
@@ -162,6 +198,7 @@ UI Styling Instructions:
 
       let logoUrl = null;
       let coverPhotoUrl = null;
+      let avatarUrl = null;
 
       // Upload logo if provided
       if (logoFile) {
@@ -195,6 +232,22 @@ UI Styling Instructions:
         coverPhotoUrl = publicUrl;
       }
 
+      // Upload avatar if provided
+      if (avatarFile) {
+        const fileName = `${user.id}/avatar-${Date.now()}-${avatarFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('brand-logos')
+          .upload(fileName, avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('brand-logos')
+          .getPublicUrl(fileName);
+
+        avatarUrl = publicUrl;
+      }
+
       // Save customization
       const { data: customizationData, error } = await supabase
         .from('brand_customizations')
@@ -207,6 +260,8 @@ UI Styling Instructions:
           background_color: backgroundColor,
           logo_url: logoUrl,
           cover_photo_url: coverPhotoUrl,
+          avatar_url: avatarUrl,
+          particle_effect: particleEffect,
           customization_prompt: generatedPrompt,
         })
         .select()
@@ -225,6 +280,8 @@ UI Styling Instructions:
           accentColor,
           backgroundColor,
           logoUrl,
+          avatarUrl,
+          particleEffect,
           customizationId: customizationData.id,
         }
       });
@@ -511,6 +568,91 @@ UI Styling Instructions:
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Avatar/Mascot Upload */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Upload className="h-5 w-5 text-neon-green" />
+                Game Avatar/Mascot
+              </h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Upload a character, animal, or mascot to be the star of your game
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                  className="gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Avatar
+                </Button>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+                <span className="text-sm text-gray-400">
+                  {avatarFile ? avatarFile.name : 'PNG, JPG (max 3MB) - transparent background recommended'}
+                </span>
+              </div>
+
+              {avatarPreview && (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <p className="text-sm text-gray-400 mb-2">Avatar Preview:</p>
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar preview"
+                    className="max-w-[150px] max-h-[150px] object-contain mx-auto"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Particle Effect Selector */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                ✨ Particle Effects
+              </h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Choose the visual effect that appears on taps, correct answers, and celebrations
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: 'sparkles', label: '✨ Sparkles', desc: 'Classic twinkling stars' },
+                { value: 'coins', label: '🪙 Coins', desc: 'Flying golden coins' },
+                { value: 'stars', label: '⭐ Stars', desc: 'Bursting star shapes' },
+                { value: 'hearts', label: '❤️ Hearts', desc: 'Floating hearts' },
+                { value: 'confetti', label: '🎉 Confetti', desc: 'Colorful celebration' },
+                { value: 'lightning', label: '⚡ Lightning', desc: 'Electric bolts' },
+              ].map((effect) => (
+                <button
+                  key={effect.value}
+                  type="button"
+                  onClick={() => setParticleEffect(effect.value)}
+                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                    particleEffect === effect.value
+                      ? 'border-neon-green bg-gray-800 text-white'
+                      : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{effect.label}</div>
+                  <div className="text-xs">{effect.desc}</div>
+                </button>
+              ))}
             </div>
           </div>
 

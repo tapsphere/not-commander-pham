@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, customizationId, previewMode, subCompetencies } = await req.json();
+    const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies } = await req.json();
     
-    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, customizationId, previewMode, subCompetencies });
+    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -151,6 +151,146 @@ setTimeout(() => {
 }, 2500);
 </script>
 \`\`\`
+`;
+    }
+
+    let avatarInstructions = '';
+    if (avatarUrl) {
+      avatarInstructions = `
+
+AVATAR/MASCOT INTEGRATION (GAME CHARACTER):
+Avatar URL: ${avatarUrl}
+
+The avatar/mascot is the STAR of the game and should be prominently featured:
+
+1. PLACEMENT & SIZE:
+   - Center the avatar prominently on the main game screen (not just a corner icon)
+   - Make it large enough to be the visual focal point (150-250px depending on screen)
+   - Position it where players naturally look (center or upper-center of gameplay area)
+
+2. ANIMATIONS & REACTIONS:
+   - Add idle animation when waiting (gentle breathing, floating, subtle movement)
+   - Celebration animation on correct answers (jump, spin, confetti burst around it)
+   - Disappointed/thinking animation on wrong answers (shake head, look down)
+   - Excited animation at game start
+   - Victory dance/celebration at game end
+
+3. INTEGRATION:
+   - Make the avatar react to player actions in real-time
+   - Position score counters or progress bars NEAR the avatar (not replacing it)
+   - Use the avatar as the emotional guide through the game
+   - On results screen, show avatar celebrating or encouraging based on score
+
+4. CSS IMPLEMENTATION:
+   \`\`\`css
+   .game-avatar {
+     position: relative;
+     width: 200px;
+     height: 200px;
+     margin: 20px auto;
+     animation: idle-float 3s ease-in-out infinite;
+   }
+   
+   @keyframes idle-float {
+     0%, 100% { transform: translateY(0px); }
+     50% { transform: translateY(-10px); }
+   }
+   
+   .avatar-celebrate {
+     animation: celebrate-bounce 0.6s ease-out;
+   }
+   
+   @keyframes celebrate-bounce {
+     0%, 100% { transform: scale(1) rotate(0deg); }
+     25% { transform: scale(1.2) rotate(-10deg); }
+     75% { transform: scale(1.2) rotate(10deg); }
+   }
+   \`\`\`
+`;
+    }
+
+    let particleInstructions = '';
+    if (particleEffect) {
+      const particleStyles: Record<string, { emoji: string; color: string; desc: string }> = {
+        sparkles: { emoji: '✨', color: '#FFD700', desc: 'twinkling sparkles' },
+        coins: { emoji: '🪙', color: '#FFD700', desc: 'golden coins' },
+        stars: { emoji: '⭐', color: '#FFFF00', desc: 'bright stars' },
+        hearts: { emoji: '❤️', color: '#FF69B4', desc: 'floating hearts' },
+        confetti: { emoji: '🎉', color: 'rainbow', desc: 'colorful confetti pieces' },
+        lightning: { emoji: '⚡', color: '#00FFFF', desc: 'electric lightning bolts' }
+      };
+      
+      const style = particleStyles[particleEffect as string] || particleStyles.sparkles;
+      
+      particleInstructions = `
+
+PARTICLE EFFECT SYSTEM - "${particleEffect.toUpperCase()}" (CRITICAL):
+Use ${style.desc} for ALL positive feedback and interactions.
+
+1. WHEN TO TRIGGER PARTICLES:
+   - Every button/option tap or click
+   - Correct answer selected
+   - Task completed successfully
+   - Score increases
+   - Level completion
+   - Game finish celebration
+   - Avatar reactions (when avatar celebrates)
+
+2. PARTICLE IMPLEMENTATION:
+   Create a particle burst function that spawns 8-15 particles from the interaction point.
+   
+   \`\`\`javascript
+   function createParticleBurst(x, y) {
+     const particleCount = 12;
+     const container = document.getElementById('particle-container') || document.body;
+     
+     for (let i = 0; i < particleCount; i++) {
+       const particle = document.createElement('div');
+       particle.className = 'particle';
+       particle.textContent = '${style.emoji}';
+       particle.style.cssText = \`
+         position: fixed;
+         left: \${x}px;
+         top: \${y}px;
+         font-size: \${20 + Math.random() * 20}px;
+         pointer-events: none;
+         z-index: 9999;
+         animation: particle-float \${0.8 + Math.random() * 0.4}s ease-out forwards;
+         --end-x: \${(Math.random() - 0.5) * 200}px;
+         --end-y: \${-50 - Math.random() * 100}px;
+       \`;
+       container.appendChild(particle);
+       setTimeout(() => particle.remove(), 1200);
+     }
+   }
+   
+   // Add to all interactive elements
+   document.querySelectorAll('button, .option, .interactive').forEach(el => {
+     el.addEventListener('click', (e) => {
+       createParticleBurst(e.clientX, e.clientY);
+     });
+   });
+   \`\`\`
+
+3. CSS FOR PARTICLES:
+   \`\`\`css
+   @keyframes particle-float {
+     0% {
+       transform: translate(0, 0) scale(0);
+       opacity: 1;
+     }
+     100% {
+       transform: translate(var(--end-x), var(--end-y)) scale(1);
+       opacity: 0;
+     }
+   }
+   \`\`\`
+
+4. SPECIAL MOMENTS:
+   - Game completion: Create 50+ particles across entire screen
+   - Perfect score: Continuous particle stream for 3 seconds
+   - Level up: Particles burst from center outward
+   - Around avatar: Particles orbit when avatar celebrates
 `;
     }
 
@@ -626,6 +766,14 @@ TEST: Can a user on a small phone screen reach ALL interactive elements by scrol
 ⸻
 
 ${logoInstructions}
+
+⸻
+
+${avatarInstructions}
+
+⸻
+
+${particleInstructions}
 
 ⸻
 

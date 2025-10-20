@@ -41,6 +41,7 @@ export type Database = {
       brand_customizations: {
         Row: {
           accent_color: string | null
+          avatar_url: string | null
           background_color: string | null
           brand_id: string
           cover_photo_url: string | null
@@ -52,6 +53,7 @@ export type Database = {
           live_end_date: string | null
           live_start_date: string | null
           logo_url: string | null
+          particle_effect: string | null
           primary_color: string | null
           published_at: string | null
           secondary_color: string | null
@@ -62,6 +64,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          avatar_url?: string | null
           background_color?: string | null
           brand_id: string
           cover_photo_url?: string | null
@@ -73,6 +76,7 @@ export type Database = {
           live_end_date?: string | null
           live_start_date?: string | null
           logo_url?: string | null
+          particle_effect?: string | null
           primary_color?: string | null
           published_at?: string | null
           secondary_color?: string | null
@@ -83,6 +87,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          avatar_url?: string | null
           background_color?: string | null
           brand_id?: string
           cover_photo_url?: string | null
@@ -94,6 +99,7 @@ export type Database = {
           live_end_date?: string | null
           live_start_date?: string | null
           logo_url?: string | null
+          particle_effect?: string | null
           primary_color?: string | null
           published_at?: string | null
           secondary_color?: string | null
