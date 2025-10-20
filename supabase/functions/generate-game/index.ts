@@ -720,6 +720,31 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, label {
   white-space: nowrap;
 }
 
+/* Button text wrapping - CRITICAL for long labels */
+button {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  text-overflow: clip !important;
+  overflow: visible !important;
+  min-height: 44px;
+  padding: 12px 20px;
+  line-height: 1.3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Ensure option buttons wrap text */
+.option, .choice-btn, .answer-btn, [class*="option"], [class*="choice"] {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  height: auto !important;
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
 🖱️ TOUCH-OPTIMIZED INTERACTIONS:
 - All buttons must work with touch events
 - Use cursor: pointer on all interactive elements
