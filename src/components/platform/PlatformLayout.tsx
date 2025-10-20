@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 export const PlatformLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export const PlatformLayout = () => {
       
       if (isDemoMode && demoRole) {
         console.log('Demo mode active:', demoRole);
-        setUserRole(demoRole);
+        setUserRoles([demoRole]);
         setLoading(false);
         return;
       }
@@ -38,28 +38,28 @@ export const PlatformLayout = () => {
 
       console.log('User found:', user.id);
 
-      const { data: roleData, error: roleError } = await supabase
+      const { data: rolesData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user.id);
 
       if (roleError) {
         console.error('Role fetch error:', roleError);
-        toast.error('Failed to load user role');
+        toast.error('Failed to load user roles');
         navigate('/auth');
         return;
       }
 
-      if (!roleData) {
-        console.log('No role found for user');
+      if (!rolesData || rolesData.length === 0) {
+        console.log('No roles found for user');
         toast.error('No role assigned. Please sign up again.');
         navigate('/auth');
         return;
       }
 
-      console.log('Role found:', roleData.role);
-      setUserRole(roleData.role);
+      const roles = rolesData.map(r => r.role);
+      console.log('Roles found:', roles);
+      setUserRoles(roles);
     } catch (error) {
       console.error('Auth check failed:', error);
       toast.error('Authentication failed');
@@ -78,8 +78,8 @@ export const PlatformLayout = () => {
     navigate('/auth');
   };
 
-  const isCreator = userRole === 'creator';
-  const isBrand = userRole === 'brand';
+  const isCreator = userRoles.includes('creator');
+  const isBrand = userRoles.includes('brand');
 
   if (loading) {
     return (
@@ -96,7 +96,7 @@ export const PlatformLayout = () => {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-              {isCreator ? 'Creator Studio' : 'Brand Hub'}
+              {isCreator && isBrand ? 'Creator & Brand Hub' : isCreator ? 'Creator Studio' : 'Brand Hub'}
             </h1>
             
             <nav className="flex gap-4">
