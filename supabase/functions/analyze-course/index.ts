@@ -105,7 +105,8 @@ Extract the following information and return ONLY JSON (no markdown):
   "keyTopics": ["topic 1", "topic 2", "..."],
   "assessmentMethods": ["validator 1", "validator 2"],
   "estimatedDuration": "3-6",
-  "prerequisites": "What learners need before taking this"
+  "prerequisites": "What learners need before taking this",
+  "industry": "The industry or business context this course applies to (e.g., Healthcare, Technology, Finance, Education, etc.)"
 }
 
 IMPORTANT FOR ASSESSMENT METHODS:
@@ -186,7 +187,8 @@ Return ONLY the JSON structure as specified.`;
           keyTopics: [""],
           assessmentMethods: ["Mood Mapper"],
           estimatedDuration: "4",
-          prerequisites: ""
+          prerequisites: "",
+          industry: ""
         };
       }
 
