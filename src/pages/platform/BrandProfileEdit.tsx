@@ -120,6 +120,9 @@ export default function BrandProfileEdit() {
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
 
+    // Clear canvas with transparency
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     ctx.drawImage(
       image,
       pixelCrop.x,
@@ -136,22 +139,69 @@ export default function BrandProfileEdit() {
       canvas.toBlob((blob) => {
         if (blob) resolve(blob);
         else reject(new Error('Canvas is empty'));
-      }, 'image/jpeg');
+      }, 'image/png', 1.0);
     });
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'logo' | 'game-avatar') => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImageSrc(reader.result as string);
-        setCropType(type);
-        setCropDialogOpen(true);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
-      };
-      reader.readAsDataURL(file);
+      // Check if it's an animated file (GIF or Lottie JSON)
+      const isAnimated = file.type === 'image/gif' || file.name.endsWith('.json');
+      
+      if (isAnimated) {
+        // Skip crop for animated files, upload directly
+        handleDirectUpload(file, type);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImageSrc(reader.result as string);
+          setCropType(type);
+          setCropDialogOpen(true);
+          setCrop({ x: 0, y: 0 });
+          setZoom(1);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const handleDirectUpload = async (file: File, type: 'avatar' | 'logo' | 'game-avatar') => {
+    if (!userId) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${type}-${Date.now()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+
+      // Update state
+      if (type === 'avatar') {
+        setAvatarUrl(publicUrl);
+      } else if (type === 'game-avatar') {
+        setGameAvatarUrl(publicUrl);
+      } else {
+        setCompanyLogoUrl(publicUrl);
+      }
+
+      toast.success('Animation uploaded successfully!');
+    } catch (error: any) {
+      console.error('Failed to upload file:', error);
+      toast.error('Failed to upload file: ' + error.message);
     }
   };
 
@@ -160,14 +210,14 @@ export default function BrandProfileEdit() {
 
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
-      const fileName = `${cropType}-${Date.now()}.jpg`;
+      const fileName = `${cropType}-${Date.now()}.png`;
       const filePath = `${userId}/${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, croppedBlob, {
-          contentType: 'image/jpeg',
+          contentType: 'image/png',
           upsert: true
         });
 
@@ -371,7 +421,7 @@ export default function BrandProfileEdit() {
                   <div className="flex-1">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/gif,image/jpeg,.json"
                       onChange={(e) => handleFileSelect(e, 'game-avatar')}
                       className="hidden"
                       id="game-avatar-upload"
@@ -390,7 +440,7 @@ export default function BrandProfileEdit() {
                       </Button>
                     </label>
                     <p className="text-xs text-gray-500 mt-2">
-                      Upload a character, animal, or icon. This will animate and react during gameplay.
+                      Upload PNG, GIF (animated), or Lottie JSON. Your mascot will animate and react during gameplay.
                     </p>
                   </div>
                 </div>
