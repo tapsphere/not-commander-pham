@@ -94,7 +94,7 @@ export default function CreatorDashboard() {
       // Fetch user's profile
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, avatar_url')
+        .select('full_name, avatar_url, company_logo_url')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -106,14 +106,64 @@ export default function CreatorDashboard() {
 
       if (error) throw error;
       
-      // Add creator profile to each template
-      const enrichedTemplates = data?.map(template => ({
-        ...template,
-        creator_name: profile?.full_name || 'You',
-        creator_avatar: profile?.avatar_url
-      }));
+      // Generate default covers for templates without preview images
+      const templatesWithCovers = await Promise.all(
+        (data || []).map(async (template) => {
+          // If template already has a preview image, use it
+          if (template.preview_image) {
+            return {
+              ...template,
+              creator_name: profile?.full_name || 'You',
+              creator_avatar: profile?.avatar_url
+            };
+          }
+
+          // Generate default cover
+          try {
+            const { generateDefaultCover } = await import('@/utils/generateDefaultCover');
+            const coverBlob = await generateDefaultCover(
+              profile?.full_name || 'Creator',
+              profile?.company_logo_url || undefined,
+              profile?.avatar_url || undefined
+            );
+
+            const fileName = `${user.id}/default-cover-${template.id}.png`;
+            const { error: uploadError } = await supabase.storage
+              .from('validator-previews')
+              .upload(fileName, coverBlob, { upsert: true });
+
+            if (!uploadError) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('validator-previews')
+                .getPublicUrl(fileName);
+
+              // Update template with new cover
+              await supabase
+                .from('game_templates')
+                .update({ preview_image: publicUrl })
+                .eq('id', template.id);
+
+              return {
+                ...template,
+                preview_image: publicUrl,
+                creator_name: profile?.full_name || 'You',
+                creator_avatar: profile?.avatar_url
+              };
+            }
+          } catch (err) {
+            console.error('Failed to generate cover for template:', template.id, err);
+          }
+
+          // If generation failed, return template as-is
+          return {
+            ...template,
+            creator_name: profile?.full_name || 'You',
+            creator_avatar: profile?.avatar_url
+          };
+        })
+      );
       
-      setTemplates(enrichedTemplates || []);
+      setTemplates(templatesWithCovers);
 
       // Fetch test results for all templates
       const { data: results, error: resultsError } = await supabase
