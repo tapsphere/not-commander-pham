@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies } = await req.json();
+    const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies } = await req.json();
     
-    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies });
+    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, customizationId, previewMode, subCompetencies });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -674,10 +674,10 @@ The game MUST include a detailed results screen that appears after gameplay comp
 
 MANDATORY RESULTS SCREEN ELEMENTS:
 
-1. PROFICIENCY BADGE (Large, prominent, color-coded):
-   - Level 3 – Mastery (green #00FF00) if accuracy ≥95% AND edge case handled
-   - Level 2 – Proficient (yellow/gold #FFD700) if accuracy 80-94%
-   - Level 1 – Needs Work (red #FF4444) if accuracy < 80%
+1. PROFICIENCY BADGE (Large, prominent, color-coded using brand colors):
+   - Level 3 – Mastery (use Highlight color: ${highlightColor || primaryColor}) if accuracy ≥95% AND edge case handled
+   - Level 2 – Proficient (use Secondary color: ${secondaryColor}) if accuracy 80-94%
+   - Level 1 – Needs Work (use Accent color: ${accentColor || textColor}) if accuracy < 80%
 
 2. SCORE DISPLAY:
    - Large percentage score (48px font, bold)
@@ -781,12 +781,20 @@ CRITICAL TECHNICAL REQUIREMENTS:
 1. Return ONLY valid HTML - a complete, self-contained HTML file
 2. Include ALL JavaScript and CSS inline within the HTML
 3. The game must be fully functional and playable
-4. Use the brand colors provided: 
-   - Primary: ${primaryColor} (main actions, highlights)
-   - Secondary: ${secondaryColor} (supporting elements)
-   - Accent: ${accentColor || primaryColor} (warnings, emphasis)
-   - Background: ${backgroundColor || '#1A1A1A'} (base background)
-5. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
+4. Use ONLY these brand colors throughout the entire game (loading screen, game screens, results):
+   - Primary: ${primaryColor} (buttons, main actions, highlights, headers)
+   - Secondary: ${secondaryColor} (supporting elements, borders, hover states)
+   - Accent: ${accentColor || textColor} (warnings, emphasis, selected states)
+   - Background: ${backgroundColor || '#F5EDD3'} (base background, cards)
+   - Highlight: ${highlightColor || primaryColor} (success states, correct answers)
+   - Text: ${textColor || '#2D5556'} (all text, labels, descriptions)
+5. Use ONLY this font throughout the entire game:
+   - Font Family: ${fontFamily || 'Inter, sans-serif'} (all text elements)
+   - Load font: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+6. Apply clean, minimalist design with these colors and font everywhere
+7. NEVER use hard-coded colors like #00FF00, #1A1A1A, white, black etc.
+8. Use the provided colors for ALL UI elements from start to finish
+9. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
 
 ⚠️ MANDATORY MOBILE-FIRST REQUIREMENTS (NON-NEGOTIABLE):
 ═══════════════════════════════════════════════════════════════

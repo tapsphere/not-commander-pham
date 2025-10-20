@@ -197,9 +197,33 @@ export default function CreatorDashboard() {
       // Open custom game in new tab
       window.open(template.custom_game_url, '_blank');
     } else {
-      // For AI generated, generate preview and open
+      // For AI generated, get creator's design palette and generate preview
       try {
         toast.info('Generating game preview...');
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error('Please log in to preview games');
+          return;
+        }
+
+        // Fetch creator's design palette
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('design_palette')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        const palette = profile?.design_palette as any;
+        const designPalette = palette || {
+          primary: '#C8DBDB',
+          secondary: '#6C8FA4',
+          accent: '#2D5556',
+          background: '#F5EDD3',
+          highlight: '#F0C7A0',
+          text: '#2D5556',
+          font: 'Inter, sans-serif'
+        };
         
         // Fetch sub-competency data
         const subCompIds = template.selected_sub_competencies || [];
@@ -211,8 +235,13 @@ export default function CreatorDashboard() {
         const { data: response, error } = await supabase.functions.invoke('generate-game', {
           body: {
             templatePrompt: template.base_prompt,
-            primaryColor: '#00FF00',
-            secondaryColor: '#9945FF',
+            primaryColor: designPalette.primary,
+            secondaryColor: designPalette.secondary,
+            accentColor: designPalette.accent,
+            backgroundColor: designPalette.background,
+            highlightColor: designPalette.highlight,
+            textColor: designPalette.text,
+            fontFamily: designPalette.font,
             logoUrl: null,
             customizationId: null,
             previewMode: true,

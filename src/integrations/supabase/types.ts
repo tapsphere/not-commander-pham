@@ -360,6 +360,7 @@ export type Database = {
           company_logo_url: string | null
           company_name: string | null
           created_at: string | null
+          design_palette: Json | null
           full_name: string | null
           id: string
           location: string | null
@@ -374,6 +375,7 @@ export type Database = {
           company_logo_url?: string | null
           company_name?: string | null
           created_at?: string | null
+          design_palette?: Json | null
           full_name?: string | null
           id?: string
           location?: string | null
@@ -388,6 +390,7 @@ export type Database = {
           company_logo_url?: string | null
           company_name?: string | null
           created_at?: string | null
+          design_palette?: Json | null
           full_name?: string | null
           id?: string
           location?: string | null
