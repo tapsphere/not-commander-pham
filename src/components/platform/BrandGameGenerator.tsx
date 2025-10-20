@@ -243,11 +243,29 @@ ${formData.uiAesthetic}
       setGenerating(true);
       setProgress(60);
 
+      // Fetch user's logo from profile
+      const { data: { user } } = await supabase.auth.getUser();
+      let logoUrl = null;
+      
+      if (user) {
+        const { data: profileData } = await (supabase as any)
+          .from('profiles')
+          .select('company_logo_url')
+          .eq('user_id', user.id)
+          .single();
+        logoUrl = profileData?.company_logo_url;
+      }
+
       const gamePrompt = buildGamePrompt();
 
       const { data, error } = await supabase.functions.invoke('generate-game', {
         body: {
           templatePrompt: gamePrompt,
+          primaryColor: '#00FF00',
+          secondaryColor: '#9945FF',
+          accentColor: '#FF5722',
+          backgroundColor: '#1A1A1A',
+          logoUrl: logoUrl,
           previewMode: true,
         },
       });
@@ -289,6 +307,15 @@ ${formData.uiAesthetic}
         return;
       }
 
+      // Fetch user's logo from profile
+      let logoUrl = null;
+      const { data: profileData } = await (supabase as any)
+        .from('profiles')
+        .select('company_logo_url')
+        .eq('user_id', user.id)
+        .single();
+      logoUrl = profileData?.company_logo_url;
+
       // Find matching template
       const { data: template } = await supabase
         .from('game_templates')
@@ -297,7 +324,7 @@ ${formData.uiAesthetic}
         .eq('is_published', true)
         .maybeSingle();
 
-      // Create customization
+      // Create customization with logo
       const { error: saveError } = await supabase
         .from('brand_customizations')
         .insert({
@@ -305,6 +332,11 @@ ${formData.uiAesthetic}
           template_id: template?.id || null,
           customization_prompt: buildGamePrompt(),
           generated_game_html: gameHtml,
+          logo_url: logoUrl,
+          primary_color: '#00FF00',
+          secondary_color: '#9945FF',
+          accent_color: '#FF5722',
+          background_color: '#1A1A1A',
         });
 
       if (saveError) throw saveError;
