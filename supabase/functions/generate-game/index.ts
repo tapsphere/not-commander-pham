@@ -281,11 +281,46 @@ When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
   - Footer button: 80px
   - TOTAL: 458px (fits comfortably in 844px viewport)
   
+  🎮 CREATIVE GAMEPLAY MECHANICS (MANDATORY - NO FORMS):
+  
+  ❌ NEVER USE: Text inputs, dropdowns, radio buttons, checkboxes, or form elements
+  ✅ ALWAYS USE: Interactive, playful mechanics that feel like games
+  
   INTERACTION PRIORITY (Use in this order):
-  1. DRAG & DROP - Best for sorting, allocating, organizing
-  2. TAP/CLICK - Best for selecting, activating, choosing
-  3. SLIDERS - Only for values/amounts
-  4. DROPDOWNS/FORMS - AVOID unless absolutely necessary
+  1. DRAG & DROP - Drag cards to zones, sort items, allocate resources
+     Example: Drag budget cards into department slots, drag words to build sentences
+  
+  2. TAP/CLICK CARDS - Flip cards, select options by tapping interactive elements
+     Example: Tap message cards to reveal content, click tone indicators, tap to match pairs
+  
+  3. SWIPE GESTURES - Swipe left/right to categorize, accept/reject
+     Example: Swipe communications left (urgent) or right (routine)
+  
+  4. TIMELINE BUILDERS - Click to add events, drag to reorder story beats
+     Example: Build a crisis response timeline by clicking actions in sequence
+  
+  5. MATCHING GAMES - Connect related items, pair concepts
+     Example: Draw lines between problems and solutions
+  
+  6. SLIDERS/DIALS - Adjust values visually with immediate feedback
+     Example: Allocate percentage budgets with visual pie charts updating live
+  
+  🎨 CREATIVE GAME DESIGN PRINCIPLES:
+  - Use VISUAL METAPHORS: Budget = poker chips, Time = clock countdown, Priority = star ratings
+  - Add IMMEDIATE FEEDBACK: Items glow when correct, shake when wrong, particles on success
+  - Create PLAYFUL SCENARIOS: Don't say "Rate this 1-5", say "Award stars based on urgency"
+  - Use GAME LANGUAGE: "Round", "Challenge", "Mission", not "Question" or "Task"
+  - Make it FEEL LIKE A GAME: Animations, sounds (describe them), visual rewards
+  
+  🎯 BRAND CONTENT INTEGRATION:
+  When brand uploads content (documents, scenarios, data):
+  - Transform data into INTERACTIVE CARDS players can manipulate
+  - Turn scenarios into DECISION MOMENTS with visual choices
+  - Convert lists into SORTING or MATCHING challenges
+  - Make text content into STORY BEATS players build or reorder
+  
+  Example: If brand uploads "10 customer emails" → Create drag-and-drop inbox where players 
+  physically drag emails into priority folders, not a form asking "Which is urgent?"
 
 ═══════════════════════════════════════════════════════════════
 SCENE 2+: SUBSEQUENT ACTIONS
