@@ -122,23 +122,42 @@ IMPLEMENTATION REQUIREMENTS:
 
 Required HTML/CSS/JS structure:
 \`\`\`html
-<div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s ease-out;">
+<div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.8s ease-out;">
   <img 
     id="brand-logo" 
     src="${logoUrl}" 
-    alt="Brand Logo" 
-    style="max-width: 200px; max-height: 200px; animation: pulse 1.5s ease-in-out infinite;" 
+    alt="Loading..." 
+    crossorigin="anonymous"
+    style="max-width: 250px; max-height: 250px; width: auto; height: auto; object-fit: contain; animation: pulse 1.5s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" 
+    onerror="console.error('Logo failed to load:', this.src); this.style.display='none';"
   />
+  <div style="color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; letter-spacing: 1px;">LOADING...</div>
 </div>
 
 <style>
 @keyframes pulse {
-  0%, 100% { transform: scale(0.95); opacity: 0.8; }
+  0%, 100% { transform: scale(0.95); opacity: 0.9; }
   50% { transform: scale(1.05); opacity: 1; }
 }
 </style>
 
 <script>
+// Ensure logo is preloaded
+const brandLogo = document.getElementById('brand-logo');
+if (brandLogo) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    console.log('Brand logo loaded successfully');
+    brandLogo.src = img.src;
+  };
+  img.onerror = () => {
+    console.error('Failed to load brand logo:', '${logoUrl}');
+    brandLogo.style.display = 'none';
+  };
+  img.src = '${logoUrl}';
+}
+
 // Auto-hide loading screen after 2.5 seconds
 setTimeout(() => {
   const loadingScreen = document.getElementById('loading-screen');
