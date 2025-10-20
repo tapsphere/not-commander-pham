@@ -101,16 +101,24 @@ async function submitScore(metrics) {
     if (logoUrl) {
       logoInstructions = `
 
-BRAND LOGO INTEGRATION (CRITICAL - LOADING SCREEN):
-The brand's logo MUST be displayed as a pulsing loading screen that transitions into the game.
+BRAND LOGO INTEGRATION (CRITICAL - LOADING SCREEN ONLY):
+The brand's logo MUST ONLY appear on the initial loading screen, then disappear completely.
 Logo URL: ${logoUrl}
+
+🚫 CRITICAL NO-LOGO RULES (STRICTLY ENFORCE):
+1. Logo appears ONLY on the loading screen overlay
+2. Logo MUST BE REMOVED completely after loading screen fades out
+3. DO NOT place logo in header, corner, or any game UI element
+4. DO NOT use logo as watermark or persistent branding
+5. After loading screen disappears, NO LOGO should be visible anywhere in the game
+6. NO exceptions - logo is ONLY for the 2.5 second loading screen
 
 IMPLEMENTATION REQUIREMENTS:
 1. Create a full-screen loading overlay with the brand logo centered
 2. Logo should pulse/animate smoothly (scale 0.95 to 1.05)
 3. Loading screen should display for 2-3 seconds
-4. Fade out the loading screen and reveal the game
-5. DO NOT show logo in corner during gameplay - only on loading screen
+4. Fade out the loading screen completely (including the logo)
+5. Game UI has NO logo after loading screen ends
 
 Required HTML/CSS/JS structure:
 \`\`\`html
