@@ -277,12 +277,18 @@ ${formData.uiAesthetic}
       setGameHtml(data.generatedHtml);
       setProgress(100);
       
-      toast.success('Game generated successfully!');
+      toast.success('Game generated! Scroll down to see preview.');
       
       // Scroll to preview after a short delay to allow rendering
       setTimeout(() => {
-        previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
+        const dialogContent = document.querySelector('[role="dialog"] [data-radix-scroll-area-viewport]');
+        if (dialogContent && previewRef.current) {
+          // Scroll the dialog content to the preview
+          previewRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          // Also scroll the dialog viewport
+          dialogContent.scrollTop = dialogContent.scrollHeight;
+        }
+      }, 500);
       
       
     } catch (error: any) {
@@ -680,13 +686,18 @@ ${formData.uiAesthetic}
 
               {/* Preview */}
               {gameHtml && (
-                <Card ref={previewRef} className="bg-black border-neon-green/30">
+                <Card ref={previewRef} className="bg-black border-neon-green/30 mt-6 animate-in fade-in duration-500">
                   <CardContent className="pt-4">
-                    <Label className="mb-2 block text-neon-green">🎮 Game Preview</Label>
-                    <div className="border border-gray-700 rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-neon-green font-bold text-lg">🎮 Game Preview</Label>
+                      <div className="text-xs text-neon-green/70 animate-pulse">
+                        ▼ Scroll to see your game ▼
+                      </div>
+                    </div>
+                    <div className="border-2 border-neon-green/50 rounded-lg overflow-hidden shadow-lg shadow-neon-green/20">
                       <iframe
                         srcDoc={gameHtml}
-                        className="w-full h-[500px]"
+                        className="w-full h-[600px]"
                         title="Game Preview"
                         sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
                       />
