@@ -156,6 +156,23 @@ export default function Play() {
     };
   };
 
+  // Inject remixed colors into the HTML
+  const getRemixedHtml = () => {
+    if (!validator.generated_game_html) return '';
+    
+    const colors = getCurrentColors();
+    let html = validator.generated_game_html;
+    
+    // Replace original colors with new colors throughout the HTML
+    // This handles both style attributes and CSS
+    html = html.replace(new RegExp(validator.primary_color, 'gi'), colors.primary);
+    html = html.replace(new RegExp(validator.secondary_color, 'gi'), colors.secondary);
+    html = html.replace(new RegExp(validator.accent_color || validator.primary_color, 'gi'), colors.accent);
+    html = html.replace(new RegExp(validator.background_color || '#1A1A1A', 'gi'), colors.background);
+    
+    return html;
+  };
+
   return (
     <ScrollArea className="h-screen">
       <div className="min-h-screen bg-black text-white">
@@ -199,7 +216,7 @@ export default function Play() {
                 ) : (
                   <iframe
                     key={JSON.stringify(remixedColors)} // Force reload on color change
-                    srcDoc={validator.generated_game_html || ''}
+                    srcDoc={getRemixedHtml()}
                     className="w-full border-0 rounded-lg shadow-2xl"
                     style={{ height: '812px' }} // iPhone 13 height
                     title="Game Validator"
