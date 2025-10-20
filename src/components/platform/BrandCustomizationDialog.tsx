@@ -38,6 +38,8 @@ export const BrandCustomizationDialog = ({
   const [backgroundColor, setBackgroundColor] = useState('#1A1A1A');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
+  const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
   const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
@@ -124,6 +126,29 @@ UI Styling Instructions:
     reader.readAsDataURL(file);
   };
 
+  const handleCoverPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Cover photo must be less than 5MB');
+      return;
+    }
+
+    setCoverPhotoFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setCoverPhotoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
     toast.success('Branded prompt copied! Paste it into Lovable to build your custom validator.');
@@ -136,6 +161,7 @@ UI Styling Instructions:
       if (!user) throw new Error('Not authenticated');
 
       let logoUrl = null;
+      let coverPhotoUrl = null;
 
       // Upload logo if provided
       if (logoFile) {
@@ -153,6 +179,22 @@ UI Styling Instructions:
         logoUrl = publicUrl;
       }
 
+      // Upload cover photo if provided
+      if (coverPhotoFile) {
+        const fileName = `${user.id}/cover-${Date.now()}-${coverPhotoFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('brand-logos')
+          .upload(fileName, coverPhotoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('brand-logos')
+          .getPublicUrl(fileName);
+
+        coverPhotoUrl = publicUrl;
+      }
+
       // Save customization
       const { data: customizationData, error } = await supabase
         .from('brand_customizations')
@@ -164,6 +206,7 @@ UI Styling Instructions:
           accent_color: accentColor,
           background_color: backgroundColor,
           logo_url: logoUrl,
+          cover_photo_url: coverPhotoUrl,
           customization_prompt: generatedPrompt,
         })
         .select()
@@ -401,6 +444,71 @@ UI Styling Instructions:
                     alt="Logo preview"
                     className="max-w-[200px] max-h-[100px] object-contain"
                   />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Cover Photo Upload */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Upload className="h-5 w-5 text-neon-green" />
+              Cover Photo
+            </h3>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('cover-photo-upload')?.click()}
+                  className="gap-2"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Cover Photo
+                </Button>
+                <input
+                  id="cover-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverPhotoChange}
+                  className="hidden"
+                />
+                <span className="text-sm text-gray-400">
+                  {coverPhotoFile ? coverPhotoFile.name : '1200x630px recommended (max 5MB)'}
+                </span>
+              </div>
+
+              {coverPhotoPreview ? (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <p className="text-sm text-gray-400 mb-2">Cover Photo Preview:</p>
+                  <img
+                    src={coverPhotoPreview}
+                    alt="Cover photo preview"
+                    className="w-full max-h-[200px] object-cover rounded"
+                    style={{ aspectRatio: '16/9' }}
+                  />
+                </div>
+              ) : (
+                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                  <p className="text-sm text-gray-400 mb-2">Default Cover:</p>
+                  <div 
+                    className="w-full bg-black flex items-center justify-center rounded"
+                    style={{ aspectRatio: '16/9', height: '150px' }}
+                  >
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        alt="Logo"
+                        className="max-w-[120px] max-h-[80px] object-contain"
+                      />
+                    ) : (
+                      <p className="text-white text-lg font-bold">Brand Name</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Without a cover photo, a black background with your logo (or brand name) will be displayed
+                  </p>
                 </div>
               )}
             </div>

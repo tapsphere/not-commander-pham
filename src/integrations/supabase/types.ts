@@ -43,6 +43,7 @@ export type Database = {
           accent_color: string | null
           background_color: string | null
           brand_id: string
+          cover_photo_url: string | null
           created_at: string | null
           custom_config: Json | null
           customization_prompt: string | null
@@ -63,6 +64,7 @@ export type Database = {
           accent_color?: string | null
           background_color?: string | null
           brand_id: string
+          cover_photo_url?: string | null
           created_at?: string | null
           custom_config?: Json | null
           customization_prompt?: string | null
@@ -83,6 +85,7 @@ export type Database = {
           accent_color?: string | null
           background_color?: string | null
           brand_id?: string
+          cover_photo_url?: string | null
           created_at?: string | null
           custom_config?: Json | null
           customization_prompt?: string | null
@@ -229,6 +232,7 @@ export type Database = {
         Row: {
           base_prompt: string | null
           competency_id: string | null
+          cover_photo_url: string | null
           created_at: string | null
           creator_id: string | null
           custom_game_url: string | null
@@ -245,6 +249,7 @@ export type Database = {
         Insert: {
           base_prompt?: string | null
           competency_id?: string | null
+          cover_photo_url?: string | null
           created_at?: string | null
           creator_id?: string | null
           custom_game_url?: string | null
@@ -261,6 +266,7 @@ export type Database = {
         Update: {
           base_prompt?: string | null
           competency_id?: string | null
+          cover_photo_url?: string | null
           created_at?: string | null
           creator_id?: string | null
           custom_game_url?: string | null
