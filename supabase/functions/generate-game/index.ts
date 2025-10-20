@@ -656,6 +656,70 @@ This MUST be the first tag in the <head> section of the HTML. Without this, the 
 - Touch targets: minimum 44px x 44px for buttons (iOS Human Interface Guidelines)
 - Font sizes: minimum 16px for body text (prevents iOS zoom on input focus)
 
+🔒 TEXT CONTAINMENT & OVERFLOW PREVENTION (CRITICAL):
+═══════════════════════════════════════════════════════════════════════════
+MANDATORY CSS - Include these rules in your <style> tag to prevent text overflow:
+
+* {
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Prevent text from escaping containers */
+h1, h2, h3, h4, h5, h6, p, div, span, button, label {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Results/Score page text sizing */
+.results-screen, .score-screen, #resultsScreen, #scoreScreen {
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Responsive text sizing for results */
+.results-screen h1, .score-screen h1 {
+  font-size: clamp(24px, 6vw, 48px);
+  margin: 10px 0;
+  text-align: center;
+  white-space: normal;
+}
+
+.results-screen h2, .score-screen h2 {
+  font-size: clamp(20px, 5vw, 36px);
+  margin: 8px 0;
+  text-align: center;
+}
+
+.results-screen p, .score-screen p {
+  font-size: clamp(14px, 3.5vw, 18px);
+  margin: 6px 0;
+  text-align: center;
+  max-width: 90%;
+}
+
+/* Badge/Status text */
+.badge, .status, .proficiency {
+  font-size: clamp(18px, 4vw, 32px);
+  padding: 8px 16px;
+  white-space: normal;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* Score/Percentage displays */
+.score-display, .percentage {
+  font-size: clamp(32px, 8vw, 64px);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
 🖱️ TOUCH-OPTIMIZED INTERACTIONS:
 - All buttons must work with touch events
 - Use cursor: pointer on all interactive elements
