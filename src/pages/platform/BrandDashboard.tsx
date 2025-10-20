@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { CourseGamifier } from '@/components/platform/CourseGamifier';
+import { GameCoverPhoto } from '@/components/platform/GameCoverPhoto';
 import {
   Dialog,
   DialogContent,
@@ -62,6 +63,10 @@ export default function BrandDashboard() {
           game_templates (
             name,
             preview_image
+          ),
+          brand_profiles!brand_customizations_brand_id_fkey (
+            brand_name,
+            logo_url
           )
         `)
         .eq('brand_id', user.id)
@@ -317,17 +322,12 @@ export default function BrandDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {customizations.map((custom) => (
             <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
-              <div className="aspect-video bg-gray-800 flex items-center justify-center">
-                {custom.game_templates?.preview_image ? (
-                  <img 
-                    src={custom.game_templates.preview_image.startsWith('/') ? custom.game_templates.preview_image.substring(1) : custom.game_templates.preview_image} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  <Play className="w-12 h-12 text-gray-600" />
-                )}
-              </div>
+              <GameCoverPhoto
+                coverPhotoUrl={(custom as any).cover_photo_url}
+                logoUrl={(custom as any).brand_profiles?.logo_url}
+                brandName={(custom as any).brand_profiles?.brand_name}
+                className="w-full"
+              />
                <div className="p-4">
                 <h3 className="font-semibold text-white mb-2">
                   {custom.game_templates?.name || 'Course-Generated Game'}
