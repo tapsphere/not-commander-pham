@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode, subCompetencies } = await req.json();
+    const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, customizationId, previewMode, subCompetencies } = await req.json();
     
-    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, logoUrl, customizationId, previewMode, subCompetencies });
+    console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, logoUrl, customizationId, previewMode, subCompetencies });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -508,7 +508,11 @@ CRITICAL TECHNICAL REQUIREMENTS:
 1. Return ONLY valid HTML - a complete, self-contained HTML file
 2. Include ALL JavaScript and CSS inline within the HTML
 3. The game must be fully functional and playable
-4. Use the brand colors provided: primary=${primaryColor}, secondary=${secondaryColor}
+4. Use the brand colors provided: 
+   - Primary: ${primaryColor} (main actions, highlights)
+   - Secondary: ${secondaryColor} (supporting elements)
+   - Accent: ${accentColor || primaryColor} (warnings, emphasis)
+   - Background: ${backgroundColor || '#1A1A1A'} (base background)
 5. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
 
 ⚠️ MANDATORY MOBILE-FIRST REQUIREMENTS (NON-NEGOTIABLE):
@@ -706,6 +710,8 @@ ${templatePrompt}
 Brand Customization:
 - Primary Color: ${primaryColor}
 - Secondary Color: ${secondaryColor}
+- Accent Color: ${accentColor || primaryColor}
+- Background Color: ${backgroundColor || '#1A1A1A'}
 ${logoUrl ? `- Brand Logo: ${logoUrl}` : ''}
 
 Generate a complete, playable HTML5 game that matches this description and uses these brand colors.`;

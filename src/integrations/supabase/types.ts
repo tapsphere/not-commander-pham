@@ -40,6 +40,8 @@ export type Database = {
       }
       brand_customizations: {
         Row: {
+          accent_color: string | null
+          background_color: string | null
           brand_id: string
           created_at: string | null
           custom_config: Json | null
@@ -58,6 +60,8 @@ export type Database = {
           visibility: Database["public"]["Enums"]["game_visibility"]
         }
         Insert: {
+          accent_color?: string | null
+          background_color?: string | null
           brand_id: string
           created_at?: string | null
           custom_config?: Json | null
@@ -76,6 +80,8 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["game_visibility"]
         }
         Update: {
+          accent_color?: string | null
+          background_color?: string | null
           brand_id?: string
           created_at?: string | null
           custom_config?: Json | null

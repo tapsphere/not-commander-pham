@@ -34,6 +34,8 @@ export const BrandCustomizationDialog = ({
   const [loading, setLoading] = useState(false);
   const [primaryColor, setPrimaryColor] = useState('#00FF00');
   const [secondaryColor, setSecondaryColor] = useState('#9945FF');
+  const [accentColor, setAccentColor] = useState('#FF5722');
+  const [backgroundColor, setBackgroundColor] = useState('#1A1A1A');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [editablePrompt, setEditablePrompt] = useState('');
@@ -72,7 +74,7 @@ Please ensure the validator content and scenarios are relevant to this course ma
     if (editablePrompt) {
       generateBrandedPrompt();
     }
-  }, [editablePrompt, primaryColor, secondaryColor]);
+  }, [editablePrompt, primaryColor, secondaryColor, accentColor, backgroundColor]);
 
   const generateBrandedPrompt = () => {
     const brandSection = `
@@ -80,15 +82,19 @@ Please ensure the validator content and scenarios are relevant to this course ma
 🎨 BRAND CUSTOMIZATION:
 
 Brand Colors:
-• Primary: ${primaryColor}
-• Secondary: ${secondaryColor}
+• Primary: ${primaryColor} - Main brand color for primary actions and highlights
+• Secondary: ${secondaryColor} - Supporting brand color for secondary elements
+• Accent: ${accentColor} - Accent color for emphasis and call-to-actions
+• Background: ${backgroundColor} - Background color for the main interface
 
 UI Styling Instructions:
-• Use ${primaryColor} for primary actions, highlights, and key UI elements
-• Use ${secondaryColor} for secondary elements and accents
+• Use ${primaryColor} for primary buttons, key UI elements, and main highlights
+• Use ${secondaryColor} for secondary buttons, borders, and supporting elements
+• Use ${accentColor} for warnings, important notifications, and accents
+• Use ${backgroundColor} as the base background color for the interface
 • ${logoPreview ? 'Display brand logo prominently in the corner' : 'Reserve space for brand logo placement'}
 • Maintain high contrast for accessibility
-• Apply brand colors to buttons, progress bars, and success states
+• Apply brand colors consistently throughout all UI components
 `;
 
     const modifiedPrompt = editablePrompt + '\n\n' + brandSection;
@@ -155,6 +161,8 @@ UI Styling Instructions:
           template_id: template.id,
           primary_color: primaryColor,
           secondary_color: secondaryColor,
+          accent_color: accentColor,
+          background_color: backgroundColor,
           logo_url: logoUrl,
           customization_prompt: generatedPrompt,
         })
@@ -171,6 +179,8 @@ UI Styling Instructions:
           templatePrompt: editablePrompt,
           primaryColor,
           secondaryColor,
+          accentColor,
+          backgroundColor,
           logoUrl,
           customizationId: customizationData.id,
         }
@@ -277,20 +287,78 @@ UI Styling Instructions:
                   />
                 </div>
               </div>
+
+              <div>
+                <Label htmlFor="accentColor">Accent Color</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="accentColor"
+                    type="color"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="w-20 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="flex-1 bg-gray-800 border-gray-700"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="backgroundColor">Background Color</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="backgroundColor"
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="w-20 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={backgroundColor}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="flex-1 bg-gray-800 border-gray-700"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Color Preview */}
             <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-              <p className="text-sm text-gray-400 mb-3">Preview:</p>
-              <div className="flex gap-4">
-                <div
-                  className="w-20 h-20 rounded-lg border-2"
-                  style={{ backgroundColor: primaryColor, borderColor: primaryColor }}
-                />
-                <div
-                  className="w-20 h-20 rounded-lg border-2"
-                  style={{ backgroundColor: secondaryColor, borderColor: secondaryColor }}
-                />
+              <p className="text-sm text-gray-400 mb-3">Color Palette Preview:</p>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div
+                    className="w-20 h-20 rounded-lg border-2 mx-auto"
+                    style={{ backgroundColor: primaryColor, borderColor: primaryColor }}
+                  />
+                  <p className="text-xs text-gray-400 mt-2">Primary</p>
+                </div>
+                <div className="text-center">
+                  <div
+                    className="w-20 h-20 rounded-lg border-2 mx-auto"
+                    style={{ backgroundColor: secondaryColor, borderColor: secondaryColor }}
+                  />
+                  <p className="text-xs text-gray-400 mt-2">Secondary</p>
+                </div>
+                <div className="text-center">
+                  <div
+                    className="w-20 h-20 rounded-lg border-2 mx-auto"
+                    style={{ backgroundColor: accentColor, borderColor: accentColor }}
+                  />
+                  <p className="text-xs text-gray-400 mt-2">Accent</p>
+                </div>
+                <div className="text-center">
+                  <div
+                    className="w-20 h-20 rounded-lg border-2 mx-auto"
+                    style={{ backgroundColor: backgroundColor, borderColor: backgroundColor }}
+                  />
+                  <p className="text-xs text-gray-400 mt-2">Background</p>
+                </div>
               </div>
             </div>
           </div>
