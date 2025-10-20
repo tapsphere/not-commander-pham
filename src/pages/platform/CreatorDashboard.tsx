@@ -231,10 +231,46 @@ export default function CreatorDashboard() {
           throw new Error('No HTML received from game generator');
         }
 
-        // Open the generated HTML in a new window
+        // Open the generated HTML in a new window with mobile viewport
         const gameWindow = window.open('', '_blank');
         if (gameWindow) {
-          gameWindow.document.write(response.html);
+          gameWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                <style>
+                  body {
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                    min-height: 100vh;
+                    background: #1a1a1a;
+                  }
+                  .mobile-container {
+                    width: 100%;
+                    max-width: 430px;
+                    min-height: 100vh;
+                    background: white;
+                    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+                  }
+                  @media (max-width: 430px) {
+                    .mobile-container {
+                      box-shadow: none;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="mobile-container">
+                  ${response.html}
+                </div>
+              </body>
+            </html>
+          `);
           gameWindow.document.close();
           toast.success('Game preview opened!');
         } else {
