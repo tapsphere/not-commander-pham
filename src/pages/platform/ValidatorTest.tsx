@@ -179,7 +179,7 @@ export default function ValidatorTest() {
           </div>
           <Button
             variant="outline"
-            onClick={() => window.open('/VALIDATOR_TESTING_GUIDE.md', '_blank')}
+            onClick={() => window.open('/platform/testing-guide', '_blank')}
             className="border-gray-600 text-gray-300"
           >
             <BookOpen className="w-4 h-4 mr-2" />

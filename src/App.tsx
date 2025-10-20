@@ -23,6 +23,7 @@ import CreatorPortfolio from "./pages/platform/CreatorPortfolio";
 import TemplateDetail from "./pages/platform/TemplateDetail";
 import ValidatorDemo from "./pages/ValidatorDemo";
 import ValidatorTest from "./pages/platform/ValidatorTest";
+import TestingGuide from "./pages/platform/TestingGuide";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
             <Route path="template/:templateId" element={<TemplateDetail />} />
             <Route path="validator-test" element={<ValidatorTest />} />
+            <Route path="testing-guide" element={<TestingGuide />} />
           </Route>
           
           {/* Public Brand Profile */}
