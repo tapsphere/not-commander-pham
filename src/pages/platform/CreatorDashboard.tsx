@@ -21,6 +21,7 @@ type Template = {
   template_type: string;
   custom_game_url?: string;
   selected_sub_competencies?: string[];
+  creator_name?: string;
 };
 
 type TestResult = {
@@ -89,14 +90,28 @@ export default function CreatorDashboard() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Fetch user's profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
       const { data, error } = await supabase
         .from('game_templates')
         .select('*')
         .eq('creator_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
       if (error) throw error;
-      setTemplates(data || []);
+      
+      // Add creator profile to each template
+      const enrichedTemplates = data?.map(template => ({
+        ...template,
+        creator_name: profile?.full_name || 'You'
+      }));
+      
+      setTemplates(enrichedTemplates || []);
 
       // Fetch test results for all templates
       const { data: results, error: resultsError } = await supabase
@@ -336,7 +351,14 @@ export default function CreatorDashboard() {
                   </div>
                   <div className="p-4">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-semibold text-lg text-white">{template.name}</h3>
+                      <div>
+                        <h3 className="font-semibold text-lg text-white">{template.name}</h3>
+                        {template.creator_name && (
+                          <p className="text-xs text-neon-purple mt-1">
+                            by {template.creator_name}
+                          </p>
+                        )}
+                      </div>
                       <span
                         className={`text-xs px-2 py-1 rounded ${
                           template.is_published

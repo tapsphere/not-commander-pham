@@ -32,6 +32,12 @@ type Customization = {
   game_templates: {
     name: string;
     preview_image?: string;
+    creator_id?: string;
+    profiles?: {
+      full_name: string;
+      bio?: string;
+      avatar_url?: string;
+    };
   };
 };
 
@@ -63,11 +69,36 @@ export default function BrandDashboard() {
           *,
           game_templates (
             name,
-            preview_image
+            preview_image,
+            creator_id
           )
         `)
         .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch creator profiles separately for each template
+      const enrichedCustomizations = await Promise.all(
+        (data || []).map(async (custom) => {
+          if (custom.game_templates?.creator_id) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name, bio, avatar_url')
+              .eq('user_id', custom.game_templates.creator_id)
+              .maybeSingle();
+            
+            return {
+              ...custom,
+              game_templates: {
+                ...custom.game_templates,
+                profiles: profile || undefined
+              }
+            };
+          }
+          return custom;
+        })
+      );
 
       if (error) throw error;
 
@@ -85,7 +116,7 @@ export default function BrandDashboard() {
       }
 
       // Merge profile data with customizations
-      const enrichedData = data?.map(custom => ({
+      const enrichedData = enrichedCustomizations.map(custom => ({
         ...custom,
         brand_profile: profileData
       }));
@@ -349,6 +380,11 @@ export default function BrandDashboard() {
                 <h3 className="font-semibold text-white mb-2">
                   {custom.game_templates?.name || 'Course-Generated Game'}
                 </h3>
+                {custom.game_templates?.profiles?.full_name && (
+                  <p className="text-xs text-neon-purple mb-2">
+                    by {custom.game_templates.profiles.full_name}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 mb-2 line-clamp-2">
                   {custom.customization_prompt || 'No customization prompt'}
                 </p>
