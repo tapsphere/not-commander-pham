@@ -110,10 +110,11 @@ Extract the following information and return ONLY JSON (no markdown):
 }
 
 IMPORTANT FOR INDUSTRY:
-- Look for clues about the business context, sector, or field where this training applies
-- Common industries: Healthcare, Technology, Finance, Education, Manufacturing, Retail, Hospitality, etc.
-- If the course mentions specific job roles, use those to infer the industry
-- If no specific industry is mentioned, infer from the content and examples used
+- First check if this is educational/training content itself - if so, use "Education"
+- Otherwise look for the TARGET INDUSTRY where this training will be applied
+- Common industries: Healthcare, Technology, Finance, Education, Manufacturing, Retail, Hospitality, Government, Non-profit, etc.
+- Look for explicit mentions of sectors, organizations, or workplace contexts
+- If the course is about general professional skills without specific industry context, use "Education"
 - ALWAYS provide an industry - make your best inference
 
 IMPORTANT FOR ASSESSMENT METHODS:
