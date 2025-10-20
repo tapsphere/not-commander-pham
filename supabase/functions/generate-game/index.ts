@@ -1033,6 +1033,117 @@ CRITICAL TECHNICAL REQUIREMENTS:
 8. Use the provided colors for ALL UI elements from start to finish
 9. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
 
+⚠️ CRITICAL TEXT CONTRAST & COLOR CHANGE RULES (NON-NEGOTIABLE):
+═══════════════════════════════════════════════════════════════════════════════
+
+🎨 IF YOU IMPLEMENT COLOR SHUFFLE OR ANY DYNAMIC COLOR CHANGES:
+
+**PROBLEM TO PREVENT:** When background colors change, text can become invisible if text color 
+matches or is too similar to the new background. This MUST be prevented at all costs.
+
+**MANDATORY IMPLEMENTATION:**
+
+1. LUMINANCE CALCULATION FUNCTION (Include in your JavaScript):
+\`\`\`javascript
+// Calculate relative luminance of a color (0 = darkest, 1 = brightest)
+function getLuminance(hexColor) {
+  // Remove # if present
+  hexColor = hexColor.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hexColor.substr(0, 2), 16) / 255;
+  const g = parseInt(hexColor.substr(2, 2), 16) / 255;
+  const b = parseInt(hexColor.substr(4, 2), 16) / 255;
+  
+  // Apply gamma correction
+  const [rs, gs, bs] = [r, g, b].map(c => 
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  );
+  
+  // Calculate luminance
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+// Get contrasting text color for any background
+function getContrastingTextColor(bgColor) {
+  const luminance = getLuminance(bgColor);
+  // Use white text on dark backgrounds, dark text on light backgrounds
+  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+}
+\`\`\`
+
+2. APPLY CONTRAST TO ALL TEXT WHEN COLORS CHANGE:
+\`\`\`javascript
+function applyColorChanges(newBgColor, newPrimaryColor, newSecondaryColor) {
+  // Update background
+  document.body.style.backgroundColor = newBgColor;
+  
+  // CRITICAL: Update ALL text colors based on new background
+  const textColor = getContrastingTextColor(newBgColor);
+  
+  // Apply to all text elements
+  document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, span, li, label').forEach(el => {
+    // Only update if element doesn't have explicit color styling for a reason
+    if (!el.classList.contains('keep-original-color')) {
+      el.style.color = textColor;
+    }
+  });
+  
+  // Update card backgrounds if they exist
+  document.querySelectorAll('.card, .option, .choice').forEach(card => {
+    card.style.backgroundColor = newPrimaryColor;
+    card.style.color = getContrastingTextColor(newPrimaryColor);
+  });
+}
+\`\`\`
+
+3. IF IMPLEMENTING A SHUFFLE FEATURE:
+\`\`\`javascript
+function shuffleColors() {
+  const colors = ['${primaryColor}', '${secondaryColor}', '${accentColor || textColor}', '${backgroundColor || '#F5EDD3'}'];
+  const shuffled = colors.sort(() => Math.random() - 0.5);
+  
+  const newBg = shuffled[0];
+  const newPrimary = shuffled[1];
+  const newSecondary = shuffled[2];
+  
+  // Apply with proper contrast
+  applyColorChanges(newBg, newPrimary, newSecondary);
+  
+  // Show feedback
+  console.log('Colors shuffled! Text contrast automatically maintained.');
+}
+\`\`\`
+
+4. MANDATORY CSS FOR TEXT ELEMENTS:
+\`\`\`css
+/* Ensure text remains readable during transitions */
+h1, h2, h3, h4, h5, h6, p, div, span, li, label {
+  transition: color 0.3s ease;
+}
+
+/* Never let text be transparent or invisible */
+* {
+  color: inherit;
+}
+
+body {
+  transition: background-color 0.3s ease;
+}
+\`\`\`
+
+**TESTING CHECKLIST:**
+✅ Can you read ALL text after shuffling colors?
+✅ Is there sufficient contrast (WCAG AA: 4.5:1 minimum for body text)?
+✅ Does text color update automatically when background changes?
+✅ Are headings, body text, AND button text all readable?
+
+**DO NOT:**
+❌ Change background without updating text colors
+❌ Use the same color for text and background
+❌ Assume text will be readable - always calculate contrast
+❌ Forget to update text in cards, options, and interactive elements
+
 ⚠️ MANDATORY MOBILE-FIRST REQUIREMENTS (NON-NEGOTIABLE):
 ═══════════════════════════════════════════════════════════════
 
