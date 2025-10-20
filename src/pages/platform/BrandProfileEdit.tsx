@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Building2, Upload, User } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
+import { DesignPaletteEditor } from '@/components/platform/DesignPaletteEditor';
 
 export default function BrandProfileEdit() {
   const navigate = useNavigate();
@@ -24,6 +25,15 @@ export default function BrandProfileEdit() {
   const [companyLogoUrl, setCompanyLogoUrl] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'brand' | 'creator' | null>(null);
+  const [designPalette, setDesignPalette] = useState({
+    primary: '#C8DBDB',
+    secondary: '#6C8FA4',
+    accent: '#2D5556',
+    background: '#F5EDD3',
+    highlight: '#F0C7A0',
+    text: '#2D5556',
+    font: 'Inter, sans-serif'
+  });
   
   // Image crop states
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -57,7 +67,7 @@ export default function BrandProfileEdit() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url')
+        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette')
         .eq('user_id', user.id)
         .single();
 
@@ -70,6 +80,11 @@ export default function BrandProfileEdit() {
         setCompanyName(data.company_name || '');
         setCompanyDescription(data.company_description || '');
         setCompanyLogoUrl(data.company_logo_url || '');
+        
+        // Load design palette if exists
+        if (data.design_palette) {
+          setDesignPalette(data.design_palette as any);
+        }
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -186,6 +201,7 @@ export default function BrandProfileEdit() {
         updates.full_name = fullName;
         updates.bio = bio;
         updates.avatar_url = avatarUrl;
+        updates.design_palette = designPalette;
       } else {
         updates.company_name = companyName;
         updates.company_description = companyDescription;
@@ -308,6 +324,18 @@ export default function BrandProfileEdit() {
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   className="bg-gray-800 border-gray-700 text-white min-h-[120px]"
+                />
+              </div>
+
+              {/* Design Palette Settings */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Default Game Design</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  Set your default colors and font. These will be used for all your games unless you override them per game.
+                </p>
+                <DesignPaletteEditor
+                  palette={designPalette}
+                  onChange={setDesignPalette}
                 />
               </div>
             </>

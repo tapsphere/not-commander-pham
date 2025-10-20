@@ -197,7 +197,7 @@ export default function CreatorDashboard() {
       // Open custom game in new tab
       window.open(template.custom_game_url, '_blank');
     } else {
-      // For AI generated, get creator's design palette and generate preview
+      // For AI generated, get design settings (per-game or profile default) and generate preview
       try {
         toast.info('Generating game preview...');
         
@@ -207,23 +207,31 @@ export default function CreatorDashboard() {
           return;
         }
 
-        // Fetch creator's design palette
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('design_palette')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        const palette = profile?.design_palette as any;
-        const designPalette = palette || {
-          primary: '#C8DBDB',
-          secondary: '#6C8FA4',
-          accent: '#2D5556',
-          background: '#F5EDD3',
-          highlight: '#F0C7A0',
-          text: '#2D5556',
-          font: 'Inter, sans-serif'
-        };
+        // First check if this game has custom design settings
+        let designPalette: any = null;
+        if ((template as any).design_settings) {
+          designPalette = (template as any).design_settings;
+          console.log('Using per-game design settings');
+        } else {
+          // Fall back to creator's default palette
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('design_palette')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          const palette = profile?.design_palette as any;
+          designPalette = palette || {
+            primary: '#C8DBDB',
+            secondary: '#6C8FA4',
+            accent: '#2D5556',
+            background: '#F5EDD3',
+            highlight: '#F0C7A0',
+            text: '#2D5556',
+            font: 'Inter, sans-serif'
+          };
+          console.log('Using creator default design settings');
+        }
         
         // Fetch sub-competency data
         const subCompIds = template.selected_sub_competencies || [];
@@ -242,6 +250,7 @@ export default function CreatorDashboard() {
             highlightColor: designPalette.highlight,
             textColor: designPalette.text,
             fontFamily: designPalette.font,
+            avatarUrl: designPalette.avatar || null,
             logoUrl: null,
             customizationId: null,
             previewMode: true,

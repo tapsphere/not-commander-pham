@@ -243,6 +243,7 @@ export type Database = {
           creator_id: string | null
           custom_game_url: string | null
           description: string | null
+          design_settings: Json | null
           game_config: Json
           id: string
           is_published: boolean | null
@@ -260,6 +261,7 @@ export type Database = {
           creator_id?: string | null
           custom_game_url?: string | null
           description?: string | null
+          design_settings?: Json | null
           game_config?: Json
           id?: string
           is_published?: boolean | null
@@ -277,6 +279,7 @@ export type Database = {
           creator_id?: string | null
           custom_game_url?: string | null
           description?: string | null
+          design_settings?: Json | null
           game_config?: Json
           id?: string
           is_published?: boolean | null
