@@ -183,19 +183,27 @@ export default function CreatorDashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this template?')) return;
+    if (!confirm('Delete this template? This cannot be undone.')) return;
 
     try {
+      console.log('Attempting to delete template:', id);
+      
       const { error } = await supabase
         .from('game_templates')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
-      toast.success('Template deleted');
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+      
+      console.log('Template deleted successfully');
+      toast.success('Template deleted successfully');
       loadTemplates();
     } catch (error: any) {
-      toast.error('Failed to delete template');
+      console.error('Delete failed:', error);
+      toast.error(error.message || 'Failed to delete template');
     }
   };
 
