@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Palette, RefreshCw } from 'lucide-react';
+import { Shuffle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ColorRemixPanelProps {
@@ -12,36 +11,38 @@ interface ColorRemixPanelProps {
   onRemix: (colors: { primary: string; secondary: string; accent: string; background: string }) => void;
 }
 
-const colorVariations = [
+// Define color arrangements - using the SAME 4 colors in different positions
+const colorArrangements = [
   {
-    name: "Original",
-    description: "Your custom colors",
-    variant: 0
+    name: "Original Layout",
+    description: "Your default setup",
+    // [Primary, Secondary, Accent, Background]
+    mapping: [0, 1, 2, 3] 
   },
   {
-    name: "High Contrast",
-    description: "Maximum visibility",
-    variant: 1
+    name: "Bold Buttons",
+    description: "Accent on buttons",
+    mapping: [2, 0, 1, 3] // Accent -> Primary (buttons), Primary -> Secondary, Secondary -> Accent
   },
   {
-    name: "Pastel Soft",
-    description: "Gentle tones",
-    variant: 2
+    name: "Dark Background",
+    description: "Primary as background",
+    mapping: [1, 2, 0, 0] // Secondary -> Primary, Accent -> Secondary, Primary -> Accent, Primary -> Background
   },
   {
-    name: "Bold & Vibrant",
-    description: "Eye-catching",
-    variant: 3
+    name: "Bright Pop",
+    description: "Secondary on buttons",
+    mapping: [1, 0, 2, 3] // Secondary -> Primary (buttons), Primary -> Secondary
   },
   {
-    name: "Dark Mode",
-    description: "Night-friendly",
-    variant: 4
+    name: "Inverted",
+    description: "Swap main colors",
+    mapping: [2, 3, 0, 1] // Accent -> Primary, Background -> Secondary, Primary -> Accent, Secondary -> Background
   },
   {
-    name: "Light Mode",
-    description: "Bright & clean",
-    variant: 5
+    name: "Accent Focus",
+    description: "Accent everywhere",
+    mapping: [2, 2, 1, 3] // Accent as both Primary and Secondary
   }
 ];
 
@@ -52,173 +53,103 @@ export const ColorRemixPanel = ({
   backgroundColor,
   onRemix
 }: ColorRemixPanelProps) => {
-  const [selectedVariation, setSelectedVariation] = useState(0);
+  const [selectedArrangement, setSelectedArrangement] = useState(0);
 
-  const generateVariation = (variant: number) => {
-    // Original colors
-    if (variant === 0) {
-      return {
-        primary: primaryColor,
-        secondary: secondaryColor,
-        accent: accentColor,
-        background: backgroundColor
-      };
-    }
+  // All 4 brand colors in an array
+  const brandColors = [primaryColor, secondaryColor, accentColor, backgroundColor];
 
-    // High Contrast
-    if (variant === 1) {
-      return {
-        primary: primaryColor,
-        secondary: accentColor,
-        accent: secondaryColor,
-        background: '#000000'
-      };
-    }
-
-    // Pastel Soft
-    if (variant === 2) {
-      return {
-        primary: lightenColor(primaryColor, 40),
-        secondary: lightenColor(secondaryColor, 40),
-        accent: lightenColor(accentColor, 40),
-        background: '#F5F5F5'
-      };
-    }
-
-    // Bold & Vibrant
-    if (variant === 3) {
-      return {
-        primary: saturateColor(primaryColor),
-        secondary: saturateColor(secondaryColor),
-        accent: saturateColor(accentColor),
-        background: darkenColor(backgroundColor, 20)
-      };
-    }
-
-    // Dark Mode
-    if (variant === 4) {
-      return {
-        primary: primaryColor,
-        secondary: secondaryColor,
-        accent: accentColor,
-        background: '#0A0A0A'
-      };
-    }
-
-    // Light Mode
-    if (variant === 5) {
-      return {
-        primary: darkenColor(primaryColor, 10),
-        secondary: darkenColor(secondaryColor, 10),
-        accent: darkenColor(accentColor, 10),
-        background: '#FFFFFF'
-      };
-    }
-
-    return { primary: primaryColor, secondary: secondaryColor, accent: accentColor, background: backgroundColor };
+  const getArrangement = (arrangementIndex: number) => {
+    const mapping = colorArrangements[arrangementIndex].mapping;
+    return {
+      primary: brandColors[mapping[0]],      // Buttons/Main actions
+      secondary: brandColors[mapping[1]],    // Supporting elements
+      accent: brandColors[mapping[2]],       // Highlights/Warnings
+      background: brandColors[mapping[3]]    // Background
+    };
   };
 
-  const lightenColor = (hex: string, percent: number) => {
-    const num = parseInt(hex.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.min(255, (num >> 16) + amt);
-    const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
-    const B = Math.min(255, (num & 0x0000FF) + amt);
-    return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
-  };
-
-  const darkenColor = (hex: string, percent: number) => {
-    const num = parseInt(hex.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.max(0, (num >> 16) - amt);
-    const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
-    const B = Math.max(0, (num & 0x0000FF) - amt);
-    return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
-  };
-
-  const saturateColor = (hex: string) => {
-    // Simple saturation boost - increase color intensity
-    const num = parseInt(hex.replace('#', ''), 16);
-    let R = (num >> 16);
-    let G = ((num >> 8) & 0x00FF);
-    let B = (num & 0x0000FF);
-    
-    // Boost the dominant color channel
-    const max = Math.max(R, G, B);
-    if (R === max) R = Math.min(255, R + 30);
-    else if (G === max) G = Math.min(255, G + 30);
-    else if (B === max) B = Math.min(255, B + 30);
-    
-    return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
-  };
-
-  const handleApplyVariation = (variant: number) => {
-    setSelectedVariation(variant);
-    const colors = generateVariation(variant);
+  const handleApplyArrangement = (arrangementIndex: number) => {
+    setSelectedArrangement(arrangementIndex);
+    const colors = getArrangement(arrangementIndex);
     onRemix(colors);
-    toast.success(`Applied ${colorVariations[variant].name} variation`);
+    toast.success(`Applied ${colorArrangements[arrangementIndex].name}`);
   };
 
   return (
     <Card className="bg-gray-800 border-gray-700 p-6">
       <div className="flex items-start gap-4 mb-6">
         <div className="p-3 bg-purple-500/10 rounded-lg">
-          <Palette className="w-6 h-6 text-purple-400" />
+          <Shuffle className="w-6 h-6 text-purple-400" />
         </div>
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-white mb-2">Brand Color Remix</h3>
+          <h3 className="text-xl font-semibold text-white mb-2">Color Remix</h3>
           <p className="text-gray-400 text-sm">
-            Try different color variations to see what works best for your game
+            See your brand colors in different arrangements - same colors, different layouts
           </p>
         </div>
       </div>
 
-      {/* Current Color Preview */}
+      {/* Your Brand Colors */}
+      <div className="mb-6 p-4 bg-gray-900 rounded-lg">
+        <p className="text-sm text-gray-400 mb-3">Your Brand Colors:</p>
+        <div className="grid grid-cols-4 gap-2">
+          {brandColors.map((color, idx) => (
+            <div key={idx} className="text-center">
+              <div
+                className="w-full h-12 rounded-lg border-2 border-gray-600"
+                style={{ backgroundColor: color }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Current Layout Preview */}
       <div className="mb-6">
-        <p className="text-sm text-gray-400 mb-3">Current Colors:</p>
+        <p className="text-sm text-gray-400 mb-3">Current Layout:</p>
         <div className="grid grid-cols-4 gap-3">
           <div className="text-center">
             <div
               className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: generateVariation(selectedVariation).primary }}
+              style={{ backgroundColor: getArrangement(selectedArrangement).primary }}
             />
-            <p className="text-xs text-gray-500">Primary</p>
+            <p className="text-xs text-gray-500">Buttons</p>
           </div>
           <div className="text-center">
             <div
               className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: generateVariation(selectedVariation).secondary }}
+              style={{ backgroundColor: getArrangement(selectedArrangement).secondary }}
             />
-            <p className="text-xs text-gray-500">Secondary</p>
+            <p className="text-xs text-gray-500">Text</p>
           </div>
           <div className="text-center">
             <div
               className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: generateVariation(selectedVariation).accent }}
+              style={{ backgroundColor: getArrangement(selectedArrangement).accent }}
             />
-            <p className="text-xs text-gray-500">Accent</p>
+            <p className="text-xs text-gray-500">Accents</p>
           </div>
           <div className="text-center">
             <div
               className="w-full h-16 rounded-lg border-2 border-gray-600 mb-2"
-              style={{ backgroundColor: generateVariation(selectedVariation).background }}
+              style={{ backgroundColor: getArrangement(selectedArrangement).background }}
             />
             <p className="text-xs text-gray-500">Background</p>
           </div>
         </div>
       </div>
 
-      {/* Variation Options */}
+      {/* Layout Options */}
       <div className="space-y-2">
-        <p className="text-sm text-gray-400 mb-3">Choose a variation:</p>
-        {colorVariations.map((variation) => {
-          const colors = generateVariation(variation.variant);
-          const isSelected = selectedVariation === variation.variant;
+        <p className="text-sm text-gray-400 mb-3">Try different layouts:</p>
+        {colorArrangements.map((arrangement, idx) => {
+          const colors = getArrangement(idx);
+          const isSelected = selectedArrangement === idx;
           
           return (
             <button
-              key={variation.variant}
-              onClick={() => handleApplyVariation(variation.variant)}
+              key={idx}
+              onClick={() => handleApplyArrangement(idx)}
               className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
                 isSelected 
                   ? 'border-neon-green bg-neon-green/10' 
@@ -228,27 +159,39 @@ export const ColorRemixPanel = ({
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <p className={`font-medium ${isSelected ? 'text-neon-green' : 'text-white'}`}>
-                    {variation.name}
+                    {arrangement.name}
                   </p>
-                  <p className="text-xs text-gray-500">{variation.description}</p>
+                  <p className="text-xs text-gray-500">{arrangement.description}</p>
                 </div>
                 <div className="flex gap-1 ml-4">
-                  <div
-                    className="w-8 h-8 rounded border border-gray-600"
-                    style={{ backgroundColor: colors.primary }}
-                  />
-                  <div
-                    className="w-8 h-8 rounded border border-gray-600"
-                    style={{ backgroundColor: colors.secondary }}
-                  />
-                  <div
-                    className="w-8 h-8 rounded border border-gray-600"
-                    style={{ backgroundColor: colors.accent }}
-                  />
-                  <div
-                    className="w-8 h-8 rounded border border-gray-600"
-                    style={{ backgroundColor: colors.background }}
-                  />
+                  <div className="text-center">
+                    <div
+                      className="w-8 h-8 rounded border border-gray-600"
+                      style={{ backgroundColor: colors.primary }}
+                      title="Buttons"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <div
+                      className="w-8 h-8 rounded border border-gray-600"
+                      style={{ backgroundColor: colors.secondary }}
+                      title="Text"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <div
+                      className="w-8 h-8 rounded border border-gray-600"
+                      style={{ backgroundColor: colors.accent }}
+                      title="Accents"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <div
+                      className="w-8 h-8 rounded border border-gray-600"
+                      style={{ backgroundColor: colors.background }}
+                      title="Background"
+                    />
+                  </div>
                 </div>
               </div>
             </button>
@@ -258,8 +201,8 @@ export const ColorRemixPanel = ({
 
       <div className="mt-6 pt-6 border-t border-gray-700">
         <p className="text-xs text-gray-500">
-          <RefreshCw className="w-3 h-3 inline mr-1" />
-          These variations are previews only. To permanently change colors, edit them in the Brand Customization settings.
+          <Shuffle className="w-3 h-3 inline mr-1" />
+          Click any layout to instantly see your colors rearranged. These are preview-only changes.
         </p>
       </div>
     </Card>
