@@ -186,12 +186,34 @@ ${animType === 'gif' ? `
 `}
 ` : ''}
 
+🎨 CRITICAL - TRANSPARENCY PRESERVATION:
+   ✓ ALWAYS use transparent backgrounds for mascot images
+   ✓ CSS: background: transparent; (never use background-color)
+   ✓ CSS: mix-blend-mode: normal; (preserve image transparency)
+   ✓ CSS: backdrop-filter: none; (no background blur/tint)
+   ✓ NO black or colored boxes behind the mascot
+   ✓ For containers: background: transparent; or use background: none;
+
 The avatar/mascot is the STAR of the game and should be prominently featured:
 
-1. PLACEMENT & SIZE:
-   - Center the avatar prominently on the main game screen (not just a corner icon)
-   - Make it large enough to be the visual focal point (150-250px depending on screen)
-   - Position it where players naturally look (center or upper-center of gameplay area)
+1. PLACEMENT & SIZE - CONTEXT-SPECIFIC (CRITICAL):
+   
+   🏠 INTRO/WELCOME SCREEN (Scene 0) ONLY:
+   - Center the avatar prominently and make it large (200-300px)
+   - Position: center of screen, above the title
+   - This is the mascot's spotlight moment
+   
+   🎮 GAMEPLAY SCREENS (Scene 1, 2, 3, etc.) - NEVER CENTERED:
+   - Position avatar in TOP-LEFT or TOP-RIGHT corner (80-120px size)
+   - CSS: position: absolute; top: 10px; right: 10px; (or left: 10px;)
+   - Avatar watches from the sidelines, NOT blocking gameplay
+   - NEVER center the avatar during gameplay scenes
+   - Keep it small and out of the way of interactive elements
+   
+   🏆 RESULTS/SCORING SCREEN:
+   - Position avatar at the top, centered, medium size (150-200px)
+   - Place ABOVE the score display
+   - Mascot reacts to player's performance
 
 2. ANIMATIONS & REACTIONS${isAnimated ? ' (LAYER ON TOP OF BASE ANIMATION)' : ''}:
    ${isAnimated ? `- The mascot already has built-in animation from the ${animType}
@@ -205,21 +227,63 @@ The avatar/mascot is the STAR of the game and should be prominently featured:
 
 3. INTEGRATION:
    - Make the avatar react to player actions in real-time
-   - Position score counters or progress bars NEAR the avatar (not replacing it)
+   - During gameplay, avatar is in corner watching (NOT blocking interaction)
    - Use the avatar as the emotional guide through the game
-   - On results screen, show avatar celebrating or encouraging based on score
+   - On results screen, avatar is prominent and celebrates/encourages based on score
 
 4. ${animType === 'gif' ? 'HTML IMPLEMENTATION' : animType === 'lottie' ? 'LOTTIE IMPLEMENTATION' : 'CSS IMPLEMENTATION'}:
    \`\`\`${animType === 'lottie' ? 'html' : 'css'}
-   ${animType === 'gif' ? `.game-avatar {
+   ${animType === 'gif' ? `/* INTRO SCREEN - Centered, Large */
+   #introScreen .game-avatar {
      position: relative;
      margin: 20px auto;
+     background: transparent !important;
    }
    
-   .game-avatar img {
-     width: 200px;
-     height: 200px;
+   #introScreen .game-avatar img {
+     width: 250px;
+     height: 250px;
      object-fit: contain;
+     background: transparent !important;
+     mix-blend-mode: normal;
+   }
+   
+   /* GAMEPLAY SCREENS - Corner, Small */
+   .gameplay-screen .game-avatar {
+     position: absolute;
+     top: 10px;
+     right: 10px;
+     width: 80px;
+     height: 80px;
+     background: transparent !important;
+     z-index: 10;
+   }
+   
+   .gameplay-screen .game-avatar img {
+     width: 100%;
+     height: 100%;
+     object-fit: contain;
+     background: transparent !important;
+     mix-blend-mode: normal;
+   }
+   
+   /* RESULTS SCREEN - Top Center, Medium */
+   #resultsScreen .game-avatar,
+   #scoreScreen .game-avatar {
+     position: relative;
+     margin: 20px auto;
+     width: 180px;
+     height: 180px;
+     background: transparent !important;
+   }
+   
+   #resultsScreen .game-avatar img,
+   #scoreScreen .game-avatar img {
+     width: 100%;
+     height: 100%;
+     object-fit: contain;
+     background: transparent !important;
+     mix-blend-mode: normal;
    }
    
    .avatar-celebrate {
@@ -229,35 +293,120 @@ The avatar/mascot is the STAR of the game and should be prominently featured:
    @keyframes celebrate-scale {
      0%, 100% { transform: scale(1); }
      50% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
-   }` : animType === 'lottie' ? `<div class="game-avatar">
-  <lottie-player 
-    id="mascot" 
-    src="${avatarUrl}" 
-    background="transparent" 
-    speed="1" 
-    style="width: 200px; height: 200px;" 
-    loop 
-    autoplay>
-  </lottie-player>
+   }` : animType === 'lottie' ? `<!-- INTRO SCREEN -->
+<div id="introScreen">
+  <div class="game-avatar" style="margin: 20px auto; background: transparent;">
+    <lottie-player 
+      id="mascot-intro" 
+      src="${avatarUrl}" 
+      background="transparent" 
+      speed="1" 
+      style="width: 250px; height: 250px; background: transparent;" 
+      loop 
+      autoplay>
+    </lottie-player>
+  </div>
+</div>
+
+<!-- GAMEPLAY SCREENS -->
+<div class="gameplay-screen">
+  <div class="game-avatar" style="position: absolute; top: 10px; right: 10px; width: 80px; height: 80px; background: transparent;">
+    <lottie-player 
+      id="mascot-game" 
+      src="${avatarUrl}" 
+      background="transparent" 
+      speed="1" 
+      style="width: 100%; height: 100%; background: transparent;" 
+      loop 
+      autoplay>
+    </lottie-player>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="resultsScreen">
+  <div class="game-avatar" style="margin: 20px auto; width: 180px; height: 180px; background: transparent;">
+    <lottie-player 
+      id="mascot-results" 
+      src="${avatarUrl}" 
+      background="transparent" 
+      speed="1" 
+      style="width: 100%; height: 100%; background: transparent;" 
+      loop 
+      autoplay>
+    </lottie-player>
+  </div>
 </div>
 
 <script>
 // Trigger celebration by changing speed or adding effects
 function celebrateMascot() {
-  const mascot = document.getElementById('mascot');
-  mascot.style.transform = 'scale(1.2)';
-  mascot.style.filter = 'drop-shadow(0 0 20px gold)';
-  setTimeout(() => {
-    mascot.style.transform = 'scale(1)';
-    mascot.style.filter = 'none';
-  }, 600);
+  const mascots = document.querySelectorAll('lottie-player');
+  mascots.forEach(mascot => {
+    mascot.style.transform = 'scale(1.2)';
+    mascot.style.filter = 'drop-shadow(0 0 20px gold)';
+    setTimeout(() => {
+      mascot.style.transform = 'scale(1)';
+      mascot.style.filter = 'none';
+    }, 600);
+  });
 }
-</script>` : `.game-avatar {
+</script>` : `/* INTRO SCREEN - Centered, Large */
+   #introScreen .game-avatar {
      position: relative;
-     width: 200px;
-     height: 200px;
+     width: 250px;
+     height: 250px;
      margin: 20px auto;
+     background: transparent !important;
      animation: idle-float 3s ease-in-out infinite;
+   }
+   
+   #introScreen .game-avatar img {
+     width: 100%;
+     height: 100%;
+     object-fit: contain;
+     background: transparent !important;
+     mix-blend-mode: normal;
+   }
+   
+   /* GAMEPLAY SCREENS - Corner, Small */
+   .gameplay-screen .game-avatar {
+     position: absolute;
+     top: 10px;
+     right: 10px;
+     width: 80px;
+     height: 80px;
+     background: transparent !important;
+     animation: idle-float 3s ease-in-out infinite;
+     z-index: 10;
+   }
+   
+   .gameplay-screen .game-avatar img {
+     width: 100%;
+     height: 100%;
+     object-fit: contain;
+     background: transparent !important;
+     mix-blend-mode: normal;
+   }
+   
+   /* RESULTS SCREEN - Top Center, Medium */
+   #resultsScreen .game-avatar,
+   #scoreScreen .game-avatar {
+     position: relative;
+     width: 180px;
+     height: 180px;
+     margin: 20px auto;
+     background: transparent !important;
+     animation: idle-float 3s ease-in-out infinite;
+   }
+   
+   #resultsScreen .game-avatar img,
+   #scoreScreen .game-avatar img {
+     width: 100%;
+     height: 100%;
+     object-fit: contain;
+     background: transparent !important;
+     mix-blend-mode: normal;
    }
    
    @keyframes idle-float {
@@ -897,52 +1046,119 @@ h1, h2, h3, h4, h5, h6, p, div, span, button, label {
   overflow: hidden;
 }
 
-/* Results/Score page text sizing */
+/* ═══════════════════════════════════════════════════════════════
+   RESULTS/SCORING SCREEN - GLOBAL UX/UI FIX (CRITICAL)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Main results container - ALWAYS fills screen properly */
 .results-screen, .score-screen, #resultsScreen, #scoreScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   padding: 20px;
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  background: ${backgroundColor || '#F5EDD3'};
+  box-sizing: border-box;
+  gap: 16px;
 }
 
-/* Responsive text sizing for results */
-.results-screen h1, .score-screen h1 {
-  font-size: clamp(24px, 6vw, 48px);
-  margin: 10px 0;
+/* Avatar positioning on results - ABOVE score */
+.results-screen .game-avatar, 
+.score-screen .game-avatar,
+#resultsScreen .game-avatar,
+#scoreScreen .game-avatar {
+  order: 1;
+  flex-shrink: 0;
+  margin: 10px auto;
+  background: transparent !important;
+}
+
+/* Game title on results */
+.results-screen h1, .score-screen h1,
+#resultsScreen h1, #scoreScreen h1 {
+  order: 2;
+  font-size: clamp(22px, 5vw, 40px);
+  margin: 12px 0;
   text-align: center;
   white-space: normal;
-}
-
-.results-screen h2, .score-screen h2 {
-  font-size: clamp(20px, 5vw, 36px);
-  margin: 8px 0;
-  text-align: center;
-}
-
-.results-screen p, .score-screen p {
-  font-size: clamp(14px, 3.5vw, 18px);
-  margin: 6px 0;
-  text-align: center;
   max-width: 90%;
+  line-height: 1.2;
 }
 
-/* Badge/Status text */
-.badge, .status, .proficiency {
-  font-size: clamp(18px, 4vw, 32px);
-  padding: 8px 16px;
-  white-space: normal;
-  max-width: 90%;
-  text-align: center;
-}
-
-/* Score/Percentage displays */
-.score-display, .percentage {
-  font-size: clamp(32px, 8vw, 64px);
+/* Score display - LARGE and clear */
+.results-screen .score-display, 
+.score-screen .score-display,
+#resultsScreen .score-display,
+#scoreScreen .score-display,
+.score-text, .percentage {
+  order: 3;
+  font-size: clamp(40px, 10vw, 72px);
   font-weight: bold;
-  white-space: nowrap;
+  margin: 16px 0;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Proficiency badge/level */
+.results-screen .badge, 
+.score-screen .badge,
+#resultsScreen .badge,
+#scoreScreen .badge,
+.badge, .status, .proficiency, .level-badge {
+  order: 4;
+  font-size: clamp(18px, 4.5vw, 32px);
+  padding: 12px 24px;
+  border-radius: 12px;
+  white-space: normal;
+  max-width: 85%;
+  text-align: center;
+  line-height: 1.3;
+  margin: 8px 0;
+}
+
+/* Metrics breakdown section */
+.results-screen .metrics, 
+.score-screen .metrics,
+#resultsScreen .metrics,
+#scoreScreen .metrics,
+.metrics-container {
+  order: 5;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+/* Individual metric items */
+.results-screen p, .score-screen p,
+#resultsScreen p, #scoreScreen p,
+.metric-item {
+  font-size: clamp(14px, 3.5vw, 18px);
+  margin: 4px 0;
+  text-align: center;
+  max-width: 100%;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* Action buttons on results */
+.results-screen button, 
+.score-screen button,
+#resultsScreen button,
+#scoreScreen button {
+  order: 6;
+  margin: 8px 0;
+  width: 90%;
+  max-width: 300px;
 }
 
 /* Button text wrapping - CRITICAL for long labels */
