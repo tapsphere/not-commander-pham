@@ -282,6 +282,23 @@ export default function Play() {
                     style={{ height: '812px' }} // iPhone 13 height
                     title="Game Validator"
                     sandbox="allow-scripts allow-same-origin allow-forms"
+                    onLoad={(e) => {
+                      // Force remove loading screen after iframe loads
+                      const iframe = e.currentTarget;
+                      setTimeout(() => {
+                        try {
+                          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                          if (iframeDoc) {
+                            const loadingScreen = iframeDoc.getElementById('loading-screen');
+                            if (loadingScreen) {
+                              loadingScreen.style.display = 'none';
+                            }
+                          }
+                        } catch (err) {
+                          console.log('Could not access iframe content:', err);
+                        }
+                      }, 2000); // Wait 2 seconds for game to initialize
+                    }}
                   />
                 )}
               </div>
