@@ -160,8 +160,8 @@ export default function BrandProfileEdit() {
 
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
-      const fileName = `${userId}-${cropType}-${Date.now()}.jpg`;
-      const filePath = `${cropType}s/${fileName}`;
+      const fileName = `${cropType}-${Date.now()}.jpg`;
+      const filePath = `${userId}/${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
