@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
@@ -22,6 +22,7 @@ type Template = {
   custom_game_url?: string;
   selected_sub_competencies?: string[];
   creator_name?: string;
+  creator_avatar?: string;
 };
 
 type TestResult = {
@@ -93,7 +94,7 @@ export default function CreatorDashboard() {
       // Fetch user's profile
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, avatar_url')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -108,7 +109,8 @@ export default function CreatorDashboard() {
       // Add creator profile to each template
       const enrichedTemplates = data?.map(template => ({
         ...template,
-        creator_name: profile?.full_name || 'You'
+        creator_name: profile?.full_name || 'You',
+        creator_avatar: profile?.avatar_url
       }));
       
       setTemplates(enrichedTemplates || []);
@@ -354,9 +356,22 @@ export default function CreatorDashboard() {
                       <div>
                         <h3 className="font-semibold text-lg text-white">{template.name}</h3>
                         {template.creator_name && (
-                          <p className="text-xs text-neon-purple mt-1">
-                            by {template.creator_name}
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                              {template.creator_avatar ? (
+                                <img
+                                  src={template.creator_avatar}
+                                  alt={template.creator_name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <User className="w-3 h-3 text-gray-500" />
+                              )}
+                            </div>
+                            <p className="text-xs text-neon-purple">
+                              by {template.creator_name}
+                            </p>
+                          </div>
                         )}
                       </div>
                       <span

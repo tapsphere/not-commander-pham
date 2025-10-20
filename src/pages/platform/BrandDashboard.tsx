@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -37,7 +37,7 @@ type Customization = {
       full_name: string;
       bio?: string;
       avatar_url?: string;
-    };
+    } | null;
   };
 };
 
@@ -86,7 +86,7 @@ export default function BrandDashboard() {
               .from('profiles')
               .select('full_name, bio, avatar_url')
               .eq('user_id', custom.game_templates.creator_id)
-              .maybeSingle();
+              .single();
             
             return {
               ...custom,
@@ -381,9 +381,22 @@ export default function BrandDashboard() {
                   {custom.game_templates?.name || 'Course-Generated Game'}
                 </h3>
                 {custom.game_templates?.profiles?.full_name && (
-                  <p className="text-xs text-neon-purple mb-2">
-                    by {custom.game_templates.profiles.full_name}
-                  </p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                      {custom.game_templates.profiles.avatar_url ? (
+                        <img
+                          src={custom.game_templates.profiles.avatar_url}
+                          alt={custom.game_templates.profiles.full_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-3 h-3 text-gray-500" />
+                      )}
+                    </div>
+                    <p className="text-xs text-neon-purple">
+                      by {custom.game_templates.profiles.full_name}
+                    </p>
+                  </div>
                 )}
                 <p className="text-xs text-gray-500 mb-2 line-clamp-2">
                   {custom.customization_prompt || 'No customization prompt'}
