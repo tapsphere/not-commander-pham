@@ -7,12 +7,15 @@ import { Loader2, AlertCircle, ArrowLeft, Edit, Share2, Eye } from 'lucide-react
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MobileViewport } from '@/components/MobileViewport';
+import { ColorRemixPanel } from '@/components/platform/ColorRemixPanel';
 
 type ValidatorData = {
   id: string;
   customization_prompt: string;
   primary_color: string;
   secondary_color: string;
+  accent_color: string;
+  background_color: string;
   logo_url: string | null;
   generated_game_html: string | null;
   brand_id: string;
@@ -33,6 +36,12 @@ export default function Play() {
   const [validator, setValidator] = useState<ValidatorData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [remixedColors, setRemixedColors] = useState<{
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  } | null>(null);
   const isPreviewMode = !!customizationId;
 
   useEffect(() => {
@@ -50,6 +59,8 @@ export default function Play() {
           customization_prompt,
           primary_color,
           secondary_color,
+          accent_color,
+          background_color,
           logo_url,
           generated_game_html,
           brand_id,
@@ -131,6 +142,20 @@ export default function Play() {
     toast.success('Link copied to clipboard!');
   };
 
+  const handleColorRemix = (colors: { primary: string; secondary: string; accent: string; background: string }) => {
+    setRemixedColors(colors);
+  };
+
+  const getCurrentColors = () => {
+    if (remixedColors) return remixedColors;
+    return {
+      primary: validator?.primary_color || '#00FF00',
+      secondary: validator?.secondary_color || '#9945FF',
+      accent: validator?.accent_color || '#FF5722',
+      background: validator?.background_color || '#1A1A1A'
+    };
+  };
+
   return (
     <ScrollArea className="h-screen">
       <div className="min-h-screen bg-black text-white">
@@ -164,7 +189,8 @@ export default function Play() {
               <div className="w-full" style={{ minHeight: 'calc(100vh - 4rem)' }}>
                 {validator.game_templates.template_type === 'custom_upload' && validator.game_templates.custom_game_url ? (
                   <iframe
-                    src={`${validator.game_templates.custom_game_url}?primaryColor=${encodeURIComponent(validator.primary_color)}&secondaryColor=${encodeURIComponent(validator.secondary_color)}&logoUrl=${encodeURIComponent(validator.logo_url || '')}`}
+                    key={JSON.stringify(remixedColors)} // Force reload on color change
+                    src={`${validator.game_templates.custom_game_url}?primaryColor=${encodeURIComponent(getCurrentColors().primary)}&secondaryColor=${encodeURIComponent(getCurrentColors().secondary)}&accentColor=${encodeURIComponent(getCurrentColors().accent)}&backgroundColor=${encodeURIComponent(getCurrentColors().background)}&logoUrl=${encodeURIComponent(validator.logo_url || '')}`}
                     className="w-full border-0 rounded-lg shadow-2xl"
                     style={{ height: '812px' }} // iPhone 13 height
                     title="Custom Game Validator"
@@ -172,6 +198,7 @@ export default function Play() {
                   />
                 ) : (
                   <iframe
+                    key={JSON.stringify(remixedColors)} // Force reload on color change
                     srcDoc={validator.generated_game_html || ''}
                     className="w-full border-0 rounded-lg shadow-2xl"
                     style={{ height: '812px' }} // iPhone 13 height
@@ -181,6 +208,21 @@ export default function Play() {
                 )}
               </div>
             </MobileViewport>
+
+            {/* Color Remix Panel - Shows in preview mode */}
+            {isPreviewMode && isOwner && (
+              <div className="bg-gray-900 border-t-2 border-neon-green py-8">
+                <div className="max-w-4xl mx-auto px-4">
+                  <ColorRemixPanel
+                    primaryColor={validator.primary_color}
+                    secondaryColor={validator.secondary_color}
+                    accentColor={validator.accent_color || validator.primary_color}
+                    backgroundColor={validator.background_color || '#1A1A1A'}
+                    onRemix={handleColorRemix}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Owner Controls Section - Scrollable */}
             {isOwner && (

@@ -101,15 +101,47 @@ async function submitScore(metrics) {
     if (logoUrl) {
       logoInstructions = `
 
-BRAND LOGO INTEGRATION (REQUIRED):
-The brand's logo MUST be displayed in the game UI.
+BRAND LOGO INTEGRATION (CRITICAL - LOADING SCREEN):
+The brand's logo MUST be displayed as a pulsing loading screen that transitions into the game.
 Logo URL: ${logoUrl}
 
-Include this HTML in the game:
+IMPLEMENTATION REQUIREMENTS:
+1. Create a full-screen loading overlay with the brand logo centered
+2. Logo should pulse/animate smoothly (scale 0.95 to 1.05)
+3. Loading screen should display for 2-3 seconds
+4. Fade out the loading screen and reveal the game
+5. DO NOT show logo in corner during gameplay - only on loading screen
+
+Required HTML/CSS/JS structure:
 \`\`\`html
-<div style="position: fixed; top: 10px; right: 10px; z-index: 9999; background: white; padding: 8px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-  <img src="${logoUrl}" alt="Brand Logo" style="height: 40px; width: auto; display: block;" />
+<div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; transition: opacity 0.8s ease-out;">
+  <img 
+    id="brand-logo" 
+    src="${logoUrl}" 
+    alt="Brand Logo" 
+    style="max-width: 200px; max-height: 200px; animation: pulse 1.5s ease-in-out infinite;" 
+  />
 </div>
+
+<style>
+@keyframes pulse {
+  0%, 100% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+</style>
+
+<script>
+// Auto-hide loading screen after 2.5 seconds
+setTimeout(() => {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.style.opacity = '0';
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+    }, 800);
+  }
+}, 2500);
+</script>
 \`\`\`
 `;
     }
