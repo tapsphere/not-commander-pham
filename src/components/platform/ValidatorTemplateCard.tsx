@@ -34,6 +34,11 @@ interface GameTemplate {
   name: string;
   description: string | null;
   preview_image: string | null;
+  creator_id: string | null;
+  profiles?: {
+    full_name: string;
+    bio: string | null;
+  } | null;
 }
 
 export const ValidatorTemplateCard = ({
@@ -51,14 +56,65 @@ export const ValidatorTemplateCard = ({
 
   const loadTemplate = async () => {
     try {
-      const { data, error } = await supabase
+      // Create search keywords from validator name
+      const searchKeywords = validator.validator_name
+        .toLowerCase()
+        .replace(/\(.*?\)/g, '') // Remove parentheses content
+        .split(/[\s-]+/)
+        .filter(word => word.length > 3); // Only keep words longer than 3 chars
+
+      // First try exact match
+      let { data, error } = await supabase
         .from('game_templates')
-        .select('id, name, description, preview_image')
+        .select('id, name, description, preview_image, creator_id')
         .eq('name', validator.validator_name)
         .eq('is_published', true)
         .maybeSingle();
 
-      if (error) throw error;
+      // If no exact match, try fuzzy matching with keywords
+      if (!data && searchKeywords.length > 0) {
+        const { data: templates } = await supabase
+          .from('game_templates')
+          .select('id, name, description, preview_image, creator_id')
+          .eq('is_published', true);
+
+        // Find best match by counting keyword matches
+        if (templates && templates.length > 0) {
+          const scoredTemplates = templates.map(template => {
+            const nameLower = template.name.toLowerCase();
+            const matchScore = searchKeywords.reduce((score, keyword) => {
+              return score + (nameLower.includes(keyword) ? 1 : 0);
+            }, 0);
+            return { template, matchScore };
+          });
+
+          // Get template with highest score (if at least 1 match)
+          const bestMatch = scoredTemplates
+            .filter(t => t.matchScore > 0)
+            .sort((a, b) => b.matchScore - a.matchScore)[0];
+
+          if (bestMatch) {
+            data = bestMatch.template;
+          }
+        }
+      }
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      // If we found a template and it has a creator, fetch creator profile
+      if (data && data.creator_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, bio')
+          .eq('user_id', data.creator_id)
+          .maybeSingle();
+        
+        if (profile) {
+          setTemplate({ ...data, profiles: profile });
+          return;
+        }
+      }
+      
       setTemplate(data);
     } catch (error) {
       console.error('Failed to load template:', error);
@@ -136,6 +192,11 @@ export const ValidatorTemplateCard = ({
             <div className="flex items-start justify-between mb-2">
               <div>
                 <p className="font-semibold text-lg">{template.name}</p>
+                {template.profiles && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    by {template.profiles.full_name}
+                  </p>
+                )}
                 <span className="text-xs uppercase px-2 py-1 rounded bg-muted inline-block mt-1">
                   {validator.priority} priority
                 </span>
