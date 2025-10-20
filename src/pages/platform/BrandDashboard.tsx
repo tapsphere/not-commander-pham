@@ -74,13 +74,13 @@ export default function BrandDashboard() {
       let profileData: any = null;
       try {
         const result = await (supabase as any)
-          .from('brand_profiles')
-          .select('brand_name, logo_url')
-          .eq('id', user.id)
+          .from('profiles')
+          .select('company_name, company_logo_url')
+          .eq('user_id', user.id)
           .single();
         profileData = result.data;
       } catch (e) {
-        console.log('No brand profile found');
+        console.log('No profile found');
       }
 
       // Merge profile data with customizations
@@ -340,8 +340,8 @@ export default function BrandDashboard() {
             <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
               <GameCoverPhoto
                 coverPhotoUrl={(custom as any).cover_photo_url}
-                logoUrl={(custom as any).brand_profile?.logo_url}
-                brandName={(custom as any).brand_profile?.brand_name}
+                logoUrl={(custom as any).brand_profile?.company_logo_url}
+                brandName={(custom as any).brand_profile?.company_name}
                 className="w-full"
               />
                <div className="p-4">
