@@ -289,6 +289,56 @@ When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
   INTERACTION PRIORITY (Use in this order):
   1. DRAG & DROP - Drag cards to zones, sort items, allocate resources
      Example: Drag budget cards into department slots, drag words to build sentences
+     
+     🔧 CRITICAL DRAG & DROP IMPLEMENTATION - YOU MUST INCLUDE THIS WORKING CODE:
+     
+     DRAGGABLE ITEMS must have these attributes:
+     - draggable="true"
+     - ondragstart="handleDragStart(event, 'unique-id')"
+     - style="cursor: grab; user-select: none;"
+     
+     DROP ZONES must have these attributes:
+     - ondrop="handleDrop(event)"
+     - ondragover="handleDragOver(event)"
+     - ondragleave="handleDragLeave(event)"
+     - style="min-height: 100px; border: 3px dashed #666;"
+     
+     REQUIRED JAVASCRIPT (include in script tag):
+     let draggedItem = null;
+     
+     function handleDragStart(event, itemId) {
+       draggedItem = event.target;
+       event.dataTransfer.effectAllowed = 'move';
+       event.dataTransfer.setData('text/html', event.target.innerHTML);
+       event.target.style.opacity = '0.5';
+     }
+     
+     function handleDragOver(event) {
+       event.preventDefault();
+       event.dataTransfer.dropEffect = 'move';
+       event.target.style.borderColor = '#00FF00';
+       event.target.style.background = 'rgba(0, 255, 0, 0.1)';
+     }
+     
+     function handleDragLeave(event) {
+       event.target.style.borderColor = '#666';
+       event.target.style.background = 'transparent';
+     }
+     
+     function handleDrop(event) {
+       event.preventDefault();
+       if (draggedItem) {
+         event.target.appendChild(draggedItem);
+         draggedItem.style.opacity = '1';
+         event.target.style.borderColor = '#666';
+         event.target.style.background = 'transparent';
+         // Add visual feedback
+         event.target.style.animation = 'pulse 0.3s';
+         draggedItem = null;
+       }
+     }
+     
+     TEST YOUR DRAG & DROP: Make sure items actually move when dragged!
   
   2. TAP/CLICK CARDS - Flip cards, select options by tapping interactive elements
      Example: Tap message cards to reveal content, click tone indicators, tap to match pairs
