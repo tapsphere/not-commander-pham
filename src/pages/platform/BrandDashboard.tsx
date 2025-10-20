@@ -63,17 +63,33 @@ export default function BrandDashboard() {
           game_templates (
             name,
             preview_image
-          ),
-          brand_profiles!brand_customizations_brand_id_fkey (
-            brand_name,
-            logo_url
           )
         `)
         .eq('brand_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setCustomizations(data || []);
+
+      // Fetch brand profile separately using any type to bypass TypeScript
+      let profileData: any = null;
+      try {
+        const result = await (supabase as any)
+          .from('brand_profiles')
+          .select('brand_name, logo_url')
+          .eq('id', user.id)
+          .single();
+        profileData = result.data;
+      } catch (e) {
+        console.log('No brand profile found');
+      }
+
+      // Merge profile data with customizations
+      const enrichedData = data?.map(custom => ({
+        ...custom,
+        brand_profile: profileData
+      }));
+
+      setCustomizations(enrichedData || []);
     } catch (error) {
       console.error('Failed to load customizations:', error);
     } finally {
@@ -324,8 +340,8 @@ export default function BrandDashboard() {
             <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
               <GameCoverPhoto
                 coverPhotoUrl={(custom as any).cover_photo_url}
-                logoUrl={(custom as any).brand_profiles?.logo_url}
-                brandName={(custom as any).brand_profiles?.brand_name}
+                logoUrl={(custom as any).brand_profile?.logo_url}
+                brandName={(custom as any).brand_profile?.brand_name}
                 className="w-full"
               />
                <div className="p-4">

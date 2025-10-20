@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shuffle } from 'lucide-react';
@@ -19,8 +19,11 @@ export const ColorRemixPanel = ({
   backgroundColor,
   onRemix
 }: ColorRemixPanelProps) => {
-  // All 4 brand colors in an array
-  const brandColors = [primaryColor, secondaryColor, accentColor, backgroundColor];
+  // All 4 brand colors in an array - memoize so it updates when props change
+  const brandColors = useMemo(
+    () => [primaryColor, secondaryColor, accentColor, backgroundColor],
+    [primaryColor, secondaryColor, accentColor, backgroundColor]
+  );
   
   const [currentArrangement, setCurrentArrangement] = useState([0, 1, 2, 3]);
 
