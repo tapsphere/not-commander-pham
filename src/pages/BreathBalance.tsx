@@ -53,15 +53,21 @@ export default function BreathBalance() {
             setTimeInPhase(0);
             setTotalOpportunities(prev => prev + 1);
           } else if (breathPhase === 'out') {
-            // Complete cycle
-            if (currentCycle < totalCycles - 1) {
-              setCurrentCycle(prev => prev + 1);
-              setBreathPhase('in');
-              setTimeInPhase(0);
-            } else {
-              // Game complete
-              endGame();
-            }
+            // Complete cycle - check if we should end the game
+            setCurrentCycle(prev => {
+              const nextCycle = prev + 1;
+              if (nextCycle >= totalCycles) {
+                // Game complete after this cycle
+                setTimeout(() => {
+                  setGameState('results');
+                  endGame();
+                }, 100);
+                return prev;
+              }
+              return nextCycle;
+            });
+            setBreathPhase('in');
+            setTimeInPhase(0);
           }
         }
         return newTime;
@@ -69,7 +75,7 @@ export default function BreathBalance() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [gameState, breathPhase, currentCycle]);
+  }, [gameState, breathPhase, currentCycle, totalCycles]);
 
   const startGame = () => {
     setGameState('playing');
