@@ -91,6 +91,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
   const [loading, setLoading] = useState(false);
   const [templateType, setTemplateType] = useState<'ai_generated' | 'custom_upload'>('ai_generated');
   const [customGameFile, setCustomGameFile] = useState<File | null>(null);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: template?.name || '',
     description: template?.description || '',
@@ -704,7 +705,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         const fileExt = customGameFile.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError} = await supabase.storage
           .from('custom-games')
           .upload(fileName, customGameFile);
 
@@ -717,6 +718,55 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         customGameUrl = publicUrl;
       }
 
+      // Handle cover image upload or generation
+      let coverImageUrl: string | null = null;
+      
+      if (coverImageFile) {
+        // Upload custom cover
+        const fileExt = coverImageFile.name.split('.').pop();
+        const fileName = `${user.id}/cover-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('validator-previews')
+          .upload(fileName, coverImageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('validator-previews')
+          .getPublicUrl(fileName);
+
+        coverImageUrl = publicUrl;
+      } else {
+        // Generate default cover with creator info
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, company_logo_url, avatar_url')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          const { generateDefaultCover } = await import('@/utils/generateDefaultCover');
+          const coverBlob = await generateDefaultCover(
+            profile.full_name || 'Creator',
+            profile.company_logo_url || undefined,
+            profile.avatar_url || undefined
+          );
+
+          const fileName = `${user.id}/default-cover-${Date.now()}.png`;
+          const { error: uploadError } = await supabase.storage
+            .from('validator-previews')
+            .upload(fileName, coverBlob);
+
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('validator-previews')
+              .getPublicUrl(fileName);
+            coverImageUrl = publicUrl;
+          }
+        }
+      }
+
       if (template?.id) {
         // Update existing template
         const { error } = await supabase
@@ -727,6 +777,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             base_prompt: templateType === 'ai_generated' ? generatedPrompt : null,
             template_type: templateType,
             custom_game_url: customGameUrl,
+            preview_image: coverImageUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
           })
@@ -745,6 +796,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             base_prompt: templateType === 'ai_generated' ? generatedPrompt : null,
             template_type: templateType,
             custom_game_url: customGameUrl,
+            preview_image: coverImageUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
           })
@@ -787,6 +839,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
       });
       setActiveScenes(1);
       setCustomGameFile(null);
+      setCoverImageFile(null);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -865,6 +918,40 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                 className="bg-gray-800 border-gray-700"
                 placeholder="Brief overview of what this validator tests..."
               />
+            </div>
+
+            {/* Cover Image Upload */}
+            <div>
+              <Label htmlFor="cover-image">Cover Image (Optional)</Label>
+              <div className="mt-2 space-y-2">
+                <input
+                  type="file"
+                  id="cover-image"
+                  accept="image/*"
+                  onChange={(e) => setCoverImageFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                <label htmlFor="cover-image">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full cursor-pointer"
+                    asChild
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {coverImageFile ? coverImageFile.name : 'Upload Cover Image'}
+                    </span>
+                  </Button>
+                </label>
+                {!coverImageFile && (
+                  <p className="text-xs text-gray-400">
+                    If not provided, a default cover will be generated with your profile info
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
