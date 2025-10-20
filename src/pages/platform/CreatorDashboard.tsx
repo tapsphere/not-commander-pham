@@ -209,14 +209,19 @@ export default function CreatorDashboard() {
 
         // First check if this game has custom design settings
         let designPalette: any = null;
+        let avatarUrl: string | null = null;
+        let particleEffect: string = 'sparkles';
+        
         if ((template as any).design_settings) {
           designPalette = (template as any).design_settings;
+          avatarUrl = designPalette.avatar || null;
+          particleEffect = designPalette.particleEffect || 'sparkles';
           console.log('Using per-game design settings');
         } else {
           // Fall back to creator's default palette
           const { data: profile } = await supabase
             .from('profiles')
-            .select('design_palette')
+            .select('design_palette, game_avatar_url, default_particle_effect')
             .eq('user_id', user.id)
             .maybeSingle();
           
@@ -230,6 +235,8 @@ export default function CreatorDashboard() {
             text: '#2D5556',
             font: 'Inter, sans-serif'
           };
+          avatarUrl = profile?.game_avatar_url || null;
+          particleEffect = profile?.default_particle_effect || 'sparkles';
           console.log('Using creator default design settings');
         }
         
@@ -250,7 +257,8 @@ export default function CreatorDashboard() {
             highlightColor: designPalette.highlight,
             textColor: designPalette.text,
             fontFamily: designPalette.font,
-            avatarUrl: designPalette.avatar || null,
+            avatarUrl: avatarUrl,
+            particleEffect: particleEffect,
             logoUrl: null,
             customizationId: null,
             previewMode: true,

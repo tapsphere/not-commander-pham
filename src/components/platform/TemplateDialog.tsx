@@ -128,7 +128,8 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
     highlight: '#F0C7A0',
     text: '#2D5556',
     font: 'Inter, sans-serif',
-    avatar: ''
+    avatar: '',
+    particleEffect: 'sparkles'
   });
   
   // Competency data
@@ -1431,6 +1432,9 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                   showAvatar={true}
                   avatarUrl={designSettings.avatar}
                   onAvatarChange={(url) => setDesignSettings({ ...designSettings, avatar: url })}
+                  showParticles={true}
+                  particleEffect={designSettings.particleEffect}
+                  onParticleChange={(effect) => setDesignSettings({ ...designSettings, particleEffect: effect })}
                 />
               )}
             </div>

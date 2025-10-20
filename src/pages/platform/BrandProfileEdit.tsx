@@ -25,6 +25,8 @@ export default function BrandProfileEdit() {
   const [companyLogoUrl, setCompanyLogoUrl] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<'brand' | 'creator' | null>(null);
+  const [gameAvatarUrl, setGameAvatarUrl] = useState('');
+  const [particleEffect, setParticleEffect] = useState('sparkles');
   const [designPalette, setDesignPalette] = useState({
     primary: '#C8DBDB',
     secondary: '#6C8FA4',
@@ -41,7 +43,7 @@ export default function BrandProfileEdit() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [cropType, setCropType] = useState<'avatar' | 'logo'>('avatar');
+  const [cropType, setCropType] = useState<'avatar' | 'logo' | 'game-avatar'>('avatar');
 
   useEffect(() => {
     loadProfile();
@@ -67,7 +69,7 @@ export default function BrandProfileEdit() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette')
+        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette, game_avatar_url, default_particle_effect')
         .eq('user_id', user.id)
         .single();
 
@@ -80,6 +82,8 @@ export default function BrandProfileEdit() {
         setCompanyName(data.company_name || '');
         setCompanyDescription(data.company_description || '');
         setCompanyLogoUrl(data.company_logo_url || '');
+        setGameAvatarUrl(data.game_avatar_url || '');
+        setParticleEffect(data.default_particle_effect || 'sparkles');
         
         // Load design palette if exists
         if (data.design_palette) {
@@ -136,7 +140,7 @@ export default function BrandProfileEdit() {
     });
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'logo') => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'logo' | 'game-avatar') => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -177,6 +181,8 @@ export default function BrandProfileEdit() {
       // Update state
       if (cropType === 'avatar') {
         setAvatarUrl(publicUrl);
+      } else if (cropType === 'game-avatar') {
+        setGameAvatarUrl(publicUrl);
       } else {
         setCompanyLogoUrl(publicUrl);
       }
@@ -202,6 +208,8 @@ export default function BrandProfileEdit() {
         updates.bio = bio;
         updates.avatar_url = avatarUrl;
         updates.design_palette = designPalette;
+        updates.game_avatar_url = gameAvatarUrl;
+        updates.default_particle_effect = particleEffect;
       } else {
         updates.company_name = companyName;
         updates.company_description = companyDescription;
@@ -338,6 +346,75 @@ export default function BrandProfileEdit() {
                   onChange={setDesignPalette}
                 />
               </div>
+
+              {/* Game Mascot/Avatar */}
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Game Mascot (Default)</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  Upload an animal, character, or icon that will appear in your games with animations and particles.
+                </p>
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-32 h-32 rounded-lg border-2 flex items-center justify-center bg-black/50 overflow-hidden"
+                    style={{ borderColor: 'hsl(var(--neon-purple))' }}
+                  >
+                    {gameAvatarUrl ? (
+                      <img
+                        src={gameAvatarUrl}
+                        alt="Game Mascot"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-12 h-12 text-gray-600" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileSelect(e, 'game-avatar')}
+                      className="hidden"
+                      id="game-avatar-upload"
+                    />
+                    <label htmlFor="game-avatar-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="cursor-pointer"
+                        asChild
+                      >
+                        <span>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload Mascot
+                        </span>
+                      </Button>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Upload a character, animal, or icon. This will animate and react during gameplay.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Particle Effect Selector */}
+              <div>
+                <Label className="text-white mb-2">Default Particle Effect</Label>
+                <select
+                  value={particleEffect}
+                  onChange={(e) => setParticleEffect(e.target.value)}
+                  className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"
+                >
+                  <option value="sparkles">✨ Sparkles (Gold Twinkles)</option>
+                  <option value="coins">🪙 Coins (Golden Coins)</option>
+                  <option value="stars">⭐ Stars (Bright Stars)</option>
+                  <option value="hearts">❤️ Hearts (Floating Hearts)</option>
+                  <option value="confetti">🎉 Confetti (Colorful Pieces)</option>
+                  <option value="lightning">⚡ Lightning (Electric Bolts)</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-2">
+                  Particles will burst on interactions, correct answers, and celebrations
+                </p>
+              </div>
             </>
           ) : (
             <>
@@ -453,7 +530,7 @@ export default function BrandProfileEdit() {
                   image={imageSrc}
                   crop={crop}
                   zoom={zoom}
-                  aspect={cropType === 'avatar' ? 1 : 16 / 9}
+                  aspect={cropType === 'avatar' || cropType === 'game-avatar' ? 1 : 16 / 9}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}

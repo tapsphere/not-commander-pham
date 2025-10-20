@@ -363,8 +363,10 @@ export type Database = {
           company_logo_url: string | null
           company_name: string | null
           created_at: string | null
+          default_particle_effect: string | null
           design_palette: Json | null
           full_name: string | null
+          game_avatar_url: string | null
           id: string
           location: string | null
           updated_at: string | null
@@ -378,8 +380,10 @@ export type Database = {
           company_logo_url?: string | null
           company_name?: string | null
           created_at?: string | null
+          default_particle_effect?: string | null
           design_palette?: Json | null
           full_name?: string | null
+          game_avatar_url?: string | null
           id?: string
           location?: string | null
           updated_at?: string | null
@@ -393,8 +397,10 @@ export type Database = {
           company_logo_url?: string | null
           company_name?: string | null
           created_at?: string | null
+          default_particle_effect?: string | null
           design_palette?: Json | null
           full_name?: string | null
+          game_avatar_url?: string | null
           id?: string
           location?: string | null
           updated_at?: string | null

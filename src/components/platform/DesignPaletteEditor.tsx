@@ -17,6 +17,9 @@ interface DesignPaletteEditorProps {
   showAvatar?: boolean;
   avatarUrl?: string;
   onAvatarChange?: (url: string) => void;
+  showParticles?: boolean;
+  particleEffect?: string;
+  onParticleChange?: (effect: string) => void;
 }
 
 export const DesignPaletteEditor = ({ 
@@ -24,7 +27,10 @@ export const DesignPaletteEditor = ({
   onChange, 
   showAvatar = false,
   avatarUrl = '',
-  onAvatarChange 
+  onAvatarChange,
+  showParticles = false,
+  particleEffect = 'sparkles',
+  onParticleChange
 }: DesignPaletteEditorProps) => {
   
   const colorPresets = [
@@ -230,6 +236,27 @@ export const DesignPaletteEditor = ({
           />
           <p className="text-xs text-gray-500 mt-1">
             Leave blank to use your profile avatar as default
+          </p>
+        </div>
+      )}
+
+      {showParticles && onParticleChange && (
+        <div>
+          <Label className="text-sm text-gray-300">Particle Effect</Label>
+          <select
+            value={particleEffect}
+            onChange={(e) => onParticleChange(e.target.value)}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"
+          >
+            <option value="sparkles">✨ Sparkles (Gold Twinkles)</option>
+            <option value="coins">🪙 Coins (Golden Coins)</option>
+            <option value="stars">⭐ Stars (Bright Stars)</option>
+            <option value="hearts">❤️ Hearts (Floating Hearts)</option>
+            <option value="confetti">🎉 Confetti (Colorful Pieces)</option>
+            <option value="lightning">⚡ Lightning (Electric Bolts)</option>
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Particles burst on interactions, correct answers, and celebrations
           </p>
         </div>
       )}
