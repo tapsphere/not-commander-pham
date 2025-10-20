@@ -269,15 +269,17 @@ export default function BrandProfileEdit() {
         updates.full_name = fullName;
         updates.bio = bio;
         updates.avatar_url = avatarUrl;
-        updates.design_palette = designPalette;
-        updates.game_avatar_url = gameAvatarUrl;
-        updates.default_particle_effect = particleEffect;
-        updates.mascot_animation_type = mascotAnimationType;
       } else {
         updates.company_name = companyName;
         updates.company_description = companyDescription;
         updates.company_logo_url = companyLogoUrl;
       }
+      
+      // Both roles get design customization
+      updates.design_palette = designPalette;
+      updates.game_avatar_url = gameAvatarUrl;
+      updates.default_particle_effect = particleEffect;
+      updates.mascot_animation_type = mascotAnimationType;
 
       const { error } = await supabase
         .from('profiles')
@@ -569,6 +571,98 @@ export default function BrandProfileEdit() {
               </div>
             </>
           )}
+
+          {/* Design Customization - Available for both creators and brands */}
+          <div className="border-t border-gray-700 pt-6 mt-6">
+            <h3 className="text-xl font-bold text-white mb-4">Game Design Defaults</h3>
+            
+            {/* Design Palette Settings */}
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-white mb-2">Color Palette & Font</h4>
+              <p className="text-sm text-gray-400 mb-4">
+                Set your default colors and font. These will be applied to all your games unless customized per game.
+              </p>
+              <DesignPaletteEditor
+                palette={designPalette}
+                onChange={setDesignPalette}
+              />
+            </div>
+
+            {/* Game Mascot/Avatar */}
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-white mb-2">Game Mascot (Default)</h4>
+              <p className="text-sm text-gray-400 mb-4">
+                Upload an animal, character, or icon that will appear in your games with animations and particles.
+              </p>
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-32 h-32 rounded-lg border-2 flex items-center justify-center bg-black/50 overflow-hidden"
+                  style={{ borderColor: 'hsl(var(--neon-purple))' }}
+                >
+                  {gameAvatarUrl ? (
+                    <img
+                      src={gameAvatarUrl}
+                      alt="Game Mascot"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <User className="w-12 h-12 text-gray-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/png,image/gif,image/jpeg,.json"
+                    onChange={(e) => handleFileSelect(e, 'game-avatar')}
+                    className="hidden"
+                    id="game-avatar-upload"
+                  />
+                  <label htmlFor="game-avatar-upload">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="cursor-pointer"
+                      asChild
+                    >
+                      <span>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Mascot
+                      </span>
+                    </Button>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Upload PNG, GIF (animated), or Lottie JSON. Your mascot will animate and react during gameplay.
+                  </p>
+                  {gameAvatarUrl && (
+                    <p className="text-xs text-green-400 mt-1">
+                      Current: {mascotAnimationType === 'gif' ? '🎬 Animated GIF' : mascotAnimationType === 'lottie' ? '✨ Lottie Animation' : '🖼️ Static Image'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Particle Effect Selector */}
+            <div>
+              <Label className="text-white mb-2">Default Particle Effect</Label>
+              <select
+                value={particleEffect}
+                onChange={(e) => setParticleEffect(e.target.value)}
+                className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"
+              >
+                <option value="sparkles">✨ Sparkles (Gold Twinkles)</option>
+                <option value="confetti">🎉 Confetti (Celebration)</option>
+                <option value="stars">⭐ Stars (Glowing)</option>
+                <option value="hearts">❤️ Hearts (Floating)</option>
+                <option value="flames">🔥 Flames (Energetic)</option>
+                <option value="bubbles">💧 Bubbles (Soft)</option>
+                <option value="lightning">⚡ Lightning (Electric)</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-2">
+                Choose the default particle effect that appears when players interact with your mascot.
+              </p>
+            </div>
+          </div>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">
