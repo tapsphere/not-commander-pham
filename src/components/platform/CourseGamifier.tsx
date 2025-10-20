@@ -621,6 +621,7 @@ ${courseDescription}
                     <SelectValue placeholder="Select industry or context..." />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                    <SelectItem value="education">Education</SelectItem>
                     <SelectItem value="marketing">Marketing</SelectItem>
                     <SelectItem value="operations">Operations</SelectItem>
                     <SelectItem value="sales">Sales</SelectItem>

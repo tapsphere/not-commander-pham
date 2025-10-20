@@ -110,11 +110,12 @@ Extract the following information and return ONLY JSON (no markdown):
 }
 
 IMPORTANT FOR INDUSTRY:
-- First check if this is educational/training content itself - if so, use "Education"
+- First check if this is educational/training content itself - if so, use "education"
 - Otherwise look for the TARGET INDUSTRY where this training will be applied
-- Common industries: Healthcare, Technology, Finance, Education, Manufacturing, Retail, Hospitality, Government, Non-profit, etc.
+- Common industries: healthcare, technology, finance, education, manufacturing, retail, hospitality, government, nonprofit, etc.
 - Look for explicit mentions of sectors, organizations, or workplace contexts
-- If the course is about general professional skills without specific industry context, use "Education"
+- If the course is about general professional skills without specific industry context, use "education"
+- Return lowercase values that match the dropdown options (e.g., "education", "healthcare", "tech", "marketing")
 - ALWAYS provide an industry - make your best inference
 
 IMPORTANT FOR ASSESSMENT METHODS:
