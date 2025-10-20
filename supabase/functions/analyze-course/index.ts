@@ -8,56 +8,34 @@ const corsHeaders = {
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-const SYSTEM_PROMPT = `You are a PlayOps Validator Architect trained on the C-BEN Competency Framework.
+const buildSystemPrompt = (subCompetencies: any[]) => {
+  const competencyList = subCompetencies.map(sub => {
+    const comp = Array.isArray(sub.master_competencies) ? sub.master_competencies[0] : sub.master_competencies;
+    return `
+=== ${comp?.name?.toUpperCase() || 'COMPETENCY'} ===
+Domain: ${comp?.cbe_category || 'Unknown'}
 
-Your task is to analyze course/training content and map it to the following 4 COMPETENCIES ONLY (each with 1 sub-competency for testing):
+Sub-Competency: ${sub.statement}
+- Action Cue: ${sub.action_cue || 'N/A'}
+- Game Mechanic: ${sub.game_mechanic || 'N/A'}
+- Game Loop: ${sub.game_loop || 'N/A'}
+- Validator Type: ${sub.validator_type || 'N/A'}
+- Scoring: ${sub.scoring_formula_level_1 || 'N/A'}`;
+  }).join('\n\n');
 
-=== COMPETENCY 1: EMOTIONAL INTELLIGENCE & SELF-MANAGEMENT ===
-Domain: Professionalism / Self-Development
+  return `You are a PlayOps Validator Architect trained on the C-BEN Competency Framework.
 
-Sub-Competency: Emotional Regulation
-- Action Cue: Choose calm response under timer pressure
-- Game Mechanic: RESPOND Loop (Simulation Validator)
-- Game Loop: Stimulus → Timer → Choose → Feedback → Retry
-- Scoring: Accuracy ≥85%, Time ≤5s, Edge=Stress Cue Ignored=1; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Scenario-Based Simulation
+Your task is to analyze course/training content and map it to the available sub-competencies from our database.
 
-=== COMPETENCY 2: COMMUNICATION & INTERPERSONAL FLUENCY ===
-Domain: Communication & Collaboration
-
-Sub-Competency: Empathy & Compassion
-- Action Cue: Identify message tone → choose correct empathetic response from three labeled options (Supportive / Neutral / Dismissive)
-- Game Mechanic: Tone Match Dialogue (Simulation Validator)
-- Game Loop: Input → Select Tone → Choose Reply → Feedback
-- Scoring: Accuracy ≥90%, Time ≤6s per item, Edge=Tone Flip ≤8s recovery; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Communication Product
-
-=== COMPETENCY 3: ADAPTIVE MINDSET & RESILIENCE ===
-Domain: Adaptability & Well-Being
-
-Sub-Competency: Resilience & Optimism
-- Action Cue: Recover from unexpected setback and complete task
-- Game Mechanic: Resilience Path Challenge (Simulation Validator)
-- Game Loop: Start → Obstacle → Adjust → Submit → Feedback
-- Scoring: Accuracy ≥85%, Time ≤120s, Edge=Recovery ≤10s; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Scenario-Based Simulation
-
-=== COMPETENCY 4: ETHICAL & PURPOSE-DRIVEN LEADERSHIP ===
-Domain: Ethics & Leadership
-
-Sub-Competency: Ethical Communication & Courage
-- Action Cue: Select truthful and respectful response in conflict scenario
-- Game Mechanic: Speak-Out Decision Tree (Case Validator)
-- Game Loop: Dilemma → Choose → Review → Feedback
-- Scoring: Accuracy ≥90%, Time ≤90s, Edge=No Escalation=1; Levels <80 / 80-94 / ≥95+Edge
-- Validator Type: Case Analysis
+AVAILABLE SUB-COMPETENCIES:
+${competencyList}
 
 === YOUR TASK ===
 
-Analyze the provided course content (especially "power words" lessons) and:
-1. Identify which of these 4 sub-competencies are most relevant
+Analyze the provided course content and:
+1. Identify ALL relevant sub-competencies from the list above that match the course
 2. Map course outcomes to the appropriate sub-competencies
-3. Assign the matching validator types and game mechanics
+3. Use the EXACT sub_competency statement, action_cue, game_mechanic, and validator_type from the list
 4. Return structured JSON only
 
 OUTPUT FORMAT (JSON only, no markdown):
@@ -68,31 +46,32 @@ OUTPUT FORMAT (JSON only, no markdown):
   },
   "competency_mappings": [
     {
-      "domain": "Domain from database",
-      "competency": "Competency name from database",
-      "sub_competency": "EXACT sub_competency statement from database",
+      "domain": "Domain from list above",
+      "competency": "Competency name from list above",
+      "sub_competency": "EXACT sub_competency statement from list above",
       "alignment_summary": "How course aligns with this",
-      "validator_type": "Type from database",
-      "action_cue": "Action cue from database",
-      "game_mechanic": "Game mechanic from database",
+      "validator_type": "Type from list above",
+      "action_cue": "Action cue from list above",
+      "game_mechanic": "Game mechanic from list above",
       "evidence_metric": "metric description",
-      "scoring_formula": "formula from database"
+      "scoring_formula": "formula from list above"
     }
   ],
   "recommended_validators": [
     {
-      "validator_name": "Game Mechanic Name from database",
+      "validator_name": "Game Mechanic Name from list above",
       "competencies_tested": ["sub-competency 1", "sub-competency 2"],
       "priority": "high|medium|low",
       "reason": "Why this validator is recommended"
     }
   ],
   "summary": {
-    "total_competencies": 10,
+    "total_competencies": 0,
     "domains_covered": ["list of domains"],
     "implementation_note": "Brief note on implementing these validators"
   }
 }`;
+}
 
 const EXTRACTION_PROMPT = `You are a course content extractor. Extract structured information from course materials.
 
@@ -248,23 +227,18 @@ Return ONLY the JSON structure as specified.`;
       );
     }
 
-    // Build enhanced prompt with actual database sub-competencies
-    const competencyList = subCompetencies?.map(sub => {
-      const comp = Array.isArray(sub.master_competencies) ? sub.master_competencies[0] : sub.master_competencies;
-      return `
-Sub-Competency: ${sub.statement}
-Competency: ${comp?.name || 'Unknown'}
-Domain: ${comp?.cbe_category || 'Unknown'}
-Action Cue: ${sub.action_cue || 'N/A'}
-Game Mechanic: ${sub.game_mechanic || 'N/A'}
-Validator Type: ${sub.validator_type || 'N/A'}
-Scoring: ${sub.scoring_formula_level_1 || 'N/A'}`;
-    }).join('\n\n') || 'No competencies available';
+    if (!subCompetencies || subCompetencies.length === 0) {
+      console.error('No sub-competencies found in database');
+      return new Response(
+        JSON.stringify({ error: 'No competency data available' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    const userPrompt = `Analyze this course and map it to the available PlayOps sub-competencies from our database.
+    // Build system prompt with actual database sub-competencies
+    const systemPrompt = buildSystemPrompt(subCompetencies);
 
-AVAILABLE SUB-COMPETENCIES:
-${competencyList}
+    const userPrompt = `Analyze this course and map it to ALL relevant sub-competencies.
 
 COURSE NAME: ${courseName || 'Untitled Course'}
 COURSE DESCRIPTION: ${courseDescription || 'N/A'}
@@ -273,12 +247,15 @@ COURSE CONTENT:
 ${courseText}
 
 Your task:
-1. Identify which sub-competencies from the list above best match this course content
-2. For each match, use the EXACT sub_competency statement from the list
-3. Include the corresponding action_cue, game_mechanic, validator_type, and scoring
-4. Provide a comprehensive mapping in the exact JSON format specified
+1. Identify ALL sub-competencies that match this course content (aim for 3-6 matches minimum)
+2. For each match, use the EXACT sub_competency statement, action_cue, game_mechanic, and validator_type
+3. Provide comprehensive mapping - don't limit yourself, include all relevant matches
+4. Return the exact JSON format specified
 
-CRITICAL: Only use sub-competencies that exist in the AVAILABLE SUB-COMPETENCIES list above.`;
+CRITICAL: 
+- Use only sub-competencies from the list provided in the system prompt
+- Include multiple sub-competencies if they're relevant (not just 1-2)
+- For a comprehensive course, expect 4-8 sub-competency mappings`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -289,7 +266,7 @@ CRITICAL: Only use sub-competencies that exist in the AVAILABLE SUB-COMPETENCIES
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.3,
@@ -339,63 +316,61 @@ CRITICAL: Only use sub-competencies that exist in the AVAILABLE SUB-COMPETENCIES
       };
     }
 
-    // Fetch actual game templates and replace validator type names with template names
-    const validatorTypes = analysisResult.recommended_validators?.map((v: any) => v.validator_name) || [];
+    // Fetch actual game templates with their sub-competencies
     const { data: templates, error: templatesError } = await supabaseClient
       .from('game_templates')
-      .select('name, description, preview_image, selected_sub_competencies')
+      .select('name, description, preview_image, selected_sub_competencies, template_type')
       .eq('is_published', true);
 
     if (!templatesError && templates && templates.length > 0) {
-      // Create a mapping from validator types to actual templates
-      const validatorToTemplates: Record<string, typeof templates> = {};
+      // Build a map of sub-competency IDs to templates
+      const subCompToTemplates = new Map<string, any[]>();
       
       templates.forEach(template => {
-        // Match templates to competencies from the analysis
-        const matchingCompetencies = analysisResult.competency_mappings?.filter(
-          (mapping: any) => {
-            // Check if template's sub_competencies match any of the mapped competencies
-            const mappingSubCompIds = subCompetencies?.filter(
-              sc => sc.statement === mapping.sub_competency
-            ).map(sc => sc.id) || [];
-            
-            return template.selected_sub_competencies?.some(
-              (id: string) => mappingSubCompIds.includes(id)
-            );
-          }
-        ) || [];
-
-        if (matchingCompetencies.length > 0) {
-          const validatorType = matchingCompetencies[0].validator_type;
-          if (!validatorToTemplates[validatorType]) {
-            validatorToTemplates[validatorType] = [];
-          }
-          validatorToTemplates[validatorType].push(template);
+        if (template.selected_sub_competencies && template.selected_sub_competencies.length > 0) {
+          template.selected_sub_competencies.forEach((subCompId: string) => {
+            if (!subCompToTemplates.has(subCompId)) {
+              subCompToTemplates.set(subCompId, []);
+            }
+            subCompToTemplates.get(subCompId)!.push(template);
+          });
         }
       });
 
-      // Replace recommended validators with actual template data
-      const enhancedValidators = [];
-      for (const validator of analysisResult.recommended_validators || []) {
-        const matchingTemplates = validatorToTemplates[validator.validator_name] || [];
-        
-        if (matchingTemplates.length > 0) {
-          // Add each matching template as a separate recommendation
+      // Match templates to analyzed competencies
+      const enhancedValidators: any[] = [];
+      const addedTemplates = new Set<string>(); // Avoid duplicates
+
+      for (const mapping of analysisResult.competency_mappings || []) {
+        // Find the sub-competency ID from the statement
+        const matchingSubComp = subCompetencies?.find(
+          sc => sc.statement === mapping.sub_competency
+        );
+
+        if (matchingSubComp) {
+          const matchingTemplates = subCompToTemplates.get(matchingSubComp.id) || [];
+          
           matchingTemplates.forEach(template => {
-            enhancedValidators.push({
-              ...validator,
-              validator_name: template.name, // Use actual template name
-              template_description: template.description,
-              template_preview: template.preview_image
-            });
+            if (!addedTemplates.has(template.name)) {
+              enhancedValidators.push({
+                validator_name: template.name,
+                competencies_tested: [mapping.sub_competency],
+                priority: 'high',
+                reason: `This validator assesses ${mapping.sub_competency}, which is a key component of the course.`,
+                template_description: template.description,
+                template_preview: template.preview_image,
+                template_type: template.template_type
+              });
+              addedTemplates.add(template.name);
+            }
           });
-        } else {
-          // Keep original if no template match found
-          enhancedValidators.push(validator);
         }
       }
       
-      analysisResult.recommended_validators = enhancedValidators;
+      // If we found matching templates, use them; otherwise keep AI recommendations
+      if (enhancedValidators.length > 0) {
+        analysisResult.recommended_validators = enhancedValidators;
+      }
     }
 
     return new Response(
