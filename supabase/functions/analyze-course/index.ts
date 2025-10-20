@@ -179,6 +179,8 @@ Return ONLY the JSON structure as specified.`;
       const data = await response.json();
       const extractedText = data.choices[0].message.content;
       
+      console.log('Extracted text from AI:', extractedText);
+      
       let extractedInfo;
       try {
         const jsonMatch = extractedText.match(/```json\n?([\s\S]*?)\n?```/) || 
@@ -199,6 +201,8 @@ Return ONLY the JSON structure as specified.`;
           industry: ""
         };
       }
+
+      console.log('Final extractedInfo:', JSON.stringify(extractedInfo, null, 2));
 
       return new Response(
         JSON.stringify({ success: true, extractedInfo }),
