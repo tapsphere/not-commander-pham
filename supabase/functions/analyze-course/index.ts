@@ -109,6 +109,13 @@ Extract the following information and return ONLY JSON (no markdown):
   "industry": "The industry or business context this course applies to (e.g., Healthcare, Technology, Finance, Education, etc.)"
 }
 
+IMPORTANT FOR INDUSTRY:
+- Look for clues about the business context, sector, or field where this training applies
+- Common industries: Healthcare, Technology, Finance, Education, Manufacturing, Retail, Hospitality, etc.
+- If the course mentions specific job roles, use those to infer the industry
+- If no specific industry is mentioned, infer from the content and examples used
+- ALWAYS provide an industry - make your best inference
+
 IMPORTANT FOR ASSESSMENT METHODS:
 Map any assessment, evaluation, or testing methods to these 4 PlayOps validators ONLY:
 
