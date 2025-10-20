@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -64,6 +64,7 @@ export const BrandGameGenerator = ({
   const [saving, setSaving] = useState(false);
   const [activeScenes, setActiveScenes] = useState(3);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState<FormData>({
     industry: 'Technology',
@@ -277,6 +278,12 @@ ${formData.uiAesthetic}
       setProgress(100);
       
       toast.success('Game generated successfully!');
+      
+      // Scroll to preview after a short delay to allow rendering
+      setTimeout(() => {
+        previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+      
       
     } catch (error: any) {
       console.error('Generation error:', error);
@@ -673,9 +680,9 @@ ${formData.uiAesthetic}
 
               {/* Preview */}
               {gameHtml && (
-                <Card className="bg-black border-neon-green/30">
+                <Card ref={previewRef} className="bg-black border-neon-green/30">
                   <CardContent className="pt-4">
-                    <Label className="mb-2 block text-neon-green">Game Preview</Label>
+                    <Label className="mb-2 block text-neon-green">🎮 Game Preview</Label>
                     <div className="border border-gray-700 rounded-lg overflow-hidden">
                       <iframe
                         srcDoc={gameHtml}
