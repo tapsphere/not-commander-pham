@@ -26,6 +26,14 @@ export const ColorRemixPanel = ({
   );
   
   const [currentArrangement, setCurrentArrangement] = useState([0, 1, 2, 3]);
+  
+  // Store current colors in state to force re-render
+  const [displayColors, setDisplayColors] = useState({
+    primary: primaryColor,
+    secondary: secondaryColor,
+    accent: accentColor,
+    background: backgroundColor
+  });
 
   const shuffleColors = () => {
     // Fisher-Yates shuffle algorithm
@@ -37,22 +45,21 @@ export const ColorRemixPanel = ({
     
     setCurrentArrangement(shuffled);
     
-    onRemix({
+    const newColors = {
       primary: brandColors[shuffled[0]],      // Buttons/Main actions
       secondary: brandColors[shuffled[1]],    // Supporting elements
       accent: brandColors[shuffled[2]],       // Highlights/Warnings
       background: brandColors[shuffled[3]]    // Background
-    });
+    };
+    
+    // Update display colors to force re-render
+    setDisplayColors(newColors);
+    
+    onRemix(newColors);
     
     toast.success('Colors shuffled!');
   };
 
-  const getCurrentColors = () => ({
-    primary: brandColors[currentArrangement[0]],
-    secondary: brandColors[currentArrangement[1]],
-    accent: brandColors[currentArrangement[2]],
-    background: brandColors[currentArrangement[3]]
-  });
 
   return (
     <Card className="bg-gray-800 border-gray-700 p-6">
@@ -67,23 +74,23 @@ export const ColorRemixPanel = ({
       <div className="mb-4">
         <div className="flex rounded-lg overflow-hidden border-2 border-gray-600" style={{ height: '80px' }}>
           <div 
-            className="flex-1 transition-all" 
-            style={{ backgroundColor: getCurrentColors().primary }}
+            className="flex-1 transition-all duration-300" 
+            style={{ backgroundColor: displayColors.primary }}
             title="Buttons/Primary"
           />
           <div 
-            className="flex-1 transition-all" 
-            style={{ backgroundColor: getCurrentColors().secondary }}
+            className="flex-1 transition-all duration-300" 
+            style={{ backgroundColor: displayColors.secondary }}
             title="Text/Secondary"
           />
           <div 
-            className="flex-1 transition-all" 
-            style={{ backgroundColor: getCurrentColors().accent }}
+            className="flex-1 transition-all duration-300" 
+            style={{ backgroundColor: displayColors.accent }}
             title="Accents"
           />
           <div 
-            className="flex-1 transition-all" 
-            style={{ backgroundColor: getCurrentColors().background }}
+            className="flex-1 transition-all duration-300" 
+            style={{ backgroundColor: displayColors.background }}
             title="Background"
           />
         </div>
