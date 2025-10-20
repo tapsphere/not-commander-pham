@@ -534,14 +534,32 @@ This MUST be the first tag in the <head> section of the HTML. Without this, the 
 - Drag-and-drop: implement both mouse and touch event handlers
 - No hover-only interactions (touch devices don't have hover)
 
-✅ START BUTTON CRITICAL IMPLEMENTATION:
-The START button must be implemented EXACTLY like this:
+✅ BUTTON IMPLEMENTATION - CRITICAL REQUIREMENTS (ALL BUTTONS MUST WORK):
+═══════════════════════════════════════════════════════════════════════════
+
+🚨 MANDATORY: ALL buttons in the game MUST follow these implementation rules:
+
+1️⃣ WRAP ALL EVENT LISTENERS IN DOMContentLoaded:
+ALL JavaScript that adds event listeners to buttons MUST be wrapped in:
+document.addEventListener('DOMContentLoaded', function() { ... });
+
+2️⃣ CONSOLE LOG ALL BUTTON CLICKS:
+Every button click handler MUST include console.log() for debugging:
+console.log('Button [name] clicked - [action description]');
+
+3️⃣ VERIFY ELEMENTS EXIST BEFORE ADDING LISTENERS:
+Always check if elements exist before adding event listeners:
+if (button && targetElement) { ... } else { console.error('Elements not found:', { ... }); }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 EXAMPLE 1: START BUTTON (Game Introduction → Phase 1)
 
 HTML:
-<button id="startBtn" class="start-button">START GAME</button>
+<button id="startBtn" class="game-button">START GAME</button>
 
 CSS:
-.start-button {
+.game-button {
   position: fixed;
   bottom: 20px;
   left: 50%;
@@ -557,46 +575,103 @@ CSS:
   cursor: pointer;
   z-index: 100;
   font-weight: bold;
-  text-transform: uppercase;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   -webkit-tap-highlight-color: transparent;
 }
 
-.start-button:active {
+.game-button:active {
   transform: translateX(-50%) scale(0.98);
 }
 
-JAVASCRIPT (MUST RUN AFTER DOM LOADS):
+JAVASCRIPT:
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded - initializing START button');
+  
   const startBtn = document.getElementById('startBtn');
   const introScreen = document.getElementById('introScreen');
-  const gameScreen = document.getElementById('gameScreen');
+  const phase1Screen = document.getElementById('phase1Screen');
   
-  if (startBtn && introScreen && gameScreen) {
+  if (startBtn && introScreen && phase1Screen) {
     startBtn.addEventListener('click', function() {
-      console.log('START clicked - transitioning to game');
+      console.log('START clicked - transitioning from intro to phase 1');
       introScreen.style.display = 'none';
-      gameScreen.style.display = 'flex';
-      // Start game timer, initialize state, etc.
-      initializeGame();
+      phase1Screen.style.display = 'flex';
+      startTimer(); // Start game timer
     });
   } else {
-    console.error('Required elements not found:', {
+    console.error('START button elements not found:', {
       startBtn: !!startBtn,
-      introScreen: !!introScreen, 
-      gameScreen: !!gameScreen
+      introScreen: !!introScreen,
+      phase1Screen: !!phase1Screen
     });
   }
 });
-
-function initializeGame() {
-  console.log('Game initialized');
-  // Add your game initialization code here
-}
 </script>
 
-CRITICAL: The DOMContentLoaded wrapper ensures the script runs AFTER all HTML elements are loaded.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 EXAMPLE 2: NEXT PHASE BUTTONS (Phase 1 → Phase 2 → Phase 3 → Phase 4)
+
+HTML:
+<button id="phase1NextBtn" class="game-button">OPTIMIZE & NEXT PHASE</button>
+<button id="phase2NextBtn" class="game-button">CONTINUE TO PHASE 3</button>
+<button id="phase3NextBtn" class="game-button">FINALIZE & SUBMIT</button>
+
+JAVASCRIPT:
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded - initializing NEXT PHASE buttons');
+  
+  // Phase 1 → Phase 2
+  const phase1NextBtn = document.getElementById('phase1NextBtn');
+  const phase1Screen = document.getElementById('phase1Screen');
+  const phase2Screen = document.getElementById('phase2Screen');
+  
+  if (phase1NextBtn && phase1Screen && phase2Screen) {
+    phase1NextBtn.addEventListener('click', function() {
+      console.log('NEXT clicked - Phase 1 → Phase 2');
+      phase1Screen.style.display = 'none';
+      phase2Screen.style.display = 'flex';
+    });
+  }
+  
+  // Phase 2 → Phase 3
+  const phase2NextBtn = document.getElementById('phase2NextBtn');
+  const phase3Screen = document.getElementById('phase3Screen');
+  
+  if (phase2NextBtn && phase2Screen && phase3Screen) {
+    phase2NextBtn.addEventListener('click', function() {
+      console.log('NEXT clicked - Phase 2 → Phase 3');
+      phase2Screen.style.display = 'none';
+      phase3Screen.style.display = 'flex';
+    });
+  }
+  
+  // Phase 3 → Phase 4 (Results)
+  const phase3NextBtn = document.getElementById('phase3NextBtn');
+  const phase4Screen = document.getElementById('phase4Screen');
+  
+  if (phase3NextBtn && phase3Screen && phase4Screen) {
+    phase3NextBtn.addEventListener('click', function() {
+      console.log('SUBMIT clicked - Phase 3 → Phase 4 (Results)');
+      phase3Screen.style.display = 'none';
+      phase4Screen.style.display = 'flex';
+      calculateFinalScore(); // Calculate results
+    });
+  }
+});
+</script>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ CRITICAL REMINDERS:
+• EVERY button must have a unique ID
+• EVERY button must have an event listener wrapped in DOMContentLoaded
+• EVERY button click must console.log() what it's doing
+• EVERY screen/phase must have a unique ID
+• Test button clicks by checking console logs
+• Use display: 'none' and display: 'flex' to show/hide screens
 
 🚨 COMMON MOBILE ISSUES TO AVOID:
 ❌ Missing viewport meta tag → causes desktop rendering on mobile
@@ -605,16 +680,21 @@ CRITICAL: The DOMContentLoaded wrapper ensures the script runs AFTER all HTML el
 ❌ Hover-only interactions → don't work on touch devices
 ❌ Small touch targets (<44px) → hard to tap accurately
 ❌ Desktop-first layouts → poor mobile experience
+❌ Missing DOMContentLoaded wrapper → buttons not clickable
+❌ No console.log() statements → impossible to debug
 
 ✅ MOBILE TESTING CHECKLIST:
 Before returning the HTML, mentally verify:
 □ Viewport meta tag is present in <head>
 □ All widths use % or vw, not fixed px
-□ START button has DOMContentLoaded wrapper
+□ ALL buttons (START, NEXT, SUBMIT, etc.) have DOMContentLoaded wrapper
+□ ALL button clicks have console.log() statements
 □ All interactive elements have cursor: pointer
 □ Touch targets are minimum 44px
 □ No horizontal scrolling possible
 □ Game fits in 375px x 667px viewport (iPhone SE)
+□ All phase screens have unique IDs
+□ All phase transitions work (display: none / flex)
 
 OUTPUT FORMAT:
 Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.
