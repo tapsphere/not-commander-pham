@@ -208,6 +208,13 @@ export default function Auth() {
     }
   };
 
+  const handleDemoMode = (role: 'creator' | 'brand') => {
+    localStorage.setItem('demoMode', 'true');
+    localStorage.setItem('demoRole', role);
+    toast.success(`Demo mode activated as ${role}!`);
+    navigate(role === 'creator' ? '/platform/creator' : '/platform/brand');
+  };
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -218,6 +225,32 @@ export default function Auth() {
           <p className="text-sm text-gray-400 text-center mb-6">
             {isPasswordRecovery ? 'Set your new password' : 'Sign in to manage templates & customizations'}
           </p>
+
+          {/* Demo Mode Buttons */}
+          {!isPasswordRecovery && (
+            <div className="mb-6 space-y-2">
+              <p className="text-xs text-gray-500 text-center mb-2">Quick Demo Access</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDemoMode('brand')}
+                  className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple/10"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Demo as Brand
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleDemoMode('creator')}
+                  className="gap-2 border-neon-green text-neon-green hover:bg-neon-green/10"
+                >
+                  <Palette className="w-4 h-4" />
+                  Demo as Creator
+                </Button>
+              </div>
+              <Separator className="my-4" />
+            </div>
+          )}
 
         {isPasswordRecovery ? (
           <div className="space-y-4">

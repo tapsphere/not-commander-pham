@@ -17,6 +17,17 @@ export const PlatformLayout = () => {
 
   const checkAuth = async () => {
     try {
+      // Check for demo mode
+      const isDemoMode = localStorage.getItem('demoMode') === 'true';
+      const demoRole = localStorage.getItem('demoRole');
+      
+      if (isDemoMode && demoRole) {
+        console.log('Demo mode active:', demoRole);
+        setUserRole(demoRole);
+        setLoading(false);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -59,6 +70,9 @@ export const PlatformLayout = () => {
   };
 
   const handleSignOut = async () => {
+    // Clear demo mode
+    localStorage.removeItem('demoMode');
+    localStorage.removeItem('demoRole');
     await supabase.auth.signOut();
     toast.success('Signed out');
     navigate('/auth');
