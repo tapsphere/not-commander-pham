@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Copy, Eye } from 'lucide-react';
 import { TemplateTypeSelector } from './TemplateTypeSelector';
 import { CustomGameUpload } from './CustomGameUpload';
+import { DesignPaletteEditor } from './DesignPaletteEditor';
 
 interface TemplateDialogProps {
   open: boolean;
@@ -116,6 +117,19 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
+  
+  // Design settings - optional per-game overrides
+  const [useCustomDesign, setUseCustomDesign] = useState(false);
+  const [designSettings, setDesignSettings] = useState({
+    primary: '#C8DBDB',
+    secondary: '#6C8FA4',
+    accent: '#2D5556',
+    background: '#F5EDD3',
+    highlight: '#F0C7A0',
+    text: '#2D5556',
+    font: 'Inter, sans-serif',
+    avatar: ''
+  });
   
   // Competency data
   const [competencies, setCompetencies] = useState<any[]>([]);
@@ -780,6 +794,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             preview_image: coverImageUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
+            design_settings: useCustomDesign ? designSettings : null,
           })
           .eq('id', template.id);
 
@@ -799,6 +814,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             preview_image: coverImageUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
+            design_settings: useCustomDesign ? designSettings : null,
           })
           .select()
           .single();
@@ -1390,6 +1406,33 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                 className="bg-gray-800 border-gray-700"
                 placeholder="Visual style. Example: 'Greyscale minimalist' or 'Neon cyberpunk with Deloitte branding'"
               />
+            </div>
+
+            {/* Design Customization - Optional per-game overrides */}
+            <div className="border-t border-gray-700 pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Checkbox
+                  id="useCustomDesign"
+                  checked={useCustomDesign}
+                  onCheckedChange={(checked) => setUseCustomDesign(checked as boolean)}
+                />
+                <Label htmlFor="useCustomDesign" className="cursor-pointer">
+                  Customize colors & font for this game (optional)
+                </Label>
+              </div>
+              <p className="text-xs text-gray-400 mb-3">
+                Leave unchecked to use your profile default design. Check to override colors, font, and avatar just for this game.
+              </p>
+              
+              {useCustomDesign && (
+                <DesignPaletteEditor
+                  palette={designSettings}
+                  onChange={setDesignSettings}
+                  showAvatar={true}
+                  avatarUrl={designSettings.avatar}
+                  onAvatarChange={(url) => setDesignSettings({ ...designSettings, avatar: url })}
+                />
+              )}
             </div>
           </div>
 
