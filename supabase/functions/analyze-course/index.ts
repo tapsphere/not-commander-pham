@@ -238,7 +238,7 @@ Return ONLY the JSON structure as specified.`;
     // Build system prompt with actual database sub-competencies
     const systemPrompt = buildSystemPrompt(subCompetencies);
 
-    const userPrompt = `Analyze this course and map it to ALL relevant sub-competencies.
+    const userPrompt = `Analyze this course and map it to the most relevant sub-competencies from the C-BEN Framework.
 
 COURSE NAME: ${courseName || 'Untitled Course'}
 COURSE DESCRIPTION: ${courseDescription || 'N/A'}
@@ -247,15 +247,16 @@ COURSE CONTENT:
 ${courseText}
 
 Your task:
-1. Identify ALL sub-competencies that match this course content (aim for 3-6 matches minimum)
-2. For each match, use the EXACT sub_competency statement, action_cue, game_mechanic, and validator_type
-3. Provide comprehensive mapping - don't limit yourself, include all relevant matches
+1. Identify the TOP 4 MOST RELEVANT sub-competencies that best match this course content
+2. For each match, use the EXACT sub_competency statement, action_cue, game_mechanic, and validator_type from the list
+3. Focus on quality over quantity - select only the strongest alignments
 4. Return the exact JSON format specified
 
-CRITICAL: 
-- Use only sub-competencies from the list provided in the system prompt
-- Include multiple sub-competencies if they're relevant (not just 1-2)
-- For a comprehensive course, expect 4-8 sub-competency mappings`;
+CRITICAL CONSTRAINTS: 
+- Use ONLY sub-competencies from the C-BEN Framework list provided in the system prompt
+- Maximum 4 sub-competency mappings - no more, no less
+- Each mapping must have strong alignment with the course content
+- If fewer than 4 strong matches exist, still provide exactly 4 with lower priority ones`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
