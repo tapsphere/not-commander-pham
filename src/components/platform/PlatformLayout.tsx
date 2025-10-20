@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { LogOut, Palette, Building2, Store, TestTube } from 'lucide-react';
+import { LogOut, Palette, Building2, Store, TestTube, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const PlatformLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [activeRole, setActiveRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export const PlatformLayout = () => {
       const roles = rolesData.map(r => r.role);
       console.log('Roles found:', roles);
       setUserRoles(roles);
+      setActiveRole(roles[0]); // Set first role as default active role
     } catch (error) {
       console.error('Auth check failed:', error);
       toast.error('Authentication failed');
@@ -78,8 +80,22 @@ export const PlatformLayout = () => {
     navigate('/auth');
   };
 
-  const isCreator = userRoles.includes('creator');
-  const isBrand = userRoles.includes('brand');
+  const hasMultipleRoles = userRoles.length > 1;
+  const isCreator = activeRole === 'creator';
+  const isBrand = activeRole === 'brand';
+
+  const toggleRole = () => {
+    if (hasMultipleRoles) {
+      const newRole = activeRole === 'creator' ? 'brand' : 'creator';
+      setActiveRole(newRole);
+      // Navigate to the appropriate dashboard when switching roles
+      if (newRole === 'creator') {
+        navigate('/platform/creator');
+      } else {
+        navigate('/platform/brand');
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -95,9 +111,23 @@ export const PlatformLayout = () => {
       <header className="border-b border-neon-green/30 bg-gray-900/50 backdrop-blur">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-              {isCreator && isBrand ? 'Creator & Brand Hub' : isCreator ? 'Creator Studio' : 'Brand Hub'}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+                {isCreator ? 'Creator Studio' : 'Brand Hub'}
+              </h1>
+              {hasMultipleRoles && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleRole}
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Switch to {isCreator ? 'Brand' : 'Creator'}
+                </Button>
+              )}
+            </div>
+            
             
             <nav className="flex gap-4">
               {isCreator && (
