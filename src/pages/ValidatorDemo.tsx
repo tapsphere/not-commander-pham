@@ -375,16 +375,17 @@ export default function ValidatorDemo() {
 
   if (gameState === 'intro') {
     return (
-      <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-        <div className="max-w-2xl w-full space-y-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/platform/creator')}
-            className="mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
+      <MobileViewport>
+        <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
+          <div className="max-w-2xl w-full space-y-6">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/platform/creator')}
+              className="mb-4"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
           
           <div className="border-2 border-neon-green rounded-lg p-8 space-y-6 border-glow-green">
             <h1 className="text-4xl font-bold text-neon-green text-glow-green">
@@ -427,13 +428,15 @@ export default function ValidatorDemo() {
           </p>
         </div>
       </div>
+      </MobileViewport>
     );
   }
 
   if (gameState === 'edge-case') {
     return (
-      <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-        <div className="max-w-2xl w-full">
+      <MobileViewport>
+        <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
+          <div className="max-w-2xl w-full">
           <div className="border-2 border-red-500 rounded-lg p-8 space-y-6 animate-pulse bg-red-950/20">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-12 h-12 text-red-500" />
@@ -464,6 +467,7 @@ export default function ValidatorDemo() {
           </div>
         </div>
       </div>
+      </MobileViewport>
     );
   }
 
@@ -471,7 +475,8 @@ export default function ValidatorDemo() {
     const proficiency = getProficiencyLevel(score);
     
     return (
-      <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
+      <MobileViewport>
+        <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
         <div className="max-w-2xl w-full space-y-6">
           <div className={`border-2 rounded-lg p-8 space-y-6 ${proficiency.bg} border-${proficiency.color.split('-')[1]}`}>
             <h2 className="text-3xl font-bold text-center">Validator Complete</h2>
@@ -557,12 +562,14 @@ export default function ValidatorDemo() {
           )}
         </div>
       </div>
+      </MobileViewport>
     );
   }
 
   // Playing state
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-6">
+    <MobileViewport>
+      <div className="min-h-screen bg-black text-white p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header with Round Indicator */}
         <div className="flex justify-between items-center mb-4">
@@ -739,6 +746,7 @@ export default function ValidatorDemo() {
         )}
       </div>
     </div>
+    </MobileViewport>
   );
 }
 
