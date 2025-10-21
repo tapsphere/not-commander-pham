@@ -251,7 +251,7 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
     console.log('Starting Phase 3: Answer Validation Tests');
     const testRuns = [];
     
-    // Comprehensive test scenarios
+    // Comprehensive test scenarios - tests MUST validate actual behavior
     const sampleTests = [
       {
         scenario: 'Exact Match (Should Pass)',
@@ -272,18 +272,26 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
         shouldPass: true
       },
       {
-        scenario: 'Synonym Match (Should Pass)',
+        scenario: 'Synonym Delimiter Parsing (Should Pass)',
         questions: [
-          { question: 'How to improve?', userAnswer: 'enhance performance', correctAnswers: ['improve efficiency', 'boost productivity'] },
-          { question: 'Reduce what?', userAnswer: 'lower costs', correctAnswers: ['decrease expenses', 'cut costs'] }
+          { question: 'Key focus?', userAnswer: 'customer happiness', correctAnswers: ['customer satisfaction; client happiness; user contentment'] },
+          { question: 'Primary goal?', userAnswer: 'boost revenue', correctAnswers: ['increase sales; boost revenue; grow income'] }
         ],
         expectedAccuracy: 100,
         shouldPass: true
       },
       {
-        scenario: 'Word Overlap 70%+ (Should Pass)',
+        scenario: 'High Word Overlap 80%+ (Should Pass)',
         questions: [
-          { question: 'Priority?', userAnswer: 'customer satisfaction rate', correctAnswers: ['customer satisfaction', 'client satisfaction rate'] }
+          { question: 'Priority?', userAnswer: 'customer satisfaction rate improvement', correctAnswers: ['customer satisfaction rate', 'client satisfaction metrics'] }
+        ],
+        expectedAccuracy: 100,
+        shouldPass: true
+      },
+      {
+        scenario: 'Semantic Similarity with 70%+ Overlap (Should Pass)',
+        questions: [
+          { question: 'What to enhance?', userAnswer: 'improve customer loyalty', correctAnswers: ['enhance customer retention', 'boost client loyalty'] }
         ],
         expectedAccuracy: 100,
         shouldPass: true
@@ -295,7 +303,7 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
           { question: 'Main metric?', userAnswer: 'wrong answer here', correctAnswers: ['customer retention'] }
         ],
         expectedAccuracy: 0,
-        shouldPass: true // Test passes if accuracy matches expected 0%
+        shouldPass: true // Test passes when it correctly identifies wrong answers (0% accuracy)
       },
       {
         scenario: 'Empty Answers (MUST FAIL)',
@@ -304,15 +312,24 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
           { question: 'Priority?', userAnswer: '   ', correctAnswers: ['revenue growth'] }
         ],
         expectedAccuracy: 0,
-        shouldPass: true // Test passes if accuracy matches expected 0%
+        shouldPass: true // Test passes when it correctly rejects empty answers (0% accuracy)
       },
       {
-        scenario: 'Partial Words Only (MUST FAIL)',
+        scenario: 'Partial/Gibberish Words (MUST FAIL)',
         questions: [
-          { question: 'How to succeed?', userAnswer: 'xyz abc', correctAnswers: ['focus on customer needs'] }
+          { question: 'How to succeed?', userAnswer: 'xyz abc qwerty', correctAnswers: ['focus on customer needs'] },
+          { question: 'Best practice?', userAnswer: 'abc', correctAnswers: ['analyze customer feedback'] }
         ],
         expectedAccuracy: 0,
-        shouldPass: true // Test passes if accuracy matches expected 0%
+        shouldPass: true // Test passes when it correctly rejects gibberish (0% accuracy)
+      },
+      {
+        scenario: 'Insufficient Word Overlap (MUST FAIL)',
+        questions: [
+          { question: 'Strategy?', userAnswer: 'customer', correctAnswers: ['focus on customer satisfaction metrics'] }
+        ],
+        expectedAccuracy: 0,
+        shouldPass: true // Only 25% word overlap = should fail
       }
     ];
 
@@ -328,9 +345,9 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
         console.log(`    User: "${q.userAnswer}"`);
         console.log(`    Expected: ${JSON.stringify(q.correctAnswers)}`);
         
-        // CRITICAL: Explicitly handle empty answers
+        // CRITICAL: Explicitly handle empty answers - NO exceptions
         if (!q.userAnswer || q.userAnswer.trim() === '') {
-          console.log(`    Result: INCORRECT (empty answer)`);
+          console.log(`    ✗ Result: INCORRECT (empty answer)`);
           return {
             question: q.question,
             userAnswer: q.userAnswer,
@@ -339,27 +356,32 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
           };
         }
 
+        // Parse and expand answers (handle delimiter-separated synonyms)
+        const expandedAnswers = expandAnswers(q.correctAnswers);
+        console.log(`    Expanded to ${expandedAnswers.length} acceptable answers`);
+
         const normalized = normalizeAnswer(q.userAnswer);
-        console.log(`    Normalized: "${normalized}"`);
+        console.log(`    Normalized user: "${normalized}"`);
         
-        // CRITICAL: Check each correct answer explicitly
+        // CRITICAL: Check each acceptable answer explicitly - NO default passes
         let isCorrect = false;
-        let matchReason = 'No match';
+        let matchReason = 'No match found';
         
-        for (const correctAns of q.correctAnswers) {
-          if (!correctAns || correctAns.trim() === '') continue;
+        for (const acceptableAns of expandedAnswers) {
+          if (!acceptableAns || acceptableAns.trim() === '') continue;
           
-          const normalizedCorrect = normalizeAnswer(correctAns);
-          const matchResult = isAnswerMatch(normalized, normalizedCorrect);
+          const normalizedAcceptable = normalizeAnswer(acceptableAns);
+          const matchResult = isAnswerMatch(normalized, normalizedAcceptable);
           
           if (matchResult.isMatch) {
             isCorrect = true;
             matchReason = matchResult.reason;
+            console.log(`    ✓ Match found: "${acceptableAns}" (${matchReason})`);
             break;
           }
         }
         
-        console.log(`    Result: ${isCorrect ? 'CORRECT' : 'INCORRECT'} (${matchReason})`);
+        console.log(`    Final: ${isCorrect ? '✓ CORRECT' : '✗ INCORRECT'} (${matchReason})`);
         
         return {
           question: q.question,
@@ -416,9 +438,29 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
 }
 
 /**
+ * Expand Answers
+ * Splits answer strings that contain multiple synonyms separated by delimiters
+ * Handles: semicolon (;), comma (,), pipe (|) separators
+ * Example: "revenue; income; sales" → ["revenue", "income", "sales"]
+ */
+function expandAnswers(answers: string[]): string[] {
+  const expanded: string[] = [];
+  
+  for (const ans of answers) {
+    if (!ans) continue;
+    
+    // Split on common delimiters and trim each part
+    const parts = ans.split(/[;,|]/).map(part => part.trim()).filter(part => part.length > 0);
+    expanded.push(...parts);
+  }
+  
+  return expanded;
+}
+
+/**
  * Normalize Answer
- * Standardizes answer format for comparison
- * CRITICAL: Returns empty string for invalid input
+ * Standardizes answer format for consistent comparison
+ * CRITICAL: Must produce identical output to validate-answers function
  */
 function normalizeAnswer(answer: string): string {
   if (!answer) return '';
@@ -434,66 +476,89 @@ function normalizeAnswer(answer: string): string {
 
 /**
  * Check Answer Match
- * Intelligently compares user answer to correct answers
+ * Intelligently compares user answer to acceptable answers
  * CRITICAL: Returns explicit false for non-matches - NO default passes
+ * MUST match logic in validate-answers function exactly
  */
-function isAnswerMatch(userAnswer: string, correctAnswer: string): { isMatch: boolean; reason: string } {
-  // CRITICAL: Reject empty answers explicitly
+function isAnswerMatch(userAnswer: string, acceptableAnswer: string): { isMatch: boolean; reason: string } {
+  // CRITICAL: Reject empty answers explicitly - NO exceptions
   if (!userAnswer || userAnswer.trim() === '') {
     return { isMatch: false, reason: 'Empty user answer' };
   }
   
-  if (!correctAnswer || correctAnswer.trim() === '') {
-    return { isMatch: false, reason: 'Empty correct answer' };
+  if (!acceptableAnswer || acceptableAnswer.trim() === '') {
+    return { isMatch: false, reason: 'Empty acceptable answer' };
   }
 
-  // Exact match after normalization
-  if (userAnswer === correctAnswer) {
+  // Exact match after normalization - PASS
+  if (userAnswer === acceptableAnswer) {
     return { isMatch: true, reason: 'Exact match' };
   }
   
-  // Very short answers must match exactly
-  if (correctAnswer.length < 4) {
+  // Very short answers must match exactly - NO partial matching
+  if (acceptableAnswer.length < 4) {
     return { isMatch: false, reason: 'Short answer requires exact match' };
   }
 
   // Word-based matching for longer answers
+  // CRITICAL: Filter out very short words to avoid false matches
   const userWords = userAnswer.split(' ').filter(w => w.length > 2);
-  const correctWords = correctAnswer.split(' ').filter(w => w.length > 2);
+  const acceptableWords = acceptableAnswer.split(' ').filter(w => w.length > 2);
   
-  if (correctWords.length === 0) {
-    return { isMatch: false, reason: 'No words in correct answer' };
+  if (acceptableWords.length === 0) {
+    return { isMatch: false, reason: 'No substantial words in acceptable answer' };
+  }
+  
+  if (userWords.length === 0) {
+    return { isMatch: false, reason: 'No substantial words in user answer' };
   }
   
   const userWordSet = new Set(userWords);
-  const commonWords = correctWords.filter(w => userWordSet.has(w)).length;
-  const overlapPercentage = (commonWords / correctWords.length) * 100;
+  const commonWords = acceptableWords.filter(w => userWordSet.has(w)).length;
+  const overlapPercentage = (commonWords / acceptableWords.length) * 100;
   
-  // 70%+ word overlap = correct
-  if (overlapPercentage >= 70) {
+  // STRICT: 80%+ overlap = automatic pass
+  if (overlapPercentage >= 80) {
     return { isMatch: true, reason: `${Math.round(overlapPercentage)}% word overlap` };
   }
 
-  // Synonym matching - still requires good overlap
-  const synonymPairs = [
-    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow'],
-    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen'],
-    ['customer', 'client', 'user', 'consumer'],
-    ['satisfaction', 'happiness', 'contentment'],
-    ['revenue', 'income', 'earnings', 'sales'],
-    ['cost', 'expense', 'expenditure'],
-    ['efficiency', 'productivity', 'performance'],
-  ];
-
-  for (const synonyms of synonymPairs) {
-    const userHasSynonym = synonyms.some(syn => userAnswer.includes(syn));
-    const correctHasSynonym = synonyms.some(syn => correctAnswer.includes(syn));
-    
-    if (userHasSynonym && correctHasSynonym && overlapPercentage >= 60) {
-      return { isMatch: true, reason: `Synonym + ${Math.round(overlapPercentage)}% overlap` };
+  // MODERATE: 70-79% with semantic check
+  if (overlapPercentage >= 70) {
+    if (checkSemanticSimilarity(userWords, acceptableWords)) {
+      return { isMatch: true, reason: `Semantic match: ${Math.round(overlapPercentage)}%` };
     }
   }
 
   // CRITICAL: Explicit false return - no match found
   return { isMatch: false, reason: `Only ${Math.round(overlapPercentage)}% overlap` };
+}
+
+/**
+ * Check Semantic Similarity
+ * Verifies semantic concept overlap using word-level synonym groups
+ * MUST match logic in validate-answers function exactly
+ */
+function checkSemanticSimilarity(userWords: string[], acceptableWords: string[]): boolean {
+  const synonymGroups = [
+    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow', 'elevate'],
+    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen', 'diminish'],
+    ['customer', 'client', 'user', 'consumer', 'patron'],
+    ['satisfaction', 'happiness', 'contentment', 'fulfillment'],
+    ['revenue', 'income', 'earnings', 'sales', 'proceeds'],
+    ['cost', 'expense', 'expenditure', 'spending'],
+    ['efficiency', 'productivity', 'performance', 'effectiveness'],
+    ['quality', 'excellence', 'standard', 'grade'],
+    ['retention', 'loyalty', 'keeping', 'maintaining'],
+  ];
+
+  for (const group of synonymGroups) {
+    const userHasConcept = userWords.some(word => group.includes(word));
+    const acceptableHasConcept = acceptableWords.some(word => group.includes(word));
+    
+    if (userHasConcept && acceptableHasConcept) {
+      return true;
+    }
+  }
+
+  return false;
 }

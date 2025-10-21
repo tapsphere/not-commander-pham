@@ -10,13 +10,18 @@ const corsHeaders = {
  * Answer Validation Service
  * Compares user answers against knowledgebase with intelligent normalization
  * CRITICAL: Only marks as correct when there is a TRUE match - no default passes
+ * 
+ * KNOWLEDGEBASE FORMAT EXPECTED:
+ * - correctAnswers should be an array of accepted answers AND their synonyms
+ * - If synonyms are in spreadsheet as "answer1; synonym1; synonym2", split on ";" before passing
+ * - Example: ["customer satisfaction", "client happiness", "user contentment"]
  */
 
 interface ValidateRequest {
   questions: Array<{
     question: string;
     userAnswer: string;
-    correctAnswers: string[]; // Multiple accepted answers
+    correctAnswers: string[]; // Primary answer + all synonyms (pre-split from knowledgebase)
   }>;
 }
 
@@ -50,11 +55,11 @@ serve(async (req) => {
       console.log(`\n--- Question ${index + 1} ---`);
       console.log('Question:', q.question);
       console.log('User answer:', q.userAnswer);
-      console.log('Correct answers:', q.correctAnswers);
+      console.log('Correct answers/synonyms:', q.correctAnswers);
       
       // CRITICAL: Check for empty or invalid user answers first
       if (!q.userAnswer || q.userAnswer.trim() === '') {
-        console.log('Result: INCORRECT (empty answer)');
+        console.log('✗ Result: INCORRECT (empty answer)');
         return {
           question: q.question,
           userAnswer: q.userAnswer,
@@ -66,42 +71,47 @@ serve(async (req) => {
 
       // CRITICAL: Check for empty or invalid correct answers
       if (!q.correctAnswers || q.correctAnswers.length === 0) {
-        console.log('Result: INCORRECT (no correct answers defined)');
+        console.log('✗ Result: INCORRECT (no correct answers defined in knowledgebase)');
         return {
           question: q.question,
           userAnswer: q.userAnswer,
           correctAnswers: q.correctAnswers,
           isCorrect: false,
-          reason: 'No correct answers defined'
+          reason: 'No correct answers defined in knowledgebase'
         };
       }
+
+      // Parse and expand correct answers (in case they contain delimiters)
+      const expandedAnswers = expandAnswers(q.correctAnswers);
+      console.log(`Expanded to ${expandedAnswers.length} acceptable answers:`, expandedAnswers);
 
       const normalized = normalizeAnswer(q.userAnswer);
       console.log('Normalized user answer:', normalized);
       
-      // Check each correct answer for a match
+      // CRITICAL: Check each acceptable answer explicitly - NO fallback passes
       let isCorrect = false;
       let matchedAnswer: string | undefined;
       let reason = 'No match found';
       
-      for (const correctAns of q.correctAnswers) {
-        if (!correctAns || correctAns.trim() === '') continue;
+      for (const acceptableAns of expandedAnswers) {
+        if (!acceptableAns || acceptableAns.trim() === '') continue;
         
-        const normalizedCorrect = normalizeAnswer(correctAns);
-        console.log(`Comparing with: "${normalizedCorrect}"`);
+        const normalizedAcceptable = normalizeAnswer(acceptableAns);
+        console.log(`  Comparing with: "${normalizedAcceptable}"`);
         
-        const matchResult = isAnswerMatch(normalized, normalizedCorrect);
-        console.log(`Match result: ${matchResult.isMatch} (${matchResult.reason})`);
+        const matchResult = isAnswerMatch(normalized, normalizedAcceptable);
+        console.log(`  → ${matchResult.isMatch ? '✓' : '✗'} ${matchResult.reason}`);
         
         if (matchResult.isMatch) {
           isCorrect = true;
-          matchedAnswer = correctAns;
+          matchedAnswer = acceptableAns;
           reason = matchResult.reason;
+          console.log(`  ✓ MATCH FOUND!`);
           break;
         }
       }
 
-      console.log(`Final result: ${isCorrect ? 'CORRECT' : 'INCORRECT'} - ${reason}`);
+      console.log(`\n${isCorrect ? '✓ CORRECT' : '✗ INCORRECT'} - ${reason}`);
 
       return {
         question: q.question,
@@ -153,13 +163,30 @@ serve(async (req) => {
 });
 
 /**
+ * Expand Answers
+ * Splits answers that may contain multiple synonyms separated by delimiters
+ * Handles: semicolon, comma, pipe separators
+ * Example: "revenue; income; sales" → ["revenue", "income", "sales"]
+ */
+function expandAnswers(answers: string[]): string[] {
+  const expanded: string[] = [];
+  
+  for (const ans of answers) {
+    if (!ans) continue;
+    
+    // Split on common delimiters and add all parts
+    const parts = ans.split(/[;,|]/).map(part => part.trim()).filter(part => part.length > 0);
+    expanded.push(...parts);
+  }
+  
+  console.log(`  Expanded ${answers.length} entries into ${expanded.length} acceptable answers`);
+  return expanded;
+}
+
+/**
  * Normalize Answer
  * Converts answer to a standardized format for comparison
- * - Lowercase
- * - Trim whitespace
- * - Remove extra spaces
- * - Remove common punctuation
- * - Handle common variations
+ * CRITICAL: Consistent normalization ensures fair comparison
  */
 function normalizeAnswer(answer: string): string {
   if (!answer) return '';
@@ -173,87 +200,105 @@ function normalizeAnswer(answer: string): string {
     .replace(/[.,!?;:'"(){}[\]]/g, '')
     // Standardize apostrophes
     .replace(/[''`]/g, "'")
-    // Remove leading "the", "a", "an" articles
-    .replace(/^(the|a|an)\s+/i, '')
-    // Handle number variations
-    .replace(/\bone\b/g, '1')
-    .replace(/\btwo\b/g, '2')
-    .replace(/\bthree\b/g, '3')
-    .replace(/\bfour\b/g, '4')
-    .replace(/\bfive\b/g, '5');
+    // Remove leading articles
+    .replace(/^(the|a|an)\s+/i, '');
 }
 
 /**
  * Check if Answer Matches
- * Determines if user answer matches the correct answer
- * Returns both match status and reason for debugging
+ * Determines if user answer matches the acceptable answer
+ * CRITICAL: No default passes - explicit match required
  */
-function isAnswerMatch(userAnswer: string, correctAnswer: string): { isMatch: boolean; reason: string } {
-  // CRITICAL: Reject empty answers explicitly
+function isAnswerMatch(userAnswer: string, acceptableAnswer: string): { isMatch: boolean; reason: string } {
+  // CRITICAL: Reject empty answers explicitly - NO exceptions
   if (!userAnswer || userAnswer.trim() === '') {
     return { isMatch: false, reason: 'Empty user answer' };
   }
   
-  if (!correctAnswer || correctAnswer.trim() === '') {
-    return { isMatch: false, reason: 'Empty correct answer' };
+  if (!acceptableAnswer || acceptableAnswer.trim() === '') {
+    return { isMatch: false, reason: 'Empty acceptable answer' };
   }
 
-  // Exact match after normalization
-  if (userAnswer === correctAnswer) {
+  // Exact match after normalization - PASS
+  if (userAnswer === acceptableAnswer) {
     return { isMatch: true, reason: 'Exact match' };
   }
 
-  // Handle very short answers differently - require exact match
-  if (correctAnswer.length < 4) {
+  // Very short answers must match exactly - NO partial matching
+  if (acceptableAnswer.length < 4) {
     return { isMatch: false, reason: 'Short answer requires exact match' };
   }
 
-  // For longer answers, check word-based matching
+  // Word-based matching for longer answers
+  // CRITICAL: Filter out very short words (2 chars or less) to avoid false matches
   const userWords = userAnswer.split(' ').filter(w => w.length > 2);
-  const correctWords = correctAnswer.split(' ').filter(w => w.length > 2);
+  const acceptableWords = acceptableAnswer.split(' ').filter(w => w.length > 2);
   
-  // No words to compare
-  if (correctWords.length === 0) {
-    return { isMatch: false, reason: 'No words to compare in correct answer' };
+  // No substantial words to compare
+  if (acceptableWords.length === 0) {
+    return { isMatch: false, reason: 'No substantial words in acceptable answer' };
+  }
+  
+  if (userWords.length === 0) {
+    return { isMatch: false, reason: 'No substantial words in user answer' };
   }
 
   const userWordSet = new Set(userWords);
-  const correctWordSet = new Set(correctWords);
+  
+  // Calculate word overlap based on acceptable answer's words
+  const commonWords = acceptableWords.filter(w => userWordSet.has(w)).length;
+  const overlapPercentage = (commonWords / acceptableWords.length) * 100;
 
-  // Calculate word overlap percentage based on correct answer
-  const commonWords = correctWords.filter(w => userWordSet.has(w)).length;
-  const overlapPercentage = (commonWords / correctWords.length) * 100;
+  console.log(`    Word analysis: ${commonWords}/${acceptableWords.length} words match (${Math.round(overlapPercentage)}%)`);
 
-  console.log(`  Word analysis: ${commonWords}/${correctWords.length} words match (${Math.round(overlapPercentage)}%)`);
-
-  // Require 70%+ of the correct answer's key words to be present
-  if (overlapPercentage >= 70) {
-    return { isMatch: true, reason: `Word overlap: ${Math.round(overlapPercentage)}%` };
+  // STRICT THRESHOLD: Require 80%+ word overlap for automatic pass
+  if (overlapPercentage >= 80) {
+    return { isMatch: true, reason: `High word overlap: ${Math.round(overlapPercentage)}%` };
   }
 
-  // Handle common synonyms - but still require good word overlap
-  const synonymPairs = [
-    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow'],
-    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen'],
-    ['customer', 'client', 'user', 'consumer'],
-    ['satisfaction', 'happiness', 'contentment'],
-    ['revenue', 'income', 'earnings', 'sales'],
-    ['cost', 'expense', 'expenditure'],
-    ['efficiency', 'productivity', 'performance'],
-  ];
-
-  for (const synonyms of synonymPairs) {
-    const userHasSynonym = synonyms.some(syn => userAnswer.includes(syn));
-    const correctHasSynonym = synonyms.some(syn => correctAnswer.includes(syn));
-    
-    if (userHasSynonym && correctHasSynonym) {
-      // Even with synonyms, require at least 60% word overlap
-      if (overlapPercentage >= 60) {
-        return { isMatch: true, reason: `Synonym match + ${Math.round(overlapPercentage)}% overlap` };
-      }
+  // MODERATE THRESHOLD: 70-79% with semantic similarity check
+  if (overlapPercentage >= 70) {
+    // Check if the key concept words are present
+    const hasKeyConceptMatch = checkSemanticSimilarity(userWords, acceptableWords);
+    if (hasKeyConceptMatch) {
+      return { isMatch: true, reason: `Semantic match: ${Math.round(overlapPercentage)}% overlap` };
     }
   }
 
   // CRITICAL: No match found - explicitly return false
-  return { isMatch: false, reason: `Insufficient overlap: ${Math.round(overlapPercentage)}%` };
+  // Even if some words match, insufficient overlap = INCORRECT
+  return { isMatch: false, reason: `Insufficient word overlap: ${Math.round(overlapPercentage)}%` };
+}
+
+/**
+ * Check Semantic Similarity
+ * Verifies if user and acceptable answers contain semantically similar concepts
+ * Uses word-level synonym checking with EXACT word matching (not substring)
+ */
+function checkSemanticSimilarity(userWords: string[], acceptableWords: string[]): boolean {
+  // Common business concept synonym groups
+  const synonymGroups = [
+    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow', 'elevate'],
+    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen', 'diminish'],
+    ['customer', 'client', 'user', 'consumer', 'patron'],
+    ['satisfaction', 'happiness', 'contentment', 'fulfillment'],
+    ['revenue', 'income', 'earnings', 'sales', 'proceeds'],
+    ['cost', 'expense', 'expenditure', 'spending'],
+    ['efficiency', 'productivity', 'performance', 'effectiveness'],
+    ['quality', 'excellence', 'standard', 'grade'],
+    ['retention', 'loyalty', 'keeping', 'maintaining'],
+  ];
+
+  // Check if user and acceptable answers share synonym concepts
+  for (const group of synonymGroups) {
+    const userHasConcept = userWords.some(word => group.includes(word));
+    const acceptableHasConcept = acceptableWords.some(word => group.includes(word));
+    
+    if (userHasConcept && acceptableHasConcept) {
+      console.log(`    → Semantic match found: ${group.filter(s => userWords.includes(s) || acceptableWords.includes(s)).join(', ')}`);
+      return true;
+    }
+  }
+
+  return false;
 }
