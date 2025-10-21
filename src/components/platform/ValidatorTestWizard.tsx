@@ -39,7 +39,7 @@ export function ValidatorTestWizard({
   subCompetency,
   onComplete 
 }: ValidatorTestWizardProps) {
-  const [currentPhase, setCurrentPhase] = useState(1);
+  const [currentPhase, setCurrentPhase] = useState(0); // Start at preview phase
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testComplete, setTestComplete] = useState(false);
@@ -49,6 +49,22 @@ export function ValidatorTestWizard({
   const [phase3, setPhase3] = useState<PhaseData>({ status: 'not_started', notes: '' });
 
   const phases = [
+    {
+      number: 0,
+      title: 'Preview Your Validator',
+      description: 'Review your created validator before testing',
+      data: { status: 'not_started' as PhaseStatus, notes: '' },
+      setData: () => {},
+      checklist: [
+        'Template name and description are accurate',
+        'Selected sub-competency is correct',
+        'Game type matches your expectations',
+        template.template_type === 'custom_upload' ? 'Custom game URL is accessible' : 'AI prompt is appropriate'
+      ],
+      instructions: template.template_type === 'custom_upload'
+        ? `Custom Game URL: ${template.custom_game_url || 'Not set'}\n\nReview your uploaded validator before proceeding to testing.`
+        : `Review the validator you've created before proceeding to comprehensive testing. Make sure everything looks correct.`
+    },
     {
       number: 1,
       title: 'UX/UI Flow Test',
@@ -102,8 +118,8 @@ export function ValidatorTestWizard({
     }
   ];
 
-  const currentPhaseData = phases[currentPhase - 1];
-  const progress = (currentPhase / 3) * 100;
+  const currentPhaseData = phases[currentPhase];
+  const progress = currentPhase === 0 ? 0 : (currentPhase / 3) * 100;
 
   const canProceed = currentPhaseData.data.status !== 'not_started';
 
@@ -180,7 +196,7 @@ export function ValidatorTestWizard({
   };
 
   const handleBack = () => {
-    if (currentPhase > 1) {
+    if (currentPhase > 0) {
       setCurrentPhase(currentPhase - 1);
     }
   };
@@ -193,7 +209,7 @@ export function ValidatorTestWizard({
             {template.template_type === 'ai_generated' ? '🤖' : '📤'} {template.name}
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            Phase {currentPhase} of 3 • {Math.round(progress)}% Complete
+            {currentPhase === 0 ? 'Preview your validator' : `Phase ${currentPhase} of 3 • ${Math.round(progress)}% Complete`}
           </DialogDescription>
         </DialogHeader>
 
@@ -232,7 +248,7 @@ export function ValidatorTestWizard({
           </div>
 
           {/* Play Game CTA */}
-          {currentPhase === 1 && template.custom_game_url && (
+          {(currentPhase === 0 || currentPhase === 1) && template.custom_game_url && (
             <Button
               onClick={() => window.open(template.custom_game_url, '_blank')}
               className="w-full bg-neon-green text-black hover:bg-neon-green/80 gap-2"
@@ -241,9 +257,34 @@ export function ValidatorTestWizard({
               Open Game in New Tab
             </Button>
           )}
+          
+          {/* Template Info Display for Preview Phase */}
+          {currentPhase === 0 && (
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-3">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-400 mb-1">Template Name</h4>
+                <p className="text-white">{template.name}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-400 mb-1">Type</h4>
+                <p className="text-white">
+                  {template.template_type === 'ai_generated' ? '🤖 AI Generated' : '📤 Custom Upload'}
+                </p>
+              </div>
+              {subCompetency && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-400 mb-1">Testing Sub-Competency</h4>
+                  <p className="text-white">{subCompetency.statement}</p>
+                  {subCompetency.action_cue && (
+                    <p className="text-sm text-gray-400 mt-1">Action Cue: {subCompetency.action_cue}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Automated Test Results */}
-          {currentPhaseData.data.status !== 'not_started' ? (
+          {/* Automated Test Results - Skip for preview phase */}
+          {currentPhase > 0 && currentPhaseData.data.status !== 'not_started' ? (
             <div className={`border-2 rounded-lg p-4 ${
               currentPhaseData.data.status === 'passed' ? 'bg-green-500/10 border-green-500' :
               currentPhaseData.data.status === 'failed' ? 'bg-red-500/10 border-red-500' :
@@ -261,12 +302,12 @@ export function ValidatorTestWizard({
                 {currentPhaseData.data.notes}
               </p>
             </div>
-          ) : (
+          ) : currentPhase > 0 ? (
             <div className="bg-gray-800 border-2 border-gray-600 rounded-lg p-4 text-center">
               <p className="text-gray-400 mb-2">Automated testing not yet run for this phase</p>
               <p className="text-sm text-gray-500">Click "Run Automated Tests" below to begin</p>
             </div>
-          )}
+          ) : null}
 
           {/* Notes - Hidden since automated */}
           {currentPhaseData.data.notes && (
@@ -278,29 +319,48 @@ export function ValidatorTestWizard({
             </div>
           )}
 
-          {/* Phase Summary */}
-          <div className="flex gap-2 justify-center">
-            {[phase1, phase2, phase3].map((phase, idx) => (
-              <Badge
-                key={idx}
-                variant={currentPhase === idx + 1 ? 'default' : 'outline'}
-                onClick={() => testComplete && setCurrentPhase(idx + 1)}
-                className={`${
-                  phase.status === 'passed' ? 'bg-green-500' :
-                  phase.status === 'failed' ? 'bg-red-500' :
-                  phase.status === 'needs_review' ? 'bg-yellow-500' :
-                  'bg-gray-600'
-                } text-white ${testComplete ? 'cursor-pointer hover:opacity-80' : ''}`}
-              >
-                Phase {idx + 1}
-              </Badge>
-            ))}
-          </div>
+          {/* Phase Summary - Only show after preview */}
+          {currentPhase > 0 && (
+            <div className="flex gap-2 justify-center">
+              {[phase1, phase2, phase3].map((phase, idx) => (
+                <Badge
+                  key={idx}
+                  variant={currentPhase === idx + 1 ? 'default' : 'outline'}
+                  onClick={() => testComplete && setCurrentPhase(idx + 1)}
+                  className={`${
+                    phase.status === 'passed' ? 'bg-green-500' :
+                    phase.status === 'failed' ? 'bg-red-500' :
+                    phase.status === 'needs_review' ? 'bg-yellow-500' :
+                    'bg-gray-600'
+                  } text-white ${testComplete ? 'cursor-pointer hover:opacity-80' : ''}`}
+                >
+                  Phase {idx + 1}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
         <div className="flex justify-between gap-3 pt-4 border-t border-gray-700">
-          {!testComplete ? (
+          {currentPhase === 0 ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="gap-2 border-gray-600"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={handleNext}
+                className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+              >
+                Proceed to Testing
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </>
+          ) : !testComplete ? (
             <Button
               onClick={handleRunAutomatedTests}
               disabled={testing}
