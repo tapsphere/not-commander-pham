@@ -317,7 +317,11 @@ export default function ValidatorTest() {
                           {testResult ? 'Re-test' : 'Start Test'}
                         </Button>
                         {testResult && (
-                          <Button variant="outline" className="border-gray-600 text-gray-300">
+                          <Button 
+                            variant="outline" 
+                            className="border-gray-600 text-gray-300"
+                            onClick={() => startTest(template)}
+                          >
                             View Results
                           </Button>
                         )}
