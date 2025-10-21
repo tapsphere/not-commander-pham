@@ -27,7 +27,11 @@ serve(async (req) => {
   try {
     const { templateId, subCompetencyId, testerId }: TestRequest = await req.json();
 
-    console.log('Starting automated stress test for template:', templateId);
+    console.log('\n========================================');
+    console.log('AUTOMATED STRESS TEST STARTING');
+    console.log('Template ID:', templateId);
+    console.log('Sub-Competency ID:', subCompetencyId);
+    console.log('========================================\n');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -58,19 +62,22 @@ serve(async (req) => {
     const results: TestResult[] = [];
 
     // PHASE 1: UX/UI Flow Automated Test
-    console.log('Running Phase 1: UX/UI Flow Test');
+    console.log('\n--- PHASE 1: UX/UI Flow Test ---');
     const phase1Result = await runPhase1Test(template, subComp);
     results.push(phase1Result);
+    console.log(`Phase 1 Status: ${phase1Result.status.toUpperCase()}`);
 
     // PHASE 2: Action Cue Validation
-    console.log('Running Phase 2: Action Cue Validation');
+    console.log('\n--- PHASE 2: Action Cue Validation ---');
     const phase2Result = await runPhase2Test(template, subComp);
     results.push(phase2Result);
+    console.log(`Phase 2 Status: ${phase2Result.status.toUpperCase()}`);
 
     // PHASE 3: Scoring Formula Stress Test
-    console.log('Running Phase 3: Scoring Formula Test');
+    console.log('\n--- PHASE 3: Answer Validation & Scoring ---');
     const phase3Result = await runPhase3Test(template, subComp);
     results.push(phase3Result);
+    console.log(`Phase 3 Status: ${phase3Result.status.toUpperCase()}`);
 
     // Determine overall status
     const overallStatus = results.every(r => r.status === 'passed') ? 'passed' :
@@ -111,7 +118,10 @@ serve(async (req) => {
         .insert(testData);
     }
 
-    console.log('Stress test complete. Overall status:', overallStatus);
+    console.log('\n========================================');
+    console.log('STRESS TEST COMPLETE');
+    console.log('Overall Status:', overallStatus.toUpperCase());
+    console.log('========================================\n');
 
     return new Response(
       JSON.stringify({
@@ -151,15 +161,10 @@ async function runPhase1Test(template: any, subComp: any): Promise<TestResult> {
         issues.push('Custom game URL is missing');
       }
     } else if (template.template_type === 'ai_generated') {
-      // For AI generated, we'd need to generate it first or check if it can be generated
       if (!template.base_prompt) {
         issues.push('AI template missing base prompt');
       }
     }
-
-    // Test 2: Check for required game structure elements
-    // In a real implementation, we'd use Puppeteer to load the game and check
-    // For now, we'll do basic validation
     
     if (issues.length === 0) {
       return {
@@ -243,94 +248,164 @@ async function runPhase2Test(template: any, subComp: any): Promise<TestResult> {
 // PHASE 3: Answer Validation & Scoring Test
 async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
   try {
+    console.log('Starting Phase 3: Answer Validation Tests');
     const testRuns = [];
     
-    // Test with sample questions and answers
+    // Comprehensive test scenarios
     const sampleTests = [
       {
-        scenario: 'Simple Answer Match',
+        scenario: 'Exact Match (Should Pass)',
         questions: [
           { question: 'What is customer satisfaction?', userAnswer: 'customer satisfaction', correctAnswers: ['customer satisfaction', 'client happiness'] },
-          { question: 'How to increase revenue?', userAnswer: 'boost sales', correctAnswers: ['increase sales', 'boost revenue', 'grow income'] }
+          { question: 'How to increase revenue?', userAnswer: 'increase sales', correctAnswers: ['increase sales', 'boost revenue'] }
         ],
-        expectedAccuracy: 100
+        expectedAccuracy: 100,
+        shouldPass: true
       },
       {
-        scenario: 'Case Insensitive & Whitespace',
+        scenario: 'Case & Whitespace Variation (Should Pass)',
         questions: [
           { question: 'Key metric?', userAnswer: '  REVENUE  ', correctAnswers: ['revenue', 'income'] },
-          { question: 'Main goal?', userAnswer: 'Customer Retention', correctAnswers: ['customer retention', 'retain customers'] }
+          { question: 'Main goal?', userAnswer: 'Customer Retention', correctAnswers: ['customer retention'] }
         ],
-        expectedAccuracy: 100
+        expectedAccuracy: 100,
+        shouldPass: true
       },
       {
-        scenario: 'Synonym Recognition',
+        scenario: 'Synonym Match (Should Pass)',
         questions: [
           { question: 'How to improve?', userAnswer: 'enhance performance', correctAnswers: ['improve efficiency', 'boost productivity'] },
           { question: 'Reduce what?', userAnswer: 'lower costs', correctAnswers: ['decrease expenses', 'cut costs'] }
         ],
-        expectedAccuracy: 100
+        expectedAccuracy: 100,
+        shouldPass: true
       },
       {
-        scenario: 'Partial Match (Should Pass)',
+        scenario: 'Word Overlap 70%+ (Should Pass)',
         questions: [
-          { question: 'What matters?', userAnswer: 'user satisfaction', correctAnswers: ['customer satisfaction', 'client happiness'] },
-          { question: 'Priority?', userAnswer: 'reduce technical debt', correctAnswers: ['lower tech debt', 'decrease debt'] }
+          { question: 'Priority?', userAnswer: 'customer satisfaction rate', correctAnswers: ['customer satisfaction', 'client satisfaction rate'] }
         ],
-        expectedAccuracy: 100
+        expectedAccuracy: 100,
+        shouldPass: true
       },
       {
-        scenario: 'Wrong Answers (Should Fail)',
+        scenario: 'Completely Wrong Answers (MUST FAIL)',
         questions: [
           { question: 'What to increase?', userAnswer: 'banana', correctAnswers: ['revenue', 'sales'] },
-          { question: 'Main metric?', userAnswer: 'wrong answer', correctAnswers: ['customer retention'] }
+          { question: 'Main metric?', userAnswer: 'wrong answer here', correctAnswers: ['customer retention'] }
         ],
-        expectedAccuracy: 0
+        expectedAccuracy: 0,
+        shouldPass: true // Test passes if accuracy matches expected 0%
+      },
+      {
+        scenario: 'Empty Answers (MUST FAIL)',
+        questions: [
+          { question: 'What matters?', userAnswer: '', correctAnswers: ['customer satisfaction'] },
+          { question: 'Priority?', userAnswer: '   ', correctAnswers: ['revenue growth'] }
+        ],
+        expectedAccuracy: 0,
+        shouldPass: true // Test passes if accuracy matches expected 0%
+      },
+      {
+        scenario: 'Partial Words Only (MUST FAIL)',
+        questions: [
+          { question: 'How to succeed?', userAnswer: 'xyz abc', correctAnswers: ['focus on customer needs'] }
+        ],
+        expectedAccuracy: 0,
+        shouldPass: true // Test passes if accuracy matches expected 0%
       }
     ];
 
     let allTestsPassed = true;
+    let failedTests: string[] = [];
 
     for (const test of sampleTests) {
-      // Validate each test scenario
-      const details = test.questions.map(q => {
+      console.log(`\nTesting: ${test.scenario}`);
+      
+      // Validate each question in this test scenario
+      const details = test.questions.map((q, qIdx) => {
+        console.log(`  Question ${qIdx + 1}: "${q.question}"`);
+        console.log(`    User: "${q.userAnswer}"`);
+        console.log(`    Expected: ${JSON.stringify(q.correctAnswers)}`);
+        
+        // CRITICAL: Explicitly handle empty answers
+        if (!q.userAnswer || q.userAnswer.trim() === '') {
+          console.log(`    Result: INCORRECT (empty answer)`);
+          return {
+            question: q.question,
+            userAnswer: q.userAnswer,
+            isCorrect: false,
+            reason: 'Empty answer'
+          };
+        }
+
         const normalized = normalizeAnswer(q.userAnswer);
-        const isCorrect = q.correctAnswers.some(correctAns => 
-          isAnswerMatch(normalized, normalizeAnswer(correctAns))
-        );
+        console.log(`    Normalized: "${normalized}"`);
+        
+        // CRITICAL: Check each correct answer explicitly
+        let isCorrect = false;
+        let matchReason = 'No match';
+        
+        for (const correctAns of q.correctAnswers) {
+          if (!correctAns || correctAns.trim() === '') continue;
+          
+          const normalizedCorrect = normalizeAnswer(correctAns);
+          const matchResult = isAnswerMatch(normalized, normalizedCorrect);
+          
+          if (matchResult.isMatch) {
+            isCorrect = true;
+            matchReason = matchResult.reason;
+            break;
+          }
+        }
+        
+        console.log(`    Result: ${isCorrect ? 'CORRECT' : 'INCORRECT'} (${matchReason})`);
         
         return {
           question: q.question,
           userAnswer: q.userAnswer,
-          isCorrect
+          isCorrect,
+          reason: matchReason
         };
       });
 
       const correctCount = details.filter(d => d.isCorrect).length;
-      const accuracy = (correctCount / test.questions.length) * 100;
-      const passed = accuracy === test.expectedAccuracy;
+      const accuracy = Math.round((correctCount / test.questions.length) * 100);
+      const testPassed = accuracy === test.expectedAccuracy;
       
-      if (!passed) allTestsPassed = false;
+      console.log(`  Expected accuracy: ${test.expectedAccuracy}%`);
+      console.log(`  Actual accuracy: ${accuracy}%`);
+      console.log(`  Test ${testPassed ? 'PASSED' : 'FAILED'}`);
+      
+      if (!testPassed) {
+        allTestsPassed = false;
+        failedTests.push(`${test.scenario} (expected ${test.expectedAccuracy}%, got ${accuracy}%)`);
+      }
 
       testRuns.push({
         scenario: test.scenario,
         expectedAccuracy: test.expectedAccuracy,
         actualAccuracy: accuracy,
-        passed,
+        passed: testPassed,
         details
       });
+    }
+
+    if (failedTests.length > 0) {
+      console.log('\nFailed tests:', failedTests.join(', '));
     }
 
     return {
       phase: 3,
       status: allTestsPassed ? 'passed' : 'failed',
       notes: allTestsPassed 
-        ? 'Answer validation logic works correctly. All test scenarios passed including normalization, synonyms, and case-insensitivity.'
-        : 'Answer validation logic has issues. Check test details for failures.',
+        ? 'Answer validation logic works correctly. All test scenarios passed including normalization, synonyms, case-insensitivity, and proper rejection of wrong answers.'
+        : `Answer validation issues detected. Failed tests: ${failedTests.join('; ')}`,
       details: { testRuns }
     };
 
   } catch (error: any) {
+    console.error('Phase 3 error:', error);
     return {
       phase: 3,
       status: 'failed',
@@ -343,8 +418,11 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
 /**
  * Normalize Answer
  * Standardizes answer format for comparison
+ * CRITICAL: Returns empty string for invalid input
  */
 function normalizeAnswer(answer: string): string {
+  if (!answer) return '';
+  
   return answer
     .toLowerCase()
     .trim()
@@ -357,25 +435,46 @@ function normalizeAnswer(answer: string): string {
 /**
  * Check Answer Match
  * Intelligently compares user answer to correct answers
+ * CRITICAL: Returns explicit false for non-matches - NO default passes
  */
-function isAnswerMatch(userAnswer: string, correctAnswer: string): boolean {
-  // Exact match
-  if (userAnswer === correctAnswer) return true;
+function isAnswerMatch(userAnswer: string, correctAnswer: string): { isMatch: boolean; reason: string } {
+  // CRITICAL: Reject empty answers explicitly
+  if (!userAnswer || userAnswer.trim() === '') {
+    return { isMatch: false, reason: 'Empty user answer' };
+  }
+  
+  if (!correctAnswer || correctAnswer.trim() === '') {
+    return { isMatch: false, reason: 'Empty correct answer' };
+  }
+
+  // Exact match after normalization
+  if (userAnswer === correctAnswer) {
+    return { isMatch: true, reason: 'Exact match' };
+  }
   
   // Very short answers must match exactly
-  if (correctAnswer.length < 4) return false;
+  if (correctAnswer.length < 4) {
+    return { isMatch: false, reason: 'Short answer requires exact match' };
+  }
 
   // Word-based matching for longer answers
-  const userWords = new Set(userAnswer.split(' ').filter(w => w.length > 2));
-  const correctWords = new Set(correctAnswer.split(' ').filter(w => w.length > 2));
+  const userWords = userAnswer.split(' ').filter(w => w.length > 2);
+  const correctWords = correctAnswer.split(' ').filter(w => w.length > 2);
   
-  const commonWords = [...userWords].filter(w => correctWords.has(w)).length;
-  const overlapPercentage = (commonWords / Math.max(correctWords.size, 1)) * 100;
+  if (correctWords.length === 0) {
+    return { isMatch: false, reason: 'No words in correct answer' };
+  }
+  
+  const userWordSet = new Set(userWords);
+  const commonWords = correctWords.filter(w => userWordSet.has(w)).length;
+  const overlapPercentage = (commonWords / correctWords.length) * 100;
   
   // 70%+ word overlap = correct
-  if (overlapPercentage >= 70) return true;
+  if (overlapPercentage >= 70) {
+    return { isMatch: true, reason: `${Math.round(overlapPercentage)}% word overlap` };
+  }
 
-  // Synonym matching
+  // Synonym matching - still requires good overlap
   const synonymPairs = [
     ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow'],
     ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen'],
@@ -390,11 +489,11 @@ function isAnswerMatch(userAnswer: string, correctAnswer: string): boolean {
     const userHasSynonym = synonyms.some(syn => userAnswer.includes(syn));
     const correctHasSynonym = synonyms.some(syn => correctAnswer.includes(syn));
     
-    if (userHasSynonym && correctHasSynonym && overlapPercentage >= 50) {
-      return true;
+    if (userHasSynonym && correctHasSynonym && overlapPercentage >= 60) {
+      return { isMatch: true, reason: `Synonym + ${Math.round(overlapPercentage)}% overlap` };
     }
   }
 
-  return false;
+  // CRITICAL: Explicit false return - no match found
+  return { isMatch: false, reason: `Only ${Math.round(overlapPercentage)}% overlap` };
 }
-

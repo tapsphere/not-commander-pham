@@ -9,6 +9,7 @@ const corsHeaders = {
 /**
  * Answer Validation Service
  * Compares user answers against knowledgebase with intelligent normalization
+ * CRITICAL: Only marks as correct when there is a TRUE match - no default passes
  */
 
 interface ValidateRequest {
@@ -30,6 +31,7 @@ interface ValidationResult {
     correctAnswers: string[];
     isCorrect: boolean;
     matchedAnswer?: string;
+    reason?: string; // Why it was marked correct or incorrect
   }>;
 }
 
@@ -41,26 +43,73 @@ serve(async (req) => {
   try {
     const { questions }: ValidateRequest = await req.json();
 
+    console.log('=== ANSWER VALIDATION START ===');
     console.log('Validating answers for', questions.length, 'questions');
 
-    const details = questions.map(q => {
-      const normalized = normalizeAnswer(q.userAnswer);
-      const isCorrect = q.correctAnswers.some(correctAns => 
-        isAnswerMatch(normalized, normalizeAnswer(correctAns))
-      );
+    const details = questions.map((q, index) => {
+      console.log(`\n--- Question ${index + 1} ---`);
+      console.log('Question:', q.question);
+      console.log('User answer:', q.userAnswer);
+      console.log('Correct answers:', q.correctAnswers);
       
-      const matchedAnswer = isCorrect 
-        ? q.correctAnswers.find(correctAns => 
-            isAnswerMatch(normalized, normalizeAnswer(correctAns))
-          )
-        : undefined;
+      // CRITICAL: Check for empty or invalid user answers first
+      if (!q.userAnswer || q.userAnswer.trim() === '') {
+        console.log('Result: INCORRECT (empty answer)');
+        return {
+          question: q.question,
+          userAnswer: q.userAnswer,
+          correctAnswers: q.correctAnswers,
+          isCorrect: false,
+          reason: 'Empty or missing answer'
+        };
+      }
+
+      // CRITICAL: Check for empty or invalid correct answers
+      if (!q.correctAnswers || q.correctAnswers.length === 0) {
+        console.log('Result: INCORRECT (no correct answers defined)');
+        return {
+          question: q.question,
+          userAnswer: q.userAnswer,
+          correctAnswers: q.correctAnswers,
+          isCorrect: false,
+          reason: 'No correct answers defined'
+        };
+      }
+
+      const normalized = normalizeAnswer(q.userAnswer);
+      console.log('Normalized user answer:', normalized);
+      
+      // Check each correct answer for a match
+      let isCorrect = false;
+      let matchedAnswer: string | undefined;
+      let reason = 'No match found';
+      
+      for (const correctAns of q.correctAnswers) {
+        if (!correctAns || correctAns.trim() === '') continue;
+        
+        const normalizedCorrect = normalizeAnswer(correctAns);
+        console.log(`Comparing with: "${normalizedCorrect}"`);
+        
+        const matchResult = isAnswerMatch(normalized, normalizedCorrect);
+        console.log(`Match result: ${matchResult.isMatch} (${matchResult.reason})`);
+        
+        if (matchResult.isMatch) {
+          isCorrect = true;
+          matchedAnswer = correctAns;
+          reason = matchResult.reason;
+          break;
+        }
+      }
+
+      console.log(`Final result: ${isCorrect ? 'CORRECT' : 'INCORRECT'} - ${reason}`);
 
       return {
         question: q.question,
         userAnswer: q.userAnswer,
         correctAnswers: q.correctAnswers,
         isCorrect,
-        matchedAnswer
+        matchedAnswer,
+        reason
       };
     });
 
@@ -76,11 +125,12 @@ serve(async (req) => {
       details
     };
 
-    console.log('Validation complete:', {
-      accuracy: result.accuracy,
-      correct: correctAnswers,
-      total: totalQuestions
-    });
+    console.log('\n=== VALIDATION SUMMARY ===');
+    console.log('Total questions:', totalQuestions);
+    console.log('Correct:', correctAnswers);
+    console.log('Incorrect:', result.incorrectAnswers);
+    console.log('Accuracy:', result.accuracy + '%');
+    console.log('=== VALIDATION END ===\n');
 
     return new Response(
       JSON.stringify(result),
@@ -112,6 +162,8 @@ serve(async (req) => {
  * - Handle common variations
  */
 function normalizeAnswer(answer: string): string {
+  if (!answer) return '';
+  
   return answer
     .toLowerCase()
     .trim()
@@ -134,38 +186,52 @@ function normalizeAnswer(answer: string): string {
 /**
  * Check if Answer Matches
  * Determines if user answer matches the correct answer
- * Uses multiple matching strategies:
- * 1. Exact match (after normalization)
- * 2. Contains match (for longer answers)
- * 3. Synonym match (common alternatives)
+ * Returns both match status and reason for debugging
  */
-function isAnswerMatch(userAnswer: string, correctAnswer: string): boolean {
+function isAnswerMatch(userAnswer: string, correctAnswer: string): { isMatch: boolean; reason: string } {
+  // CRITICAL: Reject empty answers explicitly
+  if (!userAnswer || userAnswer.trim() === '') {
+    return { isMatch: false, reason: 'Empty user answer' };
+  }
+  
+  if (!correctAnswer || correctAnswer.trim() === '') {
+    return { isMatch: false, reason: 'Empty correct answer' };
+  }
+
   // Exact match after normalization
   if (userAnswer === correctAnswer) {
-    return true;
+    return { isMatch: true, reason: 'Exact match' };
   }
 
-  // Handle very short answers differently
+  // Handle very short answers differently - require exact match
   if (correctAnswer.length < 4) {
-    return userAnswer === correctAnswer;
+    return { isMatch: false, reason: 'Short answer requires exact match' };
   }
 
-  // For longer answers, check if user answer contains the correct answer or vice versa
-  // This handles cases like "customer satisfaction" vs "satisfaction of customers"
-  const userWords = new Set(userAnswer.split(' ').filter(w => w.length > 2));
-  const correctWords = new Set(correctAnswer.split(' ').filter(w => w.length > 2));
+  // For longer answers, check word-based matching
+  const userWords = userAnswer.split(' ').filter(w => w.length > 2);
+  const correctWords = correctAnswer.split(' ').filter(w => w.length > 2);
+  
+  // No words to compare
+  if (correctWords.length === 0) {
+    return { isMatch: false, reason: 'No words to compare in correct answer' };
+  }
 
-  // Calculate word overlap percentage
-  const commonWords = [...userWords].filter(w => correctWords.has(w)).length;
-  const totalUniqueWords = new Set([...userWords, ...correctWords]).size;
-  const overlapPercentage = (commonWords / Math.max(correctWords.size, 1)) * 100;
+  const userWordSet = new Set(userWords);
+  const correctWordSet = new Set(correctWords);
 
-  // If 70%+ of the key words match, consider it correct
+  // Calculate word overlap percentage based on correct answer
+  const commonWords = correctWords.filter(w => userWordSet.has(w)).length;
+  const overlapPercentage = (commonWords / correctWords.length) * 100;
+
+  console.log(`  Word analysis: ${commonWords}/${correctWords.length} words match (${Math.round(overlapPercentage)}%)`);
+
+  // Require 70%+ of the correct answer's key words to be present
   if (overlapPercentage >= 70) {
-    return true;
+    return { isMatch: true, reason: `Word overlap: ${Math.round(overlapPercentage)}%` };
   }
 
-  // Handle common synonyms and variations
+  // Handle common synonyms - but still require good word overlap
   const synonymPairs = [
     ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow'],
     ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen'],
@@ -181,12 +247,13 @@ function isAnswerMatch(userAnswer: string, correctAnswer: string): boolean {
     const correctHasSynonym = synonyms.some(syn => correctAnswer.includes(syn));
     
     if (userHasSynonym && correctHasSynonym) {
-      // If both contain synonyms from the same group, boost match likelihood
-      if (overlapPercentage >= 50) {
-        return true;
+      // Even with synonyms, require at least 60% word overlap
+      if (overlapPercentage >= 60) {
+        return { isMatch: true, reason: `Synonym match + ${Math.round(overlapPercentage)}% overlap` };
       }
     }
   }
 
-  return false;
+  // CRITICAL: No match found - explicitly return false
+  return { isMatch: false, reason: `Insufficient overlap: ${Math.round(overlapPercentage)}%` };
 }

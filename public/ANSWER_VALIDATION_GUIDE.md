@@ -2,7 +2,14 @@
 
 ## Overview
 
-The PlayOps validator platform now includes a robust answer validation system that compares user responses against a knowledgebase with intelligent normalization and synonym recognition.
+The PlayOps validator platform includes a **strict answer validation system** that compares user responses against a knowledgebase. The system is designed to **ONLY mark answers as correct when there is a TRUE match** - there are no default passes or fallbacks.
+
+## ⚠️ CRITICAL VALIDATION RULES
+
+1. **Empty answers are ALWAYS incorrect** - No defaults, no assumptions
+2. **Wrong answers are ALWAYS incorrect** - No partial credit unless word overlap ≥70%
+3. **Explicit logging** - Every question's validation is logged with detailed reasons
+4. **No auto-pass** - Tests that should fail will now correctly fail
 
 ## Architecture
 
@@ -10,15 +17,18 @@ The PlayOps validator platform now includes a robust answer validation system th
 
 **Location**: `supabase/functions/validate-answers/index.ts`
 
-**Purpose**: Validates user answers against correct answers with intelligent normalization
+**Purpose**: Validates user answers against correct answers with strict comparison and detailed logging
 
 **Key Features**:
+- **Explicit empty check**: Empty/null/whitespace-only answers → INCORRECT
 - **Case-insensitive matching**: "Revenue" = "revenue"
 - **Whitespace normalization**: " answer " = "answer"
 - **Punctuation removal**: "answer!" = "answer"
-- **Synonym recognition**: "increase" = "boost" = "improve" = "enhance"
-- **Word-based matching**: 70%+ word overlap counts as correct
+- **Synonym recognition**: "increase" = "boost" (requires 60%+ word overlap)
+- **Word-based matching**: 70%+ word overlap required for longer answers
 - **Multiple correct answers**: Accepts array of acceptable variations
+- **Detailed logging**: Every comparison logged with reason codes
+- **No fallback passes**: Explicitly returns false when no match found
 
 **API Endpoint**:
 ```typescript
@@ -59,15 +69,17 @@ Response:
 **Location**: `supabase/functions/stress-test-validator/index.ts`
 
 **Phase 3 - Answer Validation Tests**:
-The stress test now validates the answer comparison logic with multiple test scenarios:
+The stress test validates the answer comparison logic with **7 comprehensive test scenarios**:
 
-1. **Simple Answer Match**: Exact matches after normalization
-2. **Case Insensitive & Whitespace**: Handles formatting variations
-3. **Synonym Recognition**: Accepts legitimate synonyms
-4. **Partial Match**: 70%+ word overlap
-5. **Wrong Answers**: Correctly rejects invalid responses
+1. **Exact Match (Should Pass)**: Exact matches after normalization
+2. **Case & Whitespace Variation (Should Pass)**: Handles formatting
+3. **Synonym Match (Should Pass)**: Accepts legitimate synonyms
+4. **Word Overlap 70%+ (Should Pass)**: Partial word matching
+5. **Completely Wrong Answers (MUST FAIL)**: "banana" ≠ "revenue"
+6. **Empty Answers (MUST FAIL)**: "" or "   " → INCORRECT
+7. **Partial Words Only (MUST FAIL)**: Gibberish rejected
 
-Each test scenario validates that the normalization and matching logic works correctly.
+Each test logs detailed comparison results. **Tests that should fail are explicitly verified to fail.**
 
 ### 3. Normalization Logic
 
@@ -299,26 +311,43 @@ if (userAnswer === correctAnswer) return true;
 
 ## Troubleshooting
 
+### Issue: Tests That Should Fail Are Passing
+
+**FIXED IN LATEST VERSION**:
+- Empty answers now explicitly return `isCorrect: false`
+- All comparison functions return `{ isMatch: boolean; reason: string }`
+- No implicit truthy/falsy behavior
+- Detailed logging shows exact comparison results
+- Stricter synonym threshold (60% vs 50%)
+
+**How to verify the fix**:
+1. Run the stress test validator
+2. Check Phase 3 results - "Completely Wrong Answers" test should show 0% accuracy
+3. Check "Empty Answers" test - should show 0% accuracy
+4. Review edge function logs for detailed comparison traces
+
 ### Issue: All Answers Marked Wrong
 
 **Check**:
-- Correct answers array is properly formatted
-- No encoding issues in answer strings
+- Correct answers array is properly formatted as `string[]`
+- No encoding issues in answer strings (check for hidden characters)
 - Normalization isn't removing critical information
+- Review logs: `/functions/v1/validate-answers` logs show each comparison
 
-### Issue: Too Many False Positives
-
-**Solution**:
-- Increase word overlap threshold (70% → 80%)
-- Remove overly broad synonym groups
-- Add stricter short-answer handling
+**Debug steps**:
+```javascript
+// Check what's being compared
+console.log('User answer:', JSON.stringify(userAnswer));
+console.log('Correct answers:', JSON.stringify(correctAnswers));
+```
 
 ### Issue: Synonyms Not Recognized
 
 **Solution**:
-- Add synonym pair to `synonymPairs` array
+- Add synonym pair to `synonymPairs` array in both edge functions
 - Verify normalization doesn't remove key terms
-- Check word overlap is sufficient (50%+ required)
+- Check word overlap is sufficient (60%+ required for synonyms)
+- Note: Synonym matching alone is NOT enough - requires word overlap too
 
 ## Contact
 
