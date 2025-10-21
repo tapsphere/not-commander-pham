@@ -280,7 +280,6 @@ UI Styling Instructions:
           accentColor,
           backgroundColor,
           logoUrl,
-          avatarUrl,
           particleEffect,
           customizationId: customizationData.id,
         }
