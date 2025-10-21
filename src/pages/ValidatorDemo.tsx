@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, AlertTriangle, X } from 'lucide-react';
+import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MobileViewport } from '@/components/MobileViewport';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 /**
  * KPI Data Structure
@@ -382,7 +389,8 @@ export default function ValidatorDemo() {
             <Button
               variant="ghost"
               onClick={() => navigate('/platform/creator')}
-              className="mb-4"
+              className="mb-4 touch-manipulation active:scale-95"
+              aria-label="Return to creator dashboard"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
@@ -418,7 +426,8 @@ export default function ValidatorDemo() {
             
             <Button
               onClick={startGame}
-              className="w-full bg-neon-green text-white hover:bg-neon-green/90 text-lg h-14 border-glow-green"
+              className="w-full bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 text-lg h-14 border-glow-green touch-manipulation active:scale-98"
+              aria-label="Start the validator game"
             >
               Start Validator
             </Button>
@@ -462,7 +471,8 @@ export default function ValidatorDemo() {
             
             <Button
               onClick={continueAfterEdgeCase}
-              className="w-full bg-red-500 text-white hover:bg-red-600 text-lg h-14"
+              className="w-full bg-red-500 text-white hover:bg-red-600 active:bg-red-700 text-lg h-14 touch-manipulation active:scale-98"
+              aria-label="Continue game after edge case alert"
             >
               Continue Game
             </Button>
@@ -534,14 +544,16 @@ export default function ValidatorDemo() {
             <div className="flex gap-3">
               <Button
                 onClick={() => navigate('/platform/creator')}
-                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90"
+                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 touch-manipulation active:scale-98"
+                aria-label="Return to creator dashboard"
               >
                 Back to Dashboard
               </Button>
               <Button
                 onClick={() => window.location.reload()}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 touch-manipulation active:scale-98"
+                aria-label="Retry the validator"
               >
                 Try Again
               </Button>
@@ -602,59 +614,49 @@ export default function ValidatorDemo() {
         </div>
 
         {/* Competency Feedback Pop-up */}
-        {/* FIX: Added overflow-y-auto and max-height to enable scrolling for long feedback */}
-        {/* FIX: Added pointer-events-none to parent, pointer-events-auto to modal to prevent interaction issues */}
-        {showFeedback && currentFeedback && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 pointer-events-auto">
-            <div className="bg-gray-900 border-2 border-neon-green rounded-lg p-6 max-w-md w-full space-y-4 max-h-[90vh] overflow-y-auto pointer-events-auto">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="text-2xl font-bold text-neon-green">
-                    Score: {currentFeedback.score}/4
-                  </div>
-                  <div className="text-lg text-gray-300">{currentFeedback.level}</div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowFeedback(false)}
-                  className="text-gray-400 hover:text-white flex-shrink-0"
-                  aria-label="Close feedback"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+        {/* FIX: Converted to proper Dialog component for better modal behavior */}
+        {/* FIX: Dialog handles overlay clicks, ESC key, focus trapping automatically */}
+        <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+          <DialogContent className="bg-gray-900 border-2 border-neon-green text-white max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-neon-green">
+                Score: {currentFeedback?.score}/4
+              </DialogTitle>
+              <DialogDescription className="text-lg text-gray-300">
+                {currentFeedback?.level}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 mt-4">
+              <div>
+                <div className="text-xs text-gray-500 uppercase mb-1">Feedback</div>
+                <p className="text-sm text-gray-300 break-words">{currentFeedback?.message}</p>
               </div>
               
-              <div className="space-y-3">
-                <div>
-                  <div className="text-xs text-gray-500 uppercase mb-1">Feedback</div>
-                  <p className="text-sm text-gray-300 break-words">{currentFeedback.message}</p>
-                </div>
-                
-                <div>
-                  <div className="text-xs text-gray-500 uppercase mb-1">How to Improve</div>
-                  <p className="text-sm text-gray-300 break-words">{currentFeedback.improvement}</p>
-                </div>
+              <div>
+                <div className="text-xs text-gray-500 uppercase mb-1">How to Improve</div>
+                <p className="text-sm text-gray-300 break-words">{currentFeedback?.improvement}</p>
               </div>
               
               <Button
                 onClick={() => setShowFeedback(false)}
-                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
+                className="w-full bg-neon-green text-black hover:bg-neon-green/90 touch-manipulation"
+                aria-label="Continue playing"
               >
                 Continue
               </Button>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
 
         {/* FIX: Changed grid layout to stack on mobile for better usability */}
-        {/* FIX: Added max-h with overflow-y-auto to drop zones to prevent excessive scrolling */}
+        {/* FIX: Increased max-height and improved scrolling behavior */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Available KPIs */}
           <div className="w-full">
             <h2 className="text-lg font-semibold mb-3 text-neon-green">Available Metrics</h2>
             <div
-              className="space-y-3 min-h-[200px] max-h-[500px] overflow-y-auto border-2 border-dashed border-gray-700 rounded-lg p-4"
+              className="space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto border-2 border-dashed border-gray-700 rounded-lg p-4"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, 'unranked')}
               role="region"
@@ -665,15 +667,14 @@ export default function ValidatorDemo() {
                   key={kpi.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, kpi.id)}
-                  className="bg-gray-900 border border-neon-purple rounded-lg p-4 cursor-move hover:border-neon-magenta transition-all hover:border-glow-purple touch-manipulation"
+                  className="bg-gray-900 border border-neon-purple rounded-lg p-4 cursor-move hover:border-neon-magenta transition-all hover:border-glow-purple touch-manipulation active:scale-95"
                   role="button"
                   tabIndex={0}
-                  aria-label={`Drag ${kpi.name} metric`}
+                  aria-label={`Drag ${kpi.name} metric to priority ranking`}
                   onKeyDown={(e) => {
-                    // FIX: Added keyboard support for accessibility
+                    // FIX: Keyboard support for accessibility - Enter or Space to move to ranked
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      // Simulate drag to ranked area
                       const syntheticEvent = {
                         preventDefault: () => {},
                         dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
@@ -712,7 +713,7 @@ export default function ValidatorDemo() {
           <div className="w-full">
             <h2 className="text-lg font-semibold mb-3 text-neon-magenta">Priority Ranking</h2>
             <div
-              className="space-y-3 min-h-[200px] max-h-[500px] overflow-y-auto border-2 border-dashed border-neon-magenta/50 rounded-lg p-4"
+              className="space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto border-2 border-dashed border-neon-magenta/50 rounded-lg p-4"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, 'ranked')}
               role="region"
@@ -728,15 +729,14 @@ export default function ValidatorDemo() {
                   key={kpi.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, kpi.id)}
-                  className="bg-gray-900 border border-neon-magenta rounded-lg p-4 cursor-move hover:border-neon-green transition-all touch-manipulation"
+                  className="bg-gray-900 border border-neon-magenta rounded-lg p-4 cursor-move hover:border-neon-green transition-all touch-manipulation active:scale-95"
                   role="button"
                   tabIndex={0}
-                  aria-label={`Ranked position ${index + 1}: ${kpi.name}`}
+                  aria-label={`Ranked position ${index + 1}: ${kpi.name}. Press Enter to move back to available metrics.`}
                   onKeyDown={(e) => {
-                    // FIX: Added keyboard support for accessibility
+                    // FIX: Keyboard support for accessibility - Enter or Space to move back to available
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      // Simulate drag back to unranked area
                       const syntheticEvent = {
                         preventDefault: () => {},
                         dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
@@ -780,17 +780,17 @@ export default function ValidatorDemo() {
         </div>
 
         {/* Submit Button */}
-        {/* FIX: Made button sticky on mobile for better accessibility */}
-        {/* FIX: Added touch-manipulation for better mobile tap response */}
+        {/* FIX: Sticky button with proper z-index below modal (z-50) */}
+        {/* FIX: Enhanced touch feedback with active state */}
         {rankedKpis.length === 6 && (
-          <div className="mt-6 sticky bottom-4 z-40">
+          <div className="mt-6 sticky bottom-4 z-30">
             <Button
               onClick={() => {
                 setGameState('results');
                 calculateScore();
               }}
-              className="w-full bg-neon-green text-white hover:bg-neon-green/90 text-lg h-14 border-glow-green shadow-lg touch-manipulation"
-              aria-label="Submit your ranking"
+              className="w-full bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 text-lg h-14 border-glow-green shadow-lg touch-manipulation active:scale-98"
+              aria-label="Submit your ranking and see results"
             >
               Submit Ranking
             </Button>
