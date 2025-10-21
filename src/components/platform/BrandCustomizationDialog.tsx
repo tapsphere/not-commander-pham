@@ -32,10 +32,14 @@ export const BrandCustomizationDialog = ({
   onSuccess,
 }: BrandCustomizationDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [loadingDefaults, setLoadingDefaults] = useState(true);
   const [primaryColor, setPrimaryColor] = useState('#00FF00');
   const [secondaryColor, setSecondaryColor] = useState('#9945FF');
   const [accentColor, setAccentColor] = useState('#FF5722');
   const [backgroundColor, setBackgroundColor] = useState('#1A1A1A');
+  const [highlightColor, setHighlightColor] = useState('#F0C7A0');
+  const [textColor, setTextColor] = useState('#2D5556');
+  const [fontFamily, setFontFamily] = useState('Inter, sans-serif');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
@@ -43,8 +47,66 @@ export const BrandCustomizationDialog = ({
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [particleEffect, setParticleEffect] = useState('sparkles');
+  const [mascotAnimationType, setMascotAnimationType] = useState<'static' | 'gif' | 'lottie' | 'sprite'>('static');
   const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
+
+  // Load creator's profile defaults
+  useEffect(() => {
+    const loadCreatorDefaults = async () => {
+      if (!open || !template.id) return;
+      
+      setLoadingDefaults(true);
+      try {
+        // Get template creator's profile to load defaults
+        const { data: templateData } = await supabase
+          .from('game_templates')
+          .select('creator_id')
+          .eq('id', template.id)
+          .single();
+
+        if (templateData?.creator_id) {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('design_palette, default_particle_effect, game_avatar_url, mascot_animation_type')
+            .eq('user_id', templateData.creator_id)
+            .single();
+
+          if (profileData) {
+            // Load design palette defaults
+            if (profileData.design_palette) {
+              const palette = profileData.design_palette as any;
+              setPrimaryColor(palette.primary || '#C8DBDB');
+              setSecondaryColor(palette.secondary || '#6C8FA4');
+              setAccentColor(palette.accent || '#2D5556');
+              setBackgroundColor(palette.background || '#F5EDD3');
+              setHighlightColor(palette.highlight || '#F0C7A0');
+              setTextColor(palette.text || '#2D5556');
+              setFontFamily(palette.font || 'Inter, sans-serif');
+            }
+            
+            // Load particle effect default
+            if (profileData.default_particle_effect) {
+              setParticleEffect(profileData.default_particle_effect);
+            }
+            
+            // Load game avatar default
+            if (profileData.game_avatar_url) {
+              setAvatarPreview(profileData.game_avatar_url);
+              const animType = profileData.mascot_animation_type as 'static' | 'gif' | 'lottie' | 'sprite';
+              setMascotAnimationType(animType || 'static');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load creator defaults:', error);
+      } finally {
+        setLoadingDefaults(false);
+      }
+    };
+
+    loadCreatorDefaults();
+  }, [open, template.id]);
 
   useEffect(() => {
     if (template.base_prompt && !editablePrompt) {
@@ -79,21 +141,24 @@ Please ensure the validator content and scenarios are relevant to this course ma
     if (editablePrompt) {
       generateBrandedPrompt();
     }
-  }, [editablePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, particleEffect, avatarPreview]);
+  }, [editablePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, particleEffect, avatarPreview, mascotAnimationType]);
 
   const generateBrandedPrompt = () => {
     const brandSection = `
 
 🎨 BRAND CUSTOMIZATION:
 
-Brand Colors:
+Brand Colors & Typography:
 • Primary: ${primaryColor} - Main brand color for primary actions and highlights
 • Secondary: ${secondaryColor} - Supporting brand color for secondary elements
 • Accent: ${accentColor} - Accent color for emphasis and call-to-actions
 • Background: ${backgroundColor} - Background color for the main interface
+• Highlight: ${highlightColor} - Highlight color for important elements and hover states
+• Text: ${textColor} - Primary text color throughout the interface
+• Font Family: ${fontFamily} - Apply this font to all text elements
 
 Game Character & Effects:
-• ${avatarPreview ? 'MASCOT/AVATAR: Include the uploaded mascot/character prominently in the game (center stage, animated reactions to player actions)' : 'No custom mascot provided - use generic game elements'}
+• ${avatarPreview ? `MASCOT/AVATAR (${mascotAnimationType.toUpperCase()}): Include the uploaded mascot/character prominently in the game (center stage, animated reactions to player actions)` : 'No custom mascot provided - use generic game elements'}
 • PARTICLE EFFECT: ${particleEffect} - Use this particle effect for ALL positive feedback (correct answers, successful actions, score increases)
   - On button clicks: burst of ${particleEffect}
   - On correct answers: celebration with ${particleEffect}
@@ -105,11 +170,15 @@ UI Styling Instructions:
 • Use ${secondaryColor} for secondary buttons, borders, and supporting elements
 • Use ${accentColor} for warnings, important notifications, and accents
 • Use ${backgroundColor} as the base background color for the interface
+• Use ${highlightColor} for hover states, active elements, and important highlights
+• Use ${textColor} for all text content (ensure proper contrast with backgrounds)
+• Apply ${fontFamily} to all typography elements
 • ${logoPreview ? 'Display brand logo in the top corner' : 'Reserve space for brand logo placement'}
 • ${avatarPreview ? 'Make the mascot/avatar the visual focal point with idle animations and reactions' : ''}
 • Add particle effects liberally - on every tap, click, and success moment
 • Maintain high contrast for accessibility
 • Apply brand colors consistently throughout all UI components
+• Ensure font is loaded and applied consistently across all scenes
 `;
 
     const modifiedPrompt = editablePrompt + '\n\n' + brandSection;
@@ -258,10 +327,14 @@ UI Styling Instructions:
           secondary_color: secondaryColor,
           accent_color: accentColor,
           background_color: backgroundColor,
+          highlight_color: highlightColor,
+          text_color: textColor,
+          font_family: fontFamily,
           logo_url: logoUrl,
           cover_photo_url: coverPhotoUrl,
           avatar_url: avatarUrl,
           particle_effect: particleEffect,
+          mascot_animation_type: mascotAnimationType,
           customization_prompt: generatedPrompt,
         })
         .select()
@@ -279,8 +352,13 @@ UI Styling Instructions:
           secondaryColor,
           accentColor,
           backgroundColor,
+          highlightColor,
+          textColor,
+          fontFamily,
           logoUrl,
+          avatarUrl,
           particleEffect,
+          mascotAnimationType,
           customizationId: customizationData.id,
         }
       });
@@ -308,6 +386,9 @@ UI Styling Instructions:
           <DialogTitle className="text-neon-green text-glow-green">
             Customize "{template.name}" with Your Brand
           </DialogTitle>
+          {loadingDefaults && (
+            <p className="text-xs text-gray-400 mt-2">Loading creator defaults...</p>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
@@ -424,12 +505,67 @@ UI Styling Instructions:
                   />
                 </div>
               </div>
+
+              <div>
+                <Label htmlFor="highlightColor">Highlight Color</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="highlightColor"
+                    type="color"
+                    value={highlightColor}
+                    onChange={(e) => setHighlightColor(e.target.value)}
+                    className="w-20 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={highlightColor}
+                    onChange={(e) => setHighlightColor(e.target.value)}
+                    className="flex-1 bg-gray-800 border-gray-700"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="textColor">Text Color</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="textColor"
+                    type="color"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="w-20 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={textColor}
+                    onChange={(e) => setTextColor(e.target.value)}
+                    className="flex-1 bg-gray-800 border-gray-700"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Font Family */}
+            <div>
+              <Label htmlFor="fontFamily">Font Family</Label>
+              <Input
+                id="fontFamily"
+                type="text"
+                placeholder="e.g., Inter, sans-serif"
+                value={fontFamily}
+                onChange={(e) => setFontFamily(e.target.value)}
+                className="bg-gray-800 border-gray-700 text-white mt-2"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Enter a Google Font name or system font stack
+              </p>
+            </div>
             </div>
 
             {/* Color Preview */}
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mt-4">
               <p className="text-sm text-gray-400 mb-3">Color Palette Preview:</p>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
                   <div
                     className="w-20 h-20 rounded-lg border-2 mx-auto"
@@ -458,9 +594,24 @@ UI Styling Instructions:
                   />
                   <p className="text-xs text-gray-400 mt-2">Background</p>
                 </div>
+                <div className="text-center">
+                  <div
+                    className="w-20 h-20 rounded-lg border-2 mx-auto"
+                    style={{ backgroundColor: highlightColor, borderColor: highlightColor }}
+                  />
+                  <p className="text-xs text-gray-400 mt-2">Highlight</p>
+                </div>
+                <div className="text-center">
+                  <div
+                    className="w-20 h-20 rounded-lg border-2 mx-auto flex items-center justify-center"
+                    style={{ backgroundColor: backgroundColor, borderColor: textColor }}
+                  >
+                    <span style={{ color: textColor, fontFamily }}>Aa</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Text</p>
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Logo Upload */}
           <div className="space-y-4">
