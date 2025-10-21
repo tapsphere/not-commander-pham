@@ -284,12 +284,13 @@ export function ValidatorTestWizard({
               <Badge
                 key={idx}
                 variant={currentPhase === idx + 1 ? 'default' : 'outline'}
+                onClick={() => testComplete && setCurrentPhase(idx + 1)}
                 className={`${
                   phase.status === 'passed' ? 'bg-green-500' :
                   phase.status === 'failed' ? 'bg-red-500' :
                   phase.status === 'needs_review' ? 'bg-yellow-500' :
                   'bg-gray-600'
-                } text-white`}
+                } text-white ${testComplete ? 'cursor-pointer hover:opacity-80' : ''}`}
               >
                 Phase {idx + 1}
               </Badge>
