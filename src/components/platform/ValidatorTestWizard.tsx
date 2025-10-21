@@ -203,7 +203,8 @@ export function ValidatorTestWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-gray-900 border-gray-700 text-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md bg-gray-900 border-gray-700 text-white max-h-[90vh] overflow-y-auto p-0">
+        <div className="p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl text-white">
             {template.template_type === 'ai_generated' ? '🤖' : '📤'} {template.name}
@@ -413,6 +414,7 @@ export function ValidatorTestWizard({
               )}
             </>
           )}
+        </div>
         </div>
       </DialogContent>
     </Dialog>
