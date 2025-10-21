@@ -61,17 +61,20 @@ export default function Auth() {
 
       console.log('User created:', data.user.id);
 
-      // Insert role
+      // Insert role - upsert to handle any race conditions gracefully
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({ user_id: data.user.id, role: selectedRole });
+        .upsert({ user_id: data.user.id, role: selectedRole }, {
+          onConflict: 'user_id,role',
+          ignoreDuplicates: true
+        });
 
       if (roleError) {
         console.error('Role insert error:', roleError);
         throw roleError;
       }
 
-      console.log('Role inserted successfully');
+      console.log('Role assigned successfully');
 
       // Wait for session to be established
       await new Promise(resolve => setTimeout(resolve, 1000));
