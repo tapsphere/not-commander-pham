@@ -24,7 +24,33 @@ serve(async (req) => {
     // Create the prompt for game generation with PlayOps Framework integration
     let playOpsInstructions = '';
     if (subCompetencies && subCompetencies.length > 0) {
-      playOpsInstructions = `
+      let answerValidationInstructions = '';
+      
+      answerValidationInstructions += `\n\n🎓 CRITICAL: ANSWER VALIDATION REQUIREMENTS\n`;
+      answerValidationInstructions += `═══════════════════════════════════════════════════════════════\n\n`;
+      answerValidationInstructions += `All games MUST collect user answers in a format that can be validated:\n\n`;
+      answerValidationInstructions += `1. STORE ALL USER ANSWERS: Track every user response in a structured format\n`;
+      answerValidationInstructions += `2. NORMALIZED VALIDATION: Answers will be validated with:\n`;
+      answerValidationInstructions += `   - Case-insensitive comparison (\"Revenue\" = \"revenue\")\n`;
+      answerValidationInstructions += `   - Whitespace trimming (\" answer \" = \"answer\")\n`;
+      answerValidationInstructions += `   - Punctuation normalization (\"answer!\" = \"answer\")\n`;
+      answerValidationInstructions += `   - Synonym recognition (\"increase\" = \"boost\" = \"improve\")\n`;
+      answerValidationInstructions += `3. MULTIPLE CORRECT ANSWERS: Accept legitimate synonyms and variations\n`;
+      answerValidationInstructions += `4. DATA STRUCTURE: Store answers as:\n`;
+      answerValidationInstructions += `   {\n`;
+      answerValidationInstructions += `     question: "What metric to prioritize?",\n`;
+      answerValidationInstructions += `     userAnswer: "customer satisfaction",\n`;
+      answerValidationInstructions += `     correctAnswers: ["customer satisfaction", "client happiness", "user contentment"]\n`;
+      answerValidationInstructions += `   }\n\n`;
+      answerValidationInstructions += `5. WORD-BASED MATCHING: For longer answers, 70%+ word overlap counts as correct\n`;
+      answerValidationInstructions += `6. AVOID EXACT-ONLY MATCHING: Don't require perfect character-by-character matches\n\n`;
+      answerValidationInstructions += `EXAMPLE ACCEPTABLE VARIATIONS:\n`;
+      answerValidationInstructions += `Question: "How to increase revenue?"\n`;
+      answerValidationInstructions += `Correct answers: "increase sales", "boost revenue", "improve income", "grow earnings"\n`;
+      answerValidationInstructions += `User answer: "Boost Sales" → CORRECT (normalized to "boost sales")\n`;
+      answerValidationInstructions += `User answer: "improve revenue streams" → CORRECT (synonym + 70% word match)\n\n`;
+
+      playOpsInstructions = `${answerValidationInstructions}
 
 PLAYOPS FRAMEWORK INTEGRATION (CRITICAL):
 This game must implement the following validated competency mechanics:

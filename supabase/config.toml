@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.stress-test-validator]
 verify_jwt = true
+
+[functions.validate-answers]
+verify_jwt = true

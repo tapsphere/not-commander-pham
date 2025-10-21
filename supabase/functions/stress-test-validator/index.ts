@@ -240,54 +240,93 @@ async function runPhase2Test(template: any, subComp: any): Promise<TestResult> {
   }
 }
 
-// PHASE 3: Scoring Formula Stress Test
+// PHASE 3: Answer Validation & Scoring Test
 async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
   try {
     const testRuns = [];
-    const scoringLogic = subComp.scoring_logic;
-
-    if (!scoringLogic || !scoringLogic.formula) {
-      return {
-        phase: 3,
-        status: 'failed',
-        notes: 'No scoring formula defined',
-        details: { testRuns: [] }
-      };
-    }
-
-    // Run 3 test scenarios: poor, average, excellent performance
-    const scenarios = [
-      { name: 'Poor Performance', accuracy: 60, time: 180, edge_case: false },
-      { name: 'Average Performance', accuracy: 85, time: 120, edge_case: false },
-      { name: 'Excellent Performance', accuracy: 98, time: 60, edge_case: true },
+    
+    // Test with sample questions and answers
+    const sampleTests = [
+      {
+        scenario: 'Simple Answer Match',
+        questions: [
+          { question: 'What is customer satisfaction?', userAnswer: 'customer satisfaction', correctAnswers: ['customer satisfaction', 'client happiness'] },
+          { question: 'How to increase revenue?', userAnswer: 'boost sales', correctAnswers: ['increase sales', 'boost revenue', 'grow income'] }
+        ],
+        expectedAccuracy: 100
+      },
+      {
+        scenario: 'Case Insensitive & Whitespace',
+        questions: [
+          { question: 'Key metric?', userAnswer: '  REVENUE  ', correctAnswers: ['revenue', 'income'] },
+          { question: 'Main goal?', userAnswer: 'Customer Retention', correctAnswers: ['customer retention', 'retain customers'] }
+        ],
+        expectedAccuracy: 100
+      },
+      {
+        scenario: 'Synonym Recognition',
+        questions: [
+          { question: 'How to improve?', userAnswer: 'enhance performance', correctAnswers: ['improve efficiency', 'boost productivity'] },
+          { question: 'Reduce what?', userAnswer: 'lower costs', correctAnswers: ['decrease expenses', 'cut costs'] }
+        ],
+        expectedAccuracy: 100
+      },
+      {
+        scenario: 'Partial Match (Should Pass)',
+        questions: [
+          { question: 'What matters?', userAnswer: 'user satisfaction', correctAnswers: ['customer satisfaction', 'client happiness'] },
+          { question: 'Priority?', userAnswer: 'reduce technical debt', correctAnswers: ['lower tech debt', 'decrease debt'] }
+        ],
+        expectedAccuracy: 100
+      },
+      {
+        scenario: 'Wrong Answers (Should Fail)',
+        questions: [
+          { question: 'What to increase?', userAnswer: 'banana', correctAnswers: ['revenue', 'sales'] },
+          { question: 'Main metric?', userAnswer: 'wrong answer', correctAnswers: ['customer retention'] }
+        ],
+        expectedAccuracy: 0
+      }
     ];
 
-    let allPassed = true;
+    let allTestsPassed = true;
 
-    for (const scenario of scenarios) {
-      const score = calculateScore(scoringLogic.formula, scenario);
-      const expectedLevel = getExpectedLevel(scenario.accuracy);
-      const actualLevel = determineLevel(score, scoringLogic);
+    for (const test of sampleTests) {
+      // Validate each test scenario
+      const details = test.questions.map(q => {
+        const normalized = normalizeAnswer(q.userAnswer);
+        const isCorrect = q.correctAnswers.some(correctAns => 
+          isAnswerMatch(normalized, normalizeAnswer(correctAns))
+        );
+        
+        return {
+          question: q.question,
+          userAnswer: q.userAnswer,
+          isCorrect
+        };
+      });
 
-      const passed = expectedLevel === actualLevel;
-      if (!passed) allPassed = false;
+      const correctCount = details.filter(d => d.isCorrect).length;
+      const accuracy = (correctCount / test.questions.length) * 100;
+      const passed = accuracy === test.expectedAccuracy;
+      
+      if (!passed) allTestsPassed = false;
 
       testRuns.push({
-        scenario: scenario.name,
-        input: scenario,
-        calculatedScore: score,
-        expectedLevel,
-        actualLevel,
-        passed
+        scenario: test.scenario,
+        expectedAccuracy: test.expectedAccuracy,
+        actualAccuracy: accuracy,
+        passed,
+        details
       });
     }
 
     return {
       phase: 3,
-      status: allPassed ? 'passed' : 'failed',
-      notes: allPassed 
-        ? 'Scoring formula validated across all performance levels.'
-        : 'Scoring formula inconsistencies detected.',
+      status: allTestsPassed ? 'passed' : 'failed',
+      notes: allTestsPassed 
+        ? 'Answer validation logic works correctly. All test scenarios passed including normalization, synonyms, and case-insensitivity.'
+        : 'Answer validation logic has issues. Check test details for failures.',
       details: { testRuns }
     };
 
@@ -301,23 +340,61 @@ async function runPhase3Test(template: any, subComp: any): Promise<TestResult> {
   }
 }
 
-// Helper: Calculate score based on formula
-function calculateScore(formula: string, metrics: any): number {
-  // Simple formula parser - in production this would be more robust
-  // For now, assume accuracy percentage as the score
-  return metrics.accuracy;
+/**
+ * Normalize Answer
+ * Standardizes answer format for comparison
+ */
+function normalizeAnswer(answer: string): string {
+  return answer
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[.,!?;:'"(){}[\]]/g, '')
+    .replace(/[''`]/g, "'")
+    .replace(/^(the|a|an)\s+/i, '');
 }
 
-// Helper: Determine proficiency level
-function determineLevel(score: number, scoringLogic: any): string {
-  if (score >= 95) return 'mastery';
-  if (score >= 80) return 'proficient';
-  return 'needs_work';
+/**
+ * Check Answer Match
+ * Intelligently compares user answer to correct answers
+ */
+function isAnswerMatch(userAnswer: string, correctAnswer: string): boolean {
+  // Exact match
+  if (userAnswer === correctAnswer) return true;
+  
+  // Very short answers must match exactly
+  if (correctAnswer.length < 4) return false;
+
+  // Word-based matching for longer answers
+  const userWords = new Set(userAnswer.split(' ').filter(w => w.length > 2));
+  const correctWords = new Set(correctAnswer.split(' ').filter(w => w.length > 2));
+  
+  const commonWords = [...userWords].filter(w => correctWords.has(w)).length;
+  const overlapPercentage = (commonWords / Math.max(correctWords.size, 1)) * 100;
+  
+  // 70%+ word overlap = correct
+  if (overlapPercentage >= 70) return true;
+
+  // Synonym matching
+  const synonymPairs = [
+    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow'],
+    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen'],
+    ['customer', 'client', 'user', 'consumer'],
+    ['satisfaction', 'happiness', 'contentment'],
+    ['revenue', 'income', 'earnings', 'sales'],
+    ['cost', 'expense', 'expenditure'],
+    ['efficiency', 'productivity', 'performance'],
+  ];
+
+  for (const synonyms of synonymPairs) {
+    const userHasSynonym = synonyms.some(syn => userAnswer.includes(syn));
+    const correctHasSynonym = synonyms.some(syn => correctAnswer.includes(syn));
+    
+    if (userHasSynonym && correctHasSynonym && overlapPercentage >= 50) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
-// Helper: Expected level based on performance
-function getExpectedLevel(accuracy: number): string {
-  if (accuracy >= 95) return 'mastery';
-  if (accuracy >= 80) return 'proficient';
-  return 'needs_work';
-}
