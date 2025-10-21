@@ -571,52 +571,14 @@ UI Styling Instructions:
             </div>
           </div>
 
-          {/* Avatar/Mascot Upload */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Upload className="h-5 w-5 text-neon-green" />
-                Game Avatar/Mascot
-              </h3>
-              <p className="text-sm text-gray-400 mt-1">
-                Upload a character, animal, or mascot to be the star of your game
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('avatar-upload')?.click()}
-                  className="gap-2"
-                >
-                  <Upload className="h-4 w-4" />
-                  Upload Avatar
-                </Button>
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
-                <span className="text-sm text-gray-400">
-                  {avatarFile ? avatarFile.name : 'PNG, JPG (max 3MB) - transparent background recommended'}
-                </span>
-              </div>
-
-              {avatarPreview && (
-                <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                  <p className="text-sm text-gray-400 mb-2">Avatar Preview:</p>
-                  <img
-                    src={avatarPreview}
-                    alt="Avatar preview"
-                    className="max-w-[150px] max-h-[150px] object-contain mx-auto"
-                  />
-                </div>
-              )}
-            </div>
+          {/* Custom Mascot - Set in Brand Profile */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <p className="text-sm text-gray-400">
+              <strong className="text-white">Custom Mascot:</strong> Configure your default game mascot in Brand Profile Settings
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              Supported formats: PNG (static), GIF (animated), Lottie JSON (advanced animations)
+            </p>
           </div>
 
           {/* Particle Effect Selector */}
