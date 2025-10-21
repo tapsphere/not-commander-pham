@@ -224,38 +224,34 @@ export const DesignPaletteEditor = ({
         </select>
       </div>
 
-      {showAvatar && onAvatarChange && (
-        <div>
-          <Label className="text-sm text-gray-300">Avatar URL (optional)</Label>
-          <Input
-            type="text"
-            value={avatarUrl}
-            onChange={(e) => onAvatarChange(e.target.value)}
-            placeholder="https://example.com/avatar.png"
-            className="bg-gray-800 border-gray-700"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Leave blank to use your profile avatar as default
-          </p>
-        </div>
-      )}
-
       {showParticles && onParticleChange && (
         <div>
-          <Label className="text-sm text-gray-300">Particle Effect</Label>
-          <select
-            value={particleEffect}
-            onChange={(e) => onParticleChange(e.target.value)}
-            className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"
-          >
-            <option value="sparkles">✨ Sparkles (Gold Twinkles)</option>
-            <option value="coins">🪙 Coins (Golden Coins)</option>
-            <option value="stars">⭐ Stars (Bright Stars)</option>
-            <option value="hearts">❤️ Hearts (Floating Hearts)</option>
-            <option value="confetti">🎉 Confetti (Colorful Pieces)</option>
-            <option value="lightning">⚡ Lightning (Electric Bolts)</option>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">
+          <Label className="text-sm text-gray-300 mb-3 block">Particle Effect</Label>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { value: 'sparkles', label: '✨ Sparkles', desc: 'Classic twinkling stars' },
+              { value: 'coins', label: '🪙 Coins', desc: 'Flying golden coins' },
+              { value: 'stars', label: '⭐ Stars', desc: 'Bursting star shapes' },
+              { value: 'hearts', label: '❤️ Hearts', desc: 'Floating hearts' },
+              { value: 'confetti', label: '🎉 Confetti', desc: 'Colorful celebration' },
+              { value: 'lightning', label: '⚡ Lightning', desc: 'Electric bolts' },
+            ].map((effect) => (
+              <button
+                key={effect.value}
+                type="button"
+                onClick={() => onParticleChange(effect.value)}
+                className={`p-6 rounded-lg border-2 transition-all text-center ${
+                  particleEffect === effect.value
+                    ? 'border-neon-green bg-gray-800 text-white'
+                    : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
+                }`}
+              >
+                <div className="text-5xl mb-2">{effect.label}</div>
+                <div className="text-sm">{effect.desc}</div>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-3">
             Particles burst on interactions, correct answers, and celebrations
           </p>
         </div>
