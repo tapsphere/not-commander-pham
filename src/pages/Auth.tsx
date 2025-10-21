@@ -64,17 +64,18 @@ export default function Auth() {
       // Insert role - upsert to handle any race conditions gracefully
       const { error: roleError } = await supabase
         .from('user_roles')
-        .upsert({ user_id: data.user.id, role: selectedRole }, {
-          onConflict: 'user_id,role',
-          ignoreDuplicates: true
-        });
+        .insert({ user_id: data.user.id, role: selectedRole })
+        .select()
+        .maybeSingle();
 
+      // Handle role assignment errors gracefully
       if (roleError) {
-        console.error('Role insert error:', roleError);
-        throw roleError;
+        console.error('Role assignment warning:', roleError);
+        // Don't block signup for role errors - user can be assigned role later
+        toast.warning('Account created, but role assignment needs attention');
+      } else {
+        console.log('Role assigned successfully');
       }
-
-      console.log('Role assigned successfully');
 
       // Wait for session to be established
       await new Promise(resolve => setTimeout(resolve, 1000));
