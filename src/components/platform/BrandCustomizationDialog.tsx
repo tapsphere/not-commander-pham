@@ -592,7 +592,7 @@ UI Styling Instructions:
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               {[
                 { value: 'sparkles', label: '✨ Sparkles', desc: 'Classic twinkling stars' },
                 { value: 'coins', label: '🪙 Coins', desc: 'Flying golden coins' },
@@ -605,14 +605,14 @@ UI Styling Instructions:
                   key={effect.value}
                   type="button"
                   onClick={() => setParticleEffect(effect.value)}
-                  className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  className={`p-6 rounded-lg border-2 transition-all text-center ${
                     particleEffect === effect.value
                       ? 'border-neon-green bg-gray-800 text-white'
                       : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
                   }`}
                 >
-                  <div className="text-2xl mb-1">{effect.label}</div>
-                  <div className="text-xs">{effect.desc}</div>
+                  <div className="text-5xl mb-2">{effect.label}</div>
+                  <div className="text-sm">{effect.desc}</div>
                 </button>
               ))}
             </div>
