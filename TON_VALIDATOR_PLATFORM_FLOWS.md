@@ -84,7 +84,7 @@
 
 ---
 
-## 🎨 CREATOR FLOW
+## 🎨 CREATOR FLOW - Complete Journey
 
 ### Access & Dashboard
 1. **Authentication**
@@ -98,15 +98,19 @@
      - Times customized by brands
      - Player completion count
      - Average scores
+     - Test status for each template
    - Filter: Published vs. Draft templates
+   - Access "Test Validators" dashboard from header
 
 ### Template Creation
 3. **Choose Template Type**
-   - **AI-Generated Template:** Build from scratch using AI
-   - **Custom Upload:** Upload pre-built HTML game
+   - Click "New Template" on Creator Dashboard
+   - Select type:
+     - **AI-Generated Template:** Build from scratch using AI
+     - **Custom Upload:** Upload pre-built HTML game
 
 4. **AI-Generated Template Path**
-   - Select competency from master list:
+   - Select C-BEN competency from master list:
      - Analytical Thinking
      - AI & Big Data Skills
      - Creative Thinking
@@ -122,27 +126,112 @@
      - Description
      - Base prompt (scenario setup)
      - Game mechanics instructions
+     - Edge cases to test
      - Duration (typically 3-5 minutes)
    
-   - Click "Generate Template Preview"
-   - AI creates validator structure using Lovable AI (Gemini models)
+   - Decision point:
+     - Click "Create & Test" → Opens test wizard immediately
+     - Click "Save as Draft" → Test later from dashboard
 
 5. **Custom Upload Path**
    - Upload HTML file (game built externally)
-   - Specify competencies tested
+   - Specify C-BEN competencies tested
    - Add metadata (name, description, preview image)
    - Upload to cloud storage
+   - Decision point:
+     - Click "Create & Test" → Opens test wizard immediately
+     - Click "Save as Draft" → Test later from dashboard
 
-### Publishing
-6. **Preview & Test**
-   - Test template functionality
-   - Verify scoring logic works correctly
-   - Ensure edge cases trigger properly
+### Validator Testing (3 Phases - REQUIRED)
+6. **Phase 1: UX/UI Flow Test**
+   - **What it checks:**
+     - Game loads without errors
+     - UI elements render correctly
+     - Navigation and interactions work smoothly
+     - Visual elements match design specifications
+     - Responsive design works across devices
+   
+   - **How to test:**
+     - Launch the game validator
+     - Navigate through all screens
+     - Test on different screen sizes
+     - Verify all buttons and inputs respond
+     - Check console for errors
+   
+   - **Mark status:** Passed / Failed / Needs Review
+   - **Add notes:** Document any issues found
 
-7. **Publish to Marketplace**
-   - Set template as "Published"
-   - Appears in Brand Marketplace
-   - Available for brand customization
+7. **Phase 2: Action Cue Validation**
+   - **What it checks:**
+     - Game accurately captures the sub-competency being tested
+     - Player actions align with the action cue statement
+     - Game mechanics properly demonstrate the skill
+     - Backend data capture matches expected behaviors
+   
+   - **How to test:**
+     - Review sub-competency statement and action cue
+     - Play through the game naturally
+     - Verify actions relate to skill being measured
+     - Check if game mechanic makes sense for competency
+     - (Custom uploads: Verify API calls send correct data)
+   
+   - **Mark status:** Passed / Failed / Needs Review
+   - **Add notes:** Document alignment issues
+
+8. **Phase 3: Scoring Formula Test**
+   - **What it checks:**
+     - Scoring logic accurately reflects player performance
+     - XP/levels are calculated correctly
+     - Pass/fail thresholds are appropriate
+     - Proficiency levels match actual skill demonstration
+   
+   - **How to test:**
+     - Play poorly (test minimum thresholds)
+     - Play average (test mid-range scoring)
+     - Play excellently (test maximum scoring)
+     - Verify proficiency levels:
+       - Level 1 (Novice): Basic task completion
+       - Level 2 (Intermediate): Quality and efficiency
+       - Level 3 (Expert): Advanced techniques + mastery
+     - Review backend scoring metrics
+   
+   - **Mark status:** Passed / Failed / Needs Review
+   - **Add notes:** Document scoring inconsistencies
+
+9. **Complete Testing**
+   - Click "Save & Finish" after all phases
+   - System calculates overall status:
+     - ✅ **Passed:** All phases passed
+     - ❌ **Failed:** One or more phases failed
+     - ⚠️ **Needs Review:** Manual review required
+
+### Review & Fix
+10. **Test Results Dashboard**
+    - View overall status for each template
+    - Access detailed phase breakdowns
+    - Review test notes and history
+    - **If Passed:** "Approve for Publish" button unlocks
+    - **If Failed:** Fix issues and click "Re-test" from dashboard
+    - **If Needs Review:** Address concerns and re-test when ready
+
+### Approval & Publishing
+11. **Approve for Publishing**
+    - **Requirement:** Overall status must be "Passed"
+    - Click "Approve for Publish" button
+    - Validator is now eligible for marketplace
+
+12. **Publish to Marketplace**
+    - Toggle "Publish" switch on approved validator
+    - Validator appears in Brand Hub marketplace
+    - Brands can now browse, customize, and deploy
+    - Can unpublish anytime if needed
+
+### Key Rules
+- ✅ Templates **MUST** pass all 3 testing phases before publishing
+- ✅ Can save drafts and test later if needed
+- ❌ Failed tests **block publishing** until fixed
+- ♻️ Re-testing is always available
+- 📊 Track usage & performance (future feature)
 
 ---
 
