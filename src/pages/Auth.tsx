@@ -9,6 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Palette, Building2, Mail, Eye, EyeOff } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { z } from 'zod';
+
+const authSchema = z.object({
+  email: z.string().trim().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password must be less than 128 characters'),
+});
 
 type UserRole = 'creator' | 'brand';
 
@@ -36,10 +42,20 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate inputs
+    try {
+      authSchema.parse({ email, password });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
+    }
+    
     setLoading(true);
 
     try {
-      console.log('Starting signup for role:', selectedRole);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -51,15 +67,12 @@ export default function Auth() {
       });
 
       if (error) {
-        console.error('Signup error:', error);
         throw error;
       }
 
       if (!data.user) {
         throw new Error('No user data returned from signup');
       }
-
-      console.log('User created:', data.user.id);
 
       // Insert role - upsert to handle any race conditions gracefully
       const { error: roleError } = await supabase
@@ -70,11 +83,8 @@ export default function Auth() {
 
       // Handle role assignment errors gracefully
       if (roleError) {
-        console.error('Role assignment warning:', roleError);
         // Don't block signup for role errors - user can be assigned role later
         toast.warning('Account created, but role assignment needs attention');
-      } else {
-        console.log('Role assigned successfully');
       }
 
       // Wait for session to be established
@@ -86,7 +96,6 @@ export default function Auth() {
         throw new Error('Session not established. Please try signing in.');
       }
 
-      console.log('Session confirmed, navigating...');
       toast.success('Account created! Redirecting...');
       
       // Small delay before navigation
@@ -94,7 +103,6 @@ export default function Auth() {
         navigate(selectedRole === 'creator' ? '/platform/creator' : '/platform/brand');
       }, 500);
     } catch (error: any) {
-      console.error('Signup failed:', error);
       toast.error(error.message);
     } finally {
       setLoading(false);
@@ -103,6 +111,17 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate inputs
+    try {
+      authSchema.parse({ email, password });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
+    }
+    
     setLoading(true);
 
     try {

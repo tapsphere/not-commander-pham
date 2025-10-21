@@ -9,10 +9,6 @@ export function WalletConnect() {
   const [tonConnectUI] = useTonConnectUI();
   const { toast } = useToast();
 
-  useEffect(() => {
-    console.log('TON Connect UI status:', tonConnectUI.connected);
-    console.log('Wallet:', wallet);
-  }, [tonConnectUI, wallet]);
 
   useEffect(() => {
     const linkWalletToProfile = async () => {
@@ -35,7 +31,6 @@ export function WalletConnect() {
         });
 
         if (signUpError) {
-          console.error('Wallet signup error:', signUpError);
           toast({
             title: "Connection Failed",
             description: "Could not link wallet to account",
@@ -55,9 +50,7 @@ export function WalletConnect() {
           .update({ wallet_address: walletAddress })
           .eq('user_id', user.id);
 
-        if (updateError) {
-          console.error('Wallet link error:', updateError);
-        } else {
+        if (!updateError) {
           toast({
             title: "Wallet Linked! 🎮",
             description: "Your TON wallet is now connected",
