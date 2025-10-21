@@ -412,68 +412,6 @@ export default function BrandProfileEdit() {
                 />
               </div>
 
-              {/* Game Mascot/Avatar */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Game Mascot (Default)</h3>
-                <p className="text-sm text-gray-400 mb-4">
-                  Upload an animal, character, or icon that will appear in your games with animations and particles.
-                </p>
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-32 h-32 rounded-lg border-2 flex items-center justify-center bg-black/50 overflow-hidden"
-                    style={{ borderColor: 'hsl(var(--neon-purple))' }}
-                  >
-                    {gameAvatarUrl ? (
-                      mascotAnimationType === 'gif' ? (
-                        <img
-                          src={gameAvatarUrl}
-                          alt="Game Mascot"
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <img
-                          src={gameAvatarUrl}
-                          alt="Game Mascot"
-                          className="w-full h-full object-contain"
-                        />
-                      )
-                    ) : (
-                      <User className="w-12 h-12 text-gray-600" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/png,image/gif,image/jpeg,.json"
-                      onChange={(e) => handleFileSelect(e, 'game-avatar')}
-                      className="hidden"
-                      id="game-avatar-upload"
-                    />
-                    <label htmlFor="game-avatar-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="cursor-pointer"
-                        asChild
-                      >
-                        <span>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Mascot
-                        </span>
-                      </Button>
-                    </label>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Upload PNG, GIF (animated), or Lottie JSON. Your mascot will animate and react during gameplay.
-                    </p>
-                    {gameAvatarUrl && (
-                      <p className="text-xs text-green-400 mt-1">
-                        Current: {mascotAnimationType === 'gif' ? '🎬 Animated GIF' : mascotAnimationType === 'lottie' ? '✨ Lottie Animation' : '🖼️ Static Image'}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               {/* Particle Effect Selector */}
               <div>
                 <Label className="text-white mb-2">Default Particle Effect</Label>
