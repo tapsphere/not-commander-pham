@@ -101,15 +101,30 @@
      - Test status for each template
    - Filter: Published vs. Draft templates
    - Access "Test Validators" dashboard from header
+   - **Edit Profile:** Set default design preferences for all future games
+
+3. **Profile Settings (Default Customization)**
+   - **Design Palette (inherited by all games):**
+     - Primary color
+     - Secondary color
+     - Accent color
+     - Background color
+     - Text color
+     - Highlight color
+   - **Font Family:** Default typography (e.g., Inter, Roboto)
+   - **Game Avatar:** Default mascot/character image
+   - **Mascot Animation Type:** Static, bounce, pulse, float
+   - **Particle Effect:** Sparkles, confetti, stars, or none
+   - **Note:** These become the default for every new game created, but can be overridden per-game
 
 ### Template Creation
-3. **Choose Template Type**
+4. **Choose Template Type**
    - Click "New Template" on Creator Dashboard
    - Select type:
      - **AI-Generated Template:** Build from scratch using AI
      - **Custom Upload:** Upload pre-built HTML game
 
-4. **AI-Generated Template Path**
+5. **AI-Generated Template Path**
    - Select C-BEN competency from master list:
      - Analytical Thinking
      - AI & Big Data Skills
@@ -129,15 +144,53 @@
      - Edge cases to test
      - Duration (typically 3-5 minutes)
    
+   - **Action Scenes/Rounds (optional):**
+     - Use for validators with multiple short scenes (2-4)
+     - Each scene is one screen of play (1-30-60s)
+     - Example:
+       - Scene 1 = Baseline decision
+       - Scene 2 = New variable introduced
+       - Scene 3 = Edge-case twist
+       - Scene 4 = Recover & submit final plan
+     - Leave blank if game plays in one continuous round
+   
+   - **Edge-Case Timing:**
+     - Choose when the rule-flip or disruption occurs:
+       - Beginning (Scene 1)
+       - Early (Scene 1-2 of 3-4)
+       - Mid (Scene 2-3 of 3-4)
+       - Late (Scene 3-4 of 4)
+   
+   - **Edge-Case Moment:**
+     - Describe how the disruption appears
+     - Example: "Timer cuts in half" or "Key data field vanishes mid-game"
+   
+   - **UI Aesthetic:**
+     - Describe the visual style
+     - Example: "Greyscale minimalist" or "Neon cyberpunk with Deloitte branding"
+   
+   - **Customize Colors & Font (Optional Checkbox):**
+     - Leave unchecked → Uses profile default design
+     - Check to override for this specific game:
+       - Highlight color
+       - Text color
+       - Font family
+     - Avatar and particle effect also customizable per-game
+   
    - Decision point:
      - Click "Create & Test" → Opens test wizard immediately
      - Click "Save as Draft" → Test later from dashboard
 
-5. **Custom Upload Path**
+6. **Custom Upload Path**
    - Upload HTML file (game built externally)
    - Specify C-BEN competencies tested
    - Add metadata (name, description, preview image)
    - Upload to cloud storage
+   - **Same customization fields apply:**
+     - Action scenes (if game has multiple rounds)
+     - Edge-case timing and moment
+     - UI aesthetic
+     - Optional color/font overrides
    - Decision point:
      - Click "Create & Test" → Opens test wizard immediately
      - Click "Save as Draft" → Test later from dashboard
