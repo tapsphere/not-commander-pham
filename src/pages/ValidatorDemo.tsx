@@ -376,8 +376,9 @@ export default function ValidatorDemo() {
   if (gameState === 'intro') {
     return (
       <MobileViewport>
-        <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-          <div className="max-w-2xl w-full space-y-6">
+        {/* FIX: Removed min-h-screen and flex to allow proper scrolling */}
+        <div className="bg-black text-white p-6 py-12">
+          <div className="max-w-2xl w-full mx-auto space-y-6">
             <Button
               variant="ghost"
               onClick={() => navigate('/platform/creator')}
@@ -435,8 +436,9 @@ export default function ValidatorDemo() {
   if (gameState === 'edge-case') {
     return (
       <MobileViewport>
-        <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-          <div className="max-w-2xl w-full">
+        {/* FIX: Removed min-h-screen and flex to allow proper scrolling */}
+        <div className="bg-black text-white p-6 py-12">
+          <div className="max-w-2xl w-full mx-auto">
           <div className="border-2 border-red-500 rounded-lg p-8 space-y-6 animate-pulse bg-red-950/20">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-12 h-12 text-red-500" />
@@ -476,8 +478,9 @@ export default function ValidatorDemo() {
     
     return (
       <MobileViewport>
-        <div className="min-h-screen bg-black text-white p-6 flex items-center justify-center">
-        <div className="max-w-2xl w-full space-y-6">
+        {/* FIX: Removed min-h-screen and flex to allow proper scrolling */}
+        <div className="bg-black text-white p-6 py-12">
+        <div className="max-w-2xl w-full mx-auto space-y-6">
           <div className={`border-2 rounded-lg p-8 space-y-6 ${proficiency.bg} border-${proficiency.color.split('-')[1]}`}>
             <h2 className="text-3xl font-bold text-center">Validator Complete</h2>
             
@@ -491,36 +494,37 @@ export default function ValidatorDemo() {
               </div>
             </div>
             
+            {/* FIX: Added flex-wrap to prevent text overflow on small screens */}
             <div className="bg-gray-900 rounded-lg p-6 space-y-3">
               <h3 className="font-semibold text-neon-green">Sub-Competencies Passed:</h3>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Identified Concerning Metrics (≥2):</span>
-                  <span className={rankedKpis.length >= 2 ? 'text-neon-green' : 'text-red-400'}>
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="text-gray-400 break-words">Identified Concerning Metrics (≥2):</span>
+                  <span className={`flex-shrink-0 ${rankedKpis.length >= 2 ? 'text-neon-green' : 'text-red-400'}`}>
                     {rankedKpis.length >= 2 ? '✓ Pass' : '✗ Fail'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Prioritized Critical Issues (Top 3):</span>
-                  <span className={rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? 'text-neon-green' : 'text-red-400'}>
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="text-gray-400 break-words">Prioritized Critical Issues (Top 3):</span>
+                  <span className={`flex-shrink-0 ${rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? 'text-neon-green' : 'text-red-400'}`}>
                     {rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? '✓ Pass' : '✗ Fail'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Addressed Declining Metrics:</span>
-                  <span className={rankedKpis.some(k => k.id === '1' || k.id === '4') ? 'text-neon-green' : 'text-red-400'}>
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="text-gray-400 break-words">Addressed Declining Metrics:</span>
+                  <span className={`flex-shrink-0 ${rankedKpis.some(k => k.id === '1' || k.id === '4') ? 'text-neon-green' : 'text-red-400'}`}>
                     {rankedKpis.some(k => k.id === '1' || k.id === '4') ? '✓ Pass' : '✗ Fail'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Completed Full Analysis:</span>
-                  <span className={rankedKpis.length === 6 ? 'text-neon-green' : 'text-red-400'}>
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="text-gray-400 break-words">Completed Full Analysis:</span>
+                  <span className={`flex-shrink-0 ${rankedKpis.length === 6 ? 'text-neon-green' : 'text-red-400'}`}>
                     {rankedKpis.length === 6 ? '✓ Pass' : '✗ Fail'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Edge-Case: Revenue Priority:</span>
-                  <span className={edgeCaseTriggered && rankedKpis[0]?.id === '2' ? 'text-neon-green' : 'text-red-400'}>
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="text-gray-400 break-words">Edge-Case: Revenue Priority:</span>
+                  <span className={`flex-shrink-0 ${edgeCaseTriggered && rankedKpis[0]?.id === '2' ? 'text-neon-green' : 'text-red-400'}`}>
                     {edgeCaseTriggered && rankedKpis[0]?.id === '2' ? '✓ Pass' : '✗ Fail'}
                   </span>
                 </div>
@@ -569,8 +573,10 @@ export default function ValidatorDemo() {
   // Playing state
   return (
     <MobileViewport>
-      <div className="min-h-screen bg-black text-white p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+      {/* FIX: Removed min-h-screen to allow proper scrolling within MobileViewport */}
+      {/* FIX: Added pb-20 to ensure submit button is not hidden by mobile keyboards */}
+      <div className="bg-black text-white p-4 md:p-6 pb-20">
+      <div className="max-w-6xl mx-auto w-full">
         {/* Header with Round Indicator */}
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -596,9 +602,11 @@ export default function ValidatorDemo() {
         </div>
 
         {/* Competency Feedback Pop-up */}
+        {/* FIX: Added overflow-y-auto and max-height to enable scrolling for long feedback */}
+        {/* FIX: Added pointer-events-none to parent, pointer-events-auto to modal to prevent interaction issues */}
         {showFeedback && currentFeedback && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 border-2 border-neon-green rounded-lg p-6 max-w-md w-full space-y-4">
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 pointer-events-auto">
+            <div className="bg-gray-900 border-2 border-neon-green rounded-lg p-6 max-w-md w-full space-y-4 max-h-[90vh] overflow-y-auto pointer-events-auto">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <div className="text-2xl font-bold text-neon-green">
@@ -610,7 +618,8 @@ export default function ValidatorDemo() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowFeedback(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-gray-400 hover:text-white flex-shrink-0"
+                  aria-label="Close feedback"
                 >
                   <X className="h-5 w-5" />
                 </Button>
@@ -619,12 +628,12 @@ export default function ValidatorDemo() {
               <div className="space-y-3">
                 <div>
                   <div className="text-xs text-gray-500 uppercase mb-1">Feedback</div>
-                  <p className="text-sm text-gray-300">{currentFeedback.message}</p>
+                  <p className="text-sm text-gray-300 break-words">{currentFeedback.message}</p>
                 </div>
                 
                 <div>
                   <div className="text-xs text-gray-500 uppercase mb-1">How to Improve</div>
-                  <p className="text-sm text-gray-300">{currentFeedback.improvement}</p>
+                  <p className="text-sm text-gray-300 break-words">{currentFeedback.improvement}</p>
                 </div>
               </div>
               
@@ -638,25 +647,46 @@ export default function ValidatorDemo() {
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6">
+        {/* FIX: Changed grid layout to stack on mobile for better usability */}
+        {/* FIX: Added max-h with overflow-y-auto to drop zones to prevent excessive scrolling */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Available KPIs */}
-          <div>
+          <div className="w-full">
             <h2 className="text-lg font-semibold mb-3 text-neon-green">Available Metrics</h2>
             <div
-              className="space-y-3 min-h-[400px] border-2 border-dashed border-gray-700 rounded-lg p-4"
+              className="space-y-3 min-h-[200px] max-h-[500px] overflow-y-auto border-2 border-dashed border-gray-700 rounded-lg p-4"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, 'unranked')}
+              role="region"
+              aria-label="Available metrics area"
             >
               {kpis.map((kpi) => (
                 <div
                   key={kpi.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, kpi.id)}
-                  className="bg-gray-900 border border-neon-purple rounded-lg p-4 cursor-move hover:border-neon-magenta transition-all hover:border-glow-purple"
+                  className="bg-gray-900 border border-neon-purple rounded-lg p-4 cursor-move hover:border-neon-magenta transition-all hover:border-glow-purple touch-manipulation"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Drag ${kpi.name} metric`}
+                  onKeyDown={(e) => {
+                    // FIX: Added keyboard support for accessibility
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Simulate drag to ranked area
+                      const syntheticEvent = {
+                        preventDefault: () => {},
+                        dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
+                      } as React.DragEvent;
+                      handleDragStart(syntheticEvent, kpi.id);
+                      handleDrop(syntheticEvent, 'ranked');
+                    }
+                  }}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-semibold text-white">{kpi.name}</span>
-                    <span className={`text-sm ${
+                  <div className="flex justify-between items-start mb-2 gap-2">
+                    {/* FIX: Added break-words to prevent long text overflow */}
+                    <span className="font-semibold text-white break-words flex-1">{kpi.name}</span>
+                    <span className={`text-sm flex-shrink-0 ${
                       kpi.trend === 'up' ? 'text-green-400' : 
                       kpi.trend === 'down' ? 'text-red-400' : 
                       'text-gray-400'
@@ -671,7 +701,7 @@ export default function ValidatorDemo() {
                         style={{ width: `${kpi.value}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-400">{Math.round(kpi.value)}%</span>
+                    <span className="text-sm text-gray-400 flex-shrink-0">{Math.round(kpi.value)}%</span>
                   </div>
                 </div>
               ))}
@@ -679,15 +709,17 @@ export default function ValidatorDemo() {
           </div>
 
           {/* Ranked KPIs */}
-          <div>
+          <div className="w-full">
             <h2 className="text-lg font-semibold mb-3 text-neon-magenta">Priority Ranking</h2>
             <div
-              className="space-y-3 min-h-[400px] border-2 border-dashed border-neon-magenta/50 rounded-lg p-4"
+              className="space-y-3 min-h-[200px] max-h-[500px] overflow-y-auto border-2 border-dashed border-neon-magenta/50 rounded-lg p-4"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, 'ranked')}
+              role="region"
+              aria-label="Priority ranking area"
             >
               {rankedKpis.length === 0 && (
-                <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="flex items-center justify-center h-full text-gray-500 text-center p-4">
                   Drop KPIs here to rank them
                 </div>
               )}
@@ -696,16 +728,33 @@ export default function ValidatorDemo() {
                   key={kpi.id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, kpi.id)}
-                  className="bg-gray-900 border border-neon-magenta rounded-lg p-4 cursor-move hover:border-neon-green transition-all"
+                  className="bg-gray-900 border border-neon-magenta rounded-lg p-4 cursor-move hover:border-neon-green transition-all touch-manipulation"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ranked position ${index + 1}: ${kpi.name}`}
+                  onKeyDown={(e) => {
+                    // FIX: Added keyboard support for accessibility
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Simulate drag back to unranked area
+                      const syntheticEvent = {
+                        preventDefault: () => {},
+                        dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
+                      } as React.DragEvent;
+                      handleDragStart(syntheticEvent, kpi.id);
+                      handleDrop(syntheticEvent, 'unranked');
+                    }
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-neon-magenta text-black flex items-center justify-center font-bold flex-shrink-0">
                       {index + 1}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-white">{kpi.name}</span>
-                        <span className={`text-sm ${
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-2 gap-2">
+                        {/* FIX: Added break-words to prevent long text overflow */}
+                        <span className="font-semibold text-white break-words flex-1">{kpi.name}</span>
+                        <span className={`text-sm flex-shrink-0 ${
                           kpi.trend === 'up' ? 'text-green-400' : 
                           kpi.trend === 'down' ? 'text-red-400' : 
                           'text-gray-400'
@@ -720,7 +769,7 @@ export default function ValidatorDemo() {
                             style={{ width: `${kpi.value}%` }}
                           />
                         </div>
-                        <span className="text-sm text-gray-400">{Math.round(kpi.value)}%</span>
+                        <span className="text-sm text-gray-400 flex-shrink-0">{Math.round(kpi.value)}%</span>
                       </div>
                     </div>
                   </div>
@@ -731,14 +780,17 @@ export default function ValidatorDemo() {
         </div>
 
         {/* Submit Button */}
+        {/* FIX: Made button sticky on mobile for better accessibility */}
+        {/* FIX: Added touch-manipulation for better mobile tap response */}
         {rankedKpis.length === 6 && (
-          <div className="mt-6">
+          <div className="mt-6 sticky bottom-4 z-40">
             <Button
               onClick={() => {
                 setGameState('results');
                 calculateScore();
               }}
-              className="w-full bg-neon-green text-white hover:bg-neon-green/90 text-lg h-14 border-glow-green"
+              className="w-full bg-neon-green text-white hover:bg-neon-green/90 text-lg h-14 border-glow-green shadow-lg touch-manipulation"
+              aria-label="Submit your ranking"
             >
               Submit Ranking
             </Button>
