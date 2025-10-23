@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ModeChooser } from "@/components/platform/ModeChooser";
+import { GamePlayer } from "@/components/platform/GamePlayer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -28,6 +29,8 @@ export default function PlayValidator() {
   const [template, setTemplate] = useState<Template | null>(null);
   const [runtimes, setRuntimes] = useState<Runtime[]>([]);
   const [selectedRuntime, setSelectedRuntime] = useState<Runtime | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,14 +99,15 @@ export default function PlayValidator() {
 
       console.log('Session started:', data);
       
+      const sessionIdentifier = data.session?.id || data.session_id;
+      setSessionId(sessionIdentifier);
+      setIsDemo(data.demo || false);
+      
       if (data.demo) {
         toast.info('Demo mode - Your progress will not be saved');
       } else {
         toast.success(`${mode === 'training' ? 'Practice' : 'Validation'} session started!`);
       }
-      
-      // TODO: Navigate to actual game play
-      // For now, show session info
     } catch (error: any) {
       console.error('Error starting session:', error);
       toast.error(error.message || 'Failed to start session');
@@ -153,49 +157,24 @@ export default function PlayValidator() {
     );
   }
 
-  // Game play view (placeholder)
-  return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          className="mb-4"
-          onClick={() => setSelectedRuntime(null)}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Mode Selection
-        </Button>
+  // Game play view
+  if (sessionId) {
+    return (
+      <GamePlayer
+        sessionId={sessionId}
+        templateName={template.name}
+        templateDescription={template.description}
+        runtime={selectedRuntime}
+        isDemo={isDemo}
+        onExit={() => {
+          setSelectedRuntime(null);
+          setSessionId(null);
+          setIsDemo(false);
+        }}
+      />
+    );
+  }
 
-        <div className="bg-card p-8 rounded-lg border">
-          <h2 className="text-2xl font-bold mb-4">
-            {selectedRuntime.mode === 'training' ? '🧠 Practice Mode' : '🏁 Validation Mode'}
-          </h2>
-          <p className="text-muted-foreground mb-6">{template.description}</p>
-
-          <div className="space-y-4 bg-muted p-4 rounded">
-            <p className="font-medium">Session Active</p>
-            <div className="text-sm space-y-1">
-              <p>Mode: {selectedRuntime.mode}</p>
-              <p>Time Limit: {selectedRuntime.time_limit_s}s</p>
-              <p>Accuracy Threshold: {(selectedRuntime.accuracy_threshold * 100).toFixed(0)}%</p>
-              <p>Feedback: {selectedRuntime.feedback_mode}</p>
-              <p>Randomized: {selectedRuntime.randomize ? 'Yes' : 'No (fixed seed)'}</p>
-            </div>
-          </div>
-
-          <div className="mt-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded">
-            <p className="text-sm text-yellow-500">
-              <strong>Demo Mode:</strong> This is a preview showing session configuration. 
-              The actual game interface will be integrated here.
-            </p>
-            {selectedRuntime.mode === 'training' && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Playing as guest - your progress will not be saved. Sign in to track your progress!
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // Should not reach here
+  return null;
 }
