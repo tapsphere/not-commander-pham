@@ -47,13 +47,6 @@ Deno.serve(async (req) => {
       error: userError,
     } = await supabaseClient.auth.getUser()
 
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      )
-    }
-
     const body = await req.json()
     const { action } = body
 
@@ -75,7 +68,32 @@ Deno.serve(async (req) => {
         )
       }
 
-      // Create session
+      // For anonymous/demo sessions (training mode only)
+      if ((!user || userError) && runtime.mode === 'training') {
+        console.log('Creating anonymous demo session for training mode')
+        return new Response(
+          JSON.stringify({ 
+            session: { 
+              id: `demo-${crypto.randomUUID()}`, 
+              demo: true,
+              mode: 'training'
+            }, 
+            runtime,
+            demo: true 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        )
+      }
+
+      // Testing mode requires authentication
+      if (!user || userError) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication required for testing mode' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        )
+      }
+
+      // Create authenticated session
       const { data: session, error: sessionError } = await supabaseClient
         .from('sessions')
         .insert({
@@ -97,6 +115,14 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ session, runtime }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
+    }
+
+    // All other actions require authentication
+    if (!user || userError) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       )
     }
 

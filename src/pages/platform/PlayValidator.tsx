@@ -71,6 +71,16 @@ export default function PlayValidator() {
       return;
     }
 
+    // Check if user is authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Testing mode requires login
+    if (mode === 'testing' && !user) {
+      toast.error('Please sign in to access Validation Mode');
+      navigate('/auth');
+      return;
+    }
+
     setSelectedRuntime(runtime);
     
     // Start session
@@ -85,13 +95,18 @@ export default function PlayValidator() {
       if (error) throw error;
 
       console.log('Session started:', data);
-      toast.success(`${mode === 'training' ? 'Practice' : 'Validation'} session started!`);
+      
+      if (data.demo) {
+        toast.info('Demo mode - Your progress will not be saved');
+      } else {
+        toast.success(`${mode === 'training' ? 'Practice' : 'Validation'} session started!`);
+      }
       
       // TODO: Navigate to actual game play
       // For now, show session info
     } catch (error: any) {
       console.error('Error starting session:', error);
-      toast.error('Failed to start session');
+      toast.error(error.message || 'Failed to start session');
     }
   };
 
@@ -170,9 +185,14 @@ export default function PlayValidator() {
 
           <div className="mt-8 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded">
             <p className="text-sm text-yellow-500">
-              <strong>Demo Mode:</strong> This is a placeholder. The actual game interface will be 
-              integrated here, using the runtime config above to control game behavior.
+              <strong>Demo Mode:</strong> This is a preview showing session configuration. 
+              The actual game interface will be integrated here.
             </p>
+            {selectedRuntime.mode === 'training' && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Playing as guest - your progress will not be saved. Sign in to track your progress!
+              </p>
+            )}
           </div>
         </div>
       </div>
