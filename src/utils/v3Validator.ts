@@ -279,16 +279,18 @@ export function calculateV31Level(
 }
 
 /**
- * Calculate XP based on v3.1 scoring formula
+ * Calculate XP based on PlayOps Framework (CBEN_PlayOps_Framework_Finale-2.xlsx)
+ * Source: Page 4 - XP Award column
  */
 export function calculateV31XP(
   level: 'Mastery' | 'Proficient' | 'Needs Work',
   score: number
 ): number {
+  // From PlayOps spreadsheet - DO NOT MODIFY without updating source
   const baseXP = {
-    Mastery: 1000,
-    Proficient: 500,
-    'Needs Work': 100,
+    Mastery: 500,        // L3: 500 XP
+    Proficient: 250,     // L2: 250 XP
+    'Needs Work': 100,   // L1: 100 XP
   };
 
   return Math.floor(baseXP[level] * (score / 100));

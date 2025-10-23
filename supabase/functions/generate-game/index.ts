@@ -25,19 +25,32 @@ serve(async (req) => {
     // LEAN AI GENERATION SYSTEM PROMPT
     // ═══════════════════════════════════════════════════════════════
     
+    // PlayOps Framework Integration (from CBEN_PlayOps_Framework_Finale-2.xlsx)
     let playOpsInstructions = '';
     if (subCompetencies && subCompetencies.length > 0) {
       playOpsInstructions = `
-# PLAYOPS FRAMEWORK INTEGRATION
+# PLAYOPS FRAMEWORK INTEGRATION (Page 3 - Game Design Data)
 ${subCompetencies.map((sc: any, index: number) => `
 Sub-Competency ${index + 1}: ${sc.statement}
-- Game Mechanic: ${sc.game_mechanic || 'Not specified'}
-- Action Cue: ${sc.action_cue || 'Not specified'}
-- Player Action: ${sc.player_action || 'Not specified'}
-- Validator Type: ${sc.validator_type || 'Not specified'}
-- Backend Data: ${JSON.stringify(sc.backend_data_captured || [])}
-- Scoring Logic: ${JSON.stringify(sc.scoring_logic || {})}
+
+CRITICAL IMPLEMENTATION REQUIREMENTS:
+- **Action Cue (What player does)**: ${sc.action_cue || 'Select the correct option within time limit'}
+- **Game Mechanic**: ${sc.game_mechanic || 'Interactive selection/matching task'}
+- **Player Action**: ${sc.player_action || 'Select, Match, Identify'}
+- **Validator Type**: ${sc.validator_type || 'Scenario-Based Simulation'}
+- **Game Loop**: Input → Action → Feedback → Submit
+- **Backend Data Captured**: ${JSON.stringify(sc.backend_data_captured || ['accuracy', 'time_s', 'decisions'])}
+
+SCORING FORMULA (PlayOps Page 3):
+${sc.scoring_formula_level_1 || 'L1: acc<0.85 OR t>90s = 100 XP (Needs Work)'}
+${sc.scoring_formula_level_2 || 'L2: acc≥0.90 AND t≤90s = 250 XP (Proficient)'}
+${sc.scoring_formula_level_3 || 'L3: acc≥0.95 AND t≤75s AND edge≥0.80 AND sessions≥3 = 500 XP (Mastery)'}
 `).join('\n')}
+
+XP AWARDS (DO NOT MODIFY):
+- Level 1 (Needs Work): 100 XP
+- Level 2 (Proficient): 250 XP
+- Level 3 (Mastery): 500 XP
 `;
     }
 
@@ -82,9 +95,10 @@ window.__CONFIG__ = {
     SessionsL3: 3
   },
   xp: {
-    L1: 100,
-    L2: 250,
-    L3: 500
+    // PlayOps Framework (CBEN_PlayOps_Framework_Finale-2.xlsx Page 4)
+    L1: 100,  // Needs Work
+    L2: 250,  // Proficient
+    L3: 500   // Mastery
   }
 };
 \`\`\`
