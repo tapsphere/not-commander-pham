@@ -1,4 +1,4 @@
-# USER FLOWS & TECHNICAL ARCHITECTURE
+# Platform Flows or User Flows Doc
 # (v3.0 — October 2025, Lovable + C-BEN Hybrid)
 
 ## 🧭 PLAYER FLOW
@@ -24,8 +24,14 @@
 ### 2. Playing Validators
 
 #### 2.1 Validator Selection
-- Click on validator card → redirect to `/play/[CODE]`
-- View intro screen with brand customization and instructions
+- Click any LIVE validator card → `/play/[CODE]`
+
+**Intro screen includes:**
+- Brand colors & logo
+- Scenario context
+- Single sub-competency being validated
+- Time limit (3–6 minutes)
+- START GAME button (sticky, visible, non-auto-start)
 
 #### 2.2 Gameplay
 - Mobile-first, no-scroll gameplay (Scene 1+)
@@ -39,11 +45,11 @@
 
 **Deterministic 3-level model:**
 
-| Level | Label       | Criteria                                                                      | XP  | Color   |
-|-------|-------------|-------------------------------------------------------------------------------|-----|---------|
-| 1     | Needs Work  | accuracy < 0.85 OR time_s > Tlimit                                           | 100 | #ef4444 |
-| 2     | Proficient  | accuracy ≥ 0.90 AND time_s ≤ Tlimit                                          | 250 | #facc15 |
-| 3     | Mastery     | accuracy ≥ 0.95 AND time_s ≤ Ttight AND edge_score ≥ 0.80 AND sessions ≥ 3 | 500 | #00ff00 |
+| Level | Label       | Criteria                                                                      | XP  | Color              |
+|-------|-------------|-------------------------------------------------------------------------------|-----|--------------------|
+| 1     | Needs Work  | accuracy < 0.85 OR time_s > Tlimit                                           | 100 | #ef4444            |
+| 2     | Proficient  | accuracy ≥ 0.90 AND time_s ≤ Tlimit                                          | 250 | #facc15            |
+| 3     | Mastery     | accuracy ≥ 0.95 AND time_s ≤ Ttight AND edge_score ≥ 0.80 AND sessions ≥ 3 | 500 | var(--neon-green) |
 
 **Formula Variables:**
 - `Tlimit = duration_s`
@@ -142,18 +148,12 @@ window.__PROOF__ = {
 - Optional: multiple short scenes (2–4 rounds)
 - Click **Create & Test** or **Save as Draft**
 
-**System enforces:**
-- No text inputs
-- One sub-competency
-- Black-and-white scoring
-- Telegram compliance
-- Proof output
+**(System enforces: no text inputs, one sub-competency, black-and-white scoring, Telegram compliance, proof output.)**
 
 #### 2.3 Custom Upload Path
 - Upload pre-built HTML game
 - Specify competency tested
 - Add metadata (preview image, logo, brand colors)
-- Same visual customization options apply
 
 ### 3. Validator Testing (AI Auto-Validation)
 
@@ -240,11 +240,20 @@ window.__PROOF__ = {
 
 ### OFF-CHAIN COMPONENTS (Supabase)
 
-- **Game Logic & State:** HTML / JS validators
-- **User Metadata:** email, settings, preferences
-- **Brand Customization:** prompts, logos, colors
-- **Analytics & Telemetry:** click tracking, accuracy, time, edge events
-- **Template Library:** AI prompts, previews, validator definitions
+**Game Logic & State:**
+- HTML / JS validators
+
+**User Metadata:**
+- email, settings, preferences
+
+**Brand Customization:**
+- prompts, logos, colors
+
+**Analytics & Telemetry:**
+- click tracking, accuracy, time, edge events
+
+**Template Library:**
+- AI prompts, previews, validator definitions
 
 ### Architecture Pattern
 ```
@@ -275,12 +284,3 @@ Off-Chain → Verification → On-Chain
 ## 🧠 PLATFORM MISSION
 
 **Democratize competency validation through gamified, verifiable micro-proofs** — empowering Gen Z to prove skills, creators to build validators, and brands to hire with confidence.
-
----
-
-✅ **This v3.0 doc replaces all prior "Platform Flows" versions.**
-
-It is fully synchronized with:
-- C-BEN → PlayOps Hybrid Framework
-- Lovable AI Generator Prompt v3
-- Telegram Mini-App requirements
