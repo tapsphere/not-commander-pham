@@ -268,17 +268,21 @@ function isAnswerMatch(userAnswer: string, acceptableAnswer: string): { isMatch:
   }
   
   // SEMANTIC-ONLY MATCH: Check if semantic similarity is strong enough on its own
-  // Requires at least 2 synonym group matches for multi-word answers
   if (semanticMatch) {
     const synonymMatchCount = countSemanticMatches(userWords, acceptableWords);
-    console.log(`    → ${synonymMatchCount} synonym group matches found`);
+    console.log(`    → ${synonymMatchCount} synonym group matches, ${commonWords} exact word matches`);
     
-    // For 2-3 word answers: require 2 synonym matches
-    // For 4+ word answers: require 2+ matches OR 50%+ word overlap with semantic match
-    if (acceptableWords.length <= 3 && synonymMatchCount >= 2) {
-      return { isMatch: true, reason: `Strong semantic match (${synonymMatchCount} synonym groups)` };
-    } else if (acceptableWords.length > 3 && (synonymMatchCount >= 2 || overlapPercentage >= 50)) {
-      return { isMatch: true, reason: `Semantic match (${synonymMatchCount} groups, ${Math.round(overlapPercentage)}% overlap)` };
+    // Calculate "effective match score" = exact matches + synonym matches
+    const effectiveMatches = commonWords + synonymMatchCount;
+    const effectivePercentage = (effectiveMatches / acceptableWords.length) * 100;
+    
+    console.log(`    → Effective match: ${effectiveMatches}/${acceptableWords.length} (${Math.round(effectivePercentage)}%)`);
+    
+    // For 2-word answers: 1 exact + 1 semantic = 100% effective match
+    // For 3-word answers: need 2+ effective matches (66%+)
+    // For 4+ words: need 60%+ effective match
+    if (effectivePercentage >= 60) {
+      return { isMatch: true, reason: `Strong match (${commonWords} exact + ${synonymMatchCount} semantic = ${Math.round(effectivePercentage)}%)` };
     }
   }
 
