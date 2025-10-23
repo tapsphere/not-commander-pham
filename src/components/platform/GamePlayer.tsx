@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Play, Timer, CheckCircle2 } from 'lucide-react';
-import { BudgetAllocationGame } from './BudgetAllocationGame';
+import { Play, Timer, CheckCircle2, Trophy, Zap, TrendingUp } from 'lucide-react';
+import { useGameIframe } from '@/hooks/useGameIframe';
+import { calculateV31Level, calculateV31XP } from '@/utils/v3Validator';
+import { Badge } from '@/components/ui/badge';
 
 interface GamePlayerProps {
   sessionId: string;
@@ -18,6 +20,7 @@ interface GamePlayerProps {
   };
   isDemo: boolean;
   onExit: () => void;
+  generatedGameHtml?: string | null; // v3.1 generated HTML
 }
 
 export function GamePlayer({
@@ -26,11 +29,32 @@ export function GamePlayer({
   templateDescription,
   runtime,
   isDemo,
-  onExit
+  onExit,
+  generatedGameHtml
 }: GamePlayerProps) {
   const [gameState, setGameState] = useState<'ready' | 'playing' | 'finished'>('ready');
   const [timeLeft, setTimeLeft] = useState(runtime.time_limit_s);
   const [score, setScore] = useState(0);
+  const [v31Level, setV31Level] = useState<'Mastery' | 'Proficient' | 'Needs Work'>('Needs Work');
+  const [xp, setXp] = useState(0);
+  const [timeSpent, setTimeSpent] = useState(0);
+
+  // Use iframe hook for v3.1 games
+  const { iframeRef, isReady, result, proof, handleIframeLoad } = useGameIframe({
+    onComplete: (gameResult, gameProof) => {
+      if (gameResult) {
+        // Use v3.1 result if available
+        setScore(gameResult.score);
+        setV31Level(gameResult.level);
+        setXp(gameResult.xp);
+        setTimeSpent(gameResult.time_spent);
+      }
+      setGameState('finished');
+    },
+    onError: (error) => {
+      console.error('Game error:', error);
+    }
+  });
 
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -118,31 +142,128 @@ export function GamePlayer({
   }
 
   if (gameState === 'playing') {
+    // If we have generated HTML, use iframe
+    if (generatedGameHtml) {
+      return (
+        <div className="min-h-screen bg-background">
+          <div className="max-w-4xl mx-auto p-4">
+            {/* Timer Header */}
+            <Card className="mb-4 p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Timer className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Time Remaining</p>
+                    <p className="text-2xl font-bold">{formatTime(timeLeft)}</p>
+                  </div>
+                </div>
+                <Button onClick={onExit} variant="outline" size="sm">
+                  Exit
+                </Button>
+              </div>
+            </Card>
+
+            {/* Game Iframe */}
+            <Card className="overflow-hidden">
+              <iframe
+                ref={iframeRef}
+                srcDoc={generatedGameHtml}
+                className="w-full border-0"
+                style={{ height: '812px', minHeight: '600px' }}
+                title="Validator Game"
+                sandbox="allow-scripts allow-same-origin allow-forms"
+                onLoad={handleIframeLoad}
+              />
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
+    // Fallback to hardcoded game for testing
     return (
-      <BudgetAllocationGame
-        timeLimit={runtime.time_limit_s}
-        onComplete={(finalScore, metrics) => {
-          setScore(finalScore);
-          setGameState('finished');
-        }}
-      />
+      <div className="min-h-screen bg-background p-8">
+        <Card className="max-w-4xl mx-auto p-8">
+          <p className="text-center text-muted-foreground mb-4">
+            No generated game available. Using demo game.
+          </p>
+          <Button onClick={() => {
+            setScore(85);
+            setV31Level(calculateV31Level(85, runtime.accuracy_threshold));
+            setXp(calculateV31XP(calculateV31Level(85, runtime.accuracy_threshold), 85));
+            setTimeSpent(120);
+            setGameState('finished');
+          }}>
+            Complete Demo Game
+          </Button>
+        </Card>
+      </div>
     );
   }
 
-  // Finished state
+  // Finished state with v3.1 scoring
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <Card className="p-8">
           <div className="text-center space-y-6">
-            <h2 className="text-3xl font-bold">Game Complete!</h2>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Trophy className="w-8 h-8 text-yellow-500" />
+              <h2 className="text-3xl font-bold">Game Complete!</h2>
+            </div>
             
-            <div className="bg-muted p-6 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-4">Results</p>
-              <p className="text-4xl font-bold">{score}%</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Required: {(runtime.accuracy_threshold * 100).toFixed(0)}%
+            {/* v3.1 Proficiency Level */}
+            <div className="space-y-4">
+              <Badge 
+                className={`text-xl px-6 py-2 ${
+                  v31Level === 'Mastery' ? 'bg-green-500' :
+                  v31Level === 'Proficient' ? 'bg-blue-500' :
+                  'bg-yellow-500'
+                }`}
+              >
+                {v31Level}
+              </Badge>
+              
+              <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+                {/* Score */}
+                <div className="bg-muted p-6 rounded-lg">
+                  <TrendingUp className="w-6 h-6 mx-auto mb-2 text-primary" />
+                  <p className="text-sm text-muted-foreground mb-2">Score</p>
+                  <p className="text-3xl font-bold">{score}%</p>
+                </div>
+
+                {/* XP Earned */}
+                <div className="bg-muted p-6 rounded-lg">
+                  <Zap className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+                  <p className="text-sm text-muted-foreground mb-2">XP Earned</p>
+                  <p className="text-3xl font-bold">{xp}</p>
+                </div>
+
+                {/* Time */}
+                <div className="bg-muted p-6 rounded-lg">
+                  <Timer className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                  <p className="text-sm text-muted-foreground mb-2">Time</p>
+                  <p className="text-3xl font-bold">{formatTime(timeSpent)}</p>
+                </div>
+              </div>
+
+              <Progress 
+                value={(score / 100) * 100} 
+                className="h-3"
+              />
+
+              <p className="text-sm text-muted-foreground">
+                Required: {(runtime.accuracy_threshold * 100).toFixed(0)}% 
+                {score >= (runtime.accuracy_threshold * 100) ? ' ✓ Passed' : ' ✗ Below threshold'}
               </p>
+            </div>
+
+            {/* v3.1 Level Descriptions */}
+            <div className="bg-muted p-4 rounded-lg text-left text-sm space-y-2">
+              <p className="font-semibold">Proficiency Levels (v3.1):</p>
+              <p><span className="text-green-500 font-bold">Mastery (90-100%):</span> Expert understanding, 1000 XP</p>
+              <p><span className="text-blue-500 font-bold">Proficient (80-89%):</span> Competent performance, 500 XP</p>
+              <p><span className="text-yellow-500 font-bold">Needs Work (&lt;80%):</span> Requires improvement, 100 XP</p>
             </div>
 
             {isDemo && (

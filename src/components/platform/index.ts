@@ -1,0 +1,18 @@
+// Platform component exports
+export { BrandCustomizationDialog } from './BrandCustomizationDialog';
+export { BrandGameGenerator } from './BrandGameGenerator';
+export { BudgetAllocationGame } from './BudgetAllocationGame';
+export { ColorRemixPanel } from './ColorRemixPanel';
+export { CompetenciesDialog } from './CompetenciesDialog';
+export { CourseGamifier } from './CourseGamifier';
+export { CustomGameUpload } from './CustomGameUpload';
+export { DesignPaletteEditor } from './DesignPaletteEditor';
+export { GameCoverPhoto } from './GameCoverPhoto';
+export { GamePlayer } from './GamePlayer';
+export { ModeChooser } from './ModeChooser';
+export { PlatformLayout } from './PlatformLayout';
+export { TemplateDialog } from './TemplateDialog';
+export { TemplateTypeSelector } from './TemplateTypeSelector';
+export { ValidatorTemplateCard } from './ValidatorTemplateCard';
+export { ValidatorTestWizard } from './ValidatorTestWizard';
+export { V3ComplianceChecker } from './V3ComplianceChecker';

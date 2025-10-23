@@ -21,6 +21,7 @@ interface Template {
   id: string;
   name: string;
   description: string;
+  generated_game_html?: string | null;
 }
 
 export default function PlayValidator() {
@@ -39,7 +40,7 @@ export default function PlayValidator() {
 
   const loadTemplateAndRuntimes = async () => {
     try {
-      // Get template
+      // Get template (generated_game_html will be added to schema later)
       const { data: templateData, error: templateError } = await supabase
         .from('game_templates')
         .select('id, name, description')
@@ -48,7 +49,7 @@ export default function PlayValidator() {
         .single();
 
       if (templateError) throw templateError;
-      setTemplate(templateData);
+      setTemplate({ ...templateData, generated_game_html: null });
 
       // Get runtimes
       const { data: runtimesData, error: runtimesError } = await supabase
@@ -171,6 +172,7 @@ export default function PlayValidator() {
           setSessionId(null);
           setIsDemo(false);
         }}
+        generatedGameHtml={template.generated_game_html}
       />
     );
   }
