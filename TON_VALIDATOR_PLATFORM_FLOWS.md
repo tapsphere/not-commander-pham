@@ -1,941 +1,286 @@
-# TON VALIDATOR PLATFORM - USER FLOWS & TECHNICAL ARCHITECTURE
+# USER FLOWS & TECHNICAL ARCHITECTURE
+# (v3.0 — October 2025, Lovable + C-BEN Hybrid)
 
-## 🎮 PLAYER FLOW
+## 🧭 PLAYER FLOW
 
-### Entry & Authentication
-1. **Landing Page**
-   - Player arrives at homepage with animated 3D globe
-   - ARIA AI system introduces the platform (voice operator)
-   - Sees "Live Validators" section showcasing active games
-   - Clicks "Initialize" to begin
+### 1. Entry & Authentication
 
-2. **Wallet Connection**
-   - Player connects TON wallet (required for platform access)
-   - Alternative: Email/password authentication available
-   - Profile automatically created upon first login
+#### 1.1 Landing Page
+- Animated 3D globe with ARIA AI system voice introduction
+- "Live Validators" section shows active playable games
+- Click "Initialize" to start onboarding
 
-3. **Game Hub (Lobby)**
-   - Views all available validators in "Brand Stores" section
-   - Each validator shows:
-     - Brand logo
-     - Validator name
-     - Department category
-     - "LIVE" badge for active games
-   - Can filter by department (Marketing, Operations, Finance, etc.)
-   - Search functionality for finding specific validators
+#### 1.2 Wallet Connection
+- Connect TON Wallet (primary authentication)
+- Alternative: email/password login for non-wallet users
+- Profile auto-created on first login
 
-### Playing Validators
-4. **Validator Selection**
-   - Clicks on any live validator card
-   - Redirected to unique play URL (/play/[CODE])
-   - Views validator introduction screen with:
-     - Brand customization (colors, logo)
-     - Game instructions
-     - Time limit (typically 3 minutes)
-     - Sub-competencies being tested
+#### 1.3 Game Hub (Lobby)
+- Displays all available validators across Brand Stores
+- Each card shows: Brand logo, validator name, department, and LIVE badge
+- Filters by department (Marketing, Operations, Finance, etc.)
+- Search bar for validator lookup
 
-5. **Gameplay**
-   - Interactive scenario begins (e.g., KPI ranking, crisis management)
-   - Real-time feedback on actions
-   - Edge-case scenarios may trigger mid-game
-   - Timer countdown visible
-   - Can submit when ready or time expires
+### 2. Playing Validators
 
-6. **Results & Scoring**
-   - **Pass/Fail Logic:** Each sub-competency scored (1 = Pass, 0 = Fail)
-   - **Final Score:** (Passes / Total Subs) × 100%
-   - **Proficiency Tiers:**
-     - Needs Work: < 80%
-     - Proficient: ≥ 80% to < 95%
-     - Mastery: ≥ 95% + all edge cases passed
-   - Detailed breakdown shows which sub-competencies passed/failed
-   - Results automatically saved to profile
+#### 2.1 Validator Selection
+- Click on validator card → redirect to `/play/[CODE]`
+- View intro screen with brand customization and instructions
 
-### Profile & Progression
-7. **Player Profile**
-   - **Stats Dashboard:**
-     - Total XP earned
-     - PLYO tokens (platform currency)
-     - Mastery count
-     - Proficient count
-     - Total badges
-   
-   - **Latest Achievements (Top 8 Badges):**
-     - 🏆 Mastery badges (green)
-     - ⭐ Proficient badges (purple)
-     - 📊 Needs Work badges (magenta)
-     - Each shows score % and completion date
-   
-   - **Complete Play History:**
-     - Every game attempt tracked with:
-       - Exact date and time
-       - Validator name
-       - Score percentage
-       - Pass/fail status
-       - Sub-competency breakdown
-     - Sorted newest first
-     - Players can replay validators to improve
+#### 2.2 Gameplay
+- Mobile-first, no-scroll gameplay (Scene 1+)
+- Interaction types: drag-and-drop, tap, match, swipe — never free text
+- One edge-case disruption (Early / Mid / Late)
+- Visible timer and live feedback in Training mode
+- **Training Mode:** randomized inputs, unlimited retries, feedback visible, no XP saved
+- **Testing Mode:** fixed seed, one attempt, no mid-game feedback, XP + proof recorded
 
-8. **Skill Training Loop**
-   - Players can replay any validator unlimited times
-   - Each attempt creates new history entry
-   - Track improvement over time
-   - Earn better proficiency badges with practice
+#### 2.3 Results & Scoring (C-BEN → PlayOps Hybrid v3.0)
+
+**Deterministic 3-level model:**
+
+| Level | Label       | Criteria                                                                      | XP  | Color   |
+|-------|-------------|-------------------------------------------------------------------------------|-----|---------|
+| 1     | Needs Work  | accuracy < 0.85 OR time_s > Tlimit                                           | 100 | #ef4444 |
+| 2     | Proficient  | accuracy ≥ 0.90 AND time_s ≤ Tlimit                                          | 250 | #facc15 |
+| 3     | Mastery     | accuracy ≥ 0.95 AND time_s ≤ Ttight AND edge_score ≥ 0.80 AND sessions ≥ 3 | 500 | #00ff00 |
+
+**Formula Variables:**
+- `Tlimit = duration_s`
+- `Ttight = duration_s × 0.85`
+
+**Telemetry Outputs:**
+```javascript
+window.__RESULT__ = {
+  accuracy,
+  time_s,
+  edge_score,
+  level,
+  passed
+};
+
+window.__PROOF__ = {
+  proof_id,
+  template_id,
+  competency,
+  sub_competency,
+  level,
+  metrics: {
+    accuracy,
+    time_s,
+    edge_score,
+    sessions
+  },
+  timestamp: new Date().toISOString()
+};
+```
+
+**Results Screen shows:**
+- Level badge
+- Accuracy %
+- Time (s)
+- Edge status
+- XP earned
+
+**Important Notes:**
+- Training runs do **not** emit proof receipts
+- Testing runs emit **immutable proof receipts** recorded on-chain
+
+### 3. Profile & Progression
+
+#### 3.1 Player Profile
+
+**Dashboard Metrics:**
+- Total XP
+- Total PLYO
+- Mastery count
+- Proficient count
+- Needs Work count
+
+**Badges:**
+- Level 3 = Green / Neon → Mastery (500 XP)
+- Level 2 = Yellow → Proficient (250 XP)
+- Level 1 = Red → Needs Work (100 XP)
+
+**History:**
+- Every attempt stored with accuracy %, time s, level 1–3, and (for Testing) proof ID
+
+#### 3.2 Skill Training Loop
+- Re-play any validator anytime
+- Each attempt adds to history; shows trendlines over time
+- XP only awarded for Testing-mode completions
 
 ---
 
-## 🎨 CREATOR FLOW - Complete Journey
+## 🧩 CREATOR FLOW
 
-### Access & Dashboard
-1. **Authentication**
-   - Creator signs in with email/password
-   - Role: "creator" assigned in database
-   - Redirected to Creator Dashboard
+### 1. Access & Dashboard
+- Creator logs in (email/password)
+- Role: "creator" in database
+- Redirect → Creator Dashboard
+- Dashboard shows all templates + stats (plays, average score, test status)
+- Filters: Published / Draft
+- Header access → Test Validators dashboard
+- **Profile Settings:** default design palette (colors, fonts, mascot, particles)
 
-2. **Creator Dashboard**
-   - View all created templates
-   - See template statistics:
-     - Times customized by brands
-     - Player completion count
-     - Average scores
-     - Test status for each template
-   - Filter: Published vs. Draft templates
-   - Access "Test Validators" dashboard from header
-   - **Edit Profile:** Set default design preferences for all future games
+### 2. Template Creation
 
-3. **Profile Settings (Default Customization)**
-   - **Design Palette (inherited by all games):**
-     - Primary color
-     - Secondary color
-     - Accent color
-     - Background color
-     - Text color
-     - Highlight color
-   - **Font Family:** Default typography (e.g., Inter, Roboto)
-   - **Game Avatar:** Default mascot/character image
-   - **Mascot Animation Type:** Static, bounce, pulse, float
-   - **Particle Effect:** Sparkles, confetti, stars, or none
-   - **Note:** These become the default for every new game created, but can be overridden per-game
+#### 2.1 Choose Template Type
+- Click **New Template**
+- Select:
+  - **AI-Generated Template** – use Lovable AI prompt
+  - **Custom Upload** – upload external HTML5 game
 
-### Template Creation
-4. **Choose Template Type**
-   - Click "New Template" on Creator Dashboard
-   - Select type:
-     - **AI-Generated Template:** Build from scratch using AI
-     - **Custom Upload:** Upload pre-built HTML game
+#### 2.2 AI-Generated Template Path
+- Choose C-BEN competency → one sub-competency
+- Provide:
+  - Name, description, scenario prompt
+  - Intended Action Cue (Select / Match / Identify / Allocate / Order / Flag / Route)
+  - Edge-case timing & moment
+  - UI aesthetic
+  - Duration (3–6 min)
+- Optional: multiple short scenes (2–4 rounds)
+- Click **Create & Test** or **Save as Draft**
 
-5. **AI-Generated Template Path**
-   - Select C-BEN competency from master list:
-     - Analytical Thinking
-     - AI & Big Data Skills
-     - Creative Thinking
-     - Leadership & Social Influence
-     - Crisis Management
-     - Budget Allocation
-     - etc.
-   
-   - Choose sub-competencies to test (2-6 recommended)
-   
-   - Provide template details:
-     - Template name
-     - Description
-     - Base prompt (scenario setup)
-     - Game mechanics instructions
-     - Edge cases to test
-     - Duration (typically 3-5 minutes)
-   
-   - **Action Scenes/Rounds (optional):**
-     - Use for validators with multiple short scenes (2-4)
-     - Each scene is one screen of play (1-30-60s)
-     - Example:
-       - Scene 1 = Baseline decision
-       - Scene 2 = New variable introduced
-       - Scene 3 = Edge-case twist
-       - Scene 4 = Recover & submit final plan
-     - Leave blank if game plays in one continuous round
-   
-   - **Edge-Case Timing:**
-     - Choose when the rule-flip or disruption occurs:
-       - Beginning (Scene 1)
-       - Early (Scene 1-2 of 3-4)
-       - Mid (Scene 2-3 of 3-4)
-       - Late (Scene 3-4 of 4)
-   
-   - **Edge-Case Moment:**
-     - Describe how the disruption appears
-     - Example: "Timer cuts in half" or "Key data field vanishes mid-game"
-   
-   - **UI Aesthetic:**
-     - Describe the visual style
-     - Example: "Greyscale minimalist" or "Neon cyberpunk with Deloitte branding"
-   
-   - **Customize Colors & Font (Optional Checkbox):**
-     - Leave unchecked → Uses profile default design
-     - Check to override for this specific game:
-       - Highlight color
-       - Text color
-       - Font family
-     - Avatar and particle effect also customizable per-game
-   
-   - Decision point:
-     - Click "Create & Test" → Opens test wizard immediately
-     - Click "Save as Draft" → Test later from dashboard
+**System enforces:**
+- No text inputs
+- One sub-competency
+- Black-and-white scoring
+- Telegram compliance
+- Proof output
 
-6. **Custom Upload Path**
-   - Upload HTML file (game built externally)
-   - Specify C-BEN competencies tested
-   - Add metadata (name, description, preview image)
-   - Upload to cloud storage
-   - **Same customization fields apply:**
-     - Action scenes (if game has multiple rounds)
-     - Edge-case timing and moment
-     - UI aesthetic
-     - Optional color/font overrides
-   - Decision point:
-     - Click "Create & Test" → Opens test wizard immediately
-     - Click "Save as Draft" → Test later from dashboard
+#### 2.3 Custom Upload Path
+- Upload pre-built HTML game
+- Specify competency tested
+- Add metadata (preview image, logo, brand colors)
+- Same visual customization options apply
 
-### Validator Testing (3 Phases - REQUIRED)
-6. **Phase 1: UX/UI Flow Test**
-   - **What it checks:**
-     - Game loads without errors
-     - UI elements render correctly
-     - Navigation and interactions work smoothly
-     - Visual elements match design specifications
-     - Responsive design works across devices
-   
-   - **How to test:**
-     - Launch the game validator
-     - Navigate through all screens
-     - Test on different screen sizes
-     - Verify all buttons and inputs respond
-     - Check console for errors
-   
-   - **Mark status:** Passed / Failed / Needs Review
-   - **Add notes:** Document any issues found
+### 3. Validator Testing (AI Auto-Validation)
 
-7. **Phase 2: Action Cue Validation**
-   - **What it checks:**
-     - Game accurately captures the sub-competency being tested
-     - Player actions align with the action cue statement
-     - Game mechanics properly demonstrate the skill
-     - Backend data capture matches expected behaviors
-   
-   - **How to test:**
-     - Review sub-competency statement and action cue
-     - Play through the game naturally
-     - Verify actions relate to skill being measured
-     - Check if game mechanic makes sense for competency
-     - (Custom uploads: Verify API calls send correct data)
-   
-   - **Mark status:** Passed / Failed / Needs Review
-   - **Add notes:** Document alignment issues
+**Before publishing, the system auto-tests:**
+- ✅ START button visible and clickable
+- ✅ Scene 1+ fit viewport (no scrollbars)
+- ✅ All buttons respond to click/tap
+- ✅ No text inputs or contentEditable
+- ✅ `window.__RESULT__` and (Testing) `window.__PROOF__` emit successfully
+- ✅ Telegram Mini-App hooks load without error
+- ✅ Timer + XP display accurate
 
-8. **Phase 3: Scoring Formula Test**
-   - **What it checks:**
-     - Scoring logic accurately reflects player performance
-     - XP/levels are calculated correctly
-     - Pass/fail thresholds are appropriate
-     - Proficiency levels match actual skill demonstration
-   
-   - **How to test:**
-     - Play poorly (test minimum thresholds)
-     - Play average (test mid-range scoring)
-     - Play excellently (test maximum scoring)
-     - Verify proficiency levels:
-       - Level 1 (Novice): Basic task completion
-       - Level 2 (Intermediate): Quality and efficiency
-       - Level 3 (Expert): Advanced techniques + mastery
-     - Review backend scoring metrics
-   
-   - **Mark status:** Passed / Failed / Needs Review
-   - **Add notes:** Document scoring inconsistencies
+**Status:** Passed / Failed / Needs Review
 
-9. **Complete Testing**
-   - Click "Save & Finish" after all phases
-   - System calculates overall status:
-     - ✅ **Passed:** All phases passed
-     - ❌ **Failed:** One or more phases failed
-     - ⚠️ **Needs Review:** Manual review required
-
-### Review & Fix
-10. **Test Results Dashboard**
-    - View overall status for each template
-    - Access detailed phase breakdowns
-    - Review test notes and history
-    - **If Passed:** "Approve for Publish" button unlocks
-    - **If Failed:** Fix issues and click "Re-test" from dashboard
-    - **If Needs Review:** Address concerns and re-test when ready
-
-### Approval & Publishing
-11. **Approve for Publishing**
-    - **Requirement:** Overall status must be "Passed"
-    - Click "Approve for Publish" button
-    - Validator is now eligible for marketplace
-
-12. **Publish to Marketplace**
-    - Toggle "Publish" switch on approved validator
-    - Validator appears in Brand Hub marketplace
-    - Brands can now browse, customize, and deploy
-    - Can unpublish anytime if needed
-
-### Key Rules
-- ✅ Templates **MUST** pass all 3 testing phases before publishing
-- ✅ Can save drafts and test later if needed
-- ❌ Failed tests **block publishing** until fixed
-- ♻️ Re-testing is always available
-- 📊 Track usage & performance (future feature)
+- **Passed** → "Approve for Publish" unlocks
+- **Failed** → Creator fixes & re-tests
 
 ---
 
 ## 🏢 BRAND FLOW
 
-### Access & Dashboard
-1. **Authentication**
-   - Brand signs in with email/password
-   - Role: "brand" assigned in database
-   - Redirected to Brand Dashboard
+### 1. Access & Dashboard
+- Brand logs in (email/password)
+- **Tabs:** Draft / Published / Live
+- Each validator shows: name, logo, creation date, code, schedule, status
 
-2. **Brand Dashboard**
-   - **Tabs:**
-     - Draft: Validators being customized
-     - Published: Validators ready but not live
-     - Live: Currently active validators
-   
-   - Each validator card shows:
-     - Template name
-     - Brand logo
-     - Creation date
-     - Unique code (when published)
-     - Live dates (if scheduled)
-     - Status indicators
+### 2. Creating Branded Validators
 
-### Creating Branded Validator
-3. **Browse Marketplace**
-   - View all published templates from creators
-   - Filter by:
-     - Competency type
-     - Department
-     - Duration
-     - Difficulty
-   - Preview validator description and mechanics
-
-4. **Select Template**
-   - Click "Customize" on chosen template
-   - Opens Brand Customization Dialog
-
-5. **Brand Customization**
-   - **Visual Identity:**
-     - Upload brand logo
-     - Set primary color (e.g., #00FF00)
-     - Set secondary color (e.g., #9945FF)
-   
-   - **Competencies:**
-     - View selected competencies
-     - Choose specific sub-competencies to test
-   
-   - **Custom Prompt:**
-     - Add brand-specific scenario details
-     - Customize edge cases
-     - Add company-relevant context
-     - Example: "You're at [BRAND] during Q4 launch..."
-
-6. **Generate Branded Game**
-   - Click "Generate & Save Game"
-   - Backend edge function calls Lovable AI
-   - AI generates custom HTML game with:
-     - Brand colors throughout
-     - Logo placement
-     - Custom scenarios
-     - Proper scoring logic
-   - Takes 30-90 seconds to generate
-   - Saved as draft in database
-
-### Publishing & Distribution
-7. **Preview Draft**
-   - Test the generated validator
-   - Verify branding looks correct
-   - Check scoring logic
-   - Make adjustments if needed (regenerate)
-
-8. **Publish Validator**
-   - Click "Publish" button
-   - Opens scheduling dialog:
-     - **Live Start Date:** When players can access
-     - **Live End Date:** When validator expires
-   
-   - Click "Publish Now"
-   - System generates unique code (e.g., PH99IH5K)
-   - Validator moves to "Published" tab
-
-9. **Go Live**
-   - At scheduled start date, validator automatically appears:
-     - On platform homepage "Live Validators" section
-     - In Lobby "Brand Stores" with "LIVE" badge
-   
-   - **Shareable URL:** /play/[UNIQUE-CODE]
-   - Brands can share link externally:
-     - Social media
-     - Email campaigns
-     - Career pages
-     - Recruiting events
-
-### Monitoring (Future Feature)
-10. **Analytics Dashboard** (Planned)
-    - View player completion rates
-    - See score distributions
-    - Track proficiency levels achieved
-    - Export candidate data
-    - Download immutable receipts
+**Steps:**
+1. Browse marketplace → filter by competency, department, duration
+2. Preview → select template → click **Customize**
+3. Upload logo, set primary / secondary colors, adjust scenario
+4. Each branded validator validates **one sub-competency per run**
+5. Choose edge-case moment (Early / Mid / Late)
+6. Click **Generate & Save Game** → Lovable AI builds HTML validator in 30–90 s
+7. Test draft, verify visuals & scoring
+8. **Publish** → schedule start/end dates
+9. On launch, appears under "Live Validators" with unique code `/play/[CODE]`
 
 ---
 
-## ⛓️ TECHNICAL ARCHITECTURE - TON BLOCKCHAIN INTEGRATION
+## 🔗 TECHNICAL ARCHITECTURE — TON BLOCKCHAIN INTEGRATION
 
 ### Overview
-**Integration SDK:** Thirdweb SDK for TON blockchain  
-**Purpose:** Immutable credential storage, token economy, verifiable achievements
+**Thirdweb SDK for TON** powers on-chain credentialing, token rewards, and verification.
+
+### ON-CHAIN COMPONENTS
+
+#### 1. Player Identity & Wallet
+- TON wallet = decentralized player ID
+- **Smart Contract:** `PlayerRegistry.registerPlayer(wallet, profileHash)`
+
+#### 2. Validator Completion Certificates (NFTs)
+- **Mint when:** Level ≥ 2 (Proficient) in Testing mode
+- **Metadata:**
+  - `validatorId`, `validatorName`, `playerWallet`, `brandName`
+  - `completionDate`, `level`, `accuracy`, `time_s`, `edge_score`
+  - `subCompetency`, `proofId`
+- Stored on **IPFS**
+- **Smart Contract:** `mintCertificate(playerWallet, validatorId, scoreData, metadataURI)`
+
+#### 3. Competency Badges (ERC-1155 / Jetton)
+- Level 3 = Mastery Badge
+- Level 2 = Proficient
+- Level 1 = Participation
+- Gamified, tradable recognition layer
+
+#### 4. PLYO Token (ERC-20 / Jetton)
+- Earn 10–50 PLYO per completion
+- Spend / stake / tip
+- **Contract:** `rewardPlayer(wallet, validatorId, score)`
+
+#### 5. XP Points (Soul-Bound Token)
+- Award 100 / 250 / 500 XP for Levels 1–3
+- Non-transferable
+
+#### 6. Brand Validator Registry
+- Transparency of live validators
+- **Smart Contract:** `registerValidator(validatorData, metadataURI)`
+
+#### 7. Skill Verification Proofs
+- Merkle root of proof receipts
+- **Contract:** `submitProof(playerWallet, competencyId, proofData)`
+
+### OFF-CHAIN COMPONENTS (Supabase)
+
+- **Game Logic & State:** HTML / JS validators
+- **User Metadata:** email, settings, preferences
+- **Brand Customization:** prompts, logos, colors
+- **Analytics & Telemetry:** click tracking, accuracy, time, edge events
+- **Template Library:** AI prompts, previews, validator definitions
+
+### Architecture Pattern
+```
+Off-Chain → Verification → On-Chain
+```
+(Immutable credentialing of real action.)
 
 ---
 
-### 🔗 ON-CHAIN COMPONENTS (TON Blockchain)
+## ⚙ TECHNICAL NOTES
 
-#### 1. **Player Identity & Wallet**
-- **What:** TON wallet address as primary player identity
-- **Why:** Decentralized identity, portability across platforms
-- **Implementation:**
-  - Thirdweb Connect Wallet component
-  - TON wallet authentication
-  - Store wallet address in player profile (off-chain reference)
-- **Smart Contract:** Player Registry Contract
-  ```solidity
-  - registerPlayer(walletAddress, profileHash)
-  - updatePlayerMetadata(walletAddress, metadataURI)
-  ```
-
-#### 2. **Validator Completion Certificates (NFTs)**
-- **What:** Immutable proof of validator completion
-- **Why:** Portable credentials, cannot be faked or deleted
-- **Data Structure:**
-  ```json
-  {
-    "validatorId": "uuid",
-    "validatorName": "Priority Trade-Off Navigator",
-    "playerWallet": "TON_ADDRESS",
-    "brandName": "LEGO",
-    "completionDate": "ISO_TIMESTAMP",
-    "score": 80,
-    "proficiencyLevel": "Proficient",
-    "subCompetencies": [
-      {"name": "Analytical Thinking", "passed": true},
-      {"name": "Decision Making", "passed": true},
-      {"name": "Edge Case Handling", "passed": false}
-    ],
-    "gameplayHash": "IPFS_HASH",
-    "certificateImage": "IPFS_URL"
-  }
-  ```
-- **Implementation:**
-  - Mint NFT after validator completion (score ≥ 60%)
-  - Store metadata on IPFS (distributed storage)
-  - NFT contract: ERC-721 or TON NFT standard
-  - **Thirdweb SDK:** `sdk.getNFTModule(contractAddress).mint()`
-- **Smart Contract:** Validator Certificate Contract
-  ```solidity
-  - mintCertificate(playerWallet, validatorId, scoreData, metadataURI)
-  - getCertificates(playerWallet) returns Certificate[]
-  - verifyCertificate(certificateId) returns bool
-  ```
-
-#### 3. **Competency Badges (Semi-Fungible Tokens)**
-- **What:** Tradeable/collectible badges for proficiency levels
-- **Why:** Gamification, marketplace potential, skill verification
-- **Types:**
-  - 🏆 Mastery Badge (rarest)
-  - ⭐ Proficient Badge (common)
-  - 📊 Participation Badge (baseline)
-- **Implementation:**
-  - ERC-1155 or TON jetton standard
-  - Different token IDs for each competency + proficiency combo
-  - **Thirdweb SDK:** `sdk.getEditionModule(contractAddress).mint()`
-- **Smart Contract:** Competency Badge Contract
-  ```solidity
-  - mintBadge(playerWallet, competencyId, proficiencyLevel, quantity)
-  - balanceOf(playerWallet, tokenId) returns uint
-  - uri(tokenId) returns metadataURI
-  ```
-
-#### 4. **PLYO Token (Platform Currency)**
-- **What:** Fungible token for platform economy
-- **Why:** Incentivize gameplay, enable marketplace transactions
-- **Use Cases:**
-  - Earn: Complete validators (10-50 PLYO per completion)
-  - Spend: Unlock premium validators, buy cosmetics, tip creators
-  - Stake: Earn yield for liquidity provision
-- **Implementation:**
-  - ERC-20 or TON jetton standard
-  - **Thirdweb SDK:** `sdk.getTokenModule(contractAddress).transfer()`
-- **Smart Contract:** PLYO Token Contract
-  ```solidity
-  - transfer(to, amount)
-  - approve(spender, amount)
-  - balanceOf(wallet) returns uint
-  - mint(to, amount) [admin only]
-  - rewardPlayer(wallet, validatorId, score) [automated rewards]
-  ```
-
-#### 5. **XP Points (Non-Transferable Token)**
-- **What:** Soul-bound token tracking player progression
-- **Why:** Cannot be bought/sold, represents true skill accumulation
-- **Implementation:**
-  - Soul-bound token (SBT) standard
-  - Cannot transfer between wallets
-  - **Thirdweb SDK:** Custom contract with transfer restrictions
-- **Smart Contract:** XP Token Contract
-  ```solidity
-  - awardXP(playerWallet, amount, source)
-  - getXP(playerWallet) returns uint
-  - transfer() reverts (non-transferable)
-  ```
-
-#### 6. **Brand Validator Registry**
-- **What:** On-chain registry of published validators
-- **Why:** Transparency, provenance, cannot be censored
-- **Data Stored:**
-  ```json
-  {
-    "validatorId": "uuid",
-    "brandWallet": "TON_ADDRESS",
-    "templateId": "uuid",
-    "publishedAt": "TIMESTAMP",
-    "liveUntil": "TIMESTAMP",
-    "uniqueCode": "PH99IH5K",
-    "metadataURI": "ipfs://..."
-  }
-  ```
-- **Implementation:**
-  - Write to chain when brand publishes validator
-  - **Thirdweb SDK:** `sdk.getContract(address).call('registerValidator', params)`
-- **Smart Contract:** Validator Registry Contract
-  ```solidity
-  - registerValidator(validatorData, metadataURI)
-  - getValidator(validatorId) returns ValidatorData
-  - isLive(validatorId) returns bool
-  - deactivateValidator(validatorId) [brand owner only]
-  ```
-
-#### 7. **Skill Verification Proofs**
-- **What:** Cryptographic proofs of competency achievements
-- **Why:** Verifiable by third parties (employers, universities)
-- **Implementation:**
-  - Zero-knowledge proofs (optional: ZK-SNARKs)
-  - Merkle tree of all player achievements
-  - Root hash stored on-chain
-  - **Thirdweb SDK:** Custom contract deployment
-- **Smart Contract:** Skill Proof Contract
-  ```solidity
-  - submitProof(playerWallet, competencyId, proofData)
-  - verifyProof(playerWallet, competencyId, proof) returns bool
-  - updateMerkleRoot(newRoot) [automated oracle]
-  ```
+- Each validator = 1 C-BEN sub-competency
+- **Telemetry events:** `session.start`, `decision.select`, `edge.trigger`, `session.end`
+- `session.end` payload includes: `accuracy`, `time_s`, `edge_score`, `level`, `passed`, and (for Testing) `proof`
+- **Telegram Mini-App compliance:** `WebApp.ready()`, `expand()`, `BackButton.show()` integrated
 
 ---
 
-### 💾 OFF-CHAIN COMPONENTS (Supabase Database)
+## 🧩 SCORING & PROOF FLOW (Summary)
 
-#### What Stays Off-Chain:
-1. **Game Logic & State**
-   - Validator HTML/JavaScript code
-   - Real-time gameplay data
-   - Temporary session state
-   - Timer data
-
-2. **User Metadata**
-   - Email addresses
-   - Profile pictures
-   - User preferences
-   - Settings
-
-3. **Brand Customization Data**
-   - Custom prompts
-   - Color schemes
-   - Logo files (stored in Supabase Storage, referenced on-chain)
-   - Draft validators (not yet published)
-
-4. **Analytics & Telemetry**
-   - Click tracking
-   - Session duration
-   - A/B test results
-   - Performance metrics
-
-5. **Template Library**
-   - Creator-built templates
-   - AI generation prompts
-   - Preview images
-
-**Why Off-Chain:**
-- Cost: On-chain storage is expensive
-- Speed: Database queries are faster
-- Privacy: Not all data needs to be public
-- Flexibility: Easier to update/modify
-
-**Architecture Pattern:**
-```
-Off-Chain (Supabase) → Verification → On-Chain (TON)
-      ↓                                    ↓
-  Game Play                          Immutable Record
-  User Data                         Portable Credential
-  Analytics                         Verifiable Proof
-```
+1. Player finishes validator → `window.__RESULT__` created
+2. If Testing mode AND Level ≥ 2 → `window.__PROOF__` generated
+3. Proof stored off-chain → hash → TON NFT certificate
+4. XP and PLYO rewards issued; badges updated
 
 ---
 
-### 🔧 THIRDWEB SDK IMPLEMENTATION
+## 🧠 PLATFORM MISSION
 
-#### Installation
-```bash
-npm install @thirdweb-dev/react @thirdweb-dev/sdk
-```
-
-#### Setup
-```typescript
-// src/providers/ThirdwebProvider.tsx
-import { ThirdwebProvider } from "@thirdweb-dev/react";
-
-export function Providers({ children }) {
-  return (
-    <ThirdwebProvider 
-      activeChain="ton" 
-      clientId="YOUR_THIRDWEB_CLIENT_ID"
-    >
-      {children}
-    </ThirdwebProvider>
-  );
-}
-```
-
-#### Wallet Connection
-```typescript
-import { ConnectWallet, useAddress, useContract } from "@thirdweb-dev/react";
-
-function WalletButton() {
-  const address = useAddress(); // Get connected wallet
-  
-  return <ConnectWallet theme="dark" />;
-}
-```
-
-#### Mint Certificate NFT (After Validator Completion)
-```typescript
-// src/pages/ValidatorDemo.tsx
-import { useContract, useContractWrite } from "@thirdweb-dev/react";
-
-const CERTIFICATE_CONTRACT = "0x..."; // Deploy on TON
-
-async function saveResultsToBlockchain(score, proficiencyLevel) {
-  const { contract } = useContract(CERTIFICATE_CONTRACT);
-  const { mutateAsync: mintCertificate } = useContractWrite(contract, "mintCertificate");
-  
-  const metadata = {
-    name: "Priority Trade-Off Navigator - Certificate",
-    description: `Achieved ${proficiencyLevel} with ${score}% score`,
-    image: "ipfs://certificate-image",
-    attributes: [
-      { trait_type: "Score", value: score },
-      { trait_type: "Proficiency", value: proficiencyLevel },
-      { trait_type: "Validator", value: "Priority Trade-Off Navigator" },
-      { trait_type: "Brand", value: "LEGO" },
-      { trait_type: "Date", value: new Date().toISOString() }
-    ]
-  };
-  
-  await mintCertificate({ 
-    to: address, 
-    metadata 
-  });
-}
-```
-
-#### Award PLYO Tokens
-```typescript
-const PLYO_TOKEN_CONTRACT = "0x...";
-
-async function awardTokens(amount: number) {
-  const { contract } = useContract(PLYO_TOKEN_CONTRACT);
-  const { mutateAsync: transfer } = useContractWrite(contract, "transfer");
-  
-  await transfer({ 
-    to: playerWallet, 
-    amount: amount 
-  });
-}
-```
-
-#### Read Player Certificates
-```typescript
-const { data: certificates } = useContractRead(
-  contract, 
-  "getCertificates", 
-  [playerWallet]
-);
-```
+**Democratize competency validation through gamified, verifiable micro-proofs** — empowering Gen Z to prove skills, creators to build validators, and brands to hire with confidence.
 
 ---
 
-### 📋 SMART CONTRACT REQUIREMENTS
+✅ **This v3.0 doc replaces all prior "Platform Flows" versions.**
 
-#### Contracts to Deploy (7 total):
-
-1. **PlayerRegistry.sol**
-   - Maps wallet addresses to profile data
-   - ~50 LOC
-
-2. **ValidatorCertificate.sol** (ERC-721)
-   - NFT for each validator completion
-   - Includes metadata storage
-   - ~200 LOC
-
-3. **CompetencyBadge.sol** (ERC-1155)
-   - Semi-fungible tokens for badges
-   - Multiple token IDs per competency
-   - ~250 LOC
-
-4. **PLYOToken.sol** (ERC-20)
-   - Platform currency
-   - Includes reward distribution logic
-   - ~150 LOC
-
-5. **XPToken.sol** (Soul-Bound Token)
-   - Non-transferable XP points
-   - ~100 LOC
-
-6. **ValidatorRegistry.sol**
-   - Registry of all published validators
-   - Brand ownership verification
-   - ~180 LOC
-
-7. **SkillProofVerifier.sol**
-   - Merkle proof verification
-   - Batch verification for efficiency
-   - ~120 LOC
-
-**Total Development Estimate:** 3-4 weeks  
-**Security Audits Required:** Yes (critical for token contracts)
-
----
-
-### 🔄 BLOCKCHAIN INTEGRATION FLOW
-
-#### Example: Player Completes Validator
-
-```
-Player → Frontend: Complete validator gameplay
-Frontend → Supabase: Save raw results (off-chain)
-Supabase → Frontend: Confirm save
-Frontend → Frontend: Calculate score & proficiency
-Frontend → Thirdweb SDK: Mint certificate NFT
-Thirdweb SDK → TON Blockchain: Execute mintCertificate()
-TON Blockchain → Thirdweb SDK: Tx hash + certificate ID
-Thirdweb SDK → Frontend: Success
-Frontend → Thirdweb SDK: Award PLYO tokens
-Thirdweb SDK → TON Blockchain: Execute transfer()
-TON Blockchain → Frontend: Tokens transferred
-Frontend → Thirdweb SDK: Award XP points
-Thirdweb SDK → TON Blockchain: Execute awardXP()
-Frontend → Player: Show results + on-chain confirmation
-```
-
----
-
-### 💰 GAS OPTIMIZATION STRATEGIES
-
-1. **Batch Operations**
-   - Mint multiple badges in single transaction
-   - Batch XP awards daily instead of per-game
-
-2. **Layer 2 / Side Chains**
-   - Consider TON's workchain architecture
-   - Move high-frequency writes to cheaper chains
-
-3. **Lazy Minting**
-   - Only mint certificates when player requests
-   - Store commitment hash on-chain, full data off-chain
-
-4. **Merkle Proofs**
-   - Store only root hash on-chain
-   - Players can prove ownership without full data
-
----
-
-### 🔐 SECURITY CONSIDERATIONS
-
-1. **Sybil Resistance**
-   - Wallet verification required
-   - Rate limiting on certificate minting
-   - Cost barrier (small PLYO stake per attempt)
-
-2. **Score Manipulation**
-   - Backend validates all scores before minting
-   - Supabase Edge Function acts as oracle
-   - Cryptographic signatures from game results
-
-3. **Smart Contract Security**
-   - OpenZeppelin libraries for standards
-   - Multi-sig for admin functions
-   - Time-locked upgrades
-   - Third-party audits (CertiK, Trail of Bits)
-
-4. **Private Key Management**
-   - Never store private keys in code
-   - Thirdweb handles wallet security
-   - Backend uses service account wallets for automated minting
-
----
-
-### 📊 DATA FLOW: OFF-CHAIN ↔️ ON-CHAIN
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         PLAYER                               │
-│                      (TON Wallet)                           │
-└────────────┬────────────────────────────────────────────────┘
-             │
-    ┌────────▼────────┐
-    │  Play Validator │
-    │   (React App)   │
-    └────────┬────────┘
-             │
-    ┌────────▼────────────────────────────────────────────┐
-    │         Supabase (Off-Chain)                        │
-    │  • Game state                                       │
-    │  • Temporary scores                                 │
-    │  • User metadata                                    │
-    └────────┬────────────────────────────────────────────┘
-             │
-    ┌────────▼────────────────────────────────────────────┐
-    │    Validation & Verification                        │
-    │    (Edge Function)                                  │
-    │  • Verify score authenticity                        │
-    │  • Check for cheating                               │
-    │  • Generate certificate data                        │
-    └────────┬────────────────────────────────────────────┘
-             │
-    ┌────────▼────────────────────────────────────────────┐
-    │    Thirdweb SDK                                     │
-    │  • mintCertificate()                                │
-    │  • awardTokens()                                    │
-    │  • updateRegistry()                                 │
-    └────────┬────────────────────────────────────────────┘
-             │
-    ┌────────▼────────────────────────────────────────────┐
-    │    TON Blockchain (On-Chain)                        │
-    │  • Certificate NFT                                  │
-    │  • PLYO tokens                                      │
-    │  • XP points                                        │
-    │  • Validator registry                               │
-    │  • Merkle root (skill proofs)                       │
-    └─────────────────────────────────────────────────────┘
-             │
-    ┌────────▼────────────────────────────────────────────┐
-    │    External Verification                            │
-    │  • Employers check certificates                     │
-    │  • Universities verify competencies                 │
-    │  • Other platforms read credentials                 │
-    └─────────────────────────────────────────────────────┘
-```
-
----
-
-### 🎯 IMPLEMENTATION PRIORITY
-
-**Phase 1: MVP (Current + Immediate Next)**
-- ✅ Wallet connection (TON Connect)
-- ⬜ Certificate NFT minting (on completion)
-- ⬜ PLYO token contract deployment
-- ⬜ Basic on-chain registry
-
-**Phase 2: Token Economy**
-- ⬜ XP soul-bound tokens
-- ⬜ Competency badge system
-- ⬜ PLYO earning/spending mechanics
-- ⬜ Token marketplace
-
-**Phase 3: Advanced Features**
-- ⬜ Zero-knowledge proofs
-- ⬜ Cross-chain bridges
-- ⬜ DAO governance
-- ⬜ Creator royalties (on-chain)
-
----
-
-## 🔄 PLATFORM ECOSYSTEM
-
-### Data Flow
-```
-Creator → Templates → Marketplace → Brand Customization → 
-Generated Validator → Live Game → Player Completion → 
-Results Storage → Profile Badges → Skill Verification
-```
-
-### Key Features
-- **Competency-Based Education (CBE):** Validators test specific sub-competencies
-- **Pass/Fail Logic:** Objective scoring (not subjective)
-- **Proficiency Tiers:** Clear skill levels (Mastery/Proficient/Needs Work)
-- **Replayability:** Players train by playing multiple times
-- **Portable Credentials:** Results stored immutably (blockchain)
-- **Brand Engagement:** Companies attract talent through branded validators
-
-### Technical Stack
-- **Frontend:** React, TypeScript, Three.js (3D globe), Tailwind CSS
-- **Backend:** Supabase (Postgres database, authentication, storage, edge functions)
-- **AI:** Lovable AI Gateway (Gemini models for game generation)
-- **Blockchain:** TON blockchain with Thirdweb SDK
-- **Storage:** Cloud storage for logos, custom games, assets + IPFS for on-chain metadata
-
----
-
-## 📊 METRICS & SUCCESS INDICATORS
-
-### Player Metrics
-- Total validators completed
-- Average proficiency score
-- Skill improvement rate (score progression over time)
-- XP and PLYO tokens earned
-- Badges collected
-
-### Creator Metrics
-- Templates published
-- Total brand customizations
-- Player engagement (completion rates)
-- Template popularity ranking
-
-### Brand Metrics
-- Validators deployed
-- Player participation count
-- Candidate quality (proficiency distribution)
-- Time-to-hire impact
-- Brand reach (link shares)
-
----
-
-## TECHNICAL NOTES FOR DEVELOPMENT TEAM
-
-### What Needs Blockchain Integration:
-1. ✅ **Player wallet authentication** (Already implemented)
-2. 🔄 **Certificate minting after validator completion** (HIGH PRIORITY)
-3. 🔄 **PLYO token distribution** (HIGH PRIORITY)
-4. ⬜ **Validator registry** (MEDIUM)
-5. ⬜ **Badge/achievement tokens** (MEDIUM)
-6. ⬜ **XP tracking** (LOW - can stay off-chain initially)
-
-### Tech Stack Requirements:
-- Thirdweb SDK: ⬜ Need to install
-- TON wallet integration: ✅ (via @tonconnect/ui-react)
-- Smart contracts: ⬜ Need deployment
-- IPFS setup: ⬜ For metadata storage
-- Oracle/backend signer: ⬜ For secure minting
-
----
-
-**Platform Mission:** Democratize competency validation through gamified assessments, 
-enabling players to prove skills, creators to build assessments, and brands to identify talent.
+It is fully synchronized with:
+- C-BEN → PlayOps Hybrid Framework
+- Lovable AI Generator Prompt v3
+- Telegram Mini-App requirements
