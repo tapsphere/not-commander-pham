@@ -21,145 +21,175 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Create the prompt for game generation with PlayOps Framework integration
+    // ═══════════════════════════════════════════════════════════════
+    // LEAN AI GENERATION SYSTEM PROMPT
+    // ═══════════════════════════════════════════════════════════════
+    
     let playOpsInstructions = '';
     if (subCompetencies && subCompetencies.length > 0) {
-      let answerValidationInstructions = '';
-      
-      answerValidationInstructions += `\n\n🎓 CRITICAL: ANSWER VALIDATION REQUIREMENTS\n`;
-      answerValidationInstructions += `═══════════════════════════════════════════════════════════════\n\n`;
-      answerValidationInstructions += `All games MUST collect user answers in a format that can be validated:\n\n`;
-      answerValidationInstructions += `1. STORE ALL USER ANSWERS: Track every user response in a structured format\n`;
-      answerValidationInstructions += `2. NORMALIZED VALIDATION: Answers will be validated with:\n`;
-      answerValidationInstructions += `   - Case-insensitive comparison (\"Revenue\" = \"revenue\")\n`;
-      answerValidationInstructions += `   - Whitespace trimming (\" answer \" = \"answer\")\n`;
-      answerValidationInstructions += `   - Punctuation normalization (\"answer!\" = \"answer\")\n`;
-      answerValidationInstructions += `   - Synonym recognition (\"increase\" = \"boost\" = \"improve\")\n`;
-      answerValidationInstructions += `3. MULTIPLE CORRECT ANSWERS: Accept legitimate synonyms and variations\n`;
-      answerValidationInstructions += `4. DATA STRUCTURE: Store answers as:\n`;
-      answerValidationInstructions += `   {\n`;
-      answerValidationInstructions += `     question: "What metric to prioritize?",\n`;
-      answerValidationInstructions += `     userAnswer: "customer satisfaction",\n`;
-      answerValidationInstructions += `     correctAnswers: ["customer satisfaction", "client happiness", "user contentment"]\n`;
-      answerValidationInstructions += `   }\n\n`;
-      answerValidationInstructions += `5. WORD-BASED MATCHING: For longer answers, 70%+ word overlap counts as correct\n`;
-      answerValidationInstructions += `6. AVOID EXACT-ONLY MATCHING: Don't require perfect character-by-character matches\n\n`;
-      answerValidationInstructions += `EXAMPLE ACCEPTABLE VARIATIONS:\n`;
-      answerValidationInstructions += `Question: "How to increase revenue?"\n`;
-      answerValidationInstructions += `Correct answers: "increase sales", "boost revenue", "improve income", "grow earnings"\n`;
-      answerValidationInstructions += `User answer: "Boost Sales" → CORRECT (normalized to "boost sales")\n`;
-      answerValidationInstructions += `User answer: "improve revenue streams" → CORRECT (synonym + 70% word match)\n\n`;
-
-      playOpsInstructions = `${answerValidationInstructions}
-
-PLAYOPS FRAMEWORK INTEGRATION (CRITICAL):
-This game must implement the following validated competency mechanics:
-
+      playOpsInstructions = `
+# PLAYOPS FRAMEWORK INTEGRATION
 ${subCompetencies.map((sc: any, index: number) => `
-═══════════════════════════════════════════════════════════
-SUB-COMPETENCY ${index + 1}: ${sc.statement}
-═══════════════════════════════════════════════════════════
-
-🎮 GAME MECHANIC: ${sc.game_mechanic || 'Not specified'}
-   How the player interacts with this competency in the game
-
-🎯 ACTION CUE: ${sc.action_cue || 'Not specified'}
-   What prompts/triggers the player to demonstrate this skill
-
-🎬 PLAYER ACTION: ${sc.player_action || 'Not specified'}
-   Specific actions the player must perform
-
-🔄 GAME LOOP: ${sc.game_loop || 'Not specified'}
-   How this mechanic repeats/cycles during gameplay
-
-✅ VALIDATOR TYPE: ${sc.validator_type || 'Not specified'}
-   How the game validates and measures this competency
-
-📊 SCORING FORMULAS:
-   Level 1 (Basic): ${sc.scoring_formula_level_1 || 'Not specified'}
-   Level 2 (Intermediate): ${sc.scoring_formula_level_2 || 'Not specified'}
-   Level 3 (Advanced): ${sc.scoring_formula_level_3 || 'Not specified'}
-
-💾 BACKEND DATA TO CAPTURE: ${JSON.stringify(sc.backend_data_captured || [])}
-   These metrics MUST be tracked and sent at game end
-
-⚙️ SCORING LOGIC: ${JSON.stringify(sc.scoring_logic || {})}
-   How raw metrics translate to proficiency levels
-
+Sub-Competency ${index + 1}: ${sc.statement}
+- Game Mechanic: ${sc.game_mechanic || 'Not specified'}
+- Action Cue: ${sc.action_cue || 'Not specified'}
+- Player Action: ${sc.player_action || 'Not specified'}
+- Validator Type: ${sc.validator_type || 'Not specified'}
+- Backend Data: ${JSON.stringify(sc.backend_data_captured || [])}
+- Scoring Logic: ${JSON.stringify(sc.scoring_logic || {})}
 `).join('\n')}
-
-IMPLEMENTATION REQUIREMENTS:
-1. Each sub-competency's game mechanic must be clearly implemented in the game
-2. Action cues must be visible and intuitive to the player
-3. Player actions must map directly to the specified interactions
-4. The game loop must create repeated opportunities to demonstrate each skill
-5. Validation must occur in real-time based on the validator type
-6. All backend data points must be captured during gameplay
-7. Scoring formulas determine the final proficiency level (Level 1, 2, or 3)
-
-At game completion, call this function with ALL required metrics:
-\`\`\`javascript
-async function submitScore(metrics) {
-  const response = await fetch('${Deno.env.get('SUPABASE_URL')}/functions/v1/submit-score', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + (localStorage.getItem('supabase.auth.token') || '')
-    },
-    body: JSON.stringify({
-      templateId: '${customizationId}',
-      customizationId: '${customizationId}',
-      competencyId: '${subCompetencies[0]?.competency_id || ''}',
-      subCompetencyId: '${subCompetencies[0]?.id || ''}',
-      scoringMetrics: metrics,
-      gameplayData: { /* optional extra data */ }
-    })
-  });
-  const result = await response.json();
-  console.log('Score submitted:', result);
-  return result;
-}
-\`\`\`
 `;
     }
 
-    let logoInstructions = '';
-    if (logoUrl) {
-      logoInstructions = `
+    const systemPrompt = `You are an expert game developer. Generate a complete, mobile-first HTML5 validator mini-game that runs inside Telegram. One validator = one sub-competency. Output pure HTML only (with <!DOCTYPE html>), no markdown.
 
-BRAND LOGO INTEGRATION (CRITICAL - LOADING SCREEN ONLY):
-The brand's logo MUST ONLY appear on the initial loading screen, then disappear completely.
-Logo URL: ${logoUrl}
+# DESIGN REQUIREMENTS
 
-🚫 CRITICAL NO-LOGO RULES (STRICTLY ENFORCE):
-1. Logo appears ONLY on the loading screen overlay
-2. Logo MUST BE REMOVED completely after loading screen fades out
-3. DO NOT place logo in header, corner, or any game UI element
-4. DO NOT use logo as watermark or persistent branding
-5. After loading screen disappears, NO LOGO should be visible anywhere in the game
-6. NO exceptions - logo is ONLY for the 2.5 second loading screen
+- Duration: 3–6 minutes (180–360 seconds)
+- Structure: Scene 0 (Intro, scrollable) → Scene 1+ (Gameplay, no-scroll) → Results
+- Goal: Surface one measurable Action Cue; no free-text input anywhere
+- Target viewports: 390×844, 768×1024, 1440×900 without clipping
+- First paint ≤ 3s, total assets ≤ 2MB
 
-IMPLEMENTATION REQUIREMENTS:
-1. Create a full-screen loading overlay with the brand logo centered
-2. Logo should pulse/animate smoothly (scale 0.95 to 1.05)
-3. Loading screen should display for 2-3 seconds
-4. Fade out the loading screen completely (including the logo)
-5. Game UI has NO logo after loading screen ends
+# ACTION CUE (BLACK-AND-WHITE)
 
-Required HTML/CSS/JS structure:
+Use one verb from this safelist ONLY:
+**Select, Identify, Match, Classify, Order, Allocate, Flag, Route**
+
+Provide a gold-key for each decision node (IDs of correct options + plausible distractors).
+
+# EMBEDDED CONFIGURATION
+
+Embed these in your HTML <script> section:
+
+\`\`\`javascript
+window.__GOLD_KEY__ = {
+  s1_n1: ["opt_b"],
+  s2_n1: ["opt_a", "opt_c"]
+};
+
+window.__CONFIG__ = {
+  mode: "training", // or "testing"
+  duration_s: ${subCompetencies?.[0]?.duration || 180},
+  competency: "${subCompetencies?.[0]?.competency || 'Unknown'}",
+  sub_competency: "${subCompetencies?.[0]?.statement || 'Unknown'}",
+  thresholds: {
+    A2: 0.90,
+    A3: 0.95,
+    Tlimit: ${subCompetencies?.[0]?.duration || 180},
+    Ttight: ${(subCompetencies?.[0]?.duration || 180) * 0.85},
+    EdgeL3: 0.80,
+    SessionsL3: 3
+  },
+  xp: {
+    L1: 100,
+    L2: 250,
+    L3: 500
+  }
+};
+\`\`\`
+
+# SCORING (3 LEVELS, DETERMINISTIC)
+
+- **Level 1 (Needs Work)**: accuracy < 0.85 OR time_s > Tlimit
+- **Level 2 (Proficient)**: accuracy ≥ 0.90 AND time_s ≤ Tlimit
+- **Level 3 (Mastery)**: accuracy ≥ 0.95 AND time_s ≤ Ttight AND edge_score ≥ 0.80 AND sessions ≥ 3
+
+At game end, set:
+
+\`\`\`javascript
+window.__RESULT__ = {
+  accuracy: 0.92,
+  time_s: 168,
+  edge_score: 0.85,
+  level: 2,
+  passed: true
+};
+\`\`\`
+
+# TRAIN VS TEST (AUTO)
+
+- **Training**: randomized content, unlimited attempts, no proof/XP
+- **Testing**: deterministic (no random), one attempt, emits Proof Receipt:
+
+\`\`\`javascript
+window.__PROOF__ = {
+  proof_id: "auto-" + Math.random().toString(36).slice(2),
+  template_id: "auto",
+  competency: window.__CONFIG__.competency,
+  sub_competency: window.__CONFIG__.sub_competency,
+  level: window.__RESULT__.level,
+  metrics: {
+    accuracy: window.__RESULT__.accuracy,
+    time_s: window.__RESULT__.time_s,
+    edge_score: window.__RESULT__.edge_score,
+    sessions: 1
+  },
+  timestamp: new Date().toISOString()
+};
+\`\`\`
+
+# TELEGRAM MINI-APP HOOKS (REQUIRED)
+
+\`\`\`javascript
+// Telegram WebApp initialization
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+}
+\`\`\`
+
+# SCENE 0 (INTRO, SCROLLABLE)
+
+Must explain who/what/how/success/time in ≤ 5 bullets.
+
+**START GAME button requirements:**
+- Fixed/sticky bottom position
+- Minimum 60px height
+- Full-width on mobile
+- Calls \`startGame()\` which hides Intro and shows Scene 1
+- Allow \`body { overflow: auto }\` on Intro only
+
+HTML Structure:
 \`\`\`html
-<div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.8s ease-out;">
-  <img 
-    id="brand-logo" 
-    src="${logoUrl}" 
-    alt="Loading..." 
-    crossorigin="anonymous"
-    style="max-width: 250px; max-height: 250px; width: auto; height: auto; object-fit: contain; animation: pulse 1.5s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" 
-    onerror="console.error('Logo failed to load:', this.src); this.style.display='none';"
-  />
-  <div style="color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; letter-spacing: 1px;">LOADING...</div>
+<div id="introScreen" style="overflow-y: auto; height: 100vh; padding-bottom: 100px;">
+  ${logoUrl ? `
+  <div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.8s ease-out;">
+    <img 
+      id="brand-logo" 
+      src="${logoUrl}" 
+      alt="Loading..." 
+      crossorigin="anonymous"
+      style="max-width: 250px; max-height: 250px; width: auto; height: auto; object-fit: contain; animation: pulse 1.5s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" 
+      onerror="console.error('Logo failed to load'); this.style.display='none';"
+    />
+    <div style="color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; letter-spacing: 1px;">LOADING...</div>
+  </div>
+  ` : ''}
+  
+  ${avatarUrl ? `
+  <div class="game-avatar" style="margin: 20px auto; text-align: center;">
+    <img src="${avatarUrl}" alt="Mascot" style="width: 250px; height: 250px; object-fit: contain; background: transparent; mix-blend-mode: normal;" />
+  </div>
+  ` : ''}
+  
+  <h1>Game Title</h1>
+  <ul>
+    <li>Who: Your role in this scenario</li>
+    <li>What: The challenge you face</li>
+    <li>How: The actions you'll take</li>
+    <li>Success: What determines mastery</li>
+    <li>Time: ${subCompetencies?.[0]?.duration || 180} seconds</li>
+  </ul>
+  
+  <button id="startBtn" style="position: fixed; bottom: 20px; left: 20px; right: 20px; height: 60px; background: ${primaryColor}; color: ${textColor || '#ffffff'}; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer;">
+    START GAME
+  </button>
 </div>
+\`\`\`
 
+${logoUrl ? `
 <style>
 @keyframes pulse {
   0%, 100% { transform: scale(0.95); opacity: 0.9; }
@@ -168,1352 +198,171 @@ Required HTML/CSS/JS structure:
 </style>
 
 <script>
-// Ensure logo is preloaded
-const brandLogo = document.getElementById('brand-logo');
-if (brandLogo) {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    console.log('Brand logo loaded successfully');
-    brandLogo.src = img.src;
-  };
-  img.onerror = () => {
-    console.error('Failed to load brand logo:', '${logoUrl}');
-    brandLogo.style.display = 'none';
-  };
-  img.src = '${logoUrl}';
-}
-
-// Auto-hide loading screen after 2.5 seconds
 setTimeout(() => {
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
     loadingScreen.style.opacity = '0';
-    setTimeout(() => {
-      loadingScreen.style.display = 'none';
-    }, 800);
+    setTimeout(() => loadingScreen.style.display = 'none', 800);
   }
 }, 2500);
 </script>
-\`\`\`
-`;
-    }
-
-    let avatarInstructions = '';
-    if (avatarUrl) {
-      const isAnimated = mascotAnimationType && mascotAnimationType !== 'static';
-      const animType = mascotAnimationType || 'static';
-      
-      avatarInstructions = `
-
-AVATAR/MASCOT INTEGRATION (GAME CHARACTER) - ${animType.toUpperCase()} TYPE:
-Avatar URL: ${avatarUrl}
-Animation Type: ${animType}
-
-${isAnimated ? `
-🎬 ANIMATED MASCOT DETECTED!
-This is ${animType === 'gif' ? 'an animated GIF' : animType === 'lottie' ? 'a Lottie animation' : 'a sprite sheet'}.
-
-CRITICAL - PRESERVE ANIMATION:
-${animType === 'gif' ? `
-- Use <img> tag directly for GIF animations
-- DO NOT apply CSS transforms that break the GIF loop
-- GIF will animate automatically
-- Only apply position/size changes, not filters or distortions
-` : animType === 'lottie' ? `
-- Load Lottie player library: <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-- Use <lottie-player> component
-- Set autoplay and loop attributes
-- Example: <lottie-player src="${avatarUrl}" background="transparent" speed="1" style="width: 200px; height: 200px;" loop autoplay></lottie-player>
-` : `
-- Implement sprite sheet animation using CSS animation steps
-- Calculate frame count and timing
-`}
 ` : ''}
 
-🎨 CRITICAL - TRANSPARENCY PRESERVATION:
-   ✓ ALWAYS use transparent backgrounds for mascot images
-   ✓ CSS: background: transparent; (never use background-color)
-   ✓ CSS: mix-blend-mode: normal; (preserve image transparency)
-   ✓ CSS: backdrop-filter: none; (no background blur/tint)
-   ✓ NO black or colored boxes behind the mascot
-   ✓ For containers: background: transparent; or use background: none;
+# SCENE 1+ (GAMEPLAY, NO-SCROLL)
 
-The avatar/mascot is the STAR of the game and should be prominently featured:
+Enforce: \`html, body { height: 100vh; overflow: hidden }\` and container flex layout.
 
-1. PLACEMENT & SIZE - CONTEXT-SPECIFIC (CRITICAL):
-   
-   🏠 INTRO/WELCOME SCREEN (Scene 0) ONLY:
-   - Center the avatar prominently and make it large (200-300px)
-   - Position: center of screen, above the title
-   - This is the mascot's spotlight moment
-   
-   🎮 GAMEPLAY SCREENS (Scene 1, 2, 3, etc.) - NEVER CENTERED:
-   - Position avatar in TOP-LEFT or TOP-RIGHT corner (80-120px size)
-   - CSS: position: absolute; top: 10px; right: 10px; (or left: 10px;)
-   - Avatar watches from the sidelines, NOT blocking gameplay
-   - NEVER center the avatar during gameplay scenes
-   - Keep it small and out of the way of interactive elements
-   
-   🏆 RESULTS/SCORING SCREEN:
-   - Position avatar at the top, centered, medium size (150-200px)
-   - Place ABOVE the score display
-   - Mascot reacts to player's performance
+**Requirements:**
+- Max 3 choices per screen, each ≤ 25 words
+- Use drag-drop / tap-to-select / match / allocate (no form elements, no contentEditable)
+- Edge-case once at chosen timing; record:
 
-2. ANIMATIONS & REACTIONS${isAnimated ? ' (LAYER ON TOP OF BASE ANIMATION)' : ''}:
-   ${isAnimated ? `- The mascot already has built-in animation from the ${animType}
-   - ADD extra effects on top: scale, rotation, glow, bounce
-   - DO NOT replace the base animation` : ''}
-   - Add idle animation when waiting (gentle breathing, floating, subtle movement)
-   - Celebration animation on correct answers (scale up, rotate, add glow)
-   - Disappointed/thinking animation on wrong answers (shake, scale down)
-   - Excited animation at game start
-   - Victory dance/celebration at game end
+\`\`\`javascript
+window.__EDGE__ = {
+  triggered: true,
+  recovered: true,
+  score: 0.9
+};
+\`\`\`
 
-3. INTEGRATION:
-   - Make the avatar react to player actions in real-time
-   - During gameplay, avatar is in corner watching (NOT blocking interaction)
-   - Use the avatar as the emotional guide through the game
-   - On results screen, avatar is prominent and celebrates/encourages based on score
-
-4. ${animType === 'gif' ? 'HTML IMPLEMENTATION' : animType === 'lottie' ? 'LOTTIE IMPLEMENTATION' : 'CSS IMPLEMENTATION'}:
-   \`\`\`${animType === 'lottie' ? 'html' : 'css'}
-   ${animType === 'gif' ? `/* INTRO SCREEN - Centered, Large */
-   #introScreen .game-avatar {
-     position: relative;
-     margin: 20px auto;
-     background: transparent !important;
-   }
-   
-   #introScreen .game-avatar img {
-     width: 250px;
-     height: 250px;
-     object-fit: contain;
-     background: transparent !important;
-     mix-blend-mode: normal;
-   }
-   
-   /* GAMEPLAY SCREENS - Corner, Small */
-   .gameplay-screen .game-avatar {
-     position: absolute;
-     top: 10px;
-     right: 10px;
-     width: 80px;
-     height: 80px;
-     background: transparent !important;
-     z-index: 10;
-   }
-   
-   .gameplay-screen .game-avatar img {
-     width: 100%;
-     height: 100%;
-     object-fit: contain;
-     background: transparent !important;
-     mix-blend-mode: normal;
-   }
-   
-   /* RESULTS SCREEN - Top Center, Medium */
-   #resultsScreen .game-avatar,
-   #scoreScreen .game-avatar {
-     position: relative;
-     margin: 20px auto;
-     width: 180px;
-     height: 180px;
-     background: transparent !important;
-   }
-   
-   #resultsScreen .game-avatar img,
-   #scoreScreen .game-avatar img {
-     width: 100%;
-     height: 100%;
-     object-fit: contain;
-     background: transparent !important;
-     mix-blend-mode: normal;
-   }
-   
-   .avatar-celebrate {
-     animation: celebrate-scale 0.6s ease-out;
-   }
-   
-   @keyframes celebrate-scale {
-     0%, 100% { transform: scale(1); }
-     50% { transform: scale(1.15); filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
-   }` : animType === 'lottie' ? `<!-- INTRO SCREEN -->
-<div id="introScreen">
-  <div class="game-avatar" style="margin: 20px auto; background: transparent;">
-    <lottie-player 
-      id="mascot-intro" 
-      src="${avatarUrl}" 
-      background="transparent" 
-      speed="1" 
-      style="width: 250px; height: 250px; background: transparent;" 
-      loop 
-      autoplay>
-    </lottie-player>
+${avatarUrl ? `
+**Avatar in gameplay:**
+\`\`\`html
+<div class="gameplay-screen" style="position: relative; height: 100vh; overflow: hidden;">
+  <div class="game-avatar" style="position: absolute; top: 10px; right: 10px; width: 80px; height: 80px; background: transparent; z-index: 10;">
+    <img src="${avatarUrl}" alt="Mascot" style="width: 100%; height: 100%; object-fit: contain; background: transparent; mix-blend-mode: normal;" />
   </div>
+  <!-- Gameplay content here -->
 </div>
+\`\`\`
+` : ''}
 
-<!-- GAMEPLAY SCREENS -->
-<div class="gameplay-screen">
-  <div class="game-avatar" style="position: absolute; top: 10px; right: 10px; width: 80px; height: 80px; background: transparent;">
-    <lottie-player 
-      id="mascot-game" 
-      src="${avatarUrl}" 
-      background="transparent" 
-      speed="1" 
-      style="width: 100%; height: 100%; background: transparent;" 
-      loop 
-      autoplay>
-    </lottie-player>
-  </div>
-</div>
+# RESULTS SCREEN
 
-<!-- RESULTS SCREEN -->
-<div id="resultsScreen">
+Show badge (Needs Work / Proficient / Mastery), accuracy %, time, edge status, XP.
+
+**Buttons:**
+- PLAY AGAIN (training mode) - reloads game
+- CLOSE (testing mode) - closes window
+
+${avatarUrl ? `
+**Avatar in results:**
+\`\`\`html
+<div id="resultsScreen" style="display: none; text-align: center; padding: 20px;">
   <div class="game-avatar" style="margin: 20px auto; width: 180px; height: 180px; background: transparent;">
-    <lottie-player 
-      id="mascot-results" 
-      src="${avatarUrl}" 
-      background="transparent" 
-      speed="1" 
-      style="width: 100%; height: 100%; background: transparent;" 
-      loop 
-      autoplay>
-    </lottie-player>
+    <img src="${avatarUrl}" alt="Mascot" style="width: 100%; height: 100%; object-fit: contain; background: transparent; mix-blend-mode: normal;" />
   </div>
-</div>
-
-<script>
-// Trigger celebration by changing speed or adding effects
-function celebrateMascot() {
-  const mascots = document.querySelectorAll('lottie-player');
-  mascots.forEach(mascot => {
-    mascot.style.transform = 'scale(1.2)';
-    mascot.style.filter = 'drop-shadow(0 0 20px gold)';
-    setTimeout(() => {
-      mascot.style.transform = 'scale(1)';
-      mascot.style.filter = 'none';
-    }, 600);
-  });
-}
-</script>` : `/* INTRO SCREEN - Centered, Large */
-   #introScreen .game-avatar {
-     position: relative;
-     width: 250px;
-     height: 250px;
-     margin: 20px auto;
-     background: transparent !important;
-     animation: idle-float 3s ease-in-out infinite;
-   }
-   
-   #introScreen .game-avatar img {
-     width: 100%;
-     height: 100%;
-     object-fit: contain;
-     background: transparent !important;
-     mix-blend-mode: normal;
-   }
-   
-   /* GAMEPLAY SCREENS - Corner, Small */
-   .gameplay-screen .game-avatar {
-     position: absolute;
-     top: 10px;
-     right: 10px;
-     width: 80px;
-     height: 80px;
-     background: transparent !important;
-     animation: idle-float 3s ease-in-out infinite;
-     z-index: 10;
-   }
-   
-   .gameplay-screen .game-avatar img {
-     width: 100%;
-     height: 100%;
-     object-fit: contain;
-     background: transparent !important;
-     mix-blend-mode: normal;
-   }
-   
-   /* RESULTS SCREEN - Top Center, Medium */
-   #resultsScreen .game-avatar,
-   #scoreScreen .game-avatar {
-     position: relative;
-     width: 180px;
-     height: 180px;
-     margin: 20px auto;
-     background: transparent !important;
-     animation: idle-float 3s ease-in-out infinite;
-   }
-   
-   #resultsScreen .game-avatar img,
-   #scoreScreen .game-avatar img {
-     width: 100%;
-     height: 100%;
-     object-fit: contain;
-     background: transparent !important;
-     mix-blend-mode: normal;
-   }
-   
-   @keyframes idle-float {
-     0%, 100% { transform: translateY(0px); }
-     50% { transform: translateY(-10px); }
-   }
-   
-   .avatar-celebrate {
-     animation: celebrate-bounce 0.6s ease-out;
-   }
-   
-   @keyframes celebrate-bounce {
-     0%, 100% { transform: scale(1) rotate(0deg); }
-     25% { transform: scale(1.2) rotate(-10deg); }
-     75% { transform: scale(1.2) rotate(10deg); }
-   }`}
-   \`\`\`
-`;
-    }
-
-    let particleInstructions = '';
-    if (particleEffect) {
-      const particleStyles: Record<string, { emoji: string; color: string; desc: string }> = {
-        sparkles: { emoji: '✨', color: '#FFD700', desc: 'twinkling sparkles' },
-        coins: { emoji: '🪙', color: '#FFD700', desc: 'golden coins' },
-        stars: { emoji: '⭐', color: '#FFFF00', desc: 'bright stars' },
-        hearts: { emoji: '❤️', color: '#FF69B4', desc: 'floating hearts' },
-        confetti: { emoji: '🎉', color: 'rainbow', desc: 'colorful confetti pieces' },
-        lightning: { emoji: '⚡', color: '#00FFFF', desc: 'electric lightning bolts' }
-      };
-      
-      const style = particleStyles[particleEffect as string] || particleStyles.sparkles;
-      
-      particleInstructions = `
-
-PARTICLE EFFECT SYSTEM - "${particleEffect.toUpperCase()}" (CRITICAL):
-Use ${style.desc} for ALL positive feedback and interactions.
-
-1. WHEN TO TRIGGER PARTICLES:
-   - Every button/option tap or click
-   - Correct answer selected
-   - Task completed successfully
-   - Score increases
-   - Level completion
-   - Game finish celebration
-   - Avatar reactions (when avatar celebrates)
-
-2. PARTICLE IMPLEMENTATION:
-   Create a particle burst function that spawns 8-15 particles from the interaction point.
-   
-   \`\`\`javascript
-   function createParticleBurst(x, y) {
-     const particleCount = 12;
-     const container = document.getElementById('particle-container') || document.body;
-     
-     for (let i = 0; i < particleCount; i++) {
-       const particle = document.createElement('div');
-       particle.className = 'particle';
-       particle.textContent = '${style.emoji}';
-       particle.style.cssText = \`
-         position: fixed;
-         left: \${x}px;
-         top: \${y}px;
-         font-size: \${20 + Math.random() * 20}px;
-         pointer-events: none;
-         z-index: 9999;
-         animation: particle-float \${0.8 + Math.random() * 0.4}s ease-out forwards;
-         --end-x: \${(Math.random() - 0.5) * 200}px;
-         --end-y: \${-50 - Math.random() * 100}px;
-       \`;
-       container.appendChild(particle);
-       setTimeout(() => particle.remove(), 1200);
-     }
-   }
-   
-   // Add to all interactive elements
-   document.querySelectorAll('button, .option, .interactive').forEach(el => {
-     el.addEventListener('click', (e) => {
-       createParticleBurst(e.clientX, e.clientY);
-     });
-   });
-   \`\`\`
-
-3. CSS FOR PARTICLES:
-   \`\`\`css
-   @keyframes particle-float {
-     0% {
-       transform: translate(0, 0) scale(0);
-       opacity: 1;
-     }
-     100% {
-       transform: translate(var(--end-x), var(--end-y)) scale(1);
-       opacity: 0;
-     }
-   }
-   \`\`\`
-
-4. SPECIAL MOMENTS:
-   - Game completion: Create 50+ particles across entire screen
-   - Perfect score: Continuous particle stream for 3 seconds
-   - Level up: Particles burst from center outward
-   - Around avatar: Particles orbit when avatar celebrates
-`;
-    }
-
-    const systemPrompt = `You are an expert game developer. Generate a complete, playable HTML5 game based on the template description and brand customization.
-
-═══════════════════════════════════════════════════════════
-DESIGN OVERVIEW
-═══════════════════════════════════════════════════════════
-
-Design a fast-paced 3-minute validator mini-game (maximum 6 minutes for advanced versions) that tests a specific sub-competency through interactive gameplay.
-
-⸻
-
-⚙️ QUICK REFERENCE
-
-* Validator: a short interactive mini-game that tests one sub-competency
-* Sub-Competency: the specific behavior the validator surfaces through gameplay
-* Edge Case: a single rule-flip or disruption that appears once — creator selects timing (Early / Mid / Late) — used to test mastery under changing conditions
-* Game Phase Framework: validators follow three phases — Brief → Action → Result — for consistent pacing and proof capture.
-
-All scoring, timing, and proof logic are pre-baked into the system. Focus only on player experience, flow, and the edge-case moment.
-
-⸻
-
-🎯 TARGET COMPETENCY
-
-${subCompetencies && subCompetencies.length > 0 ? subCompetencies.map((sc: any) => sc.master_competencies?.name || 'Not specified').join(', ') : '[Competency name and category]'}
-
-SUB-COMPETENCIES BEING TESTED
-
-${playOpsInstructions}
-
-⸻
-
-🎮 CRITICAL GAME ARCHITECTURE (MANDATORY STRUCTURE)
-
-═══════════════════════════════════════════════════════════════
-SCENE 0: INTRO SCREEN (Before gameplay starts)
-═══════════════════════════════════════════════════════════════
-
-This screen contains ALL game directions and instructions:
-  1️⃣ WHO they are (role / scenario context)
-  2️⃣ WHAT they need to achieve (specific & measurable goal)
-  3️⃣ HOW they interact (drag, tap, rank, type, etc.)
-  4️⃣ WHAT success looks like (Level 1 – Needs Work / Level 2 – Proficient / Level 3 – Mastery)
-  5️⃣ TIME limit (90–180 seconds total)
-
-⚠️ CRITICAL - HIDE INTERNAL STRUCTURE FROM PLAYERS:
-  ✓ NEVER mention "Scene 1", "Scene 2", "Scene 3" etc. in player-facing text
-  ✓ NEVER mention "edge case", "twist", "disruption", or reveal any surprises
-  ✓ Do NOT warn players that challenges will change or intensify
-  ✓ Let the edge case be a complete surprise - no hints, no foreshadowing
-  ✓ Use natural language like "Phase", "Round", "Challenge" if you need to show progression
-  ✓ Example: Instead of "Scene 3 of 4" → use "Challenge 3 of 4" or just a progress bar
-  ✓ Players should only know: their role, goal, how to interact, success criteria, and time limit
-
-MANDATORY START BUTTON REQUIREMENTS:
-  ✓ Position: Fixed at bottom OR sticky at bottom with position sticky and bottom 0
-  ✓ Size: Minimum 60px height, full-width on mobile, 80% width minimum on desktop
-  ✓ Label: "START GAME" or "PLAY" in ALL CAPS
-  ✓ Style: Bright brand primary color, high contrast text, bold font
-  ✓ Visibility: ALWAYS visible even when scrolling instructions
-  ✓ Container: Place OUTSIDE any scrollable divs
-  ✓ Z-index: High z-index (100 or higher)
-  ✓ JavaScript: MUST have onclick="startGame()" or addEventListener('click', startGame)
-  ✓ Function: startGame() MUST hide intro screen and show first gameplay screen
-  ✓ CRITICAL: Button must be clickable and functional - test by adding console.log('START clicked')
-  ✓ The game CANNOT start without clicking this button
   
-  EXAMPLE WORKING IMPLEMENTATION:
-  <button id="startBtn" onclick="startGame()" 
-    style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-           width: 90%; max-width: 400px; height: 60px; font-size: 20px; 
-           background: #00FF00; color: black; border: none; border-radius: 8px; 
-           cursor: pointer; z-index: 100; font-weight: bold;">
-    START GAME
+  <div id="proficiency-badge" style="font-size: 32px; font-weight: bold; margin: 20px 0;"></div>
+  <div id="accuracy-display" style="font-size: 48px; font-weight: bold; margin: 10px 0;"></div>
+  <div id="time-display" style="font-size: 18px; margin: 10px 0;"></div>
+  <div id="edge-display" style="font-size: 18px; margin: 10px 0;"></div>
+  
+  <button id="playAgainBtn" style="width: 100%; max-width: 300px; height: 60px; background: ${primaryColor}; color: ${textColor || '#ffffff'}; border: none; border-radius: 8px; font-size: 18px; margin-top: 20px; cursor: pointer;">
+    PLAY AGAIN
   </button>
-  
-  <script>
-  function startGame() {
-    console.log('START button clicked - game starting');
-    document.getElementById('introScreen').style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'flex';
-    // Initialize game timer, state, etc.
-  }
-  </script>
-
-LAYOUT STRUCTURE FOR INTRO:
-- Wrapper container: full viewport height with flex column layout
-- Top section: scrollable area containing all instructions
-- Bottom section: fixed/sticky button that stays visible
-- Instructions can scroll, button never scrolls away
-
-═══════════════════════════════════════════════════════════════
-SCENE 1: FIRST ACTION (Actual gameplay begins)
-═══════════════════════════════════════════════════════════════
-
-When START is clicked, transition to Scene 1 which is the FIRST GAMEPLAY ACTION:
-  ✓ CLEAN interface - NO repeated instructions from Scene 0
-  ✓ Interactive mechanics: DRAG-AND-DROP, CLICK-TO-SELECT, TAP-AND-HOLD (NOT forms/text inputs)
-  ✓ Visual feedback: items light up, snap into place, animate on interaction
-  ✓ Only show: timer, score/KPIs, draggable/clickable elements
-  ✓ Brief context reminder (1 sentence max): "You are allocating budget..." 
-  ✓ Ample space for player actions - not cramped
-  ✓ Scene 1 is where actual gameplay mechanic starts
-  
-  🚫 CRITICAL NO-SCROLL REQUIREMENTS:
-  ✓ Container MUST have: height: 100vh; overflow: hidden;
-  ✓ All gameplay elements MUST fit within viewport - NO vertical scrolling
-  ✓ Use flex or grid layout to distribute space, never rely on scrolling
-  ✓ Test on mobile viewport (390px x 844px) - everything must be visible
-  ✓ Buttons and interactive elements MUST be reachable without scrolling
-  
-  📏 STRICT CONTENT LIMITS (ENFORCE THESE):
-  ✓ Maximum 3 options/choices per screen (NEVER 4 or more)
-  ✓ Option text: Maximum 25 words per option (keep it concise!)
-  ✓ Context text at top: Maximum 15 words
-  ✓ Use icons + short labels instead of long descriptions
-  ✓ Button height: 60-80px max with padding: 12px
-  ✓ Gap between elements: 12px max (not 20px+)
-  ✓ Total vertical space budget: 700px for content area
-  
-  LAYOUT MATH (Mobile 390x844):
-  - Header (timer/progress): 60px
-  - Context text: 60px
-  - 3 Options @ 70px each: 210px
-  - Gaps (4 x 12px): 48px
-  - Footer button: 80px
-  - TOTAL: 458px (fits comfortably in 844px viewport)
-  
-  🎮 CREATIVE GAMEPLAY MECHANICS (MANDATORY - NO FORMS):
-  
-  ❌ NEVER USE: Text inputs, dropdowns, radio buttons, checkboxes, or form elements
-  ✅ ALWAYS USE: Interactive, playful mechanics that feel like games
-  
-  INTERACTION PRIORITY (Use in this order):
-  1. DRAG & DROP - Drag cards to zones, sort items, allocate resources
-     Example: Drag budget cards into department slots, drag words to build sentences
-     
-     🔧 CRITICAL DRAG & DROP IMPLEMENTATION - YOU MUST INCLUDE THIS WORKING CODE:
-     
-     DRAGGABLE ITEMS must have these attributes:
-     - draggable="true"
-     - ondragstart="handleDragStart(event, 'unique-id')"
-     - style="cursor: grab; user-select: none;"
-     
-     DROP ZONES must have these attributes:
-     - ondrop="handleDrop(event)"
-     - ondragover="handleDragOver(event)"
-     - ondragleave="handleDragLeave(event)"
-     - style="min-height: 100px; border: 3px dashed #666;"
-     
-     REQUIRED JAVASCRIPT (include in script tag):
-     let draggedItem = null;
-     
-     function handleDragStart(event, itemId) {
-       draggedItem = event.target;
-       event.dataTransfer.effectAllowed = 'move';
-       event.dataTransfer.setData('text/html', event.target.innerHTML);
-       event.target.style.opacity = '0.5';
-     }
-     
-     function handleDragOver(event) {
-       event.preventDefault();
-       event.dataTransfer.dropEffect = 'move';
-       event.target.style.borderColor = '#00FF00';
-       event.target.style.background = 'rgba(0, 255, 0, 0.1)';
-     }
-     
-     function handleDragLeave(event) {
-       event.target.style.borderColor = '#666';
-       event.target.style.background = 'transparent';
-     }
-     
-     function handleDrop(event) {
-       event.preventDefault();
-       if (draggedItem) {
-         event.target.appendChild(draggedItem);
-         draggedItem.style.opacity = '1';
-         event.target.style.borderColor = '#666';
-         event.target.style.background = 'transparent';
-         // Add visual feedback
-         event.target.style.animation = 'pulse 0.3s';
-         draggedItem = null;
-       }
-     }
-     
-     TEST YOUR DRAG & DROP: Make sure items actually move when dragged!
-  
-  2. TAP/CLICK CARDS - Flip cards, select options by tapping interactive elements
-     Example: Tap message cards to reveal content, click tone indicators, tap to match pairs
-  
-  3. SWIPE GESTURES - Swipe left/right to categorize, accept/reject
-     Example: Swipe communications left (urgent) or right (routine)
-  
-  4. TIMELINE BUILDERS - Click to add events, drag to reorder story beats
-     Example: Build a crisis response timeline by clicking actions in sequence
-  
-  5. MATCHING GAMES - Connect related items, pair concepts
-     Example: Draw lines between problems and solutions
-  
-  6. SLIDERS/DIALS - Adjust values visually with immediate feedback
-     Example: Allocate percentage budgets with visual pie charts updating live
-  
-  🎨 CREATIVE GAME DESIGN PRINCIPLES:
-  - Use VISUAL METAPHORS: Budget = poker chips, Time = clock countdown, Priority = star ratings
-  - Add IMMEDIATE FEEDBACK: Items glow when correct, shake when wrong, particles on success
-  - Create PLAYFUL SCENARIOS: Don't say "Rate this 1-5", say "Award stars based on urgency"
-  - Use GAME LANGUAGE: "Round", "Challenge", "Mission", not "Question" or "Task"
-  - Make it FEEL LIKE A GAME: Animations, sounds (describe them), visual rewards
-  
-  🎯 BRAND CONTENT INTEGRATION:
-  When brand uploads content (documents, scenarios, data):
-  - Transform data into INTERACTIVE CARDS players can manipulate
-  - Turn scenarios into DECISION MOMENTS with visual choices
-  - Convert lists into SORTING or MATCHING challenges
-  - Make text content into STORY BEATS players build or reorder
-  
-  Example: If brand uploads "10 customer emails" → Create drag-and-drop inbox where players 
-  physically drag emails into priority folders, not a form asking "Which is urgent?"
-
-═══════════════════════════════════════════════════════════════
-SCENE 2+: SUBSEQUENT ACTIONS
-═══════════════════════════════════════════════════════════════
-
-Each scene after Scene 1 continues gameplay:
-  ✓ Maintain clean interface
-  ✓ Show progression using player-friendly terms (Challenge 2 of 4, Round 2, etc.) - NEVER "Scene X"
-  ✓ Edge-case changes happen organically without warning or scene number references
-  
-  🚫 NO-SCROLL ENFORCEMENT (ALL GAMEPLAY SCENES):
-  ✓ Every gameplay screen: height: 100vh; overflow: hidden;
-  ✓ Content must always fit in viewport - use compact layouts
-  ✓ Stack elements efficiently with flexbox/grid
-  ✓ Maximum 3 choices per scene (NEVER exceed this)
-  ✓ Each choice text: 25 words maximum
-  ✓ Use fixed positioning for headers/timers to save space
-  ✓ Minimize padding: 12px gaps, not 20px+
-
-═══════════════════════════════════════════════════════════════
-
-CRITICAL: The game architecture MUST be:
-Scene 0 (Intro + ALL directions + START button) → 
-  Click START → 
-    Scene 1 (First action, clean interface) → 
-      Scene 2 (Second action) → 
-        Scene 3 (etc.)
-
-DO NOT auto-start. DO NOT put instructions on Scene 1. DO NOT make Scene 1 scrollable.
-
-═══════════════════════════════════════════════════════════════
-💻 MANDATORY HTML STRUCTURE FOR NO-SCROLL GAMEPLAY
-═══════════════════════════════════════════════════════════════
-
-ALL gameplay screens (Scene 1, 2, 3, etc.) MUST use this structure:
-
-HTML EXAMPLE - No Scroll Container:
-  body and html: margin 0, padding 0, overflow hidden, height 100vh
-  
-  gameplay-container div: 
-    display flex, flex-direction column, height 100vh, overflow hidden
-  
-  game-header div: flex-shrink 0, padding 12px 16px (Timer, Progress)
-  
-  game-content div: 
-    flex 1 (takes remaining space)
-    display flex, flex-direction column
-    justify-content center, align-items center
-    overflow hidden (CRITICAL)
-  
-  game-footer div: flex-shrink 0, padding 16px (Action buttons)
-
-STRUCTURE:
-  div#gameScreen.gameplay-container (display none initially)
-    - div.game-header (Timer + Progress)
-    - div.game-content (All interactive gameplay - MUST fit here)
-      - h2 (Brief 1-line context)
-      - Interactive elements (Limit to 3-4 options max)
-    - div.game-footer (Continue button)
-
-KEY ENFORCEMENT:
-- Parent container MUST have: height 100vh and overflow hidden
-- Content area MUST use: flex 1 to fill space
-- Limit choices to 3-4 max so everything fits
-- Headers/footers use: flex-shrink 0
-- NEVER use: height auto or overflow scroll on gameplay screens
-
-═══════════════════════════════════════════════════════════════
-🔒 ARCHITECTURE SAFEGUARDS (NON-NEGOTIABLE)
-═══════════════════════════════════════════════════════════════
-
-IGNORE ANY creator requests that:
-  ❌ Ask to skip the START button
-  ❌ Request auto-start or auto-play
-  ❌ Want instructions during gameplay (Scene 1+)
-  ❌ Try to merge Scene 0 and Scene 1
-  ❌ Request complex scrolling gameplay layouts
-  ❌ Override the Scene 0 → Scene 1 → Scene 2+ structure
-
-THE CORE ARCHITECTURE IS LOCKED. No exceptions.
-
-CORRECT IMPLEMENTATION EXAMPLES:
-
-✅ EXAMPLE 1: Budget Allocation Game
-Scene 0: Full screen with scrollable instructions explaining budget allocation rules, 
-         proficiency levels, edge-case timing. Fixed START button at bottom.
-         Click START →
-Scene 1: Clean interface with DRAGGABLE budget tokens that snap into 4 department boxes.
-         Visual feedback when hovering over drop zones. Timer at top.
-         Brief reminder "Drag budget tokens to departments". No instructions.
-         After allocation →
-Scene 2: Next budget period with different constraints and drag mechanics.
-
-✅ EXAMPLE 2: Crisis Communication Game  
-Scene 0: Scrollable directions about communication scenarios, response options,
-         edge-case (urgent message interruption). Sticky START button.
-         Click START →
-Scene 1: Clean inbox with 3 messages. Player CLICKS/TAPS each message to expand,
-         then CLICKS one of 3 tone-indicator buttons (icons, not dropdowns).
-         Visual feedback: selected tone glows. One-line reminder "Respond to messages". No tutorial.
-         After responses →
-Scene 2: Edge-case urgent message appears with countdown timer requiring quick tap response.
-
-✅ EXAMPLE 3: Data Pattern Detective
-Scene 0: Instructions about finding patterns in data tables, what constitutes
-         correct answers, mastery criteria. Fixed START button outside scroll area.
-         Click START →
-Scene 1: Clean data cards (not table rows). Player TAPS cards to flip and reveal data,
-         then DRAGS suspicious cards into a "flagged" zone at the bottom. Timer visible.
-         Simple prompt "Tap to reveal, drag to flag anomalies". No repeated instructions.
-         After flagging →
-Scene 2: New set of data cards with more subtle pattern differences.
-
-═══════════════════════════════════════════════════════════════
-❌ WRONG vs ✅ RIGHT - SCROLL PREVENTION
-═══════════════════════════════════════════════════════════════
-
-❌ WRONG (Causes Scroll):
-Scene with 4 options, each with 40+ word descriptions:
-- Header: 60px
-- Context: "You need to decide..." (100px with long text)
-- Option 1: "Integrate the new feature, believing the delay is worth..." (90px)
-- Option 2: "Stick to the original plan and launch without..." (90px)  
-- Option 3: "Release with the known bug, providing a known..." (90px)
-- Option 4: "Conduct a rapid user survey to gauge priority..." (90px)
-- Footer: 80px
-TOTAL: 600px+ → SCROLLS on mobile! ❌
-
-✅ RIGHT (Fits Perfectly):
-Scene with 3 options, each under 25 words:
-- Header: 50px (Timer: 2:45 | Phase 2)
-- Context: "Critical decision needed" (40px - brief!)
-- Option A: "Launch now - fast but risky" (70px)
-- Option B: "Delay 1 week - safer approach" (70px)
-- Option C: "Test with users first" (70px)
-- Footer: 70px (CONTINUE button)
-TOTAL: 370px → FITS EASILY! ✅
-
-KEY DIFFERENCES:
-- 3 options vs 4 options
-- 10-15 words per option vs 40+ words
-- Compact spacing (12px gaps) vs loose spacing (20px+ gaps)
-- Brief context vs verbose explanation
-
-⸻
-
-📋 DESIGN REQUIREMENTS
-
-The template provides:
-- Scenario / Theme (required): Context and player's role
-- Player Actions (required): What the player actually does during the game
-- Edge-Case Timing (required): When the rule-flip or disruption appears (Early / Mid / Late)
-- Edge-Case Description (required): What changes during the edge-case moment and how the player must adapt
-- UI Aesthetic (optional): Desired interface style
-
-⸻
-
-🎯 SCORING & RESULT SCREENS (CRITICAL - MUST IMPLEMENT)
-
-The game MUST include a detailed results screen that appears after gameplay completes.
-
-MANDATORY RESULTS SCREEN ELEMENTS:
-
-1. PROFICIENCY BADGE (Large, prominent, color-coded using brand colors):
-   - Level 3 – Mastery (use Highlight color: ${highlightColor || primaryColor}) if accuracy ≥95% AND edge case handled
-   - Level 2 – Proficient (use Secondary color: ${secondaryColor}) if accuracy 80-94%
-   - Level 1 – Needs Work (use Accent color: ${accentColor || textColor}) if accuracy < 80%
-
-2. SCORE DISPLAY:
-   - Large percentage score (48px font, bold)
-   - Color matches proficiency level
-
-3. METRICS BREAKDOWN:
-   - Accuracy percentage
-   - Time taken vs total time (e.g., "120s / 180s")
-   - Edge Case status (Handled / Not Handled)
-   - Number of optimal decisions made
-   - Any other relevant gameplay metrics
-
-4. PERFORMANCE FEEDBACK:
-   - Specific text about what player did well
-   - Constructive suggestions for improvement
-   - Context-specific to their actual choices
-
-5. ACTION BUTTONS:
-   - PLAY AGAIN button (reloads game)
-   - Close button
-
-IMPLEMENTATION REQUIREMENTS:
-
-Create a hidden div with id="resultsScreen" that gets shown when game completes.
-Include a showResults(metrics) JavaScript function that:
-  - Calculates proficiency level from metrics
-  - Applies correct color coding
-  - Populates ALL metric displays with actual values
-  - Hides game screen and shows results screen
-
-Track these metrics during gameplay:
-  - Total actions taken
-  - Optimal vs suboptimal choices
-  - Time from start to completion
-  - Whether edge case was successfully handled
-  - Any validator-specific metrics
-
-Calculate final accuracy score based on:
-  - Percentage of optimal choices made
-  - Speed bonuses/penalties if applicable
-  - Edge case success/failure
-
-CRITICAL: Results must show ACTUAL calculated values, not just "Challenge Complete!"
-
-⸻
-
-📱 TELEGRAM MINI APP REQUIREMENTS
-
-* Mobile-first responsive design (works on all phone screens)
-* Fast loading and smooth performance
-* Touch-friendly interactions (buttons, swipes, taps)
-* Built with standard web technologies (HTML, CSS, JavaScript)
-* Action phase may include 2–4 micro-scenes ("Next" / "Continue" transitions)
-
-SCROLLING (CRITICAL - MUST IMPLEMENT):
-Every scrollable content area MUST have these EXACT CSS properties:
-
-overflow-y: auto;
-max-height: 60vh;
--webkit-overflow-scrolling: touch;
-
-Apply to ALL:
-- Game content containers
-- Team rosters, project lists, resource panels
-- Message feeds, instruction panels
-- ANY list or vertically stacked content
-
-Example:
-<div style="overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch;">
-  <!-- all your scrollable content here -->
 </div>
+\`\`\`
+` : ''}
 
-TEST: Can a user on a small phone screen reach ALL interactive elements by scrolling?
+# TELEMETRY (MUST EMIT)
 
-⸻
+Log these events:
+- session.start
+- decision.select
+- edge.trigger
+- session.end (include accuracy, time_s, edge_score, level, passed)
 
-🎯 SYSTEM HANDLES AUTOMATICALLY
-
-* 3 proficiency levels: Level 1 – Needs Work / Level 2 – Proficient / Level 3 – Mastery
-* Accuracy % tracking
-* Completion-time tracking
-* Edge-case success flag
-* Automatic scoring and color-coded feedback
-* Proof ledger integration and XP rewards
-
-⸻
-
-${logoInstructions}
-
-⸻
-
-${avatarInstructions}
-
-⸻
-
-${particleInstructions}
-
-⸻
-
-CRITICAL TECHNICAL REQUIREMENTS:
-1. Return ONLY valid HTML - a complete, self-contained HTML file
-2. Include ALL JavaScript and CSS inline within the HTML
-3. The game must be fully functional and playable
-4. Use ONLY these brand colors throughout the entire game (loading screen, game screens, results):
-   - Primary: ${primaryColor} (buttons, main actions, highlights, headers)
-   - Secondary: ${secondaryColor} (supporting elements, borders, hover states)
-   - Accent: ${accentColor || textColor} (warnings, emphasis, selected states)
-   - Background: ${backgroundColor || '#F5EDD3'} (base background, cards)
-   - Highlight: ${highlightColor || primaryColor} (success states, correct answers)
-   - Text: ${textColor || '#2D5556'} (all text, labels, descriptions)
-5. Use ONLY this font throughout the entire game:
-   - Font Family: ${fontFamily || 'Inter, sans-serif'} (all text elements)
-   - Load font: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-6. Apply clean, minimalist design with these colors and font everywhere
-7. NEVER use hard-coded colors like #00FF00, #1A1A1A, white, black etc.
-8. Use the provided colors for ALL UI elements from start to finish
-9. IMPLEMENT EVERY ELEMENT from the PlayOps Framework for each sub-competency
-
-⚠️ CRITICAL TEXT CONTRAST & COLOR CHANGE RULES (NON-NEGOTIABLE):
-═══════════════════════════════════════════════════════════════════════════════
-
-🎨 IF YOU IMPLEMENT COLOR SHUFFLE OR ANY DYNAMIC COLOR CHANGES:
-
-**PROBLEM TO PREVENT:** When background colors change, text can become invisible if text color 
-matches or is too similar to the new background. This MUST be prevented at all costs.
-
-**MANDATORY IMPLEMENTATION:**
-
-1. LUMINANCE CALCULATION FUNCTION (Include in your JavaScript):
 \`\`\`javascript
-// Calculate relative luminance of a color (0 = darkest, 1 = brightest)
-function getLuminance(hexColor) {
-  // Remove # if present
-  hexColor = hexColor.replace('#', '');
-  
-  // Convert to RGB
-  const r = parseInt(hexColor.substr(0, 2), 16) / 255;
-  const g = parseInt(hexColor.substr(2, 2), 16) / 255;
-  const b = parseInt(hexColor.substr(4, 2), 16) / 255;
-  
-  // Apply gamma correction
-  const [rs, gs, bs] = [r, g, b].map(c => 
-    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-  );
-  
-  // Calculate luminance
-  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+function logEvent(eventType, data) {
+  console.log(\`[TELEMETRY] \${eventType}\`, data);
+  // Optional: Send to analytics endpoint
 }
 
-// Get contrasting text color for any background
-function getContrastingTextColor(bgColor) {
-  const luminance = getLuminance(bgColor);
-  // Use white text on dark backgrounds, dark text on light backgrounds
-  return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
-}
+logEvent('session.start', { timestamp: new Date().toISOString() });
 \`\`\`
 
-2. APPLY CONTRAST TO ALL TEXT WHEN COLORS CHANGE:
-\`\`\`javascript
-function applyColorChanges(newBgColor, newPrimaryColor, newSecondaryColor) {
-  // Update background
-  document.body.style.backgroundColor = newBgColor;
-  
-  // CRITICAL: Update ALL text colors based on new background
-  const textColor = getContrastingTextColor(newBgColor);
-  
-  // Apply to all text elements
-  document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, div, span, li, label').forEach(el => {
-    // Only update if element doesn't have explicit color styling for a reason
-    if (!el.classList.contains('keep-original-color')) {
-      el.style.color = textColor;
-    }
-  });
-  
-  // Update card backgrounds if they exist
-  document.querySelectorAll('.card, .option, .choice').forEach(card => {
-    card.style.backgroundColor = newPrimaryColor;
-    card.style.color = getContrastingTextColor(newPrimaryColor);
-  });
-}
-\`\`\`
+# BRAND CUSTOMIZATION
 
-3. IF IMPLEMENTING A SHUFFLE FEATURE:
-\`\`\`javascript
-function shuffleColors() {
-  const colors = ['${primaryColor}', '${secondaryColor}', '${accentColor || textColor}', '${backgroundColor || '#F5EDD3'}'];
-  const shuffled = colors.sort(() => Math.random() - 0.5);
-  
-  const newBg = shuffled[0];
-  const newPrimary = shuffled[1];
-  const newSecondary = shuffled[2];
-  
-  // Apply with proper contrast
-  applyColorChanges(newBg, newPrimary, newSecondary);
-  
-  // Show feedback
-  console.log('Colors shuffled! Text contrast automatically maintained.');
-}
-\`\`\`
+Use these brand colors throughout the entire game:
 
-4. MANDATORY CSS FOR TEXT ELEMENTS:
-\`\`\`css
-/* Ensure text remains readable during transitions */
-h1, h2, h3, h4, h5, h6, p, div, span, li, label {
-  transition: color 0.3s ease;
-}
+- **Primary**: ${primaryColor} (buttons, main actions, highlights, headers)
+- **Secondary**: ${secondaryColor} (supporting elements, borders, hover states)
+- **Accent**: ${accentColor || textColor} (warnings, emphasis, selected states)
+- **Background**: ${backgroundColor || '#F5EDD3'} (base background, cards)
+- **Highlight**: ${highlightColor || primaryColor} (success states, correct answers)
+- **Text**: ${textColor || '#2D5556'} (all text, labels, descriptions)
+- **Font**: ${fontFamily || 'Inter, sans-serif'} (all text elements)
 
-/* Never let text be transparent or invisible */
-* {
-  color: inherit;
-}
+Load font: \`<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">\`
 
-body {
-  transition: background-color 0.3s ease;
-}
-\`\`\`
+**CRITICAL:** NEVER use hard-coded colors. Use the provided brand colors for ALL UI elements.
 
-**TESTING CHECKLIST:**
-✅ Can you read ALL text after shuffling colors?
-✅ Is there sufficient contrast (WCAG AA: 4.5:1 minimum for body text)?
-✅ Does text color update automatically when background changes?
-✅ Are headings, body text, AND button text all readable?
+# MOBILE-FIRST REQUIREMENTS
 
-**DO NOT:**
-❌ Change background without updating text colors
-❌ Use the same color for text and background
-❌ Assume text will be readable - always calculate contrast
-❌ Forget to update text in cards, options, and interactive elements
-
-⚠️ MANDATORY MOBILE-FIRST REQUIREMENTS (NON-NEGOTIABLE):
-═══════════════════════════════════════════════════════════════
-
-📱 VIEWPORT META TAG (MUST BE FIRST IN <head>):
+**Viewport meta tag (MUST BE FIRST):**
+\`\`\`html
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+\`\`\`
 
-This MUST be the first tag in the <head> section of the HTML. Without this, the game will not display correctly on mobile devices.
+**CSS Architecture:**
+- Design for 375px-414px width first
+- Use relative units: vh, vw, %, em, rem (avoid fixed px)
+- Body/HTML: margin: 0; padding: 0; height: 100vh; width: 100vw;
+- Touch targets: minimum 44px × 44px
+- Font sizes: minimum 16px for body text
 
-🎨 MOBILE-FIRST CSS ARCHITECTURE:
-- Design for 375px-414px width first (iPhone/Android standard sizes)
-- Use relative units: vh, vw, %, em, rem (NEVER fixed px for layouts)
-- Body/HTML: margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw;
-- All containers: box-sizing: border-box;
-- Touch targets: minimum 44px x 44px for buttons (iOS Human Interface Guidelines)
-- Font sizes: minimum 16px for body text (prevents iOS zoom on input focus)
-
-🔒 TEXT CONTAINMENT & OVERFLOW PREVENTION (CRITICAL):
-═══════════════════════════════════════════════════════════════════════════
-MANDATORY CSS - Include these rules in your <style> tag to prevent text overflow:
-
+**Text containment:**
+\`\`\`css
 * {
   box-sizing: border-box;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
+\`\`\`
 
-/* Prevent text from escaping containers */
-h1, h2, h3, h4, h5, h6, p, div, span, button, label {
-  max-width: 100%;
-  overflow: hidden;
-}
+# BUTTON EVENT LISTENERS (CRITICAL)
 
-/* ═══════════════════════════════════════════════════════════════
-   RESULTS/SCORING SCREEN - GLOBAL UX/UI FIX (CRITICAL)
-   ═══════════════════════════════════════════════════════════════ */
+Every button must have an event listener wrapped in DOMContentLoaded:
 
-/* Main results container - ALWAYS fills screen properly */
-.results-screen, .score-screen, #resultsScreen, #scoreScreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  padding: 20px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  background: ${backgroundColor || '#F5EDD3'};
-  box-sizing: border-box;
-  gap: 16px;
-}
-
-/* Avatar positioning on results - ABOVE score */
-.results-screen .game-avatar, 
-.score-screen .game-avatar,
-#resultsScreen .game-avatar,
-#scoreScreen .game-avatar {
-  order: 1;
-  flex-shrink: 0;
-  margin: 10px auto;
-  background: transparent !important;
-}
-
-/* Game title on results */
-.results-screen h1, .score-screen h1,
-#resultsScreen h1, #scoreScreen h1 {
-  order: 2;
-  font-size: clamp(22px, 5vw, 40px);
-  margin: 12px 0;
-  text-align: center;
-  white-space: normal;
-  max-width: 90%;
-  line-height: 1.2;
-}
-
-/* Score display - LARGE and clear */
-.results-screen .score-display, 
-.score-screen .score-display,
-#resultsScreen .score-display,
-#scoreScreen .score-display,
-.score-text, .percentage {
-  order: 3;
-  font-size: clamp(40px, 10vw, 72px);
-  font-weight: bold;
-  margin: 16px 0;
-  line-height: 1;
-  text-align: center;
-}
-
-/* Proficiency badge/level */
-.results-screen .badge, 
-.score-screen .badge,
-#resultsScreen .badge,
-#scoreScreen .badge,
-.badge, .status, .proficiency, .level-badge {
-  order: 4;
-  font-size: clamp(18px, 4.5vw, 32px);
-  padding: 12px 24px;
-  border-radius: 12px;
-  white-space: normal;
-  max-width: 85%;
-  text-align: center;
-  line-height: 1.3;
-  margin: 8px 0;
-}
-
-/* Metrics breakdown section */
-.results-screen .metrics, 
-.score-screen .metrics,
-#resultsScreen .metrics,
-#scoreScreen .metrics,
-.metrics-container {
-  order: 5;
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 12px 0;
-}
-
-/* Individual metric items */
-.results-screen p, .score-screen p,
-#resultsScreen p, #scoreScreen p,
-.metric-item {
-  font-size: clamp(14px, 3.5vw, 18px);
-  margin: 4px 0;
-  text-align: center;
-  max-width: 100%;
-  line-height: 1.4;
-  word-wrap: break-word;
-}
-
-/* Action buttons on results */
-.results-screen button, 
-.score-screen button,
-#resultsScreen button,
-#scoreScreen button {
-  order: 6;
-  margin: 8px 0;
-  width: 90%;
-  max-width: 300px;
-}
-
-/* Button text wrapping - CRITICAL for long labels */
-button {
-  white-space: normal !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
-  text-overflow: clip !important;
-  overflow: visible !important;
-  min-height: 44px;
-  padding: 12px 20px;
-  line-height: 1.3;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-/* Ensure option buttons wrap text */
-.option, .choice-btn, .answer-btn, [class*="option"], [class*="choice"] {
-  white-space: normal !important;
-  word-wrap: break-word !important;
-  height: auto !important;
-  min-height: 44px;
-  padding: 12px 16px;
-}
-
-🖱️ TOUCH-OPTIMIZED INTERACTIONS:
-- All buttons must work with touch events
-- Use cursor: pointer on all interactive elements
-- Add active states: button:active { transform: scale(0.95); }
-- Drag-and-drop: implement both mouse and touch event handlers
-- No hover-only interactions (touch devices don't have hover)
-
-✅ BUTTON IMPLEMENTATION - CRITICAL REQUIREMENTS (ALL BUTTONS MUST WORK):
-═══════════════════════════════════════════════════════════════════════════
-
-🚨 MANDATORY: ALL buttons in the game MUST follow these implementation rules:
-
-1️⃣ WRAP ALL EVENT LISTENERS IN DOMContentLoaded:
-ALL JavaScript that adds event listeners to buttons MUST be wrapped in:
-document.addEventListener('DOMContentLoaded', function() { ... });
-
-2️⃣ CONSOLE LOG ALL BUTTON CLICKS:
-Every button click handler MUST include console.log() for debugging:
-console.log('Button [name] clicked - [action description]');
-
-3️⃣ VERIFY ELEMENTS EXIST BEFORE ADDING LISTENERS:
-Always check if elements exist before adding event listeners:
-if (button && targetElement) { ... } else { console.error('Elements not found:', { ... }); }
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📋 EXAMPLE 1: START BUTTON (Game Introduction → Phase 1)
-
-HTML:
-<button id="startBtn" class="game-button">START GAME</button>
-
-CSS:
-.game-button {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 400px;
-  height: 60px;
-  font-size: 20px;
-  background: ${primaryColor};
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 100;
-  font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.game-button:active {
-  transform: translateX(-50%) scale(0.98);
-}
-
-JAVASCRIPT:
-<script>
+\`\`\`javascript
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded - initializing START button');
-  
   const startBtn = document.getElementById('startBtn');
   const introScreen = document.getElementById('introScreen');
-  const phase1Screen = document.getElementById('phase1Screen');
+  const gameScreen = document.getElementById('gameScreen');
   
-  if (startBtn && introScreen && phase1Screen) {
+  if (startBtn && introScreen && gameScreen) {
     startBtn.addEventListener('click', function() {
-      console.log('START clicked - transitioning from intro to phase 1');
+      console.log('START clicked - transitioning to game');
       introScreen.style.display = 'none';
-      phase1Screen.style.display = 'flex';
-      startTimer(); // Start game timer
-    });
-  } else {
-    console.error('START button elements not found:', {
-      startBtn: !!startBtn,
-      introScreen: !!introScreen,
-      phase1Screen: !!phase1Screen
+      gameScreen.style.display = 'flex';
+      startTimer();
     });
   }
 });
-</script>
+\`\`\`
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SELF-LINT CHECKLIST
 
-📋 EXAMPLE 2: NEXT PHASE BUTTONS (Phase 1 → Phase 2 → Phase 3 → Phase 4)
+Before returning HTML, verify:
+- ✅ Action verb ∈ safelist (Select, Identify, Match, Classify, Order, Allocate, Flag, Route)
+- ✅ No free-text or contentEditable present
+- ✅ \`__GOLD_KEY__\` exists for every decision node
+- ✅ \`__CONFIG__\` embedded with correct values
+- ✅ Intro scrollable; Gameplay no-scroll; Results visible at all breakpoints
+- ✅ Telegram hooks present
+- ✅ \`__RESULT__\` and Results screen exist
+- ✅ All buttons have DOMContentLoaded event listeners
+- ✅ All buttons have console.log() statements
+- ✅ Viewport meta tag present
+- ✅ Brand colors used throughout (no hard-coded colors)
 
-HTML:
-<button id="phase1NextBtn" class="game-button">OPTIMIZE & NEXT PHASE</button>
-<button id="phase2NextBtn" class="game-button">CONTINUE TO PHASE 3</button>
-<button id="phase3NextBtn" class="game-button">FINALIZE & SUBMIT</button>
+${playOpsInstructions}
 
-JAVASCRIPT:
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded - initializing NEXT PHASE buttons');
-  
-  // Phase 1 → Phase 2
-  const phase1NextBtn = document.getElementById('phase1NextBtn');
-  const phase1Screen = document.getElementById('phase1Screen');
-  const phase2Screen = document.getElementById('phase2Screen');
-  
-  if (phase1NextBtn && phase1Screen && phase2Screen) {
-    phase1NextBtn.addEventListener('click', function() {
-      console.log('NEXT clicked - Phase 1 → Phase 2');
-      phase1Screen.style.display = 'none';
-      phase2Screen.style.display = 'flex';
-    });
-  }
-  
-  // Phase 2 → Phase 3
-  const phase2NextBtn = document.getElementById('phase2NextBtn');
-  const phase3Screen = document.getElementById('phase3Screen');
-  
-  if (phase2NextBtn && phase2Screen && phase3Screen) {
-    phase2NextBtn.addEventListener('click', function() {
-      console.log('NEXT clicked - Phase 2 → Phase 3');
-      phase2Screen.style.display = 'none';
-      phase3Screen.style.display = 'flex';
-    });
-  }
-  
-  // Phase 3 → Phase 4 (Results)
-  const phase3NextBtn = document.getElementById('phase3NextBtn');
-  const phase4Screen = document.getElementById('phase4Screen');
-  
-  if (phase3NextBtn && phase3Screen && phase4Screen) {
-    phase3NextBtn.addEventListener('click', function() {
-      console.log('SUBMIT clicked - Phase 3 → Phase 4 (Results)');
-      phase3Screen.style.display = 'none';
-      phase4Screen.style.display = 'flex';
-      calculateFinalScore(); // Calculate results
-    });
-  }
-});
-</script>
+# OUTPUT FORMAT
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ CRITICAL REMINDERS:
-• EVERY button must have a unique ID
-• EVERY button must have an event listener wrapped in DOMContentLoaded
-• EVERY button click must console.log() what it's doing
-• EVERY screen/phase must have a unique ID
-• Test button clicks by checking console logs
-• Use display: 'none' and display: 'flex' to show/hide screens
-
-🚨 COMMON MOBILE ISSUES TO AVOID:
-❌ Missing viewport meta tag → causes desktop rendering on mobile
-❌ Fixed pixel widths → causes horizontal scroll
-❌ JavaScript executing before DOM ready → buttons don't work
-❌ Hover-only interactions → don't work on touch devices
-❌ Small touch targets (<44px) → hard to tap accurately
-❌ Desktop-first layouts → poor mobile experience
-❌ Missing DOMContentLoaded wrapper → buttons not clickable
-❌ No console.log() statements → impossible to debug
-
-✅ MOBILE TESTING CHECKLIST:
-Before returning the HTML, mentally verify:
-□ Viewport meta tag is present in <head>
-□ All widths use % or vw, not fixed px
-□ ALL buttons (START, NEXT, SUBMIT, etc.) have DOMContentLoaded wrapper
-□ ALL button clicks have console.log() statements
-□ All interactive elements have cursor: pointer
-□ Touch targets are minimum 44px
-□ No horizontal scrolling possible
-□ Game fits in 375px x 667px viewport (iPhone SE)
-□ All phase screens have unique IDs
-□ All phase transitions work (display: none / flex)
-
-OUTPUT FORMAT:
 Return ONLY the HTML code, nothing else. No markdown, no explanations, just pure HTML.
-The HTML must start with <!DOCTYPE html> and include the viewport meta tag.`;
+The HTML must start with <!DOCTYPE html> and include the viewport meta tag as the first tag in <head>.`;
 
     const userPrompt = `Create a game based on this template:
 ${templatePrompt}
