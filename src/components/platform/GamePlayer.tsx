@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Play, Timer, CheckCircle2 } from 'lucide-react';
+import { BudgetAllocationGame } from './BudgetAllocationGame';
 
 interface GamePlayerProps {
   sessionId: string;
@@ -117,52 +118,14 @@ export function GamePlayer({
   }
 
   if (gameState === 'playing') {
-    const progress = ((runtime.time_limit_s - timeLeft) / runtime.time_limit_s) * 100;
-    
     return (
-      <div className="min-h-screen bg-background p-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Timer and Progress */}
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">Time Remaining</span>
-              <span className="text-2xl font-bold font-mono">{formatTime(timeLeft)}</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </Card>
-
-          {/* Game Content */}
-          <Card className="p-8">
-            <div className="text-center space-y-6">
-              <h2 className="text-2xl font-bold">Game In Progress</h2>
-              <p className="text-muted-foreground">
-                The actual game interface for {templateName} will be integrated here.
-              </p>
-              
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6">
-                <p className="text-sm text-yellow-500">
-                  <strong>Development Note:</strong> This is where the game scenarios, questions, 
-                  or interactive challenges will appear based on the template's configuration.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Session: {sessionId}</p>
-                <p className="text-sm text-muted-foreground">
-                  {runtime.mode === 'training' ? 'Practice' : 'Validation'} Mode
-                </p>
-              </div>
-
-              <Button
-                onClick={() => setGameState('finished')}
-                variant="outline"
-              >
-                End Game (Dev)
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </div>
+      <BudgetAllocationGame
+        timeLimit={runtime.time_limit_s}
+        onComplete={(finalScore, metrics) => {
+          setScore(finalScore);
+          setGameState('finished');
+        }}
+      />
     );
   }
 
