@@ -20,3 +20,9 @@ verify_jwt = true
 
 [functions.validate-answers]
 verify_jwt = true
+
+[functions.publish-template]
+verify_jwt = true
+
+[functions.session-manager]
+verify_jwt = true

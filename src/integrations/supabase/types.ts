@@ -48,16 +48,20 @@ export type Database = {
           created_at: string | null
           custom_config: Json | null
           customization_prompt: string | null
+          font_family: string | null
           generated_game_html: string | null
+          highlight_color: string | null
           id: string
           live_end_date: string | null
           live_start_date: string | null
           logo_url: string | null
+          mascot_animation_type: string | null
           particle_effect: string | null
           primary_color: string | null
           published_at: string | null
           secondary_color: string | null
           template_id: string | null
+          text_color: string | null
           unique_code: string | null
           updated_at: string | null
           visibility: Database["public"]["Enums"]["game_visibility"]
@@ -71,16 +75,20 @@ export type Database = {
           created_at?: string | null
           custom_config?: Json | null
           customization_prompt?: string | null
+          font_family?: string | null
           generated_game_html?: string | null
+          highlight_color?: string | null
           id?: string
           live_end_date?: string | null
           live_start_date?: string | null
           logo_url?: string | null
+          mascot_animation_type?: string | null
           particle_effect?: string | null
           primary_color?: string | null
           published_at?: string | null
           secondary_color?: string | null
           template_id?: string | null
+          text_color?: string | null
           unique_code?: string | null
           updated_at?: string | null
           visibility?: Database["public"]["Enums"]["game_visibility"]
@@ -94,16 +102,20 @@ export type Database = {
           created_at?: string | null
           custom_config?: Json | null
           customization_prompt?: string | null
+          font_family?: string | null
           generated_game_html?: string | null
+          highlight_color?: string | null
           id?: string
           live_end_date?: string | null
           live_start_date?: string | null
           logo_url?: string | null
+          mascot_animation_type?: string | null
           particle_effect?: string | null
           primary_color?: string | null
           published_at?: string | null
           secondary_color?: string | null
           template_id?: string | null
+          text_color?: string | null
           unique_code?: string | null
           updated_at?: string | null
           visibility?: Database["public"]["Enums"]["game_visibility"]
@@ -299,6 +311,38 @@ export type Database = {
           },
         ]
       }
+      learning_events: {
+        Row: {
+          event_type: string
+          id: string
+          payload: Json | null
+          session_id: string
+          ts: string
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          payload?: Json | null
+          session_id: string
+          ts?: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          session_id?: string
+          ts?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       master_competencies: {
         Row: {
           cbe_category: string
@@ -411,6 +455,94 @@ export type Database = {
           wallet_address?: string | null
         }
         Relationships: []
+      }
+      proof_ledger: {
+        Row: {
+          chain_tx_id: string | null
+          id: string
+          proof_receipt_json: Json
+          session_id: string
+          ts: string
+          xp_awarded: number
+        }
+        Insert: {
+          chain_tx_id?: string | null
+          id?: string
+          proof_receipt_json: Json
+          session_id: string
+          ts?: string
+          xp_awarded: number
+        }
+        Update: {
+          chain_tx_id?: string | null
+          id?: string
+          proof_receipt_json?: Json
+          session_id?: string
+          ts?: string
+          xp_awarded?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proof_ledger_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          accuracy: number | null
+          edge_score: number | null
+          finished_at: string | null
+          id: string
+          level: number | null
+          metrics: Json | null
+          mode: string
+          passed: boolean | null
+          runtime_id: string
+          started_at: string
+          time_s: number | null
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          edge_score?: number | null
+          finished_at?: string | null
+          id?: string
+          level?: number | null
+          metrics?: Json | null
+          mode: string
+          passed?: boolean | null
+          runtime_id: string
+          started_at?: string
+          time_s?: number | null
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          edge_score?: number | null
+          finished_at?: string | null
+          id?: string
+          level?: number | null
+          metrics?: Json | null
+          mode?: string
+          passed?: boolean | null
+          runtime_id?: string
+          started_at?: string
+          time_s?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_runtime_id_fkey"
+            columns: ["runtime_id"]
+            isOneToOne: false
+            referencedRelation: "validators_runtime"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sub_competencies: {
         Row: {
@@ -649,6 +781,65 @@ export type Database = {
           },
           {
             foreignKeyName: "validator_test_results_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "game_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      validators_runtime: {
+        Row: {
+          accuracy_threshold: number | null
+          attempts: string
+          created_at: string
+          edge_threshold: number | null
+          feedback_mode: string
+          id: string
+          mode: string
+          proof_log: boolean
+          randomize: boolean
+          seed: string | null
+          sessions_required: number | null
+          template_id: string
+          time_limit_s: number | null
+          ui_theme: Json | null
+        }
+        Insert: {
+          accuracy_threshold?: number | null
+          attempts?: string
+          created_at?: string
+          edge_threshold?: number | null
+          feedback_mode: string
+          id?: string
+          mode: string
+          proof_log?: boolean
+          randomize?: boolean
+          seed?: string | null
+          sessions_required?: number | null
+          template_id: string
+          time_limit_s?: number | null
+          ui_theme?: Json | null
+        }
+        Update: {
+          accuracy_threshold?: number | null
+          attempts?: string
+          created_at?: string
+          edge_threshold?: number | null
+          feedback_mode?: string
+          id?: string
+          mode?: string
+          proof_log?: boolean
+          randomize?: boolean
+          seed?: string | null
+          sessions_required?: number | null
+          template_id?: string
+          time_limit_s?: number | null
+          ui_theme?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validators_runtime_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "game_templates"
