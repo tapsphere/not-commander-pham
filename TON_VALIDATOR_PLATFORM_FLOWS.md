@@ -1,5 +1,9 @@
 # Platform Flows or User Flows Doc
-# (v3.0 — October 2025, Lovable + C-BEN Hybrid)
+# TON VALIDATOR PLATFORM — USER FLOWS & TECHNICAL ARCHITECTURE (v3.1)
+
+Last Updated: October 2025
+
+Status: Production-Ready — Lovable, Telegram, and C-BEN Compliant
 
 ## 🧭 PLAYER FLOW
 
@@ -34,6 +38,25 @@
 - START GAME button (sticky, visible, non-auto-start)
 
 #### 2.2 Gameplay
+
+**Brand Loading Screen:**
+- Brand logo appears (≤ 300×300 px) for ≈ 2.5 seconds
+- Pulse animation effect (scale 1 → 1.05 → 1)
+- Backdrop blur with brand colors
+- Fade out transition before intro screen
+
+**Telegram Integration:**
+- Auto-runs Telegram hooks:
+
+```javascript
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+}
+```
+
+**Game Structure:**
 - Mobile-first, no-scroll gameplay (Scene 1+)
 - Interaction types: drag-and-drop, tap, match, swipe — never free text
 - One edge-case disruption (Early / Mid / Late)
@@ -41,7 +64,17 @@
 - **Training Mode:** randomized inputs, unlimited retries, feedback visible, no XP saved
 - **Testing Mode:** fixed seed, one attempt, no mid-game feedback, XP + proof recorded
 
-#### 2.3 Results & Scoring (C-BEN → PlayOps Hybrid v3.0)
+**Avatar/Mascot System:**
+- Intro: center (200–250 px)
+- Gameplay: top-right corner (80–120 px)
+- Results: center again (150–200 px)
+- Animation types: Static PNG, Animated GIF, Lottie JSON, or Sprite sheet
+
+**Particle Effects:**
+- Confetti / stars / sparkles / bubbles / fireworks / none
+- Triggers on correct answers, level completion, mastery achievement
+
+#### 2.3 Results & Scoring (C-BEN → PlayOps Hybrid v3.1)
 
 **Deterministic 3-level model:**
 
@@ -87,6 +120,7 @@ window.__PROOF__ = {
 - Time (s)
 - Edge status
 - XP earned
+- Avatar/mascot celebration animation
 
 **Important Notes:**
 - Training runs do **not** emit proof receipts
@@ -118,7 +152,7 @@ window.__PROOF__ = {
 
 ---
 
-## 🧩 CREATOR FLOW
+## 🎨 CREATOR FLOW
 
 ### 1. Access & Dashboard
 - Creator logs in (email/password)
@@ -129,15 +163,30 @@ window.__PROOF__ = {
 - Header access → Test Validators dashboard
 - **Profile Settings:** default design palette (colors, fonts, mascot, particles)
 
-### 2. Template Creation
+### 2. Brand Customization (Extended v3.1)
 
-#### 2.1 Choose Template Type
+Supported fields:
+
+| Variable                          | Function                                  |
+|-----------------------------------|-------------------------------------------|
+| primary_color / secondary_color   | Core brand palette                        |
+| accent_color                      | Highlight for selections & warnings       |
+| highlight_color                   | Borders, focus states                     |
+| background_color                  | Main canvas background                    |
+| font_family                       | Typography (Google Fonts or system stack) |
+| logo_url                          | Brand logo (≤ 300×300 px)                 |
+| avatar_url                        | Mascot/character image                    |
+| particle_effect                   | confetti / stars / sparkles / none        |
+
+### 3. Template Creation
+
+#### 3.1 Choose Template Type
 - Click **New Template**
 - Select:
   - **AI-Generated Template** – use Lovable AI prompt
   - **Custom Upload** – upload external HTML5 game
 
-#### 2.2 AI-Generated Template Path
+#### 3.2 AI-Generated Template Path
 - Choose C-BEN competency → one sub-competency
 - Provide:
   - Name, description, scenario prompt
@@ -150,12 +199,54 @@ window.__PROOF__ = {
 
 **(System enforces: no text inputs, one sub-competency, black-and-white scoring, Telegram compliance, proof output.)**
 
-#### 2.3 Custom Upload Path
+#### 3.3 Custom Upload Path
 - Upload pre-built HTML game
 - Specify competency tested
 - Add metadata (preview image, logo, brand colors)
 
-### 3. Validator Testing (AI Auto-Validation)
+### 4. Embedded Configuration Objects
+
+When AI generates the HTML game, it auto-embeds configuration objects:
+
+```javascript
+window.__CONFIG__ = { 
+  duration: 180, 
+  competency: "Analytical Thinking",
+  thresholds: {a1:0.85, a2:0.90, a3:0.95}, 
+  xp: {1:100, 2:250, 3:500} 
+};
+window.__GOLD_KEY__ = { 
+  sequence: ["A","B","C"], 
+  edge_case: "B" 
+};
+window.__EDGE__ = { 
+  triggered: true, 
+  recovered: true, 
+  score: 0.82 
+};
+window.__RESULT__ = { 
+  accuracy: 0.92, 
+  time_s: 168, 
+  edge_score: 0.83, 
+  level: 2 
+};
+window.__PROOF__ = { 
+  proof_id, 
+  competency, 
+  sub_competency,
+  metrics: {accuracy, time_s, edge_score}, 
+  timestamp: new Date().toISOString() 
+};
+```
+
+These ensure consistent scoring, telemetry, and proof receipts across all validators.
+
+### 5. Preview Mode
+- Generate HTML without saving to database
+- Test gameplay, edge cases, scoring logic
+- Iterate before publishing
+
+### 6. Validator Testing (AI Auto-Validation)
 
 **Before publishing, the system auto-tests:**
 - ✅ START button visible and clickable
@@ -170,6 +261,29 @@ window.__PROOF__ = {
 
 - **Passed** → "Approve for Publish" unlocks
 - **Failed** → Creator fixes & re-tests
+
+### 7. Self-Validation Checklist
+
+Before publishing, creators verify:
+
+- [ ] Action verbs in all buttons ("Choose", "Drag", "Sort")
+- [ ] No free-text validation anywhere
+- [ ] All buttons have DOMContentLoaded event listeners
+- [ ] `console.log` for every major action (START, submit, edge trigger)
+- [ ] Sticky button at intro (`position: sticky; bottom: 1rem; z-index: 30`)
+- [ ] No scrolling during gameplay scenes (Scene 1+)
+- [ ] Timer visible at top during gameplay
+- [ ] Touch targets ≥ 44 px
+- [ ] Telegram hooks initialized before game
+- [ ] `window.__RESULT__` and `window.__PROOF__` emitted on results screen
+- [ ] Brand logo shows for 2.5s before intro
+- [ ] Avatar/mascot positioned correctly (intro/gameplay/results)
+- [ ] Particle effects trigger on correct answers (if enabled)
+
+### 8. Publish & Deploy
+- Once validated, template goes live in marketplace
+- Brands can clone and customize further
+- Creator earns royalty % when brands use their template
 
 ---
 
@@ -238,7 +352,7 @@ window.__PROOF__ = {
 - Merkle root of proof receipts
 - **Contract:** `submitProof(playerWallet, competencyId, proofData)`
 
-### OFF-CHAIN COMPONENTS (Supabase)
+### OFF-CHAIN COMPONENTS (Lovable Cloud)
 
 **Game Logic & State:**
 - HTML / JS validators
@@ -247,7 +361,7 @@ window.__PROOF__ = {
 - email, settings, preferences
 
 **Brand Customization:**
-- prompts, logos, colors
+- prompts, logos, colors, avatars, particle effects
 
 **Analytics & Telemetry:**
 - click tracking, accuracy, time, edge events
@@ -272,6 +386,19 @@ Off-Chain → Verification → On-Chain
 
 ---
 
+## 📱 MOBILE-FIRST TECHNICAL REQUIREMENTS
+
+- **Minimum touch targets:** ≥ 44 px
+- **Minimum font size:** 16 px (prevents zoom on iOS)
+- **Viewport meta tag:** `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">`
+- **Event listeners:** All buttons have listeners added after DOMContentLoaded
+- **Scrollable areas:** `overflow-y: auto; max-height: 600px; -webkit-overflow-scrolling: touch`
+- **Touch optimization:** `touch-action: manipulation; -webkit-tap-highlight-color: transparent`
+- **Active states:** scale-98 + opacity-80 on press
+- **Responsive design:** ≥ 375 px width minimum
+
+---
+
 ## 🧩 SCORING & PROOF FLOW (Summary)
 
 1. Player finishes validator → `window.__RESULT__` created
@@ -284,3 +411,11 @@ Off-Chain → Verification → On-Chain
 ## 🧠 PLATFORM MISSION
 
 **Democratize competency validation through gamified, verifiable micro-proofs** — empowering Gen Z to prove skills, creators to build validators, and brands to hire with confidence.
+
+---
+
+✅ **This v3.1 doc is fully synchronized with:**
+- BASE LAYER 1 (v3.1)
+- AI Generation Prompt (v3.1)
+- C-BEN PlayOps Framework
+- Telegram Mini-App Guidelines
