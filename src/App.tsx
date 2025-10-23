@@ -25,6 +25,7 @@ import ValidatorDemo from "./pages/ValidatorDemo";
 import BreathBalance from "./pages/BreathBalance";
 import ValidatorTest from "./pages/platform/ValidatorTest";
 import TestingGuide from "./pages/platform/TestingGuide";
+import PlayValidator from "./pages/platform/PlayValidator";
 
 const queryClient = new QueryClient();
 
@@ -47,15 +48,16 @@ const App = () => (
           {/* Platform Routes (Creators & Brands) */}
           <Route path="/auth" element={<Auth />} />
           <Route path="/platform" element={<PlatformLayout />}>
-            <Route path="creator" element={<CreatorDashboard />} />
-            <Route path="brand" element={<BrandDashboard />} />
-            <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
-            <Route path="marketplace" element={<Marketplace />} />
-            <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
-            <Route path="template/:templateId" element={<TemplateDetail />} />
-            <Route path="validator-test" element={<ValidatorTest />} />
-            <Route path="testing-guide" element={<TestingGuide />} />
-          </Route>
+          <Route path="creator" element={<CreatorDashboard />} />
+          <Route path="brand" element={<BrandDashboard />} />
+          <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
+          <Route path="marketplace" element={<Marketplace />} />
+          <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
+          <Route path="template/:templateId" element={<TemplateDetail />} />
+          <Route path="validator-test" element={<ValidatorTest />} />
+          <Route path="testing-guide" element={<TestingGuide />} />
+          <Route path="play/:templateId" element={<PlayValidator />} />
+        </Route>
           
           {/* Public Brand Profile */}
           <Route path="/brand/:brandId" element={<BrandProfile />} />

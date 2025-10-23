@@ -383,13 +383,26 @@ export default function CreatorDashboard() {
         }
       }
 
-      const { error } = await supabase
-        .from('game_templates')
-        .update({ is_published: !currentStatus })
-        .eq('id', id);
+      if (currentStatus) {
+        // Unpublishing - just update the status
+        const { error } = await supabase
+          .from('game_templates')
+          .update({ is_published: false })
+          .eq('id', id);
 
-      if (error) throw error;
-      toast.success(currentStatus ? 'Unpublished' : 'Published to marketplace');
+        if (error) throw error;
+        toast.success('Unpublished from marketplace');
+      } else {
+        // Publishing - call edge function to create training/testing modes
+        const { data, error } = await supabase.functions.invoke('publish-template', {
+          body: { template_id: id }
+        });
+
+        if (error) throw error;
+        
+        toast.success(`Published! Created ${data?.runtimes?.length || 2} game modes (Training + Testing)`);
+      }
+      
       loadTemplates();
     } catch (error: any) {
       toast.error('Failed to update template');

@@ -206,38 +206,50 @@ export default function TemplateDetail() {
             </div>
           )}
 
-          {/* CTA Button */}
-          {!isLoggedIn ? (
-            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
-              <p className="text-yellow-300 text-sm mb-3 text-center">
-                Sign in as a Brand to customize
-              </p>
-              <Button
-                onClick={() => navigate('/auth')}
-                className="w-full bg-neon-green text-black hover:bg-neon-green/90 font-semibold"
-              >
-                Sign In
-              </Button>
-            </div>
-          ) : !isBrand ? (
-            <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
-              <p className="text-yellow-300 text-sm text-center">
-                Only Brand accounts can customize templates
-              </p>
-            </div>
-          ) : (
+          {/* CTA Buttons */}
+          <div className="space-y-3">
+            {/* Play Button - Available to Everyone */}
             <Button
-              onClick={() => setCustomizeDialogOpen(true)}
-              className="w-full gap-2 text-base md:text-lg py-6 font-bold shadow-lg shadow-neon-green/50"
-              style={{
-                backgroundColor: 'hsl(var(--neon-green))',
-                color: 'black',
-              }}
+              onClick={() => navigate(`/platform/play/${template.id}`)}
+              size="lg"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
             >
-              <Palette className="h-5 w-5" />
-              Customize with Your Brand
+              ▶ Play Now
             </Button>
-          )}
+
+            {/* Customize Button - Brand Only */}
+            {!isLoggedIn ? (
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                <p className="text-yellow-300 text-sm mb-3 text-center">
+                  Sign in as a Brand to customize
+                </p>
+                <Button
+                  onClick={() => navigate('/auth')}
+                  className="w-full bg-neon-green text-black hover:bg-neon-green/90 font-semibold"
+                >
+                  Sign In
+                </Button>
+              </div>
+            ) : !isBrand ? (
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
+                <p className="text-yellow-300 text-sm text-center">
+                  Only Brand accounts can customize templates
+                </p>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setCustomizeDialogOpen(true)}
+                className="w-full gap-2 text-base md:text-lg py-6 font-bold shadow-lg shadow-neon-green/50"
+                style={{
+                  backgroundColor: 'hsl(var(--neon-green))',
+                  color: 'black',
+                }}
+              >
+                <Palette className="h-5 w-5" />
+                Customize with Your Brand
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Fixed Bottom Prompt Panel - Flow TV Style */}
