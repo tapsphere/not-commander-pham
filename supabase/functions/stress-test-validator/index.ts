@@ -522,10 +522,26 @@ function isAnswerMatch(userAnswer: string, acceptableAnswer: string): { isMatch:
     return { isMatch: true, reason: `${Math.round(overlapPercentage)}% word overlap` };
   }
 
-  // MODERATE: 70-79% with semantic check
+  // Check semantic similarity BEFORE checking word overlap percentage
+  const semanticMatch = checkSemanticSimilarity(userWords, acceptableWords);
+
+  // MODERATE: 70%+ with semantic check
   if (overlapPercentage >= 70) {
-    if (checkSemanticSimilarity(userWords, acceptableWords)) {
+    if (semanticMatch) {
       return { isMatch: true, reason: `Semantic match: ${Math.round(overlapPercentage)}%` };
+    }
+  }
+
+  // SEMANTIC-ONLY MATCH: Check if semantic similarity is strong enough on its own
+  if (semanticMatch) {
+    const synonymMatchCount = countSemanticMatches(userWords, acceptableWords);
+    
+    // Calculate "effective match score" = exact matches + synonym matches
+    const effectiveMatches = commonWords + synonymMatchCount;
+    const effectivePercentage = (effectiveMatches / acceptableWords.length) * 100;
+    
+    if (effectivePercentage >= 60) {
+      return { isMatch: true, reason: `Strong match (${commonWords} exact + ${synonymMatchCount} semantic = ${Math.round(effectivePercentage)}%)` };
     }
   }
 
@@ -539,17 +555,7 @@ function isAnswerMatch(userAnswer: string, acceptableAnswer: string): { isMatch:
  * MUST match logic in validate-answers function exactly
  */
 function checkSemanticSimilarity(userWords: string[], acceptableWords: string[]): boolean {
-  const synonymGroups = [
-    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow', 'elevate'],
-    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen', 'diminish'],
-    ['customer', 'client', 'user', 'consumer', 'patron'],
-    ['satisfaction', 'happiness', 'contentment', 'fulfillment'],
-    ['revenue', 'income', 'earnings', 'sales', 'proceeds'],
-    ['cost', 'expense', 'expenditure', 'spending'],
-    ['efficiency', 'productivity', 'performance', 'effectiveness'],
-    ['quality', 'excellence', 'standard', 'grade'],
-    ['retention', 'loyalty', 'keeping', 'maintaining'],
-  ];
+  const synonymGroups = getSynonymGroups();
 
   for (const group of synonymGroups) {
     const userHasConcept = userWords.some(word => group.includes(word));
@@ -561,4 +567,42 @@ function checkSemanticSimilarity(userWords: string[], acceptableWords: string[])
   }
 
   return false;
+}
+
+/**
+ * Count Semantic Matches
+ * Returns the number of synonym group matches between user and acceptable answers
+ */
+function countSemanticMatches(userWords: string[], acceptableWords: string[]): number {
+  const synonymGroups = getSynonymGroups();
+  let matchCount = 0;
+
+  for (const group of synonymGroups) {
+    const userHasConcept = userWords.some(word => group.includes(word));
+    const acceptableHasConcept = acceptableWords.some(word => group.includes(word));
+    
+    if (userHasConcept && acceptableHasConcept) {
+      matchCount++;
+    }
+  }
+
+  return matchCount;
+}
+
+/**
+ * Get Synonym Groups
+ * Returns common business concept synonym groups for semantic matching
+ */
+function getSynonymGroups(): string[][] {
+  return [
+    ['increase', 'improve', 'enhance', 'boost', 'raise', 'grow', 'elevate'],
+    ['decrease', 'reduce', 'lower', 'minimize', 'cut', 'lessen', 'diminish'],
+    ['customer', 'client', 'user', 'consumer', 'patron'],
+    ['satisfaction', 'happiness', 'contentment', 'fulfillment'],
+    ['revenue', 'income', 'earnings', 'sales', 'proceeds'],
+    ['cost', 'expense', 'expenditure', 'spending'],
+    ['efficiency', 'productivity', 'performance', 'effectiveness'],
+    ['quality', 'excellence', 'standard', 'grade'],
+    ['retention', 'loyalty', 'keeping', 'maintaining'],
+  ];
 }
