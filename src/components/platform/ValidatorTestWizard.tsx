@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +47,19 @@ export function ValidatorTestWizard({
   const [phase1, setPhase1] = useState<PhaseData>({ status: 'not_started', notes: '' });
   const [phase2, setPhase2] = useState<PhaseData>({ status: 'not_started', notes: '' });
   const [phase3, setPhase3] = useState<PhaseData>({ status: 'not_started', notes: '' });
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      setCurrentPhase(0);
+      setTestComplete(false);
+      setPhase1({ status: 'not_started', notes: '' });
+      setPhase2({ status: 'not_started', notes: '' });
+      setPhase3({ status: 'not_started', notes: '' });
+      setSaving(false);
+      setTesting(false);
+    }
+  }, [open]);
 
   const phases = [
     {
