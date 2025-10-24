@@ -135,25 +135,24 @@ serve(async (req) => {
       tester_id: testerId,
       template_type: template.template_type,
       sub_competency_id: subCompetencyId,
-      phase1_status: check1.status,
-      phase1_notes: `${check1.name}: ${check1.notes}`,
-      phase2_status: check2.status,
-      phase2_notes: `${check2.name}: ${check2.notes}`,
-      phase3_status: check3.status,
-      phase3_notes: `${check3.name}: ${check3.notes}`,
-      phase3_test_runs: {
-        v3_1_checks: results.map(r => ({
-          checkNumber: r.checkNumber,
-          name: r.name,
-          status: r.status,
-          notes: r.notes,
-          details: r.details
-        }))
-      },
+      v3_1_check_results: results.map(r => ({
+        checkNumber: r.checkNumber,
+        name: r.name,
+        status: r.status,
+        notes: r.notes,
+        details: r.details
+      })),
       overall_status: overallStatus,
       approved_for_publish: overallStatus === 'passed',
       tested_at: new Date().toISOString(),
       test_version: 'v3.1',
+      // Keep legacy columns for backward compatibility (map to first 3 checks)
+      phase1_status: results[0]?.status || 'not_started',
+      phase1_notes: results[0] ? `${results[0].name}: ${results[0].notes}` : '',
+      phase2_status: results[1]?.status || 'not_started',
+      phase2_notes: results[1] ? `${results[1].name}: ${results[1].notes}` : '',
+      phase3_status: results[2]?.status || 'not_started',
+      phase3_notes: results[2] ? `${results[2].name}: ${results[2].notes}` : '',
     };
 
     if (existingTest) {

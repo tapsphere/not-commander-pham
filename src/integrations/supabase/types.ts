@@ -722,6 +722,7 @@ export type Database = {
           tested_at: string | null
           tester_id: string
           updated_at: string | null
+          v3_1_check_results: Json | null
         }
         Insert: {
           approved_at?: string | null
@@ -746,6 +747,7 @@ export type Database = {
           tested_at?: string | null
           tester_id: string
           updated_at?: string | null
+          v3_1_check_results?: Json | null
         }
         Update: {
           approved_at?: string | null
@@ -770,6 +772,7 @@ export type Database = {
           tested_at?: string | null
           tester_id?: string
           updated_at?: string | null
+          v3_1_check_results?: Json | null
         }
         Relationships: [
           {
