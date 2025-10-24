@@ -6,255 +6,233 @@ const TestingGuide = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
-          className="mb-6 text-gray-400 hover:text-white"
+          className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
 
-        <div className="prose prose-invert max-w-none">
-          <h1>Validator Testing Guide</h1>
+        <div className="prose prose-slate dark:prose-invert max-w-none">
+          <h1>VALIDATOR TESTING v3.1</h1>
+          <h2>Automated Quality & C-BEN Alignment Framework</h2>
+          <p className="text-muted-foreground">Last Updated: October 2025 – Lovable Implementation Synced</p>
 
-          <h2>Overview</h2>
+          <h2>1. Purpose</h2>
           <p>
-            The Validator Testing Dashboard allows you to stress test all your game validators before publishing them. 
-            This ensures quality, C-BEN compliance, and proper functionality for both AI-generated and custom-uploaded games.
+            To ensure every validator mini-game is playable, measurable, and C-BEN compliant before publication.
+          </p>
+          <p>
+            This replaces the manual three-phase QA flow; testing is now <strong>automated inside Lovable</strong> and 
+            validates both technical integrity and competency proof accuracy.
           </p>
 
-          <h2>Accessing the Testing Dashboard</h2>
-          <ol>
-            <li>Navigate to your <strong>Creator Dashboard</strong> (<code>/platform/creator</code>)</li>
-            <li>Click the <strong>"Test Validators"</strong> button in the header</li>
-            <li>Or select <strong>"Test Validators"</strong> from the navigation menu</li>
-          </ol>
-
-          <hr />
-
-          <h2>Understanding the Testing Phases</h2>
-          <p>Every validator goes through <strong>3 critical testing phases</strong>:</p>
-
-          <h3>Phase 1: UX/UI Flow Test</h3>
-          <p><strong>What it checks:</strong></p>
+          <h2>2. Scope</h2>
+          <p>Applies to all validators—AI-generated or custom-uploaded—before they can be marked Publish = True.</p>
+          <p>Each validator must:</p>
           <ul>
-            <li>Game loads without errors</li>
-            <li>UI elements render correctly</li>
-            <li>Navigation and interactions work smoothly</li>
-            <li>Visual elements match design specifications</li>
-            <li>Responsive design works across devices</li>
+            <li>Follow Base Layer 1 scene and scoring architecture</li>
+            <li>Include all embedded global objects (<code>__CONFIG__</code>, <code>__GOLD_KEY__</code>, <code>__EDGE__</code>, <code>__RESULT__</code>, <code>__PROOF__</code>)</li>
+            <li>Pass 100% of automated checks described below</li>
           </ul>
 
-          <p><strong>How to test:</strong></p>
-          <ol>
-            <li>Launch the game validator</li>
-            <li>Navigate through all screens and interactions</li>
-            <li>Test on different screen sizes</li>
-            <li>Verify all buttons, inputs, and UI elements respond correctly</li>
-            <li>Check for console errors or visual glitches</li>
-          </ol>
+          <h2>3. Automated Testing Pipeline</h2>
+          <p>The system performs <strong>8 sequential checks</strong> every time the creator clicks "Test Validator."</p>
 
-          <p><strong>Pass criteria:</strong></p>
+          <h3>✅ Check 1 – Scene Structure Validation</h3>
+          <p>Validates the 4-scene structure:</p>
           <ul>
-            <li>✅ No console errors</li>
-            <li>✅ All UI elements visible and functional</li>
-            <li>✅ Smooth user experience</li>
-            <li>✅ Responsive on mobile/tablet/desktop</li>
+            <li><strong>Intro</strong> - No auto-start on load</li>
+            <li><strong>Gameplay</strong> - START button present, sticky, full-width, functional</li>
+            <li><strong>Edge-Case</strong> - No instructions repeat after Scene 0</li>
+            <li><strong>Results</strong> - Edge cases occur only in designated scenes</li>
           </ul>
 
-          <hr />
-
-          <h3>Phase 2: Action Cue Validation</h3>
-          <p><strong>What it checks:</strong></p>
+          <h3>✅ Check 2 – UX/UI Integrity</h3>
           <ul>
-            <li>The game accurately captures the sub-competency being tested</li>
-            <li>Player actions align with the action cue statement</li>
-            <li>Game mechanics properly demonstrate the skill</li>
-            <li>Backend data capture matches expected behaviors</li>
+            <li>No vertical scrolling during gameplay (<code>overflow:hidden</code>, <code>height:100vh</code>)</li>
+            <li>No text overlap or clipped content at 390 × 844 viewport</li>
+            <li>All buttons clickable and visually respond (active, hover, touched)</li>
+            <li>Touch targets ≥ 44px</li>
+            <li>START button remains visible on all devices</li>
           </ul>
 
-          <p><strong>How to test (AI-Generated Games):</strong></p>
-          <ol>
-            <li>Review the sub-competency statement and action cue</li>
-            <li>Play through the game naturally</li>
-            <li>Verify that your actions directly relate to the skill being measured</li>
-            <li>Check if the game mechanic makes sense for the competency</li>
-          </ol>
-
-          <p><strong>How to test (Custom Upload Games):</strong></p>
-          <ol>
-            <li>Review the selected sub-competencies</li>
-            <li>Play the game and identify which actions trigger competency measurement</li>
-            <li>Verify API calls are sending correct data to backend</li>
-            <li>Check <code>backend_data_captured</code> matches your actual game events</li>
-          </ol>
-
-          <p><strong>Pass criteria:</strong></p>
+          <h3>✅ Check 3 – Telegram Mini-App Compliance</h3>
           <ul>
-            <li>✅ Game actions clearly demonstrate the sub-competency</li>
-            <li>✅ Action cue is intuitive and measurable</li>
-            <li>✅ Backend captures relevant behavioral data</li>
-            <li>✅ No ambiguity in what skill is being tested</li>
+            <li>Contains <code>window.Telegram.WebApp.ready()</code> and <code>expand()</code></li>
+            <li>Game runs seamlessly in Telegram WebApp frame</li>
+            <li>No network calls outside approved endpoints</li>
           </ul>
 
-          <hr />
+          <h3>✅ Check 4 – Embedded Configuration Objects</h3>
+          <p>Verifies presence and validity of required globals:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Object</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>__CONFIG__</code></td>
+                <td>duration, thresholds, competency, XP</td>
+              </tr>
+              <tr>
+                <td><code>__GOLD_KEY__</code></td>
+                <td>correct answers / logic map</td>
+              </tr>
+              <tr>
+                <td><code>__EDGE__</code></td>
+                <td>edge-case trigger + recovery log</td>
+              </tr>
+              <tr>
+                <td><code>__RESULT__</code></td>
+                <td>computed accuracy, time, edge success</td>
+              </tr>
+              <tr>
+                <td><code>__PROOF__</code></td>
+                <td>immutable proof receipt (test mode only)</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <h3>Phase 3: Scoring Formula Test</h3>
-          <p><strong>What it checks:</strong></p>
+          <h3>✅ Check 5 – Action Cue & Mechanic Alignment</h3>
           <ul>
-            <li>Scoring logic accurately reflects player performance</li>
-            <li>XP/levels are calculated correctly</li>
-            <li>Pass/fail thresholds are appropriate</li>
-            <li>Proficiency levels match actual skill demonstration</li>
+            <li>Extracts verb + object from sub-competency</li>
+            <li>Confirms mechanic (drag-drop, select, swipe, etc.) surfaces that behavior</li>
+            <li>Ensures no free-text inputs</li>
+            <li>Validates event triggers match action cue pattern (observable, measurable)</li>
           </ul>
 
-          <p><strong>How to test:</strong></p>
-          <ol>
-            <li>
-              <strong>Run multiple test attempts with varying performance:</strong>
-              <ul>
-                <li>Play poorly (test minimum thresholds)</li>
-                <li>Play average (test mid-range scoring)</li>
-                <li>Play excellently (test maximum scoring)</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Verify scoring formulas:</strong>
-              <ul>
-                <li><strong>Level 1 (Novice):</strong> Basic task completion</li>
-                <li><strong>Level 2 (Intermediate):</strong> Quality and efficiency</li>
-                <li><strong>Level 3 (Expert):</strong> Advanced techniques + mastery</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Check backend data:</strong>
-              <ul>
-                <li>Review <code>scoring_metrics</code> in database</li>
-                <li>Verify <code>passed</code> boolean is accurate</li>
-                <li>Confirm <code>proficiency_level</code> matches performance</li>
-              </ul>
-            </li>
-          </ol>
-
-          <p><strong>Pass criteria:</strong></p>
+          <h3>✅ Check 6 – Scoring Formula Verification</h3>
           <ul>
-            <li>✅ Poor performance = appropriate low score/fail</li>
-            <li>✅ Average performance = mid-range score</li>
-            <li>✅ Excellent performance = high score/pass</li>
-            <li>✅ Proficiency levels reflect actual skill demonstration</li>
-            <li>✅ Scoring is consistent across multiple attempts</li>
+            <li>Runs 3 auto-plays (poor / average / excellent)</li>
+            <li>Confirms accuracy thresholds (A1 = 0.85, A2 = 0.90, A3 = 0.95)</li>
+            <li>Confirms time limits (T1 = 90s, T2 = 90s, T3 = 75s)</li>
+            <li>Confirms edge-case bonus E3 ≥ 0.8</li>
+            <li>Verifies outputs map to Level 1–3</li>
           </ul>
 
-          <hr />
-
-          <h2>Template Type Differences</h2>
-
-          <h3>🤖 AI-Generated Games</h3>
+          <h3>✅ Check 7 – Accessibility & Mobile Readiness</h3>
           <ul>
-            <li><strong>Automated checks:</strong> System validates action cue alignment automatically</li>
-            <li><strong>Formula verification:</strong> Scoring logic is pre-validated against C-BEN framework</li>
-            <li><strong>Focus areas:</strong> UX flow and gameplay experience</li>
+            <li><code>aria-label</code> present for all interactive items</li>
+            <li>Keyboard navigation (Enter/Space) works</li>
+            <li>Screen-reader headings h1→h3 hierarchy valid</li>
+            <li>Contrast ratio ≥ 4.5:1</li>
           </ul>
 
-          <h3>📤 Custom Upload Games</h3>
+          <h3>✅ Check 8 – Proof Emission & Telemetry</h3>
           <ul>
-            <li>
-              <strong>Critical manual checks required:</strong>
-              <ul>
-                <li>Backend API integration working correctly</li>
-                <li>Data format matches expected schema</li>
-                <li>Custom scoring logic is sound</li>
-                <li>Event tracking captures all required metrics</li>
-              </ul>
-            </li>
-            <li><strong>Additional verification:</strong> Check <code>custom_game_url</code> loads properly</li>
-            <li><strong>Backend compliance:</strong> Verify <code>backend_data_captured</code> structure</li>
+            <li>Confirms JSON payload posted to <code>/api/validator-proof</code></li>
+            <li>Must include: score, time, edgeCase, accuracy, level, timestamp</li>
+            <li>Confirms identical data appears in <code>__RESULT__</code></li>
+            <li>Verifies immutable proof receipt generation (hash + timestamp)</li>
           </ul>
 
-          <hr />
+          <h2>4. Result Classification</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Outcome</th>
+                <th>Condition</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>🟢 Passed</td>
+                <td>All 8 checks = true</td>
+                <td>"Approve for Publish" unlocks</td>
+              </tr>
+              <tr>
+                <td>🟡 Needs Review</td>
+                <td>Minor UI / accessibility warnings</td>
+                <td>Flag for manual QA</td>
+              </tr>
+              <tr>
+                <td>🔴 Failed</td>
+                <td>Any critical check fails</td>
+                <td>Must fix and re-test</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <h2>Step-by-Step Testing Workflow</h2>
+          <h2>5. Alignment with C-BEN Framework</h2>
+          <p>Each automatic check maps to C-BEN's Quality Framework hallmarks:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>C-BEN Quality Principle</th>
+                <th>PlayOps Validator Testing Mapping</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Authentic Assessment</td>
+                <td>Action Cue & Mechanic Alignment (Check 5)</td>
+              </tr>
+              <tr>
+                <td>Observable Performance</td>
+                <td>Proof Emission & Telemetry (Check 8)</td>
+              </tr>
+              <tr>
+                <td>Clear Criteria</td>
+                <td>Scoring Formula Verification (Check 6)</td>
+              </tr>
+              <tr>
+                <td>Reliable Measurement</td>
+                <td>Embedded Configuration Objects (Check 4)</td>
+              </tr>
+              <tr>
+                <td>Transparency of Evidence</td>
+                <td>Immutable Proof Receipts + Results Screen</td>
+              </tr>
+              <tr>
+                <td>Equity & Accessibility</td>
+                <td>Accessibility Checks (Check 7)</td>
+              </tr>
+              <tr>
+                <td>Continuous Improvement</td>
+                <td>QA logs feeding training data for AI generator</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <h3>Step 1: Start a Test</h3>
-          <ol>
-            <li>Find your validator in the dashboard</li>
-            <li>Click <strong>"Start Test"</strong> (or "Re-test" if previously tested)</li>
-            <li>Test wizard will guide you through each phase</li>
-          </ol>
+          <h2>6. Developer Reference</h2>
+          <h3>Telegram Initialization</h3>
+          <pre><code>{`if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+}`}</code></pre>
 
-          <h3>Step 2: Complete Each Phase</h3>
+          <h3>Mandatory Globals</h3>
+          <pre><code>{`window.__CONFIG__ = {...};
+window.__GOLD_KEY__ = {...};
+window.__EDGE__ = {...};
+window.__RESULT__ = {...};
+window.__PROOF__ = {...};`}</code></pre>
+
+          <h3>Proof Emission</h3>
+          <pre><code>{`fetch('/api/validator-proof', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify(window.__RESULT__)
+});`}</code></pre>
+
+          <h2>7. Governance & Versioning</h2>
           <ul>
-            <li>Work through Phase 1 → Phase 2 → Phase 3 sequentially</li>
-            <li>Add notes for each phase (issues found, observations)</li>
-            <li>Mark each phase as <strong>Passed</strong>, <strong>Failed</strong>, or <strong>Needs Review</strong></li>
+            <li><strong>Maintained by:</strong> Platform Architecture Team</li>
+            <li><strong>Next Review:</strong> January 2026</li>
+            <li><strong>Related Docs:</strong> Base Layer 1 (v3.1) · AI Generation Prompt (v3.1) · Platform Flows (v3.1)</li>
           </ul>
-
-          <h3>Step 3: Review Results</h3>
-          <ul>
-            <li>Overall status calculated from all three phases</li>
-            <li>View detailed test history and notes</li>
-            <li>Check <code>test_version</code> for tracking purposes</li>
-          </ul>
-
-          <h3>Step 4: Approve for Publishing</h3>
-          <ul>
-            <li>Only validators with <strong>"Passed"</strong> overall status can be approved</li>
-            <li>Click <strong>"Approve for Publish"</strong> after successful testing</li>
-            <li>Once approved, the validator becomes available in the marketplace</li>
-          </ul>
-
-          <hr />
-
-          <h2>Best Practices</h2>
-
-          <h3>Before Testing</h3>
-          <ul>
-            <li>✅ Ensure you understand the sub-competency being tested</li>
-            <li>✅ Review the action cue and expected behaviors</li>
-            <li>✅ Have multiple testers run through the validator</li>
-            <li>✅ Test on different devices and browsers</li>
-          </ul>
-
-          <h3>During Testing</h3>
-          <ul>
-            <li>✅ Take detailed notes of any issues</li>
-            <li>✅ Record edge cases and unexpected behaviors</li>
-            <li>✅ Test boundary conditions (minimum/maximum inputs)</li>
-            <li>✅ Verify all backend data is captured correctly</li>
-          </ul>
-
-          <h3>After Testing</h3>
-          <ul>
-            <li>✅ Document any fixes needed</li>
-            <li>✅ Re-test after making changes</li>
-            <li>✅ Get peer review before approving</li>
-            <li>✅ Keep test history for compliance tracking</li>
-          </ul>
-
-          <hr />
-
-          <h2>Publishing Requirements</h2>
-          <p><strong>A validator can ONLY be published if:</strong></p>
-          <ol>
-            <li>✅ Overall status = <strong>"Passed"</strong></li>
-            <li>✅ All three phases = <strong>"Passed"</strong></li>
-            <li>✅ Approved for publish = <strong>true</strong></li>
-            <li>✅ No critical issues documented</li>
-          </ol>
-
-          <p><strong>After approval:</strong></p>
-          <ul>
-            <li>Validator becomes visible in the marketplace</li>
-            <li>Brands can customize and deploy it</li>
-            <li>Test results remain in history for auditing</li>
-          </ul>
-
-          <hr />
-
-          <p><strong>Happy Testing! 🎮</strong></p>
+          
+          <p className="mt-8"><strong>Happy Testing! 🎮</strong></p>
           <p>Remember: Quality validators = Better skills assessment = Stronger talent pipelines</p>
         </div>
       </div>
