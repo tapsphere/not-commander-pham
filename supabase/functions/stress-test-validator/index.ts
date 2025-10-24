@@ -243,6 +243,7 @@ async function runCheck1SceneStructure(template: any, subComp: any): Promise<Che
 // CHECK 2: UX/UI Integrity
 // ============================================================================
 async function runCheck2UXIntegrity(template: any, subComp: any): Promise<CheckResult> {
+  const issues: string[] = [];
   const checks = [
     'No vertical scrolling (overflow:hidden, height:100vh)',
     'No text overlap at 390×844 viewport',
@@ -251,15 +252,58 @@ async function runCheck2UXIntegrity(template: any, subComp: any): Promise<CheckR
     'START button visible on all devices'
   ];
 
+  const htmlContent = await fetchGameHTML(template);
+  if (!htmlContent) {
+    issues.push('Unable to fetch game HTML for analysis');
+    return {
+      checkNumber: 2,
+      name: 'UX/UI Integrity',
+      status: 'failed',
+      notes: 'Cannot validate - HTML content not accessible',
+      details: { checks, issues }
+    };
+  }
+
+  // Check for overflow hidden
+  if (!htmlContent.includes('overflow') || !htmlContent.includes('hidden')) {
+    issues.push('Missing overflow:hidden declaration');
+  }
+
+  // Check for viewport height
+  if (!htmlContent.includes('100vh') && !htmlContent.includes('height: 100%')) {
+    issues.push('Missing full-height viewport (100vh)');
+  }
+
+  // Check for START button
+  if (!htmlContent.toLowerCase().includes('start')) {
+    issues.push('No START button found in HTML');
+  }
+
+  // Check for button styling (min touch target)
+  const hasMinButtonSize = htmlContent.includes('44px') || 
+                          htmlContent.includes('min-height') || 
+                          htmlContent.includes('padding');
+  if (!hasMinButtonSize) {
+    issues.push('No explicit touch target sizing found (≥44px)');
+  }
+
+  // Check for responsive meta viewport
+  if (!htmlContent.includes('viewport') || !htmlContent.includes('width=device-width')) {
+    issues.push('Missing responsive viewport meta tag');
+  }
+
   return {
     checkNumber: 2,
     name: 'UX/UI Integrity',
-    status: 'passed',
-    notes: 'UX/UI requirements validated for mobile gameplay',
+    status: issues.length === 0 ? 'passed' : issues.length <= 2 ? 'needs_review' : 'failed',
+    notes: issues.length === 0 
+      ? 'UX/UI requirements validated for mobile gameplay' 
+      : `Issues found: ${issues.join('; ')}`,
     details: {
       checks,
       viewport: '390×844',
-      touchTargetMinimum: '44px'
+      touchTargetMinimum: '44px',
+      issues
     }
   };
 }
@@ -268,6 +312,7 @@ async function runCheck2UXIntegrity(template: any, subComp: any): Promise<CheckR
 // CHECK 3: Telegram Mini-App Compliance
 // ============================================================================
 async function runCheck3TelegramCompliance(template: any, subComp: any): Promise<CheckResult> {
+  const issues: string[] = [];
   const checks = [
     'Contains window.Telegram.WebApp.ready()',
     'Contains window.Telegram.WebApp.expand()',
@@ -275,15 +320,50 @@ async function runCheck3TelegramCompliance(template: any, subComp: any): Promise
     'No network calls outside approved endpoints'
   ];
 
+  const htmlContent = await fetchGameHTML(template);
+  if (!htmlContent) {
+    issues.push('Unable to fetch game HTML for analysis');
+    return {
+      checkNumber: 3,
+      name: 'Telegram Mini-App Compliance',
+      status: 'failed',
+      notes: 'Cannot validate - HTML content not accessible',
+      details: { checks, issues }
+    };
+  }
+
+  // Check for Telegram WebApp SDK
+  if (!htmlContent.includes('Telegram.WebApp')) {
+    issues.push('Missing Telegram.WebApp SDK reference');
+  }
+
+  // Check for ready() call
+  if (!htmlContent.includes('WebApp.ready()')) {
+    issues.push('Missing Telegram.WebApp.ready() call');
+  }
+
+  // Check for expand() call
+  if (!htmlContent.includes('WebApp.expand()')) {
+    issues.push('Missing Telegram.WebApp.expand() call');
+  }
+
+  // Check for Telegram script import
+  if (!htmlContent.includes('telegram-web-app.js')) {
+    issues.push('Missing Telegram Web App script import');
+  }
+
   return {
     checkNumber: 3,
     name: 'Telegram Mini-App Compliance',
-    status: 'passed',
-    notes: 'Telegram SDK integration validated',
+    status: issues.length === 0 ? 'passed' : issues.length <= 2 ? 'needs_review' : 'failed',
+    notes: issues.length === 0 
+      ? 'Telegram SDK integration validated' 
+      : `Issues found: ${issues.join('; ')}`,
     details: {
       checks,
       telegramSDK: 'Required',
-      approvedEndpoints: ['/api/validator-proof', '/api/submit-score']
+      approvedEndpoints: ['/api/validator-proof', '/api/submit-score'],
+      issues
     }
   };
 }
@@ -292,6 +372,7 @@ async function runCheck3TelegramCompliance(template: any, subComp: any): Promise
 // CHECK 4: Embedded Configuration Objects
 // ============================================================================
 async function runCheck4ConfigObjects(template: any, subComp: any): Promise<CheckResult> {
+  const issues: string[] = [];
   const requiredGlobals = {
     '__CONFIG__': 'duration, thresholds, competency, XP',
     '__GOLD_KEY__': 'correct answers / logic map',
@@ -300,14 +381,40 @@ async function runCheck4ConfigObjects(template: any, subComp: any): Promise<Chec
     '__PROOF__': 'immutable proof receipt (test mode only)'
   };
 
+  const htmlContent = await fetchGameHTML(template);
+  if (!htmlContent) {
+    issues.push('Unable to fetch game HTML for analysis');
+    return {
+      checkNumber: 4,
+      name: 'Embedded Configuration Objects',
+      status: 'failed',
+      notes: 'Cannot validate - HTML content not accessible',
+      details: { requiredGlobals, issues }
+    };
+  }
+
+  // Check for each required window object
+  const foundGlobals: string[] = [];
+  for (const globalName of Object.keys(requiredGlobals)) {
+    if (htmlContent.includes(`window.${globalName}`) || htmlContent.includes(`window["${globalName}"]`)) {
+      foundGlobals.push(globalName);
+    } else {
+      issues.push(`Missing required global: ${globalName}`);
+    }
+  }
+
   return {
     checkNumber: 4,
     name: 'Embedded Configuration Objects',
-    status: 'passed',
-    notes: 'All 5 required global objects validated',
+    status: foundGlobals.length === 5 ? 'passed' : foundGlobals.length >= 3 ? 'needs_review' : 'failed',
+    notes: foundGlobals.length === 5 
+      ? 'All 5 required global objects validated' 
+      : `Found ${foundGlobals.length}/5 objects: ${issues.join('; ')}`,
     details: {
       requiredGlobals,
-      verified: Object.keys(requiredGlobals).length
+      foundGlobals,
+      verified: foundGlobals.length,
+      issues
     }
   };
 }
@@ -411,6 +518,7 @@ async function runCheck6ScoringFormula(template: any, subComp: any): Promise<Che
 // CHECK 7: Accessibility & Mobile Readiness
 // ============================================================================
 async function runCheck7Accessibility(template: any, subComp: any): Promise<CheckResult> {
+  const issues: string[] = [];
   const checks = [
     'aria-label present for all interactive items',
     'Keyboard navigation (Enter/Space) works',
@@ -418,16 +526,63 @@ async function runCheck7Accessibility(template: any, subComp: any): Promise<Chec
     'Contrast ratio ≥ 4.5:1'
   ];
 
+  const htmlContent = await fetchGameHTML(template);
+  if (!htmlContent) {
+    issues.push('Unable to fetch game HTML for analysis');
+    return {
+      checkNumber: 7,
+      name: 'Accessibility & Mobile Readiness',
+      status: 'failed',
+      notes: 'Cannot validate - HTML content not accessible',
+      details: { checks, issues }
+    };
+  }
+
+  // Check for aria-label usage
+  const ariaLabelCount = (htmlContent.match(/aria-label/g) || []).length;
+  if (ariaLabelCount === 0) {
+    issues.push('No aria-label attributes found');
+  }
+
+  // Check for semantic headings
+  const hasHeadings = htmlContent.includes('<h1') || htmlContent.includes('<h2') || htmlContent.includes('<h3');
+  if (!hasHeadings) {
+    issues.push('No semantic heading structure (h1-h3) found');
+  }
+
+  // Check for keyboard event listeners
+  const hasKeyboardSupport = htmlContent.includes('keydown') || 
+                            htmlContent.includes('keypress') || 
+                            htmlContent.includes('keyup');
+  if (!hasKeyboardSupport) {
+    issues.push('No keyboard event listeners found');
+  }
+
+  // Check for role attributes
+  const hasRoles = htmlContent.includes('role=');
+  if (!hasRoles) {
+    issues.push('No ARIA roles found');
+  }
+
+  // Check for lang attribute
+  if (!htmlContent.includes('lang=')) {
+    issues.push('Missing lang attribute on html element');
+  }
+
   return {
     checkNumber: 7,
     name: 'Accessibility & Mobile Readiness',
-    status: 'passed',
-    notes: 'WCAG AA compliance validated',
+    status: issues.length === 0 ? 'passed' : issues.length <= 2 ? 'needs_review' : 'failed',
+    notes: issues.length === 0 
+      ? 'WCAG AA compliance validated' 
+      : `Issues found: ${issues.join('; ')}`,
     details: {
       checks,
       wcagLevel: 'AA',
       contrastRatio: '≥ 4.5:1',
-      keyboardNavigation: 'Required'
+      keyboardNavigation: 'Required',
+      ariaLabelCount,
+      issues
     }
   };
 }
@@ -436,6 +591,7 @@ async function runCheck7Accessibility(template: any, subComp: any): Promise<Chec
 // CHECK 8: Proof Emission & Telemetry
 // ============================================================================
 async function runCheck8ProofEmission(template: any, subComp: any): Promise<CheckResult> {
+  const issues: string[] = [];
   const requiredFields = [
     'score',
     'time',
@@ -452,16 +608,85 @@ async function runCheck8ProofEmission(template: any, subComp: any): Promise<Chec
     'Immutable proof receipt generated (hash + timestamp)'
   ];
 
+  const htmlContent = await fetchGameHTML(template);
+  if (!htmlContent) {
+    issues.push('Unable to fetch game HTML for analysis');
+    return {
+      checkNumber: 8,
+      name: 'Proof Emission & Telemetry',
+      status: 'failed',
+      notes: 'Cannot validate - HTML content not accessible',
+      details: { checks, requiredFields, issues }
+    };
+  }
+
+  // Check for __RESULT__ object
+  if (!htmlContent.includes('__RESULT__')) {
+    issues.push('Missing window.__RESULT__ object');
+  }
+
+  // Check for __PROOF__ object
+  if (!htmlContent.includes('__PROOF__')) {
+    issues.push('Missing window.__PROOF__ object');
+  }
+
+  // Check for required fields in code
+  const missingFields = requiredFields.filter(field => !htmlContent.includes(field));
+  if (missingFields.length > 0) {
+    issues.push(`Missing required fields: ${missingFields.join(', ')}`);
+  }
+
+  // Check for API endpoint call
+  const hasProofEndpoint = htmlContent.includes('validator-proof') || 
+                          htmlContent.includes('submit-score') ||
+                          htmlContent.includes('/api/');
+  if (!hasProofEndpoint) {
+    issues.push('No proof/score submission endpoint found');
+  }
+
+  // Check for fetch or axios calls
+  const hasNetworkCall = htmlContent.includes('fetch(') || htmlContent.includes('axios.');
+  if (!hasNetworkCall) {
+    issues.push('No network call implementation found');
+  }
+
   return {
     checkNumber: 8,
     name: 'Proof Emission & Telemetry',
-    status: 'passed',
-    notes: 'Proof emission and telemetry validated',
+    status: issues.length === 0 ? 'passed' : issues.length <= 2 ? 'needs_review' : 'failed',
+    notes: issues.length === 0 
+      ? 'Proof emission and telemetry validated' 
+      : `Issues found: ${issues.join('; ')}`,
     details: {
       checks,
       requiredFields,
       endpoint: '/api/validator-proof',
-      proofFormat: 'hash + timestamp'
+      proofFormat: 'hash + timestamp',
+      issues
     }
   };
+}
+
+// ============================================================================
+// HELPER: Fetch Game HTML Content
+// ============================================================================
+async function fetchGameHTML(template: any): Promise<string | null> {
+  try {
+    if (template.template_type === 'custom_upload' && template.custom_game_url) {
+      const response = await fetch(template.custom_game_url);
+      if (!response.ok) return null;
+      return await response.text();
+    } else if (template.template_type === 'ai_generated' && template.base_prompt) {
+      // For AI generated, check if there's already generated HTML in game_config
+      if (template.game_config?.generated_html) {
+        return template.game_config.generated_html;
+      }
+      // Otherwise, we can't validate yet - return null
+      return null;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching game HTML:', error);
+    return null;
+  }
 }
