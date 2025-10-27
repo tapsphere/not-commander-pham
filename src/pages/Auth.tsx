@@ -251,7 +251,7 @@ export default function Auth() {
           options: {
             emailRedirectTo: `${window.location.origin}/`,
             data: {
-              full_name: 'TapSphere Demo Brand',
+              full_name: 'NexaCorp Demo',
             }
           }
         });
@@ -265,17 +265,16 @@ export default function Auth() {
             .insert({ user_id: signUpData.user.id, role });
 
           if (roleError) throw roleError;
-
-          // Update profile with demo data
-          await supabase
-            .from('profiles')
-            .update({
-              company_name: 'TapSphere',
-              company_description: 'Demo brand account for platform demonstrations',
-              full_name: 'TapSphere Demo Brand'
-            })
-            .eq('user_id', signUpData.user.id);
         }
+      }
+
+      // Seed demo data
+      toast.info('Setting up demo data...');
+      const { error: seedError } = await supabase.functions.invoke('seed-demo-data');
+      
+      if (seedError) {
+        console.error('Seed error:', seedError);
+        // Don't block login if seed fails
       }
 
       localStorage.setItem('demoMode', 'true');
