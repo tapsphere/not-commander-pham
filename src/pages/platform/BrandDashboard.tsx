@@ -56,7 +56,33 @@ export default function BrandDashboard() {
 
   useEffect(() => {
     loadCustomizations();
+    seedDemoDataIfNeeded();
   }, []);
+
+  const seedDemoDataIfNeeded = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user already has customizations
+      const { data: existing } = await supabase
+        .from('brand_customizations')
+        .select('id')
+        .eq('brand_id', user.id)
+        .limit(1);
+
+      if (existing && existing.length > 0) return;
+
+      // Seed demo data in background
+      console.log('Seeding NexaCorp demo data...');
+      await supabase.functions.invoke('seed-demo-data');
+      
+      // Reload customizations after seeding
+      setTimeout(() => loadCustomizations(), 2000);
+    } catch (error) {
+      console.error('Demo seed error:', error);
+    }
+  };
 
   const loadCustomizations = async () => {
     try {

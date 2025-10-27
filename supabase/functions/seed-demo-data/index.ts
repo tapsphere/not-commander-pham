@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
       .limit(1);
 
     if (existingCustomizations && existingCustomizations.length > 0) {
+      console.log('User already has customizations, skipping seed');
       return new Response(
         JSON.stringify({ message: 'Demo data already exists', alreadySeeded: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -206,8 +207,9 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error seeding demo data:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
