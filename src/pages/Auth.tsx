@@ -231,11 +231,63 @@ export default function Auth() {
     }
   };
 
-  const handleDemoMode = (role: 'creator' | 'brand') => {
-    localStorage.setItem('demoMode', 'true');
-    localStorage.setItem('demoRole', role);
-    toast.success(`Demo mode activated as ${role}!`);
-    navigate(role === 'creator' ? '/platform/creator' : '/platform/brand');
+  const handleDemoMode = async (role: 'creator' | 'brand') => {
+    const DEMO_EMAIL = 'lian@tapsphere.io';
+    const DEMO_PASSWORD = 'DemoTapSphere2024!';
+    
+    setLoading(true);
+    try {
+      // Try to sign in first
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+      });
+
+      if (signInError) {
+        // If sign in fails, try to sign up
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: DEMO_EMAIL,
+          password: DEMO_PASSWORD,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: 'TapSphere Demo Brand',
+            }
+          }
+        });
+
+        if (signUpError) throw signUpError;
+
+        // Insert role for new user
+        if (signUpData.user) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({ user_id: signUpData.user.id, role });
+
+          if (roleError) throw roleError;
+
+          // Update profile with demo data
+          await supabase
+            .from('profiles')
+            .update({
+              company_name: 'TapSphere',
+              company_description: 'Demo brand account for platform demonstrations',
+              full_name: 'TapSphere Demo Brand'
+            })
+            .eq('user_id', signUpData.user.id);
+        }
+      }
+
+      localStorage.setItem('demoMode', 'true');
+      localStorage.setItem('demoRole', role);
+      
+      toast.success(`Demo mode activated as ${role}!`);
+      navigate(role === 'creator' ? '/platform/creator' : '/platform/brand');
+    } catch (error: any) {
+      toast.error(`Demo mode error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
