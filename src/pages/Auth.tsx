@@ -238,7 +238,7 @@ export default function Auth() {
     setLoading(true);
     try {
       // Try to sign in first
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: DEMO_EMAIL,
         password: DEMO_PASSWORD,
       });
@@ -264,26 +264,30 @@ export default function Auth() {
             .from('user_roles')
             .insert({ user_id: signUpData.user.id, role });
 
-          if (roleError) throw roleError;
+          if (roleError && !roleError.message.includes('duplicate')) {
+            throw roleError;
+          }
         }
-      }
-
-      // Seed demo data
-      toast.info('Setting up demo data...');
-      const { error: seedError } = await supabase.functions.invoke('seed-demo-data');
-      
-      if (seedError) {
-        console.error('Seed error:', seedError);
-        // Don't block login if seed fails
       }
 
       localStorage.setItem('demoMode', 'true');
       localStorage.setItem('demoRole', role);
       
-      toast.success(`Demo mode activated as ${role}!`);
+      toast.success(`Demo mode activated!`);
+      
+      // Seed data in background after navigation
+      setTimeout(async () => {
+        try {
+          await supabase.functions.invoke('seed-demo-data');
+        } catch (e) {
+          console.log('Seed function not yet deployed or data already exists');
+        }
+      }, 1000);
+      
       navigate(role === 'creator' ? '/platform/creator' : '/platform/brand');
     } catch (error: any) {
-      toast.error(`Demo mode error: ${error.message}`);
+      console.error('Demo error:', error);
+      toast.error(`Could not activate demo: ${error.message}`);
     } finally {
       setLoading(false);
     }
