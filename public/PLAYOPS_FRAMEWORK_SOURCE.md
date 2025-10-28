@@ -1,6 +1,6 @@
 # PlayOps Framework - Source of Truth
 
-**Source File:** `CBEN_PlayOps_Framework_Finale-2.xlsx`
+**Source File:** `CBEN_PlayOps_Framework_Finale.xlsx` (updated Oct 2025)
 
 This spreadsheet is the **authoritative source** for all validator game design, scoring, and XP values. All code must reflect the data defined in this spreadsheet.
 
@@ -153,7 +153,7 @@ From Tab 3, all Action Cues use these verbs:
 
 **To modify XP values, scoring formulas, or game mechanics:**
 
-1. Update the spreadsheet (`CBEN_PlayOps_Framework_Finale-2.xlsx`)
+1. Update the spreadsheet (`CBEN_PlayOps_Framework_Finale.xlsx`)
 2. Re-sync the following files:
    - `supabase/functions/generate-game/index.ts` (system prompt)
    - `src/utils/v3Validator.ts` (XP calculation)
