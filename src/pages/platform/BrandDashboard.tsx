@@ -188,6 +188,39 @@ export default function BrandDashboard() {
     try {
       const uniqueCode = generateUniqueCode();
       
+      // First, check if game HTML needs to be generated
+      const { data: customData } = await supabase
+        .from('brand_customizations')
+        .select('generated_game_html, customization_prompt, primary_color, secondary_color, accent_color, background_color, logo_url')
+        .eq('id', selectedCustomization.id)
+        .single();
+
+      // Generate game HTML if it doesn't exist
+      if (customData && !customData.generated_game_html && customData.customization_prompt) {
+        toast.info('Generating game...');
+        
+        const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-game', {
+          body: {
+            templatePrompt: customData.customization_prompt,
+            primaryColor: customData.primary_color || '#00FF00',
+            secondaryColor: customData.secondary_color || '#9945FF',
+            accentColor: customData.accent_color || '#FF5722',
+            backgroundColor: customData.background_color || '#1A1A1A',
+            logoUrl: customData.logo_url,
+            customizationId: selectedCustomization.id,
+            previewMode: false, // Save to database
+          },
+        });
+
+        if (generateError) {
+          console.error('Game generation error:', generateError);
+          toast.error('Failed to generate game. Please try again.');
+          return;
+        }
+
+        toast.success('Game generated!');
+      }
+      
       const { error } = await supabase
         .from('brand_customizations')
         .update({

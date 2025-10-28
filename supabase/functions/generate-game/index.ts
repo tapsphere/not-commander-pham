@@ -455,7 +455,7 @@ Generate a complete, playable HTML5 game that matches this description and uses 
         JSON.stringify({ 
           success: true,
           message: 'Game preview generated',
-          html: generatedHtml
+          generatedHtml: generatedHtml
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
