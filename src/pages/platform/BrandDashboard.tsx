@@ -191,17 +191,52 @@ export default function BrandDashboard() {
       // First, check if game HTML needs to be generated
       const { data: customData } = await supabase
         .from('brand_customizations')
-        .select('generated_game_html, customization_prompt, primary_color, secondary_color, accent_color, background_color, logo_url')
+        .select(`
+          generated_game_html, 
+          customization_prompt, 
+          primary_color, 
+          secondary_color, 
+          accent_color, 
+          background_color, 
+          logo_url,
+          template_id,
+          game_templates (
+            name,
+            description
+          )
+        `)
         .eq('id', selectedCustomization.id)
         .single();
 
       // Generate game HTML if it doesn't exist
-      if (customData && !customData.generated_game_html && customData.customization_prompt) {
-        toast.info('Generating game...');
+      if (customData && !customData.generated_game_html) {
+        // Use customization_prompt if available, otherwise build from template
+        let templatePrompt = customData.customization_prompt;
+        
+        if (!templatePrompt && customData.game_templates) {
+          const template = customData.game_templates as any;
+          templatePrompt = `Create a validator game for "${template.name}".
+Description: ${template.description}
+
+Create a 3-6 minute interactive game that assesses the player's ability to ${template.description.toLowerCase()}
+
+Include:
+- Clear scenario setup
+- Interactive decision points
+- Real-time feedback
+- Scoring based on accuracy and time`;
+        }
+
+        if (!templatePrompt) {
+          toast.error('Cannot publish: Game needs to be regenerated from scratch. Please create a new game.');
+          return;
+        }
+
+        toast.info('Generating game HTML...');
         
         const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-game', {
           body: {
-            templatePrompt: customData.customization_prompt,
+            templatePrompt,
             primaryColor: customData.primary_color || '#00FF00',
             secondaryColor: customData.secondary_color || '#9945FF',
             accentColor: customData.accent_color || '#FF5722',
@@ -218,7 +253,7 @@ export default function BrandDashboard() {
           return;
         }
 
-        toast.success('Game generated!');
+        toast.success('Game HTML generated!');
       }
       
       const { error } = await supabase
