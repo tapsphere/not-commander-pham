@@ -894,48 +894,72 @@ ${courseDescription}
             <div>
               <h3 className="font-semibold mb-3">Competency Mappings</h3>
               <div className="space-y-4">
-                {analysisResult.competency_mappings.map((mapping, idx) => (
-                  <Card key={idx} className="bg-muted/50">
-                    <CardContent className="pt-4 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium">{mapping.sub_competency}</p>
-                          <p className="text-sm text-muted-foreground">{mapping.competency || mapping.domain}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded whitespace-nowrap">
-                            {mapping.validator_type}
+                {(() => {
+                  // Group mappings by competency
+                  const groupedMappings = analysisResult.competency_mappings.reduce((acc, mapping) => {
+                    const competencyName = mapping.competency || mapping.domain;
+                    if (!acc[competencyName]) {
+                      acc[competencyName] = [];
+                    }
+                    acc[competencyName].push(mapping);
+                    return acc;
+                  }, {} as Record<string, typeof analysisResult.competency_mappings>);
+
+                  return Object.entries(groupedMappings).map(([competency, mappings], idx) => (
+                    <Card key={idx} className="bg-muted/50 border-2">
+                      <CardContent className="pt-4 space-y-3">
+                        <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                          <h4 className="font-semibold text-lg uppercase tracking-wide text-neon-green">
+                            {competency}
+                          </h4>
+                          <span className="text-xs bg-neon-green/10 text-neon-green px-3 py-1 rounded-full border border-neon-green/30">
+                            {mappings.length} sub-competenc{mappings.length === 1 ? 'y' : 'ies'}
                           </span>
-                          <Button
-                            onClick={() => {
-                              setSelectedMapping(mapping);
-                              setGeneratorOpen(true);
-                            }}
-                            size="sm"
-                            className="bg-neon-green text-white hover:bg-neon-green/90 whitespace-nowrap"
-                          >
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Auto-Generate
-                          </Button>
                         </div>
-                      </div>
-                      <p className="text-sm">{mapping.alignment_summary}</p>
-                      {mapping.action_cue && (
-                        <p className="text-xs text-muted-foreground">
-                          <strong>Action Cue:</strong> {mapping.action_cue}
-                        </p>
-                      )}
-                      {mapping.game_mechanic && (
-                        <p className="text-xs text-muted-foreground">
-                          <strong>Game Mechanic:</strong> {mapping.game_mechanic}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        <strong>Evidence Metric:</strong> {mapping.evidence_metric}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
+                        
+                        <div className="space-y-4">
+                          {mappings.map((mapping, mapIdx) => (
+                            <div key={mapIdx} className="space-y-2 pl-4 border-l-2 border-primary/30">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <p className="font-medium text-base">{mapping.sub_competency}</p>
+                                  <p className="text-sm mt-1">{mapping.alignment_summary}</p>
+                                </div>
+                                <Button
+                                  onClick={() => {
+                                    setSelectedMapping(mapping);
+                                    setGeneratorOpen(true);
+                                  }}
+                                  size="sm"
+                                  className="bg-neon-green text-white hover:bg-neon-green/90 whitespace-nowrap shrink-0"
+                                >
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  Auto-Generate
+                                </Button>
+                              </div>
+                              
+                              {mapping.action_cue && (
+                                <p className="text-xs text-muted-foreground">
+                                  <strong>Action Cue:</strong> {mapping.action_cue}
+                                </p>
+                              )}
+                              {mapping.game_mechanic && (
+                                <p className="text-xs text-muted-foreground">
+                                  <strong>Game Mechanic:</strong> {mapping.game_mechanic}
+                                </p>
+                              )}
+                              {mapping.evidence_metric && (
+                                <p className="text-xs text-muted-foreground">
+                                  <strong>Evidence Metric:</strong> {mapping.evidence_metric}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ));
+                })()}
               </div>
             </div>
 
