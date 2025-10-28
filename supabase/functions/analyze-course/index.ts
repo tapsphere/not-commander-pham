@@ -320,7 +320,21 @@ CRITICAL CONSTRAINTS:
     // CRITICAL: Validate and correct AI response against actual database values
     // The AI sometimes makes up values instead of using exact ones from the database
     if (analysisResult.competency_mappings && analysisResult.competency_mappings.length > 0) {
-      analysisResult.competency_mappings = analysisResult.competency_mappings.map((mapping: any) => {
+      // First, deduplicate by master competency - keep only first match per competency
+      const seenCompetencies = new Set<string>();
+      const deduplicatedMappings = analysisResult.competency_mappings.filter((mapping: any) => {
+        if (seenCompetencies.has(mapping.competency)) {
+          return false; // Skip duplicate competency
+        }
+        seenCompetencies.add(mapping.competency);
+        return true;
+      });
+
+      // Limit to exactly 4 mappings
+      const limitedMappings = deduplicatedMappings.slice(0, 4);
+
+      // Then validate and correct against database
+      analysisResult.competency_mappings = limitedMappings.map((mapping: any) => {
         // Find the matching sub-competency in the database by EXACT statement match only
         // This prevents fuzzy matching from selecting wrong sub-competencies with similar names
         const matchingSubComp = subCompetencies?.find(
