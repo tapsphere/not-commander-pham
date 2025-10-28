@@ -317,6 +317,42 @@ CRITICAL CONSTRAINTS:
       };
     }
 
+    // CRITICAL: Validate and correct AI response against actual database values
+    // The AI sometimes makes up values instead of using exact ones from the database
+    if (analysisResult.competency_mappings && analysisResult.competency_mappings.length > 0) {
+      analysisResult.competency_mappings = analysisResult.competency_mappings.map((mapping: any) => {
+        // Find the matching sub-competency in the database by statement
+        const matchingSubComp = subCompetencies?.find(
+          sc => sc.statement === mapping.sub_competency || 
+                sc.statement.toLowerCase().includes(mapping.sub_competency.toLowerCase()) ||
+                mapping.sub_competency.toLowerCase().includes(sc.statement.toLowerCase())
+        );
+
+        if (matchingSubComp) {
+          const comp = Array.isArray(matchingSubComp.master_competencies) 
+            ? matchingSubComp.master_competencies[0] 
+            : matchingSubComp.master_competencies;
+
+          // Replace ALL game design fields with exact database values
+          return {
+            ...mapping,
+            domain: comp?.cbe_category || mapping.domain,
+            competency: comp?.name || mapping.competency,
+            sub_competency: matchingSubComp.statement, // Use exact statement
+            action_cue: matchingSubComp.action_cue || mapping.action_cue,
+            game_mechanic: matchingSubComp.game_mechanic || mapping.game_mechanic,
+            validator_type: matchingSubComp.validator_type || mapping.validator_type,
+            game_loop: matchingSubComp.game_loop || mapping.game_loop,
+            scoring_formula: matchingSubComp.scoring_formula_level_1 || mapping.scoring_formula,
+          };
+        }
+
+        // If no match found, keep AI's values (shouldn't happen with good prompting)
+        console.warn('No database match found for sub-competency:', mapping.sub_competency);
+        return mapping;
+      });
+    }
+
     // Fetch actual game templates with their sub-competencies
     const { data: templates, error: templatesError } = await supabaseClient
       .from('game_templates')
