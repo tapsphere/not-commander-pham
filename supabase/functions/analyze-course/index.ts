@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import * as XLSX from 'https://esm.sh/xlsx@0.18.5';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -190,50 +191,90 @@ Return ONLY the JSON structure as specified.`;
       );
     }
 
-    // Regular analysis mode - fetch available sub-competencies from database
+    // Regular analysis mode - fetch available sub-competencies from Excel file
     console.log('Analyzing course:', courseName);
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
-    const supabaseClient = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch all available sub-competencies with their game design data
-    const { data: subCompetencies, error: subCompError } = await supabaseClient
-      .from('sub_competencies')
-      .select(`
-        id,
-        statement,
-        action_cue,
-        game_mechanic,
-        game_loop,
-        validator_type,
-        scoring_formula_level_1,
-        scoring_formula_level_2,
-        scoring_formula_level_3,
-        master_competencies!inner(
-          name,
-          cbe_category,
-          departments
-        )
-      `);
-
-    if (subCompError) {
-      console.error('Failed to fetch sub-competencies:', subCompError);
+    // Fetch Excel file from public URL
+    console.log('Fetching framework Excel file from public URL...');
+    const excelUrl = 'https://wedqutiobkapibgygazr.supabase.co/storage/v1/object/public/course-files/framework/CBEN_PlayOps_Framework_Finale.xlsx';
+    
+    let fileData;
+    try {
+      const fileResponse = await fetch(excelUrl);
+      if (!fileResponse.ok) {
+        throw new Error(`HTTP ${fileResponse.status}`);
+      }
+      fileData = await fileResponse.arrayBuffer();
+    } catch (fetchError) {
+      console.error('Failed to fetch Excel file from URL:', fetchError);
       return new Response(
-        JSON.stringify({ error: 'Failed to load competency framework data' }),
+        JSON.stringify({ error: 'Failed to load framework file' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!subCompetencies || subCompetencies.length === 0) {
-      console.error('No sub-competencies found in database');
+    // Parse Excel file
+    console.log('Parsing Excel file...');
+    const workbook = XLSX.read(new Uint8Array(fileData), { type: 'array' });
+    
+    // Get the game design sheet (Page 3 in the parsed doc, likely "Sheet3" or similar)
+    const gameDesignSheet = workbook.Sheets[workbook.SheetNames[2]]; // 3rd sheet (0-indexed)
+    if (!gameDesignSheet) {
+      console.error('Game design sheet not found');
       return new Response(
-        JSON.stringify({ error: 'No competency data available' }),
+        JSON.stringify({ error: 'Invalid framework file structure' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Convert sheet to JSON
+    const rows = XLSX.utils.sheet_to_json(gameDesignSheet, { header: 1 });
+    
+    // Extract sub-competencies (skip header row)
+    const subCompetencies: any[] = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row: any = rows[i];
+      if (!row || row.length < 9) continue; // Skip incomplete rows
+      
+      const domain = row[0];
+      const competency = row[1];
+      const subCompetency = row[2];
+      const assessmentMethod = row[3];
+      const actionCue = row[4];
+      const gameMechanic = row[5];
+      const gameLoop = row[6];
+      const scoringFormula = row[7];
+      const validatorType = row[8];
+      
+      if (subCompetency && actionCue) {
+        subCompetencies.push({
+          id: `excel-${i}`, // Generate pseudo-ID from row index
+          statement: subCompetency,
+          action_cue: actionCue,
+          game_mechanic: gameMechanic,
+          game_loop: gameLoop,
+          validator_type: validatorType,
+          scoring_formula_level_1: scoringFormula,
+          scoring_formula_level_2: scoringFormula,
+          scoring_formula_level_3: scoringFormula,
+          master_competencies: {
+            name: competency,
+            cbe_category: domain,
+            departments: []
+          }
+        });
+      }
+    }
+
+    if (subCompetencies.length === 0) {
+      console.error('No sub-competencies extracted from Excel');
+      return new Response(
+        JSON.stringify({ error: 'No competency data available in file' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Extracted ${subCompetencies.length} sub-competencies from Excel`);
 
     // Build system prompt with actual database sub-competencies
     const systemPrompt = buildSystemPrompt(subCompetencies);
@@ -367,6 +408,12 @@ CRITICAL CONSTRAINTS:
     }
 
     // Fetch actual game templates with their sub-competencies
+    // Create Supabase client for templates query
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+    
     const { data: templates, error: templatesError } = await supabaseClient
       .from('game_templates')
       .select('name, description, preview_image, selected_sub_competencies, template_type')
@@ -376,7 +423,7 @@ CRITICAL CONSTRAINTS:
       // Build a map of sub-competency IDs to templates
       const subCompToTemplates = new Map<string, any[]>();
       
-      templates.forEach(template => {
+      templates.forEach((template: any) => {
         if (template.selected_sub_competencies && template.selected_sub_competencies.length > 0) {
           template.selected_sub_competencies.forEach((subCompId: string) => {
             if (!subCompToTemplates.has(subCompId)) {
