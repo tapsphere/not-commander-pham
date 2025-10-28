@@ -288,7 +288,7 @@ export default function BrandDashboard() {
   }
 
   return (
-    <div className="max-w-[425px] mx-auto px-4 sm:px-0">
+    <div className="w-full">
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
           Brand Dashboard
