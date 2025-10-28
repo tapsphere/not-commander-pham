@@ -384,80 +384,82 @@ export default function Play() {
             )}
           </div>
         ) : (
-        /* Show preview if game hasn't been generated yet */
-        <div className="pt-16">
-          {/* Hero Section */}
-          <div 
-            className="relative py-20 px-4"
-            style={{
-              background: `linear-gradient(135deg, ${validator.primary_color}22, ${validator.secondary_color}22)`
-            }}
-          >
-            <div className="max-w-4xl mx-auto text-center">
-              {validator.logo_url && (
-                <img
-                  src={validator.logo_url}
-                  alt="Brand Logo"
-                  className="h-16 mx-auto mb-6 object-contain"
-                />
-              )}
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                {validator.game_templates.name}
-              </h1>
-              {validator.game_templates.description && (
-                <p className="text-xl text-gray-300 mb-8">
-                  {validator.game_templates.description}
-                </p>
-              )}
-              <Card className="max-w-md mx-auto bg-yellow-900/20 border-yellow-500 p-6 mt-8">
-                <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
-                <p className="text-yellow-300 text-sm">
-                  This validator is being generated. Please check back soon!
-                </p>
-              </Card>
-            </div>
-          </div>
-
-          {/* Preview Section */}
-          <div className="max-w-6xl mx-auto px-4 py-16">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="text-3xl font-bold mb-4" style={{ color: validator.primary_color }}>
-                  About This Validator
-                </h2>
-                <div className="space-y-4 text-gray-300">
-                  <p>
-                    This is a branded competency validator designed to assess your skills
-                    through interactive gameplay scenarios.
+        /* Show preview if game hasn't been generated yet - Mobile View */
+        <div className="pt-16 flex justify-center">
+          <div className="w-full max-w-[425px] px-4">
+            {/* Hero Section */}
+            <div 
+              className="relative py-12 px-4 rounded-lg"
+              style={{
+                background: `linear-gradient(135deg, ${validator.primary_color}22, ${validator.secondary_color}22)`
+              }}
+            >
+              <div className="text-center">
+                {validator.logo_url && (
+                  <img
+                    src={validator.logo_url}
+                    alt="Brand Logo"
+                    className="h-12 mx-auto mb-4 object-contain"
+                  />
+                )}
+                <h1 className="text-2xl font-bold mb-3">
+                  {validator.game_templates.name}
+                </h1>
+                {validator.game_templates.description && (
+                  <p className="text-sm text-gray-300 mb-6">
+                    {validator.game_templates.description}
                   </p>
-                  <div className="flex gap-4 pt-4">
-                    <div 
-                      className="w-16 h-16 rounded-lg"
-                      style={{ backgroundColor: validator.primary_color }}
-                    />
-                    <div 
-                      className="w-16 h-16 rounded-lg"
-                      style={{ backgroundColor: validator.secondary_color }}
-                    />
+                )}
+                <Card className="bg-yellow-900/20 border-yellow-500 p-6 mt-6">
+                  <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
+                  <p className="text-yellow-300 text-sm">
+                    This validator is being generated. Please check back soon!
+                  </p>
+                </Card>
+              </div>
+            </div>
+
+            {/* Preview Section */}
+            <div className="py-8">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-bold mb-3" style={{ color: validator.primary_color }}>
+                    About This Validator
+                  </h2>
+                  <div className="space-y-3 text-sm text-gray-300">
+                    <p>
+                      This is a branded competency validator designed to assess your skills
+                      through interactive gameplay scenarios.
+                    </p>
+                    <div className="flex gap-3 pt-3">
+                      <div 
+                        className="w-12 h-12 rounded-lg"
+                        style={{ backgroundColor: validator.primary_color }}
+                      />
+                      <div 
+                        className="w-12 h-12 rounded-lg"
+                        style={{ backgroundColor: validator.secondary_color }}
+                      />
+                    </div>
                   </div>
                 </div>
+
+                {validator.game_templates.preview_image && (
+                  <div className="rounded-lg overflow-hidden border-2" style={{ borderColor: validator.primary_color }}>
+                    <img
+                      src={validator.game_templates.preview_image}
+                      alt="Validator Preview"
+                      className="w-full h-auto"
+                    />
+                  </div>
+                )}
               </div>
-
-              {validator.game_templates.preview_image && (
-                <div className="rounded-lg overflow-hidden border-2" style={{ borderColor: validator.primary_color }}>
-                  <img
-                    src={validator.game_templates.preview_image}
-                    alt="Validator Preview"
-                    className="w-full h-auto"
-                  />
-                </div>
-              )}
             </div>
-          </div>
 
-          {/* Footer */}
-          <div className="border-t border-gray-800 py-8 text-center text-gray-500">
-            <p className="text-sm">Powered by TON Validator Platform</p>
+            {/* Footer */}
+            <div className="border-t border-gray-800 py-6 text-center text-gray-500">
+              <p className="text-xs">Powered by TON Validator Platform</p>
+            </div>
           </div>
         </div>
         )}
