@@ -288,7 +288,7 @@ export default function BrandDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-[425px] mx-auto px-4 sm:px-0">
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
           Brand Dashboard
@@ -314,7 +314,7 @@ export default function BrandDashboard() {
       </Card>
 
       {/* Course Gamifier Section */}
-      <Card className="bg-gray-900 border-gray-800 mb-8">
+      <Card className="bg-gray-900 border-gray-800 mb-8 w-full">
         <button
           onClick={() => setShowCourseGamifier(!showCourseGamifier)}
           className="w-full p-6 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
@@ -338,8 +338,8 @@ export default function BrandDashboard() {
         )}
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="p-6 bg-gray-900 border-gray-800">
+      <div className="grid grid-cols-1 gap-6 mb-8">
+        <Card className="p-6 bg-gray-900 border-gray-800 w-full">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-neon-green/10 rounded-lg">
               <Play className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} />
@@ -393,15 +393,26 @@ export default function BrandDashboard() {
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {customizations.map((custom) => (
-            <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
+      <div className="grid grid-cols-1 gap-6">
+        {customizations.map((custom) => (
+          <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
+            {/* Game Preview Screenshot */}
+            {custom.game_templates?.preview_image ? (
+              <div className="relative w-full h-48 bg-gray-800">
+                <img 
+                  src={custom.game_templates.preview_image} 
+                  alt={custom.game_templates.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
               <GameCoverPhoto
                 coverPhotoUrl={(custom as any).cover_photo_url}
                 logoUrl={(custom as any).brand_profile?.company_logo_url}
                 brandName={(custom as any).brand_profile?.company_name}
-                className="w-full"
+                className="w-full h-48"
               />
+            )}
                <div className="p-4">
                 <h3 className="font-semibold text-white mb-2">
                   {custom.game_templates?.name || 'Course-Generated Game'}
