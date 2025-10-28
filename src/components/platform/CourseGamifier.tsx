@@ -511,18 +511,37 @@ ${courseDescription}
       const blob = await response.blob();
       const file = new File([blob], 'microsoft-onboarding.pdf', { type: 'application/pdf' });
       
-      // Only set the file - user will click "Extract with AI" to populate fields
+      // Set consistent demo data
+      setCourseName("Microsoft New Employee Onboarding");
+      setCourseDescription("A comprehensive onboarding guide for new Microsoft employees covering paperwork, training, team integration, and ongoing support.");
+      setLearningObjectives([
+        "Complete all necessary paperwork and documentation",
+        "Understand Microsoft's culture, values, and team dynamics",
+        "Successfully integrate with your team and manager",
+        "Navigate training resources and development opportunities"
+      ]);
+      setTargetAudience("New employees joining Microsoft");
+      setKeyTopics([
+        "Employee paperwork and benefits enrollment",
+        "Microsoft Teams collaboration",
+        "Training and development resources",
+        "Manager check-ins and feedback",
+        "Company culture and values"
+      ]);
+      setIndustry("tech");
+      setCourseDuration("5");
+      setPrerequisites("None - designed for day-one employees");
       setSelectedFile(file);
       
       toast({
-        title: "Demo PDF loaded!",
-        description: "Now click 'Extract with AI' to analyze the document and auto-fill the form.",
+        title: "Demo loaded!",
+        description: "Microsoft HR onboarding scenario is ready. Click 'Analyze Course' to proceed.",
       });
     } catch (error) {
       console.error('Error loading demo:', error);
       toast({
         title: "Error",
-        description: "Could not load demo PDF. Please try again.",
+        description: "Could not load demo data. Please try again.",
         variant: "destructive",
       });
     }
