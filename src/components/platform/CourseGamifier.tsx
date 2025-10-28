@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit, Trash2 } from "lucide-react";
+import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit, Trash2, PlayCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ValidatorTemplateCard } from "./ValidatorTemplateCard";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -504,6 +504,49 @@ ${courseDescription}
     }
   };
 
+  const loadMicrosoftDemo = async () => {
+    try {
+      // Fetch the demo PDF
+      const response = await fetch('/demo/microsoft-onboarding.pdf');
+      const blob = await response.blob();
+      const file = new File([blob], 'microsoft-onboarding.pdf', { type: 'application/pdf' });
+      
+      // Set demo data
+      setCourseName("Microsoft New Employee Onboarding");
+      setCourseDescription("A comprehensive onboarding guide for new Microsoft employees covering paperwork, training, team integration, and ongoing support.");
+      setLearningObjectives([
+        "Complete all necessary paperwork and documentation",
+        "Understand Microsoft's culture, values, and team dynamics",
+        "Successfully integrate with your team and manager",
+        "Navigate training resources and development opportunities"
+      ]);
+      setTargetAudience("New employees joining Microsoft");
+      setKeyTopics([
+        "Employee paperwork and benefits enrollment",
+        "Microsoft Teams collaboration",
+        "Training and development resources",
+        "Manager check-ins and feedback",
+        "Company culture and values"
+      ]);
+      setIndustry("tech");
+      setCourseDuration("5");
+      setPrerequisites("None - designed for day-one employees");
+      setSelectedFile(file);
+      
+      toast({
+        title: "Demo loaded!",
+        description: "Microsoft HR onboarding scenario is ready. Click 'Analyze Course' to proceed.",
+      });
+    } catch (error) {
+      console.error('Error loading demo:', error);
+      toast({
+        title: "Error",
+        description: "Could not load demo data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleGameSaved = () => {
     // Close the generator
     setGeneratorOpen(false);
@@ -527,14 +570,28 @@ ${courseDescription}
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5" />
-            Course Gamifier
-          </CardTitle>
-          <CardDescription>
-            Upload your training course or lesson content, and we'll map it to C-BEN competencies
-            and recommend PlayOps validators for measurable skill assessment.
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5" />
+                Course Gamifier
+              </CardTitle>
+              <CardDescription>
+                Upload your training course or lesson content, and we'll map it to C-BEN competencies
+                and recommend PlayOps validators for measurable skill assessment.
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMicrosoftDemo}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              <PlayCircle className="w-4 h-4" />
+              Load Demo
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
