@@ -42,27 +42,42 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 1. Update profile with NexaCorp data
-    const { error: profileError } = await supabase
+    // 1. Get existing profile to use their actual logo/colors
+    const { data: existingProfile } = await supabase
       .from('profiles')
-      .update({
-        company_name: 'NexaCorp',
-        company_description: 'Global leader in digital transformation and workforce development solutions. Empowering enterprises to build future-ready teams through innovative learning technology.',
-        full_name: 'NexaCorp Demo',
-        design_palette: {
-          font: 'Inter, sans-serif',
-          text: '#1a1a1a',
-          accent: '#0078D4',
-          primary: '#0078D4',
-          highlight: '#50E6FF',
-          secondary: '#005A9E',
-          background: '#FFFFFF'
-        }
-      })
-      .eq('user_id', user.id);
+      .select('company_logo_url, design_palette, company_name')
+      .eq('user_id', user.id)
+      .single();
 
-    if (profileError) {
-      console.error('Profile update error:', profileError);
+    // Use existing profile colors if available, otherwise use NexaCorp defaults
+    const brandColors = existingProfile?.design_palette || {
+      font: 'Inter, sans-serif',
+      text: '#1a1a1a',
+      accent: '#0078D4',
+      primary: '#0078D4',
+      highlight: '#50E6FF',
+      secondary: '#005A9E',
+      background: '#FFFFFF'
+    };
+
+    const logoUrl = existingProfile?.company_logo_url || null;
+    const companyName = existingProfile?.company_name || 'NexaCorp';
+
+    // Update profile with demo data only if not already set
+    if (!existingProfile?.company_name) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          company_name: 'NexaCorp',
+          company_description: 'Global leader in digital transformation and workforce development solutions. Empowering enterprises to build future-ready teams through innovative learning technology.',
+          full_name: 'NexaCorp Demo',
+          design_palette: brandColors
+        })
+        .eq('user_id', user.id);
+
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+      }
     }
 
     // 2. Get a published template to use
@@ -85,18 +100,19 @@ Deno.serve(async (req) => {
       customizations.push({
         brand_id: user.id,
         template_id: templates[0].id,
-        primary_color: '#0078D4',
-        secondary_color: '#005A9E',
-        accent_color: '#50E6FF',
-        background_color: '#FFFFFF',
-        text_color: '#1a1a1a',
-        highlight_color: '#50E6FF',
-        font_family: 'Inter, sans-serif',
+        primary_color: brandColors.primary,
+        secondary_color: brandColors.secondary,
+        accent_color: brandColors.accent,
+        background_color: brandColors.background,
+        text_color: brandColors.text,
+        highlight_color: brandColors.highlight,
+        font_family: brandColors.font,
+        logo_url: logoUrl,
         unique_code: code1,
         published_at: new Date().toISOString(),
         visibility: 'public',
         custom_config: {
-          brandName: 'NexaCorp',
+          brandName: companyName,
           gameName: 'Crisis Leadership Challenge'
         }
       });
@@ -108,18 +124,19 @@ Deno.serve(async (req) => {
       customizations.push({
         brand_id: user.id,
         template_id: templates[1].id,
-        primary_color: '#0078D4',
-        secondary_color: '#005A9E',
-        accent_color: '#50E6FF',
-        background_color: '#FFFFFF',
-        text_color: '#1a1a1a',
-        highlight_color: '#50E6FF',
-        font_family: 'Inter, sans-serif',
+        primary_color: brandColors.primary,
+        secondary_color: brandColors.secondary,
+        accent_color: brandColors.accent,
+        background_color: brandColors.background,
+        text_color: brandColors.text,
+        highlight_color: brandColors.highlight,
+        font_family: brandColors.font,
+        logo_url: logoUrl,
         unique_code: code2,
         published_at: new Date().toISOString(),
         visibility: 'public',
         custom_config: {
-          brandName: 'NexaCorp',
+          brandName: companyName,
           gameName: 'Strategic Resource Planning'
         }
       });
@@ -130,16 +147,17 @@ Deno.serve(async (req) => {
       customizations.push({
         brand_id: user.id,
         template_id: templates[2].id,
-        primary_color: '#0078D4',
-        secondary_color: '#005A9E',
-        accent_color: '#50E6FF',
-        background_color: '#FFFFFF',
-        text_color: '#1a1a1a',
-        highlight_color: '#50E6FF',
-        font_family: 'Inter, sans-serif',
+        primary_color: brandColors.primary,
+        secondary_color: brandColors.secondary,
+        accent_color: brandColors.accent,
+        background_color: brandColors.background,
+        text_color: brandColors.text,
+        highlight_color: brandColors.highlight,
+        font_family: brandColors.font,
+        logo_url: logoUrl,
         visibility: 'draft',
         custom_config: {
-          brandName: 'NexaCorp',
+          brandName: companyName,
           gameName: 'Data Analytics Assessment'
         }
       });
