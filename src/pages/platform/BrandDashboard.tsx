@@ -288,7 +288,7 @@ export default function BrandDashboard() {
   }
 
   return (
-    <div className="w-full">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
           Brand Dashboard
@@ -338,7 +338,7 @@ export default function BrandDashboard() {
         )}
       </Card>
 
-      <div className="grid grid-cols-1 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card className="p-6 bg-gray-900 border-gray-800 w-full">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-neon-green/10 rounded-lg">
@@ -393,7 +393,7 @@ export default function BrandDashboard() {
           </Button>
         </Card>
       ) : (
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {customizations.map((custom) => (
           <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
             {/* Game Preview Screenshot */}

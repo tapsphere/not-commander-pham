@@ -109,81 +109,80 @@ export const PlatformLayout = () => {
     <div className="min-h-screen bg-black text-white">
       {/* Top Nav */}
       <header className="border-b border-neon-green/30 bg-gray-900/50 backdrop-blur">
-        <div className="max-w-[425px] mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-              {isCreator ? 'Creator Studio' : 'Brand Hub'}
-            </h1>
-            {hasMultipleRoles && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleRole}
-                className="gap-2 w-full"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Switch to {isCreator ? 'Brand' : 'Creator'}
-              </Button>
-            )}
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+                {isCreator ? 'Creator Studio' : 'Brand Hub'}
+              </h1>
+              {hasMultipleRoles && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleRole}
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Switch to {isCreator ? 'Brand' : 'Creator'}
+                </Button>
+              )}
+            </div>
+            
+            
+            <nav className="flex gap-4">
+              {isCreator && (
+                <>
+                  <Button
+                    variant={location.pathname === '/platform/creator' ? 'default' : 'ghost'}
+                    onClick={() => navigate('/platform/creator')}
+                    className="gap-2"
+                  >
+                    <Palette className="w-4 h-4" />
+                    My Templates
+                  </Button>
+                  <Button
+                    variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
+                    onClick={() => navigate('/platform/validator-test')}
+                    className="gap-2"
+                  >
+                    <TestTube className="w-4 h-4" />
+                    Test Validators
+                  </Button>
+                </>
+              )}
+              
+              {isBrand && (
+                <>
+                  <Button
+                    variant={location.pathname === '/platform/brand' ? 'default' : 'ghost'}
+                    onClick={() => navigate('/platform/brand')}
+                    className="gap-2"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant={location.pathname === '/platform/marketplace' ? 'default' : 'ghost'}
+                    onClick={() => navigate('/platform/marketplace')}
+                    className="gap-2"
+                  >
+                    <Store className="w-4 h-4" />
+                    Marketplace
+                  </Button>
+                </>
+              )}
+            </nav>
           </div>
-          
-          <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2">
+
+          <Button variant="ghost" onClick={handleSignOut} className="gap-2">
             <LogOut className="w-4 h-4" />
+            Sign Out
           </Button>
         </div>
-        
-        {/* Mobile Nav */}
-        <nav className="max-w-[425px] mx-auto px-4 pb-3 flex gap-2 overflow-x-auto">
-          {isCreator && (
-            <>
-              <Button
-                variant={location.pathname === '/platform/creator' ? 'default' : 'ghost'}
-                onClick={() => navigate('/platform/creator')}
-                size="sm"
-                className="gap-2 whitespace-nowrap"
-              >
-                <Palette className="w-4 h-4" />
-                Templates
-              </Button>
-              <Button
-                variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
-                onClick={() => navigate('/platform/validator-test')}
-                size="sm"
-                className="gap-2 whitespace-nowrap"
-              >
-                <TestTube className="w-4 h-4" />
-                Test
-              </Button>
-            </>
-          )}
-          
-          {isBrand && (
-            <>
-              <Button
-                variant={location.pathname === '/platform/brand' ? 'default' : 'ghost'}
-                onClick={() => navigate('/platform/brand')}
-                size="sm"
-                className="gap-2 whitespace-nowrap"
-              >
-                <Building2 className="w-4 h-4" />
-                Dashboard
-              </Button>
-              <Button
-                variant={location.pathname === '/platform/marketplace' ? 'default' : 'ghost'}
-                onClick={() => navigate('/platform/marketplace')}
-                size="sm"
-                className="gap-2 whitespace-nowrap"
-              >
-                <Store className="w-4 h-4" />
-                Marketplace
-              </Button>
-            </>
-          )}
-        </nav>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[425px] mx-auto px-4 py-6">
+      <main className="container mx-auto px-6 py-8">
         <Outlet />
       </main>
     </div>

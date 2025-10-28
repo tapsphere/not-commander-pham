@@ -145,16 +145,16 @@ export function GamePlayer({
     // If we have generated HTML, use iframe
     if (generatedGameHtml) {
       return (
-        <div className="min-h-screen bg-background">
-          <div className="max-w-4xl mx-auto p-4">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="w-full max-w-[425px] space-y-4">
             {/* Timer Header */}
-            <Card className="mb-4 p-4">
+            <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <Timer className="w-5 h-5 text-primary" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Time Remaining</p>
-                    <p className="text-2xl font-bold">{formatTime(timeLeft)}</p>
+                    <p className="text-sm text-muted-foreground">Time</p>
+                    <p className="text-xl font-bold">{formatTime(timeLeft)}</p>
                   </div>
                 </div>
                 <Button onClick={onExit} variant="outline" size="sm">
@@ -163,7 +163,7 @@ export function GamePlayer({
               </div>
             </Card>
 
-            {/* Game Iframe */}
+            {/* Game Iframe - Mobile View */}
             <Card className="overflow-hidden">
               <iframe
                 ref={iframeRef}
