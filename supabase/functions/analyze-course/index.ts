@@ -194,9 +194,9 @@ Return ONLY the JSON structure as specified.`;
     // Regular analysis mode - fetch available sub-competencies from Excel file
     console.log('Analyzing course:', courseName);
 
-    // Fetch Excel file from public URL
-    console.log('Fetching framework Excel file from public URL...');
-    const excelUrl = 'https://wedqutiobkapibgygazr.supabase.co/storage/v1/object/public/course-files/framework/CBEN_PlayOps_Framework_Finale.xlsx';
+    // Fetch Excel file from app's public folder
+    console.log('Fetching framework Excel file from app...');
+    const excelUrl = 'https://188e4cad-de5e-49fb-8008-62d777ec2103.lovableproject.com/CBEN_PlayOps_Framework_Finale.xlsx';
     
     let fileData;
     try {
