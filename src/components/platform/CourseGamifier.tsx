@@ -589,7 +589,7 @@ ${courseDescription}
               className="flex items-center gap-2"
             >
               <PlayCircle className="w-4 h-4" />
-              Load Demo
+              Load Sample Data
             </Button>
           </div>
         </CardHeader>
