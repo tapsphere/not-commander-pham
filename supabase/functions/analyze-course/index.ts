@@ -321,11 +321,10 @@ CRITICAL CONSTRAINTS:
     // The AI sometimes makes up values instead of using exact ones from the database
     if (analysisResult.competency_mappings && analysisResult.competency_mappings.length > 0) {
       analysisResult.competency_mappings = analysisResult.competency_mappings.map((mapping: any) => {
-        // Find the matching sub-competency in the database by statement
+        // Find the matching sub-competency in the database by EXACT statement match only
+        // This prevents fuzzy matching from selecting wrong sub-competencies with similar names
         const matchingSubComp = subCompetencies?.find(
-          sc => sc.statement === mapping.sub_competency || 
-                sc.statement.toLowerCase().includes(mapping.sub_competency.toLowerCase()) ||
-                mapping.sub_competency.toLowerCase().includes(sc.statement.toLowerCase())
+          sc => sc.statement.toLowerCase().trim() === mapping.sub_competency.toLowerCase().trim()
         );
 
         if (matchingSubComp) {
