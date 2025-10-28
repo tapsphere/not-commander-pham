@@ -900,7 +900,7 @@ ${courseDescription}
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <p className="font-medium">{mapping.sub_competency}</p>
-                          <p className="text-sm text-muted-foreground">{mapping.domain}</p>
+                          <p className="text-sm text-muted-foreground">{mapping.competency || mapping.domain}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded whitespace-nowrap">
