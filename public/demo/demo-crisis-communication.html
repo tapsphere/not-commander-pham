@@ -955,7 +955,7 @@ function showResults() {
 
   const badge = document.getElementById('levelBadge');
   if (result.level === 3) {
-    badge.textContent = '🏆 MASTERY';
+    badge.textContent = 'LEVEL 3 - 🏆 MASTERY';
     badge.className = 'badge mastery';
     // Victory particles
     setTimeout(() => {
@@ -970,10 +970,10 @@ function showResults() {
       }
     }, 500);
   } else if (result.level === 2) {
-    badge.textContent = '✅ PROFICIENT';
+    badge.textContent = 'LEVEL 2 - ✅ PROFICIENT';
     badge.className = 'badge proficient';
   } else {
-    badge.textContent = '📝 NEEDS WORK';
+    badge.textContent = 'LEVEL 1 - 📝 NEEDS WORK';
     badge.className = 'badge needs-work';
   }
 
