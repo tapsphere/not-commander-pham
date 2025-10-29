@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2, User, Wand2 } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2, User, Wand2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -53,6 +53,7 @@ export default function BrandDashboard() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [visibility, setVisibility] = useState<'public' | 'unlisted' | 'private'>('public');
   const [showCourseGamifier, setShowCourseGamifier] = useState(false);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCustomizations();
@@ -172,8 +173,10 @@ export default function BrandDashboard() {
     console.log('🔵 showDatePicker state set to true');
   };
 
-  const handleRegenerateGame = async (customizationId: string, e: React.MouseEvent) => {
+  const handleRegenerateGame = async (customizationId: string, uniqueCode: string | null, e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    setRegeneratingId(customizationId);
     
     try {
       const { data: customData } = await supabase
@@ -195,6 +198,7 @@ export default function BrandDashboard() {
 
       if (!customData || !customData.game_templates) {
         toast.error('Template data not found');
+        setRegeneratingId(null);
         return;
       }
 
@@ -210,7 +214,7 @@ Include:
 - Real-time feedback
 - Scoring based on accuracy and time`;
 
-      toast.info('Regenerating game HTML...');
+      toast.info('Generating game... This may take 1-2 minutes');
       
       const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-game', {
         body: {
@@ -227,15 +231,27 @@ Include:
 
       if (generateError) {
         console.error('Generate error:', generateError);
-        toast.error('Failed to regenerate game');
+        toast.error('Failed to generate game');
+        setRegeneratingId(null);
         return;
       }
 
-      toast.success('Game regenerated! You can now play it.');
-      loadCustomizations();
+      toast.success('Game generated successfully!');
+      
+      // Refresh the list
+      await loadCustomizations();
+      
+      // Auto-navigate to play the game after a short delay
+      if (uniqueCode) {
+        setTimeout(() => {
+          navigate(`/play/${uniqueCode}`);
+        }, 1000);
+      }
     } catch (error) {
       console.error('Regenerate error:', error);
-      toast.error('Failed to regenerate game');
+      toast.error('Failed to generate game');
+    } finally {
+      setRegeneratingId(null);
     }
   };
 
@@ -608,10 +624,21 @@ Include:
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={(e) => handleRegenerateGame(custom.id, e)}
+                        onClick={(e) => handleRegenerateGame(custom.id, custom.unique_code, e)}
+                        disabled={regeneratingId === custom.id}
                         className="gap-2"
                       >
-                        <Wand2 className="h-3 w-3" />
+                        {regeneratingId === custom.id ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span className="text-xs">Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="h-3 w-3" />
+                            <span className="text-xs">Generate</span>
+                          </>
+                        )}
                       </Button>
                       <Button 
                         size="sm" 
@@ -656,10 +683,21 @@ Include:
                       <Button 
                         size="sm"
                         variant="outline"
-                        onClick={(e) => handleRegenerateGame(custom.id, e)}
+                        onClick={(e) => handleRegenerateGame(custom.id, custom.unique_code, e)}
+                        disabled={regeneratingId === custom.id}
                         className="gap-2"
                       >
-                        <Wand2 className="h-3 w-3" />
+                        {regeneratingId === custom.id ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span className="text-xs">Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="h-3 w-3" />
+                            <span className="text-xs">Generate</span>
+                          </>
+                        )}
                       </Button>
                       <Button 
                         size="sm" 
