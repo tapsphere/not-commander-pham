@@ -52,6 +52,8 @@ export default function Play() {
 
   const loadValidator = async () => {
     try {
+      console.log('Loading validator with code:', code, 'or customizationId:', customizationId);
+      
       let query = supabase
         .from('brand_customizations')
         .select(`
@@ -84,12 +86,20 @@ export default function Play() {
 
       const { data, error } = await query.maybeSingle();
 
+      console.log('Validator query result:', { data, error });
+      
       if (error) throw error;
 
       if (!data) {
         setError(isPreviewMode ? 'Game not found' : 'Validator not found or not published');
         return;
       }
+
+      console.log('Validator loaded:', {
+        id: data.id,
+        hasHtml: !!data.generated_game_html,
+        htmlLength: data.generated_game_html?.length || 0
+      });
 
       setValidator(data as ValidatorData);
 
@@ -168,7 +178,12 @@ export default function Play() {
 
   // Inject remixed colors into the HTML
   const getRemixedHtml = () => {
-    if (!validator.generated_game_html) return '';
+    if (!validator.generated_game_html) {
+      console.error('No generated_game_html found!');
+      return '';
+    }
+    
+    console.log('Processing HTML, original length:', validator.generated_game_html.length);
     
     const colors = getCurrentColors();
     let html = validator.generated_game_html;
@@ -231,6 +246,9 @@ export default function Play() {
     // Insert contrast styles right after opening <head> tag
     html = html.replace('<head>', '<head>' + contrastStyles);
     
+    console.log('Processed HTML, final length:', html.length);
+    console.log('HTML preview (first 500 chars):', html.substring(0, 500));
+    
     return html;
   };
 
@@ -278,26 +296,38 @@ export default function Play() {
                   <iframe
                     key={JSON.stringify(remixedColors)} // Force reload on color change
                     srcDoc={getRemixedHtml()}
-                    className="w-full border-0 rounded-lg shadow-2xl"
-                    style={{ height: '812px' }} // iPhone 13 height
+                    className="w-full border-0 rounded-lg shadow-2xl bg-white"
+                    style={{ height: '812px', minHeight: '812px' }} // iPhone 13 height
                     title="Game Validator"
                     sandbox="allow-scripts allow-same-origin allow-forms"
                     onLoad={(e) => {
+                      console.log('Iframe loaded successfully');
+                      console.log('HTML length:', getRemixedHtml().length);
+                      
                       // Force remove loading screen after iframe loads
                       const iframe = e.currentTarget;
                       setTimeout(() => {
                         try {
                           const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
                           if (iframeDoc) {
+                            console.log('Iframe document accessible');
                             const loadingScreen = iframeDoc.getElementById('loading-screen');
                             if (loadingScreen) {
+                              console.log('Loading screen found, hiding it');
                               loadingScreen.style.display = 'none';
+                            } else {
+                              console.log('Loading screen not found');
                             }
+                          } else {
+                            console.log('Cannot access iframe document');
                           }
                         } catch (err) {
-                          console.log('Could not access iframe content:', err);
+                          console.error('Error accessing iframe content:', err);
                         }
-                      }, 2000); // Wait 2 seconds for game to initialize
+                      }, 3000); // Wait 3 seconds for game to initialize
+                    }}
+                    onError={(e) => {
+                      console.error('Iframe error:', e);
                     }}
                   />
                 )}
