@@ -1243,19 +1243,27 @@ function handleChoice(button) {
 
   logEvent('scene.complete', { scene: sceneNum, choice: choiceId, correct: isCorrect, time: timeSpent });
 
-  setTimeout(() => moveToNextScene(), 1500);
+  console.log('Scheduling moveToNextScene in 1500ms');
+  setTimeout(() => {
+    console.log('Timeout fired, calling moveToNextScene');
+    moveToNextScene();
+  }, 1500);
 }
 
 function moveToNextScene() {
+  console.log('moveToNextScene called, current scene:', gameState.currentScene);
   const currentSceneNum = gameState.currentScene;
   
   if (currentSceneNum < 4) {
+    console.log('Moving from scene', currentSceneNum, 'to scene', currentSceneNum + 1);
     document.getElementById(`scene${currentSceneNum}`).classList.remove('active');
     document.getElementById(`scene${currentSceneNum + 1}`).classList.add('active');
     gameState.currentScene++;
     gameState.sceneStartTimes[`scene${gameState.currentScene}`] = Date.now();
     updateProgressJourney();
+    console.log('Scene transition complete. New current scene:', gameState.currentScene);
   } else {
+    console.log('No more scenes, finishing game');
     finishGame();
   }
 }
