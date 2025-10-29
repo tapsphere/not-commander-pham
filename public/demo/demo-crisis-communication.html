@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Crisis Communication Validator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
   <style>
     :root {
       --primary: #0078D4;
@@ -188,6 +189,13 @@
     #introScreen {
       overflow-y: auto;
       padding-bottom: 100px;
+      align-items: center;
+    }
+
+    .intro-animation {
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 20px;
     }
 
     #introScreen h1 {
@@ -466,6 +474,7 @@
       .choice { font-size: 14px; min-height: 52px; padding: 14px; }
       .mascot { bottom: 80px; right: 10px; }
       .mascot-character { width: 60px; height: 60px; font-size: 30px; }
+      .intro-animation { width: 250px; height: 250px; }
     }
   </style>
 </head>
@@ -489,6 +498,15 @@
 
 <!-- Intro Screen -->
 <div id="introScreen" class="screen">
+  <lottie-player 
+    class="intro-animation"
+    src="robot-bot-3d.json" 
+    background="transparent" 
+    speed="1" 
+    loop 
+    autoplay>
+  </lottie-player>
+  
   <h1>Crisis Communication</h1>
   
   <ul>
