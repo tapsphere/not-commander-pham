@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Lobby from "./pages/Lobby";
 import Profile from "./pages/Profile";
@@ -48,16 +48,18 @@ const App = () => (
           {/* Platform Routes (Creators & Brands) */}
           <Route path="/auth" element={<Auth />} />
           <Route path="/platform" element={<PlatformLayout />}>
-          <Route path="creator" element={<CreatorDashboard />} />
-          <Route path="brand" element={<BrandDashboard />} />
-          <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
-          <Route path="marketplace" element={<Marketplace />} />
-          <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
-          <Route path="template/:templateId" element={<TemplateDetail />} />
-          <Route path="validator-test" element={<ValidatorTest />} />
-          <Route path="testing-guide" element={<TestingGuide />} />
-          <Route path="play/:templateId" element={<PlayValidator />} />
-        </Route>
+            <Route index element={<Navigate to="/platform/marketplace" replace />} />
+            <Route path="creator" element={<CreatorDashboard />} />
+            <Route path="brand" element={<BrandDashboard />} />
+            <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
+            <Route path="marketplace" element={<Marketplace />} />
+            <Route path="template/:templateId" element={<TemplateDetail />} />
+            <Route path="validator-test" element={<ValidatorTest />} />
+            <Route path="testing-guide" element={<TestingGuide />} />
+            <Route path="play/:templateId" element={<PlayValidator />} />
+            <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
+            <Route path="*" element={<Navigate to="/platform/marketplace" replace />} />
+          </Route>
           
           {/* Public Brand Profile */}
           <Route path="/brand/:brandId" element={<BrandProfile />} />
