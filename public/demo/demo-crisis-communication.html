@@ -581,15 +581,6 @@
   </button>
 </div>
 
-<!-- Reputation Meter -->
-<div class="reputation-meter" id="reputationMeter">
-  <div class="meter-label">Company Reputation</div>
-  <div class="meter-bar">
-    <div class="meter-fill" id="meterFill" style="width: 100%;"></div>
-  </div>
-  <div class="meter-emoji" id="meterEmoji">😊</div>
-</div>
-
 <!-- Progress Journey -->
 <div class="progress-journey" id="progressJourney" style="display: none;">
   <div class="journey-node active" data-scene="1">🎯</div>
@@ -607,8 +598,7 @@
   
   <div class="scenario">
     <h2>🎯 Level 1: Initiative - Pre-Onboarding Prep</h2>
-    <p>Choose correct pre-day tasks to prepare new hire workspace</p>
-    <p><strong>Context:</strong> Alex starts Monday. Select ALL tasks that should be completed BEFORE their first day.</p>
+    <p>Alex starts Monday. Select ALL tasks that should be completed BEFORE their first day to prepare the new hire workspace.</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 90 seconds | Multi-select: Choose 3 correct tasks</p>
     
     <div class="stakeholder-reactions" id="stakeholders1">
@@ -647,7 +637,7 @@
   
   <div class="scenario">
     <h2>📱 Level 2: Team Connection - Choose the Right Channel</h2>
-    <p>Match each scenario to best communication channel</p>
+    <p>Match each scenario to the best communication channel.</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 60 seconds | Match all 3 scenarios to: Teams Call, Quick Chat, or Email</p>
     
     <div class="stakeholder-reactions" id="stakeholders2">
@@ -691,8 +681,7 @@
   
   <div class="scenario">
     <h2>🎓 Level 3: Coaching & Mentorship - Resource Selection</h2>
-    <p>Identify which support resource best helps the new hire</p>
-    <p><strong>Context:</strong> Alex (Week 2) says: "I'm struggling to understand our project management workflow."</p>
+    <p>Alex (Week 2) says: "I'm struggling to understand our project management workflow."</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best support resource</p>
     
     <div class="stakeholder-reactions" id="stakeholders3">
@@ -723,8 +712,7 @@
   
   <div class="scenario">
     <h2>💬 Level 4: Feedback & Reflection - Post-Review Action</h2>
-    <p>Choose correct feedback action after performance review</p>
-    <p><strong>Context:</strong> After Alex's 30-day review, they received constructive feedback on time management. What's your next action?</p>
+    <p>After Alex's 30-day review, they received constructive feedback on time management. What's your next action?</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best feedback follow-up</p>
     
     <div class="stakeholder-reactions" id="stakeholders4">
@@ -1300,8 +1288,7 @@ function showResults() {
 
   const badge = document.getElementById('levelBadge');
   
-  // Hide reputation meter and progress journey
-  document.getElementById('reputationMeter').style.display = 'none';
+  // Hide progress journey
   document.getElementById('progressJourney').style.display = 'none';
   
   if (result.level === 3) {
