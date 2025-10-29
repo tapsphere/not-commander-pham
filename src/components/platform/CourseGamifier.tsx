@@ -506,12 +506,7 @@ ${courseDescription}
 
   const loadMicrosoftDemo = async () => {
     try {
-      // Fetch the demo PDF
-      const response = await fetch('/demo/microsoft-onboarding.pdf');
-      const blob = await response.blob();
-      const file = new File([blob], 'microsoft-onboarding.pdf', { type: 'application/pdf' });
-      
-      // Set consistent demo data
+      // Set consistent demo data with hardcoded competency mappings
       setCourseName("Microsoft New Employee Onboarding");
       setCourseDescription("A comprehensive onboarding guide for new Microsoft employees covering paperwork, training, team integration, and ongoing support.");
       setLearningObjectives([
@@ -531,11 +526,102 @@ ${courseDescription}
       setIndustry("tech");
       setCourseDuration("5");
       setPrerequisites("None - designed for day-one employees");
-      setSelectedFile(file);
+      
+      // Hardcode the correct 4 HR onboarding competencies
+      const demoAnalysisResult = {
+        course_analysis: {
+          summary: "This course focuses on welcoming and integrating new employees into Microsoft's culture and workflows through a structured 4-step onboarding process.",
+          key_outcomes: [
+            "Efficient paperwork completion and documentation management",
+            "Strong team connections and collaborative relationships",
+            "Effective coaching and mentorship relationships",
+            "Continuous feedback and reflection practices"
+          ]
+        },
+        competency_mappings: [
+          {
+            domain: "Professional Excellence & Initiative",
+            competency: "Initiative",
+            sub_competency: "Proactive Action Taking",
+            alignment_summary: "The course emphasizes taking initiative in completing paperwork, accessing documents, and organizing onboarding tasks proactively on day one.",
+            validator_type: "Task Completion Simulation",
+            action_cue: "Complete tasks proactively without prompting",
+            game_mechanic: "Task Prioritization Challenge",
+            evidence_metric: "Tasks completed proactively and accurately",
+            scoring_formula: "Accuracy < 80%"
+          },
+          {
+            domain: "Collaboration & Teamwork",
+            competency: "Team Connection",
+            sub_competency: "Building Team Relationships",
+            alignment_summary: "The onboarding process focuses on integrating new hires with colleagues, scheduling team meetings, and creating channels for connection.",
+            validator_type: "Relationship Building Simulation",
+            action_cue: "Initiate connections with team members",
+            game_mechanic: "Networking Scenario",
+            evidence_metric: "Quality of team interactions and connections established",
+            scoring_formula: "Accuracy < 80%"
+          },
+          {
+            domain: "Leadership & Development",
+            competency: "Coaching & Mentorship",
+            sub_competency: "Guiding and Supporting Others",
+            alignment_summary: "The course covers planning training sessions, sharing training materials, and providing ongoing support to new employees.",
+            validator_type: "Coaching Scenario Simulation",
+            action_cue: "Provide guidance and support to new hires",
+            game_mechanic: "Mentorship Decision Tree",
+            evidence_metric: "Quality of coaching and support provided",
+            scoring_formula: "Accuracy < 80%"
+          },
+          {
+            domain: "Communication & Reflection",
+            competency: "Feedback & Reflection",
+            sub_competency: "Providing and Receiving Feedback",
+            alignment_summary: "The onboarding emphasizes frequent check-ins, discussing job progress, asking questions, and maintaining open communication channels.",
+            validator_type: "Communication Simulation",
+            action_cue: "Check in and provide constructive feedback",
+            game_mechanic: "Feedback Dialogue Simulator",
+            evidence_metric: "Quality and frequency of feedback interactions",
+            scoring_formula: "Accuracy < 80%"
+          }
+        ],
+        recommended_validators: [
+          {
+            validator_name: "Initiative Task Tracker",
+            competencies_tested: ["Proactive Action Taking"],
+            priority: "high",
+            reason: "Essential for measuring day-one productivity and self-directed task completion"
+          },
+          {
+            validator_name: "Team Connection Builder",
+            competencies_tested: ["Building Team Relationships"],
+            priority: "high",
+            reason: "Critical for successful team integration and collaboration"
+          },
+          {
+            validator_name: "Coaching Scenario Simulator",
+            competencies_tested: ["Guiding and Supporting Others"],
+            priority: "medium",
+            reason: "Important for developing mentorship capabilities in onboarding context"
+          },
+          {
+            validator_name: "Feedback Check-In Simulator",
+            competencies_tested: ["Providing and Receiving Feedback"],
+            priority: "high",
+            reason: "Vital for maintaining continuous improvement and open communication"
+          }
+        ],
+        summary: {
+          total_competencies: 4,
+          domains_covered: ["Professional Excellence & Initiative", "Collaboration & Teamwork", "Leadership & Development", "Communication & Reflection"],
+          implementation_note: "These 4 competencies directly map to Microsoft's 4-step onboarding framework: Initiative (paperwork), Team Connection (integration), Coaching & Mentorship (training), and Feedback & Reflection (check-ins)."
+        }
+      };
+      
+      setAnalysisResult(demoAnalysisResult);
       
       toast({
         title: "Demo loaded!",
-        description: "Microsoft HR onboarding scenario is ready. Click 'Analyze Course' to proceed.",
+        description: "Microsoft HR onboarding analysis complete with 4 core competencies.",
       });
     } catch (error) {
       console.error('Error loading demo:', error);
