@@ -247,11 +247,14 @@ ${logoUrl ? `
 </style>
 
 <script>
-setTimeout(() => {
+// CRITICAL: Hide loading screen after 2.5 seconds with correct setTimeout syntax
+setTimeout(function() {
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
     loadingScreen.style.opacity = '0';
-    setTimeout(() => loadingScreen.style.display = 'none', 800);
+    setTimeout(function() {
+      loadingScreen.style.display = 'none';
+    }, 800);
   }
 }, 2500);
 </script>
