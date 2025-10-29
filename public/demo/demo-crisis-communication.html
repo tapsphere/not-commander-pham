@@ -993,9 +993,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // Scene 3 & 4: Single choice handlers
   document.querySelectorAll('#scene3 .choice, #scene4 .choice').forEach(btn => {
     btn.addEventListener('click', function() {
+      console.log('Scene 3/4 choice clicked:', this.dataset.id);
       playSound('click');
       if (!this.classList.contains('selected')) {
         handleChoice(this);
+      } else {
+        console.log('Choice already selected, ignoring');
       }
     });
   });
@@ -1198,8 +1201,10 @@ function handleScene2Submit() {
 }
 
 function handleChoice(button) {
+  console.log('handleChoice called for button:', button.dataset.id);
   const choiceId = button.dataset.id;
   const sceneNum = parseInt(button.closest('.screen').id.replace('scene', ''));
+  console.log('Scene number:', sceneNum);
   
   // Disable all choices
   button.closest('.choices').querySelectorAll('.choice').forEach(b => {
@@ -1210,6 +1215,7 @@ function handleChoice(button) {
 
   // Check if correct
   const goldKey = window.__GOLD_KEY__[`scene${sceneNum}`];
+  console.log('Gold key:', goldKey, 'User choice:', choiceId);
   const isCorrect = choiceId === goldKey;
   
   button.classList.add(isCorrect ? 'correct' : 'incorrect');
