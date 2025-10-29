@@ -149,7 +149,7 @@ Return ONLY the JSON structure as specified.`;
             { role: 'system', content: EXTRACTION_PROMPT },
             { role: 'user', content: extractPrompt }
           ],
-          temperature: 0.3,
+          temperature: 0.0, // Zero temperature = same extraction every time
         }),
       });
 
@@ -311,7 +311,7 @@ CRITICAL CONSTRAINTS:
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.3,
+        temperature: 0.0, // Zero temperature = deterministic results
       }),
     });
 

@@ -457,7 +457,7 @@ Generate a complete, playable HTML5 game that matches this description and uses 
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
-          temperature: 1.0,
+          temperature: 0.1, // Very low temperature = consistent game generation
         }),
         signal: controller.signal,
       });

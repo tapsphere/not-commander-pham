@@ -62,7 +62,7 @@ serve(async (req) => {
             ]
           }
         ],
-        temperature: 0.1, // Low temperature for consistent extraction
+        temperature: 0.0, // Zero temperature = same extraction every time
       }),
     });
 
