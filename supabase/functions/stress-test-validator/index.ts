@@ -673,30 +673,33 @@ async function runCheck8ProofEmission(template: any, subComp: any, supabase: any
 async function fetchGameHTML(template: any, supabase: any): Promise<string | null> {
   try {
     if (template.template_type === 'custom_upload' && template.custom_game_url) {
-      // Custom games are stored in the 'custom-games' storage bucket
-      // The custom_game_url field contains the file UUID
-      console.log('Fetching custom game from storage bucket:', template.custom_game_url);
+      const url = template.custom_game_url;
       
-      // Download from storage bucket
-      const { data, error } = await supabase
-        .storage
-        .from('custom-games')
-        .download(`${template.custom_game_url}.html`);
-      
-      if (error) {
-        console.error('Error downloading from storage:', error);
-        return null;
+      // Check if it's a full URL (new format) or UUID (old format)
+      if (url.startsWith('http')) {
+        // New format: fetch from public storage URL
+        console.log('Fetching custom game from public URL:', url);
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.error('Failed to fetch from URL:', response.status, response.statusText);
+          return null;
+        }
+        return await response.text();
+      } else {
+        // Old format: UUID pointing to brand_customizations table
+        console.log('Fetching custom game from brand_customizations:', url);
+        const { data, error } = await supabase
+          .from('brand_customizations')
+          .select('generated_game_html')
+          .eq('id', url)
+          .single();
+        
+        if (error || !data?.generated_game_html) {
+          console.error('Error fetching from brand_customizations:', error);
+          return null;
+        }
+        return data.generated_game_html;
       }
-      
-      if (!data) {
-        console.error('No data returned from storage');
-        return null;
-      }
-      
-      // Convert blob to text
-      const htmlContent = await data.text();
-      console.log('Successfully fetched HTML, length:', htmlContent.length);
-      return htmlContent;
       
     } else if (template.template_type === 'ai_generated' && template.base_prompt) {
       // For AI generated, check if there's already generated HTML in game_config
