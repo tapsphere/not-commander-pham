@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Crisis Communication Validator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00FF00;
+      --secondary: #9945FF;
+      --accent: #FF5722;
+      --background: #1A1A1A;
+      --text: #FFFFFF;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Intro Screen - Scrollable */
+    #introScreen {
+      overflow-y: auto;
+      padding-bottom: 100px;
+    }
+
+    #introScreen h1 {
+      color: var(--primary);
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #introScreen ul {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+
+    #introScreen li {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 3px solid var(--primary);
+    }
+
+    #introScreen li strong {
+      color: var(--primary);
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 56px;
+      touch-action: manipulation;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    #startBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      width: calc(100% - 40px);
+      max-width: 600px;
+      margin: 0 auto;
+      z-index: 100;
+    }
+
+    /* Gameplay Screens */
+    .gameplay {
+      overflow: hidden;
+      justify-content: space-between;
+    }
+
+    .timer {
+      background: rgba(255,255,255,0.1);
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .scenario {
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid var(--accent);
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+
+    .scenario h2 {
+      color: var(--primary);
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: auto;
+      padding-bottom: 20px;
+    }
+
+    .choice {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.2);
+      padding: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      touch-action: manipulation;
+    }
+
+    .choice:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: var(--primary);
+    }
+
+    .choice.selected {
+      background: rgba(0,255,0,0.2);
+      border-color: var(--primary);
+    }
+
+    .choice.correct {
+      background: rgba(0,255,0,0.3);
+      border-color: var(--primary);
+    }
+
+    .choice.incorrect {
+      background: rgba(255,87,34,0.3);
+      border-color: var(--accent);
+    }
+
+    .edge-case-alert {
+      background: linear-gradient(135deg, rgba(255,87,34,0.3), rgba(153,69,255,0.3));
+      border: 2px solid var(--accent);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Results Screen */
+    #resultsScreen {
+      text-align: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .badge {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .badge.mastery { color: #00FF00; }
+    .badge.proficient { color: #FFD700; }
+    .badge.needs-work { color: #FF5722; }
+
+    .stat {
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 15px 0;
+    }
+
+    .stat-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 768px) {
+      .scenario h2 { font-size: 18px; }
+      .choice { font-size: 14px; min-height: 52px; padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Intro Screen -->
+<div id="introScreen" class="screen active">
+  <h1>🚨 Crisis Communication</h1>
+  
+  <ul>
+    <li><strong>WHO:</strong> You're the Communications Lead during a product incident</li>
+    <li><strong>WHAT:</strong> Draft clear, empathetic messages under pressure</li>
+    <li><strong>HOW:</strong> Select the best communication approach for each scenario</li>
+    <li><strong>SUCCESS:</strong> Maintain clarity, empathy, and professionalism</li>
+    <li><strong>TIME:</strong> 180 seconds (3 decisions + edge case)</li>
+  </ul>
+
+  <button id="startBtn" class="btn" aria-label="Start Crisis Communication Game">
+    START GAME
+  </button>
+</div>
+
+<!-- Scene 1 -->
+<div id="scene1" class="screen gameplay">
+  <div class="timer" id="timer1">3:00</div>
+  
+  <div class="scenario">
+    <h2>Initial Incident</h2>
+    <p>A bug in your product has caused data sync issues for 15% of users. Your engineering team is investigating. Draft the initial customer communication:</p>
+  </div>
+
+  <div class="choices" id="choices1">
+    <button class="choice" data-id="s1_opt_a" aria-label="Choice A">
+      "We're aware of a technical issue affecting some users. Our team is actively working on a fix. We'll update you within 2 hours with more details."
+    </button>
+    <button class="choice" data-id="s1_opt_b" aria-label="Choice B">
+      "Sorry for any inconvenience. We're looking into it."
+    </button>
+    <button class="choice" data-id="s1_opt_c" aria-label="Choice C">
+      "URGENT: System failure detected. Please stop using the product immediately until further notice."
+    </button>
+  </div>
+</div>
+
+<!-- Scene 2 -->
+<div id="scene2" class="screen gameplay">
+  <div class="timer" id="timer2">2:30</div>
+  
+  <div class="scenario">
+    <h2>Status Update</h2>
+    <p>30 minutes later: The issue is isolated. Engineering needs 90 more minutes. Some customers are frustrated. Craft your update:</p>
+  </div>
+
+  <div class="choices" id="choices2">
+    <button class="choice" data-id="s2_opt_a" aria-label="Choice A">
+      "UPDATE: We've identified the root cause. Fix in progress. ETA: 90 minutes. Your data is safe. Thank you for your patience."
+    </button>
+    <button class="choice" data-id="s2_opt_b" aria-label="Choice B">
+      "Still working on it. Please be patient."
+    </button>
+    <button class="choice" data-id="s2_opt_c" aria-label="Choice C">
+      "This is taking longer than expected. We don't know when it will be fixed."
+    </button>
+  </div>
+</div>
+
+<!-- Scene 3: Edge Case -->
+<div id="scene3" class="screen gameplay">
+  <div class="timer" id="timer3">2:00</div>
+  
+  <div class="edge-case-alert">
+    <h3 style="color: var(--accent); margin-bottom: 10px;">⚡ EDGE CASE: Escalation</h3>
+    <p>A high-value enterprise client threatens to cancel unless you provide immediate compensation. How do you respond?</p>
+  </div>
+
+  <div class="scenario">
+    <h2>High-Stakes Response</h2>
+    <p>Time-sensitive decision required:</p>
+  </div>
+
+  <div class="choices" id="choices3">
+    <button class="choice" data-id="s3_opt_a" aria-label="Choice A">
+      "I understand your frustration. Let me connect you with our Account Manager who can discuss this immediately while we continue the fix."
+    </button>
+    <button class="choice" data-id="s3_opt_b" aria-label="Choice B">
+      "We'll provide full credit for this month's service as compensation."
+    </button>
+    <button class="choice" data-id="s3_opt_c" aria-label="Choice C">
+      "Everyone is affected equally. The fix is coming soon."
+    </button>
+  </div>
+</div>
+
+<!-- Results Screen -->
+<div id="resultsScreen" class="screen">
+  <div class="badge" id="levelBadge">CALCULATING...</div>
+  <div class="stat">
+    <div class="stat-value" id="accuracyValue">--</div>
+    <div class="stat-label">Accuracy</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="timeValue">--</div>
+    <div class="stat-label">Time (seconds)</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="edgeValue">--</div>
+    <div class="stat-label">Edge Case Handling</div>
+  </div>
+  <button class="btn" onclick="location.reload()" aria-label="Play Again">PLAY AGAIN</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// EMBEDDED CONFIGURATION (v3.1 BASE LAYER 1)
+// ═══════════════════════════════════════════════════════════════
+
+window.__CONFIG__ = {
+  mode: "training",
+  duration_s: 180,
+  competency: "Communication & Information Management",
+  sub_competency: "Draft clear crisis communications under pressure",
+  thresholds: {
+    A2: 0.90,
+    A3: 0.95,
+    Tlimit: 180,
+    Ttight: 150,
+    EdgeL3: 0.80,
+    SessionsL3: 3
+  },
+  xp: {
+    L1: 100,  // Needs Work
+    L2: 250,  // Proficient
+    L3: 500   // Mastery
+  }
+};
+
+window.__GOLD_KEY__ = {
+  s1: ["s1_opt_a"],  // Clear, empathetic, timeline
+  s2: ["s2_opt_a"],  // Progress update with ETA
+  s3: ["s3_opt_a"]   // Escalation with proper routing
+};
+
+window.__EDGE__ = {
+  triggered: false,
+  recovered: false,
+  score: 0
+};
+
+window.__RESULT__ = {
+  accuracy: 0,
+  time_s: 0,
+  edge_score: 0,
+  level: 0,
+  passed: false
+};
+
+window.__PROOF__ = null;
+
+// ═══════════════════════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════════════════════
+
+let gameState = {
+  startTime: 0,
+  decisions: [],
+  currentScene: 0,
+  timerInterval: null
+};
+
+// Telegram Mini-App Integration
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const startBtn = document.getElementById('startBtn');
+  
+  if (startBtn) {
+    startBtn.addEventListener('click', function() {
+      console.log('START clicked - transitioning to game');
+      document.getElementById('introScreen').classList.remove('active');
+      document.getElementById('scene1').classList.add('active');
+      startGame();
+    });
+  }
+
+  // Add click handlers for all choices
+  document.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (!this.classList.contains('selected')) {
+        handleChoice(this);
+      }
+    });
+  });
+});
+
+function startGame() {
+  gameState.startTime = Date.now();
+  gameState.currentScene = 1;
+  startTimer();
+  logEvent('session.start', { timestamp: new Date().toISOString() });
+}
+
+function startTimer() {
+  let elapsed = 0;
+  gameState.timerInterval = setInterval(() => {
+    elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+    const remaining = Math.max(0, 180 - elapsed);
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    
+    ['timer1', 'timer2', 'timer3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    });
+
+    if (remaining === 0) {
+      clearInterval(gameState.timerInterval);
+      finishGame();
+    }
+  }, 1000);
+}
+
+function handleChoice(button) {
+  const choiceId = button.dataset.id;
+  const scene = parseInt(button.closest('.screen').id.replace('scene', ''));
+  
+  // Mark as selected
+  button.closest('.choices').querySelectorAll('.choice').forEach(b => {
+    b.classList.remove('selected');
+    b.style.pointerEvents = 'none';
+  });
+  button.classList.add('selected');
+
+  // Check if correct
+  const goldKey = window.__GOLD_KEY__[`s${scene}`];
+  const isCorrect = goldKey && goldKey.includes(choiceId);
+  
+  button.classList.add(isCorrect ? 'correct' : 'incorrect');
+  
+  gameState.decisions.push({
+    scene: scene,
+    choice: choiceId,
+    correct: isCorrect,
+    timestamp: Date.now()
+  });
+
+  logEvent('decision.select', { scene, choice: choiceId, correct: isCorrect });
+
+  // Edge case trigger in scene 3
+  if (scene === 3) {
+    window.__EDGE__.triggered = true;
+    window.__EDGE__.recovered = isCorrect;
+    window.__EDGE__.score = isCorrect ? 1.0 : 0.0;
+    logEvent('edge.trigger', { recovered: isCorrect });
+  }
+
+  // Move to next scene after 1.5s
+  setTimeout(() => {
+    if (scene < 3) {
+      document.getElementById(`scene${scene}`).classList.remove('active');
+      document.getElementById(`scene${scene + 1}`).classList.add('active');
+      gameState.currentScene++;
+    } else {
+      finishGame();
+    }
+  }, 1500);
+}
+
+function finishGame() {
+  clearInterval(gameState.timerInterval);
+
+  const endTime = Date.now();
+  const timeElapsed = Math.floor((endTime - gameState.startTime) / 1000);
+  
+  const correctCount = gameState.decisions.filter(d => d.correct).length;
+  const totalDecisions = gameState.decisions.length;
+  const accuracy = totalDecisions > 0 ? correctCount / totalDecisions : 0;
+
+  // Calculate level based on v3.1 thresholds
+  let level = 1; // Needs Work
+  let passed = false;
+
+  if (accuracy >= 0.95 && timeElapsed <= 150 && window.__EDGE__.score >= 0.8) {
+    level = 3; // Mastery
+    passed = true;
+  } else if (accuracy >= 0.90 && timeElapsed <= 180) {
+    level = 2; // Proficient
+    passed = true;
+  }
+
+  window.__RESULT__ = {
+    accuracy: accuracy,
+    time_s: timeElapsed,
+    edge_score: window.__EDGE__.score,
+    level: level,
+    passed: passed
+  };
+
+  // Generate proof receipt
+  window.__PROOF__ = {
+    proof_id: "demo-" + Date.now().toString(36),
+    template_id: "crisis-communication-demo",
+    competency: window.__CONFIG__.competency,
+    sub_competency: window.__CONFIG__.sub_competency,
+    level: level,
+    metrics: {
+      accuracy: accuracy,
+      time_s: timeElapsed,
+      edge_score: window.__EDGE__.score,
+      sessions: 1
+    },
+    timestamp: new Date().toISOString()
+  };
+
+  logEvent('session.end', window.__RESULT__);
+
+  // Show results
+  showResults();
+}
+
+function showResults() {
+  const result = window.__RESULT__;
+  
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('resultsScreen').classList.add('active');
+
+  const badge = document.getElementById('levelBadge');
+  if (result.level === 3) {
+    badge.textContent = '🏆 MASTERY';
+    badge.className = 'badge mastery';
+  } else if (result.level === 2) {
+    badge.textContent = '✅ PROFICIENT';
+    badge.className = 'badge proficient';
+  } else {
+    badge.textContent = '📝 NEEDS WORK';
+    badge.className = 'badge needs-work';
+  }
+
+  document.getElementById('accuracyValue').textContent = Math.round(result.accuracy * 100) + '%';
+  document.getElementById('timeValue').textContent = result.time_s + 's';
+  document.getElementById('edgeValue').textContent = window.__EDGE__.triggered 
+    ? (window.__EDGE__.recovered ? '✅ Handled' : '⚠️ Needs Improvement')
+    : 'Not Triggered';
+}
+
+function logEvent(eventType, data) {
+  console.log(`[TELEMETRY] ${eventType}`, data);
+}
+</script>
+
+</body>
+</html>
