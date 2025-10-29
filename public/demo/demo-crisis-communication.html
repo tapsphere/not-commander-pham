@@ -36,10 +36,150 @@
       width: 100vw;
       padding: 20px;
       overflow-y: auto;
+      animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .screen.active {
       display: flex;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Animated Mascot */
+    .mascot {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      animation: float 3s ease-in-out infinite;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .mascot-character {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      position: relative;
+      box-shadow: 0 10px 40px rgba(0, 255, 0, 0.4);
+    }
+
+    .mascot.thinking .mascot-character {
+      animation: think 0.6s ease-in-out;
+    }
+
+    .mascot.happy .mascot-character {
+      animation: celebrate 0.5s ease-in-out;
+      background: linear-gradient(135deg, #FFD700, var(--primary));
+    }
+
+    .mascot.worried .mascot-character {
+      animation: shake 0.4s ease-in-out;
+      background: linear-gradient(135deg, var(--accent), #FF8A65);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-15px); }
+    }
+
+    @keyframes think {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+    }
+
+    @keyframes celebrate {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.2) rotate(-10deg); }
+      75% { transform: scale(1.2) rotate(10deg); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .mascot-bubble {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      color: #1A1A1A;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .mascot-bubble.show {
+      opacity: 1;
+      top: -70px;
+    }
+
+    .mascot-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid rgba(255, 255, 255, 0.95);
+    }
+
+    /* Particle Effects */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .particle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: particle-float 1s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes particle-float {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(var(--ty, -100px)) translateX(var(--tx, 0)) scale(0);
+      }
     }
 
     /* Intro Screen - Scrollable */
@@ -81,20 +221,21 @@
       padding: 16px 32px;
       font-size: 18px;
       font-weight: 600;
-      border-radius: 8px;
+      border-radius: 16px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       min-height: 56px;
       touch-action: manipulation;
+      box-shadow: 0 4px 20px rgba(0, 255, 0, 0.3);
     }
 
     .btn:hover {
-      opacity: 0.9;
-      transform: translateY(-2px);
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 8px 30px rgba(0, 255, 0, 0.5);
     }
 
     .btn:active {
-      transform: translateY(0);
+      transform: translateY(-2px) scale(0.98);
     }
 
     #startBtn {
@@ -152,9 +293,9 @@
       background: rgba(255,255,255,0.08);
       border: 2px solid rgba(255,255,255,0.2);
       padding: 18px;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       min-height: 60px;
       display: flex;
       align-items: center;
@@ -165,21 +306,36 @@
     .choice:hover {
       background: rgba(255,255,255,0.12);
       border-color: var(--primary);
+      transform: translateX(5px) scale(1.01);
     }
 
     .choice.selected {
       background: rgba(0,255,0,0.2);
       border-color: var(--primary);
+      animation: selectBounce 0.4s ease;
     }
 
     .choice.correct {
       background: rgba(0,255,0,0.3);
       border-color: var(--primary);
+      animation: correctPulse 0.6s ease;
     }
 
     .choice.incorrect {
       background: rgba(255,87,34,0.3);
       border-color: var(--accent);
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes selectBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.08); box-shadow: 0 0 30px rgba(0, 255, 0, 0.6); }
+      75% { transform: scale(1.02); }
     }
 
     .edge-case-alert {
@@ -242,6 +398,15 @@
   </style>
 </head>
 <body>
+
+<!-- Animated Mascot -->
+<div class="mascot" id="mascot">
+  <div class="mascot-character">🎯</div>
+  <div class="mascot-bubble" id="mascotBubble"></div>
+</div>
+
+<!-- Particles Container -->
+<div class="particles" id="particles"></div>
 
 <!-- Intro Screen -->
 <div id="introScreen" class="screen active">
@@ -414,12 +579,48 @@ if (window.Telegram && window.Telegram.WebApp) {
   tg.expand();
 }
 
+// Mascot Functions
+function showMascotMessage(message, duration = 2000) {
+  const bubble = document.getElementById('mascotBubble');
+  bubble.textContent = message;
+  bubble.classList.add('show');
+  setTimeout(() => bubble.classList.remove('show'), duration);
+}
+
+function setMascotMood(mood) {
+  const mascot = document.getElementById('mascot');
+  mascot.className = 'mascot ' + mood;
+}
+
+function createParticles(x, y, color) {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 12; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    particle.style.background = color;
+    particle.style.animationDelay = (i * 0.05) + 's';
+    const angle = (Math.PI * 2 * i) / 12;
+    const distance = 50 + Math.random() * 50;
+    particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+    particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+    container.appendChild(particle);
+    setTimeout(() => particle.remove(), 1000);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const startBtn = document.getElementById('startBtn');
+  
+  // Initial mascot message
+  showMascotMessage("Ready to handle a crisis? 🚀", 3000);
   
   if (startBtn) {
     startBtn.addEventListener('click', function() {
       console.log('START clicked - transitioning to game');
+      showMascotMessage("Let's go! 💪", 1500);
+      setMascotMood('thinking');
       document.getElementById('introScreen').classList.remove('active');
       document.getElementById('scene1').classList.add('active');
       startGame();
@@ -480,6 +681,20 @@ function handleChoice(button) {
   
   button.classList.add(isCorrect ? 'correct' : 'incorrect');
   
+  // Mascot reactions and particles
+  const rect = button.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  
+  if (isCorrect) {
+    setMascotMood('happy');
+    showMascotMessage(['Great choice! 🎉', 'Excellent! ✨', 'Perfect! 🌟'][Math.floor(Math.random() * 3)], 1500);
+    createParticles(centerX, centerY, 'var(--primary)');
+  } else {
+    setMascotMood('worried');
+    showMascotMessage(['Think it through... 🤔', 'Try another approach 💭', 'Consider the impact 🎯'][Math.floor(Math.random() * 3)], 1500);
+  }
+  
   gameState.decisions.push({
     scene: scene,
     choice: choiceId,
@@ -495,10 +710,15 @@ function handleChoice(button) {
     window.__EDGE__.recovered = isCorrect;
     window.__EDGE__.score = isCorrect ? 1.0 : 0.0;
     logEvent('edge.trigger', { recovered: isCorrect });
+    
+    if (isCorrect) {
+      showMascotMessage('Crisis averted! 🛡️', 2000);
+    }
   }
 
   // Move to next scene after 1.5s
   setTimeout(() => {
+    setMascotMood('thinking');
     if (scene < 3) {
       document.getElementById(`scene${scene}`).classList.remove('active');
       document.getElementById(`scene${scene + 1}`).classList.add('active');
@@ -571,12 +791,30 @@ function showResults() {
   if (result.level === 3) {
     badge.textContent = '🏆 MASTERY';
     badge.className = 'badge mastery';
+    setMascotMood('happy');
+    showMascotMessage('Amazing work! 🌟', 3000);
+    // Victory particles
+    setTimeout(() => {
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          createParticles(
+            window.innerWidth / 2 + (Math.random() - 0.5) * 200,
+            200,
+            ['var(--primary)', '#FFD700', 'var(--secondary)'][Math.floor(Math.random() * 3)]
+          );
+        }, i * 100);
+      }
+    }, 500);
   } else if (result.level === 2) {
     badge.textContent = '✅ PROFICIENT';
     badge.className = 'badge proficient';
+    setMascotMood('happy');
+    showMascotMessage('Well done! 👏', 3000);
   } else {
     badge.textContent = '📝 NEEDS WORK';
     badge.className = 'badge needs-work';
+    setMascotMood('thinking');
+    showMascotMessage('Keep practicing! 💪', 3000);
   }
 
   document.getElementById('accuracyValue').textContent = Math.round(result.accuracy * 100) + '%';
