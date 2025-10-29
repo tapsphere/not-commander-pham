@@ -9,7 +9,8 @@
     :root {
       --primary: #0078D4;
       --secondary: #50E6FF;
-      --accent: #005A9E;
+      --accent-green: #10B981;
+      --accent-yellow: #FBBF24;
       --background: #0A0A0A;
       --text: #FFFFFF;
       --card-bg: #1A1A1A;
@@ -326,9 +327,9 @@
     }
 
     .choice.correct {
-      background: rgba(16, 124, 16, 0.2);
-      border-color: #10B981;
-      color: #10B981;
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
       animation: correctPulse 0.6s ease;
     }
 
@@ -346,18 +347,18 @@
 
     @keyframes correctPulse {
       0%, 100% { transform: scale(1); }
-      25% { transform: scale(1.08); box-shadow: 0 0 30px rgba(16, 124, 16, 0.4); }
+      25% { transform: scale(1.08); box-shadow: 0 0 30px rgba(16, 185, 129, 0.6); }
       75% { transform: scale(1.02); }
     }
 
     .edge-case-alert {
       background: rgba(251, 191, 36, 0.15);
-      border: 2px solid #FBBF24;
+      border: 2px solid var(--accent-yellow);
       padding: 20px;
       border-radius: 12px;
       margin: 20px 0;
       animation: pulse 2s infinite;
-      color: #FDE047;
+      color: var(--accent-yellow);
     }
 
     @keyframes pulse {
@@ -380,9 +381,9 @@
       letter-spacing: 2px;
     }
 
-    .badge.mastery { color: #10B981; }
-    .badge.proficient { color: #50E6FF; }
-    .badge.needs-work { color: #EF4444; }
+    .badge.mastery { color: var(--accent-green); }
+    .badge.proficient { color: var(--primary); }
+    .badge.needs-work { color: var(--accent-yellow); }
 
     .stat {
       background: var(--card-bg);
