@@ -673,27 +673,31 @@ async function runCheck8ProofEmission(template: any, subComp: any, supabase: any
 async function fetchGameHTML(template: any, supabase: any): Promise<string | null> {
   try {
     if (template.template_type === 'custom_upload' && template.custom_game_url) {
-      // Check if custom_game_url is a UUID (brand_customization ID)
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(template.custom_game_url)) {
-        // Fetch HTML from brand_customizations table
-        const { data, error } = await supabase
-          .from('brand_customizations')
-          .select('generated_game_html')
-          .eq('id', template.custom_game_url)
-          .single();
-        
-        if (error || !data?.generated_game_html) {
-          console.error('Error fetching from brand_customizations:', error);
-          return null;
-        }
-        return data.generated_game_html;
-      } else {
-        // Fetch from URL
-        const response = await fetch(template.custom_game_url);
-        if (!response.ok) return null;
-        return await response.text();
+      // Custom games are stored in the 'custom-games' storage bucket
+      // The custom_game_url field contains the file UUID
+      console.log('Fetching custom game from storage bucket:', template.custom_game_url);
+      
+      // Download from storage bucket
+      const { data, error } = await supabase
+        .storage
+        .from('custom-games')
+        .download(`${template.custom_game_url}.html`);
+      
+      if (error) {
+        console.error('Error downloading from storage:', error);
+        return null;
       }
+      
+      if (!data) {
+        console.error('No data returned from storage');
+        return null;
+      }
+      
+      // Convert blob to text
+      const htmlContent = await data.text();
+      console.log('Successfully fetched HTML, length:', htmlContent.length);
+      return htmlContent;
+      
     } else if (template.template_type === 'ai_generated' && template.base_prompt) {
       // For AI generated, check if there's already generated HTML in game_config
       if (template.game_config?.generated_html) {
