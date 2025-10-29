@@ -387,7 +387,7 @@
 <div id="loadingScreen">
   <div class="loading-logo">N</div>
   <div class="loading-text">NextCorp</div>
-  <div class="loading-subtext">Crisis Communication Training</div>
+  <div class="loading-subtext">Employee Onboarding Training</div>
 </div>
 
 <!-- Particles Container -->
@@ -404,18 +404,18 @@
     autoplay>
   </lottie-player>
   
-  <h1>Crisis Communication</h1>
+  <h1>Employee Onboarding</h1>
   
   <ul>
-    <li><strong>WHO:</strong> You're the Communications Lead during a product incident</li>
-    <li><strong>WHAT:</strong> Draft clear, empathetic messages under pressure</li>
-    <li><strong>HOW:</strong> Select the best communication approach for each scenario</li>
-    <li><strong>SUCCESS:</strong> Maintain clarity, empathy, and professionalism</li>
+    <li><strong>WHO:</strong> You're an HR Manager onboarding a new employee</li>
+    <li><strong>WHAT:</strong> Make key decisions to ensure a smooth first day using Microsoft Teams</li>
+    <li><strong>HOW:</strong> Apply the 4-step onboarding framework effectively</li>
+    <li><strong>SUCCESS:</strong> Create an excellent onboarding experience</li>
     <li><strong>TIME:</strong> 180 seconds (3 decisions + edge case)</li>
   </ul>
 
-  <button id="startBtn" class="btn" aria-label="Start Crisis Communication Game">
-    START GAME
+  <button id="startBtn" class="btn" aria-label="Start Onboarding Training Game">
+    START TRAINING
   </button>
 </div>
 
@@ -424,19 +424,19 @@
   <div class="timer" id="timer1">3:00</div>
   
   <div class="scenario">
-    <h2>Initial Incident</h2>
-    <p>A bug in your product has caused data sync issues for 15% of users. Your engineering team is investigating. Draft the initial customer communication:</p>
+    <h2>Step 1: Make Paperwork Easy</h2>
+    <p>It's Sarah's first day. She needs immediate access to onboarding documents: employment contract, benefits enrollment, and IT setup guide. How do you provide these documents?</p>
   </div>
 
   <div class="choices" id="choices1">
     <button class="choice" data-id="s1_opt_a" aria-label="Choice A">
-      "We're aware of a technical issue affecting some users. Our team is actively working on a fix. We'll update you within 2 hours with more details."
+      Upload all documents to the Files tab in her Teams onboarding channel and share the SharePoint link for easy access anytime.
     </button>
     <button class="choice" data-id="s1_opt_b" aria-label="Choice B">
-      "Sorry for any inconvenience. We're looking into it."
+      Email her the documents and tell her to print them out.
     </button>
     <button class="choice" data-id="s1_opt_c" aria-label="Choice C">
-      "URGENT: System failure detected. Please stop using the product immediately until further notice."
+      Wait until she asks for specific documents, then send them individually.
     </button>
   </div>
 </div>
@@ -446,19 +446,19 @@
   <div class="timer" id="timer2">2:30</div>
   
   <div class="scenario">
-    <h2>Status Update</h2>
-    <p>30 minutes later: The issue is isolated. Engineering needs 90 more minutes. Some customers are frustrated. Craft your update:</p>
+    <h2>Step 2: Plan Training & Meetings</h2>
+    <p>Sarah needs to learn the company systems and meet her team. Her first week should include product training, system access setup, and team introductions. What's the best approach?</p>
   </div>
 
   <div class="choices" id="choices2">
     <button class="choice" data-id="s2_opt_a" aria-label="Choice A">
-      "UPDATE: We've identified the root cause. Fix in progress. ETA: 90 minutes. Your data is safe. Thank you for your patience."
+      Schedule Teams Meetings for live training sessions and organize 1-on-1 meetings with key team members throughout the week.
     </button>
     <button class="choice" data-id="s2_opt_b" aria-label="Choice B">
-      "Still working on it. Please be patient."
+      Send her a list of people to meet and let her figure out her own schedule.
     </button>
     <button class="choice" data-id="s2_opt_c" aria-label="Choice C">
-      "This is taking longer than expected. We don't know when it will be fixed."
+      Have her shadow different team members randomly throughout the week.
     </button>
   </div>
 </div>
@@ -468,24 +468,24 @@
   <div class="timer" id="timer3">2:00</div>
   
   <div class="edge-case-alert">
-    <h3 style="color: var(--accent); margin-bottom: 10px;">⚡ EDGE CASE: Escalation</h3>
-    <p>A high-value enterprise client threatens to cancel unless you provide immediate compensation. How do you respond?</p>
+    <h3 style="color: var(--accent-yellow); margin-bottom: 10px;">⚡ EDGE CASE: New Hire Concern</h3>
+    <p>It's day 3 and Sarah messages you saying she feels overwhelmed, hasn't met everyone yet, and is unsure about her training progress. How do you respond?</p>
   </div>
 
   <div class="scenario">
-    <h2>High-Stakes Response</h2>
+    <h2>Step 4: Check In Frequently</h2>
     <p>Time-sensitive decision required:</p>
   </div>
 
   <div class="choices" id="choices3">
     <button class="choice" data-id="s3_opt_a" aria-label="Choice A">
-      "I understand your frustration. Let me connect you with our Account Manager who can discuss this immediately while we continue the fix."
+      Schedule an immediate 1-on-1 check-in via Teams, create a task list to track her progress, and invite her to the new hires channel for peer support.
     </button>
     <button class="choice" data-id="s3_opt_b" aria-label="Choice B">
-      "We'll provide full credit for this month's service as compensation."
+      Tell her it's normal to feel overwhelmed and she'll figure it out eventually.
     </button>
     <button class="choice" data-id="s3_opt_c" aria-label="Choice C">
-      "Everyone is affected equally. The fix is coming soon."
+      Assign her a mentor from the team without discussing her concerns.
     </button>
   </div>
 </div>
@@ -516,8 +516,8 @@
 window.__CONFIG__ = {
   mode: "training",
   duration_s: 180,
-  competency: "Communication & Information Management",
-  sub_competency: "Draft clear crisis communications under pressure",
+  competency: "People Management & HR Operations",
+  sub_competency: "Effective employee onboarding with Microsoft Teams",
   thresholds: {
     A2: 0.90,
     A3: 0.95,
@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', function() {
       loadingScreen.style.display = 'none';
       introScreen.classList.add('active');
       mascot.style.display = 'block';
-      showMascotMessage("Ready to handle a crisis? 🚀", 3000);
+      showMascotMessage("Ready to onboard? 🚀", 3000);
     }, 500);
   }, 2000);
   
@@ -768,7 +768,7 @@ function finishGame() {
   // Generate proof receipt
   window.__PROOF__ = {
     proof_id: "demo-" + Date.now().toString(36),
-    template_id: "crisis-communication-demo",
+    template_id: "employee-onboarding-demo",
     competency: window.__CONFIG__.competency,
     sub_competency: window.__CONFIG__.sub_competency,
     level: level,
