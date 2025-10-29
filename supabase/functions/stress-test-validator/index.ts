@@ -79,42 +79,42 @@ serve(async (req) => {
     const results: CheckResult[] = [];
 
     console.log('\n--- CHECK 1: Scene Structure Validation ---');
-    const check1 = await runCheck1SceneStructure(template, subComp);
+    const check1 = await runCheck1SceneStructure(template, subComp, supabase);
     results.push(check1);
     console.log(`Status: ${check1.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 2: UX/UI Integrity ---');
-    const check2 = await runCheck2UXIntegrity(template, subComp);
+    const check2 = await runCheck2UXIntegrity(template, subComp, supabase);
     results.push(check2);
     console.log(`Status: ${check2.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 3: Telegram Mini-App Compliance ---');
-    const check3 = await runCheck3TelegramCompliance(template, subComp);
+    const check3 = await runCheck3TelegramCompliance(template, subComp, supabase);
     results.push(check3);
     console.log(`Status: ${check3.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 4: Embedded Configuration Objects ---');
-    const check4 = await runCheck4ConfigObjects(template, subComp);
+    const check4 = await runCheck4ConfigObjects(template, subComp, supabase);
     results.push(check4);
     console.log(`Status: ${check4.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 5: Action Cue & Mechanic Alignment ---');
-    const check5 = await runCheck5ActionCueAlignment(template, subComp);
+    const check5 = await runCheck5ActionCueAlignment(template, subComp, supabase);
     results.push(check5);
     console.log(`Status: ${check5.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 6: Scoring Formula Verification ---');
-    const check6 = await runCheck6ScoringFormula(template, subComp);
+    const check6 = await runCheck6ScoringFormula(template, subComp, supabase);
     results.push(check6);
     console.log(`Status: ${check6.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 7: Accessibility & Mobile Readiness ---');
-    const check7 = await runCheck7Accessibility(template, subComp);
+    const check7 = await runCheck7Accessibility(template, subComp, supabase);
     results.push(check7);
     console.log(`Status: ${check7.status.toUpperCase()}`);
 
     console.log('\n--- CHECK 8: Proof Emission & Telemetry ---');
-    const check8 = await runCheck8ProofEmission(template, subComp);
+    const check8 = await runCheck8ProofEmission(template, subComp, supabase);
     results.push(check8);
     console.log(`Status: ${check8.status.toUpperCase()}`);
 
@@ -204,7 +204,7 @@ serve(async (req) => {
 // ============================================================================
 // CHECK 1: Scene Structure Validation
 // ============================================================================
-async function runCheck1SceneStructure(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck1SceneStructure(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
   const checks = [
     'Intro: No auto-start on load',
@@ -242,7 +242,7 @@ async function runCheck1SceneStructure(template: any, subComp: any): Promise<Che
 // ============================================================================
 // CHECK 2: UX/UI Integrity
 // ============================================================================
-async function runCheck2UXIntegrity(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck2UXIntegrity(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
   const checks = [
     'No vertical scrolling (overflow:hidden, height:100vh)',
@@ -252,7 +252,7 @@ async function runCheck2UXIntegrity(template: any, subComp: any): Promise<CheckR
     'START button visible on all devices'
   ];
 
-  const htmlContent = await fetchGameHTML(template);
+  const htmlContent = await fetchGameHTML(template, supabase);
   if (!htmlContent) {
     issues.push('Unable to fetch game HTML for analysis');
     return {
@@ -311,7 +311,7 @@ async function runCheck2UXIntegrity(template: any, subComp: any): Promise<CheckR
 // ============================================================================
 // CHECK 3: Telegram Mini-App Compliance
 // ============================================================================
-async function runCheck3TelegramCompliance(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck3TelegramCompliance(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
   const checks = [
     'Contains window.Telegram.WebApp.ready()',
@@ -320,7 +320,7 @@ async function runCheck3TelegramCompliance(template: any, subComp: any): Promise
     'No network calls outside approved endpoints'
   ];
 
-  const htmlContent = await fetchGameHTML(template);
+  const htmlContent = await fetchGameHTML(template, supabase);
   if (!htmlContent) {
     issues.push('Unable to fetch game HTML for analysis');
     return {
@@ -371,7 +371,7 @@ async function runCheck3TelegramCompliance(template: any, subComp: any): Promise
 // ============================================================================
 // CHECK 4: Embedded Configuration Objects
 // ============================================================================
-async function runCheck4ConfigObjects(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck4ConfigObjects(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
   const requiredGlobals = {
     '__CONFIG__': 'duration, thresholds, competency, XP',
@@ -381,7 +381,7 @@ async function runCheck4ConfigObjects(template: any, subComp: any): Promise<Chec
     '__PROOF__': 'immutable proof receipt (test mode only)'
   };
 
-  const htmlContent = await fetchGameHTML(template);
+  const htmlContent = await fetchGameHTML(template, supabase);
   if (!htmlContent) {
     issues.push('Unable to fetch game HTML for analysis');
     return {
@@ -422,7 +422,7 @@ async function runCheck4ConfigObjects(template: any, subComp: any): Promise<Chec
 // ============================================================================
 // CHECK 5: Action Cue & Mechanic Alignment
 // ============================================================================
-async function runCheck5ActionCueAlignment(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck5ActionCueAlignment(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
 
   if (!subComp.action_cue) {
@@ -465,7 +465,7 @@ async function runCheck5ActionCueAlignment(template: any, subComp: any): Promise
 // ============================================================================
 // CHECK 6: Scoring Formula Verification
 // ============================================================================
-async function runCheck6ScoringFormula(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck6ScoringFormula(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
 
   if (!subComp.scoring_logic) {
@@ -517,7 +517,7 @@ async function runCheck6ScoringFormula(template: any, subComp: any): Promise<Che
 // ============================================================================
 // CHECK 7: Accessibility & Mobile Readiness
 // ============================================================================
-async function runCheck7Accessibility(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck7Accessibility(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
   const checks = [
     'aria-label present for all interactive items',
@@ -526,7 +526,7 @@ async function runCheck7Accessibility(template: any, subComp: any): Promise<Chec
     'Contrast ratio ≥ 4.5:1'
   ];
 
-  const htmlContent = await fetchGameHTML(template);
+  const htmlContent = await fetchGameHTML(template, supabase);
   if (!htmlContent) {
     issues.push('Unable to fetch game HTML for analysis');
     return {
@@ -590,7 +590,7 @@ async function runCheck7Accessibility(template: any, subComp: any): Promise<Chec
 // ============================================================================
 // CHECK 8: Proof Emission & Telemetry
 // ============================================================================
-async function runCheck8ProofEmission(template: any, subComp: any): Promise<CheckResult> {
+async function runCheck8ProofEmission(template: any, subComp: any, supabase: any): Promise<CheckResult> {
   const issues: string[] = [];
   const requiredFields = [
     'score',
@@ -608,7 +608,7 @@ async function runCheck8ProofEmission(template: any, subComp: any): Promise<Chec
     'Immutable proof receipt generated (hash + timestamp)'
   ];
 
-  const htmlContent = await fetchGameHTML(template);
+  const htmlContent = await fetchGameHTML(template, supabase);
   if (!htmlContent) {
     issues.push('Unable to fetch game HTML for analysis');
     return {
@@ -670,12 +670,30 @@ async function runCheck8ProofEmission(template: any, subComp: any): Promise<Chec
 // ============================================================================
 // HELPER: Fetch Game HTML Content
 // ============================================================================
-async function fetchGameHTML(template: any): Promise<string | null> {
+async function fetchGameHTML(template: any, supabase: any): Promise<string | null> {
   try {
     if (template.template_type === 'custom_upload' && template.custom_game_url) {
-      const response = await fetch(template.custom_game_url);
-      if (!response.ok) return null;
-      return await response.text();
+      // Check if custom_game_url is a UUID (brand_customization ID)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(template.custom_game_url)) {
+        // Fetch HTML from brand_customizations table
+        const { data, error } = await supabase
+          .from('brand_customizations')
+          .select('generated_game_html')
+          .eq('id', template.custom_game_url)
+          .single();
+        
+        if (error || !data?.generated_game_html) {
+          console.error('Error fetching from brand_customizations:', error);
+          return null;
+        }
+        return data.generated_game_html;
+      } else {
+        // Fetch from URL
+        const response = await fetch(template.custom_game_url);
+        if (!response.ok) return null;
+        return await response.text();
+      }
     } else if (template.template_type === 'ai_generated' && template.base_prompt) {
       // For AI generated, check if there's already generated HTML in game_config
       if (template.game_config?.generated_html) {
