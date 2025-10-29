@@ -131,12 +131,12 @@ export default function CreatorDashboard() {
             };
           }
 
-          // Generate default cover
+          // Generate default cover (use avatar for creators, not company logo)
           try {
             const { generateDefaultCover } = await import('@/utils/generateDefaultCover');
             const coverBlob = await generateDefaultCover(
               profile?.full_name || 'Creator',
-              profile?.company_logo_url || undefined,
+              undefined, // Don't use company logo for creator covers
               profile?.avatar_url || undefined
             );
 
