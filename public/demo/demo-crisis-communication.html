@@ -610,19 +610,19 @@
 
   <div class="choices" id="choices1">
     <button class="choice multi-select" data-id="task_a" aria-label="Task A">
-      ✓ Set up workspace with laptop, monitor, and login credentials
+      Set up workspace with laptop, monitor, and login credentials
     </button>
     <button class="choice multi-select" data-id="task_b" aria-label="Task B">
       Schedule 1-on-1 intro meeting (can be done Day 1)
     </button>
     <button class="choice multi-select" data-id="task_c" aria-label="Task C">
-      ✓ Add to Microsoft Teams channels and distribution lists
+      Add to Microsoft Teams channels and distribution lists
     </button>
     <button class="choice multi-select" data-id="task_d" aria-label="Task D">
       Send Day 1 welcome survey (first-day task)
     </button>
     <button class="choice multi-select" data-id="task_e" aria-label="Task E">
-      ✓ Prepare welcome packet with badge, handbook, and resources
+      Prepare welcome packet with badge, handbook, and resources
     </button>
     <button class="choice multi-select" data-id="task_f" aria-label="Task F">
       Conduct first performance check-in (Week 1 task)
@@ -929,17 +929,25 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', function() {
       playSound('click');
       const taskId = this.dataset.id;
+      
       if (gameState.scene1Selections.has(taskId)) {
+        // Deselect
         gameState.scene1Selections.delete(taskId);
         this.classList.remove('selected');
       } else {
-        gameState.scene1Selections.add(taskId);
-        this.classList.add('selected');
+        // Only allow selection if less than 3 are selected
+        if (gameState.scene1Selections.size < 3) {
+          gameState.scene1Selections.add(taskId);
+          this.classList.add('selected');
+        } else {
+          // Play error sound when trying to select more than 3
+          playSound('error');
+        }
       }
       
-      // Show submit button when selections made
+      // Show submit button when exactly 3 are selected
       const submitBtn = document.getElementById('submitScene1');
-      submitBtn.style.display = gameState.scene1Selections.size > 0 ? 'block' : 'none';
+      submitBtn.style.display = gameState.scene1Selections.size === 3 ? 'block' : 'none';
     });
   });
 
