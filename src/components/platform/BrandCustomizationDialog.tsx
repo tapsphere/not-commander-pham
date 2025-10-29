@@ -360,6 +360,7 @@ UI Styling Instructions:
           particleEffect,
           mascotAnimationType,
           customizationId: customizationData.id,
+          previewMode: false, // Ensure it saves to database
         }
       });
 
