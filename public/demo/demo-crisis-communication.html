@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Crisis Communication Validator</title>
+  <title>HR Onboarding Validator</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
   <style>
@@ -90,7 +90,7 @@
       }
     }
 
-    /* Intro Screen - Scrollable */
+    /* Intro Screen */
     #introScreen {
       overflow-y: auto;
       padding-bottom: 100px;
@@ -264,19 +264,10 @@
       75% { transform: scale(1.02); }
     }
 
-    .edge-case-alert {
-      background: rgba(251, 191, 36, 0.15);
-      border: 2px solid var(--accent-yellow);
-      padding: 20px;
-      border-radius: 12px;
-      margin: 20px 0;
-      animation: pulse 2s infinite;
-      color: var(--accent-yellow);
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
     }
 
     /* Results Screen */
@@ -374,10 +365,18 @@
       font-size: 14px;
     }
 
+    .channel-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+
     @media (max-width: 768px) {
       .scenario h2 { font-size: 18px; }
       .choice { font-size: 14px; min-height: 52px; padding: 14px; }
       .intro-animation { width: 250px; height: 250px; }
+      .channel-btn { font-size: 12px; padding: 10px 12px; min-width: 80px; }
     }
   </style>
 </head>
@@ -385,9 +384,9 @@
 
 <!-- Loading Screen -->
 <div id="loadingScreen">
-  <div class="loading-logo">N</div>
-  <div class="loading-text">NextCorp</div>
-  <div class="loading-subtext">Employee Onboarding Training</div>
+  <div class="loading-logo">P</div>
+  <div class="loading-text">PlayOps</div>
+  <div class="loading-subtext">HR Competency Validator</div>
 </div>
 
 <!-- Particles Container -->
@@ -404,88 +403,145 @@
     autoplay>
   </lottie-player>
   
-  <h1>Employee Onboarding</h1>
+  <h1>HR Onboarding Competency Validator</h1>
   
   <ul>
-    <li><strong>WHO:</strong> You're an HR Manager onboarding a new employee</li>
-    <li><strong>WHAT:</strong> Make key decisions to ensure a smooth first day using Microsoft Teams</li>
-    <li><strong>HOW:</strong> Apply the 4-step onboarding framework effectively</li>
-    <li><strong>SUCCESS:</strong> Create an excellent onboarding experience</li>
-    <li><strong>TIME:</strong> 180 seconds (3 decisions + edge case)</li>
+    <li><strong>WHO:</strong> You're an HR Manager onboarding Alex, a new hire</li>
+    <li><strong>LEVEL 1:</strong> Initiative - Prepare pre-day tasks (90s)</li>
+    <li><strong>LEVEL 2:</strong> Team Connection - Match communication channels (60s)</li>
+    <li><strong>LEVEL 3:</strong> Coaching & Mentorship - Select support resources (75s)</li>
+    <li><strong>LEVEL 4:</strong> Feedback & Reflection - Choose feedback actions (75s)</li>
+    <li><strong>GOAL:</strong> Achieve Mastery across all 4 competencies</li>
   </ul>
 
-  <button id="startBtn" class="btn" aria-label="Start Onboarding Training Game">
-    START TRAINING
+  <button id="startBtn" class="btn" aria-label="Start Competency Validator">
+    START VALIDATOR
   </button>
 </div>
 
-<!-- Scene 1 -->
+<!-- Scene 1: Initiative -->
 <div id="scene1" class="screen gameplay">
-  <div class="timer" id="timer1">3:00</div>
+  <div class="timer" id="timer1">1:30</div>
   
   <div class="scenario">
-    <h2>Step 1: Make Paperwork Easy</h2>
-    <p>It's Sarah's first day. She needs immediate access to onboarding documents: employment contract, benefits enrollment, and IT setup guide. How do you provide these documents?</p>
+    <h2>🎯 Level 1: Initiative - Pre-Onboarding Prep</h2>
+    <p><strong>Action Cue:</strong> Choose correct pre-day tasks to prepare new hire workspace</p>
+    <p><strong>Context:</strong> Alex starts Monday. Select ALL tasks that should be completed BEFORE their first day.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 90 seconds | Multi-select: Choose 3 correct tasks</p>
   </div>
 
   <div class="choices" id="choices1">
-    <button class="choice" data-id="s1_opt_a" aria-label="Choice A">
-      Upload all documents to the Files tab in her Teams onboarding channel and share the SharePoint link for easy access anytime.
+    <button class="choice multi-select" data-id="task_a" aria-label="Task A">
+      ✓ Set up workspace with laptop, monitor, and login credentials
     </button>
-    <button class="choice" data-id="s1_opt_b" aria-label="Choice B">
-      Email her the documents and tell her to print them out.
+    <button class="choice multi-select" data-id="task_b" aria-label="Task B">
+      Schedule 1-on-1 intro meeting (can be done Day 1)
     </button>
-    <button class="choice" data-id="s1_opt_c" aria-label="Choice C">
-      Wait until she asks for specific documents, then send them individually.
+    <button class="choice multi-select" data-id="task_c" aria-label="Task C">
+      ✓ Add to Microsoft Teams channels and distribution lists
+    </button>
+    <button class="choice multi-select" data-id="task_d" aria-label="Task D">
+      Send Day 1 welcome survey (first-day task)
+    </button>
+    <button class="choice multi-select" data-id="task_e" aria-label="Task E">
+      ✓ Prepare welcome packet with badge, handbook, and resources
+    </button>
+    <button class="choice multi-select" data-id="task_f" aria-label="Task F">
+      Conduct first performance check-in (Week 1 task)
     </button>
   </div>
+  <button id="submitScene1" class="btn" style="display:none; margin: 20px auto; max-width: 300px;">Submit Selection</button>
 </div>
 
-<!-- Scene 2 -->
+<!-- Scene 2: Team Connection -->
 <div id="scene2" class="screen gameplay">
-  <div class="timer" id="timer2">2:30</div>
+  <div class="timer" id="timer2">1:00</div>
   
   <div class="scenario">
-    <h2>Step 2: Plan Training & Meetings</h2>
-    <p>Sarah needs to learn the company systems and meet her team. Her first week should include product training, system access setup, and team introductions. What's the best approach?</p>
+    <h2>📱 Level 2: Team Connection - Choose the Right Channel</h2>
+    <p><strong>Action Cue:</strong> Match each scenario to best communication channel</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 60 seconds | Match all 3 scenarios to: Teams Call, Quick Chat, or Email</p>
   </div>
 
-  <div class="choices" id="choices2">
-    <button class="choice" data-id="s2_opt_a" aria-label="Choice A">
-      Schedule Teams Meetings for live training sessions and organize 1-on-1 meetings with key team members throughout the week.
-    </button>
-    <button class="choice" data-id="s2_opt_b" aria-label="Choice B">
-      Send her a list of people to meet and let her figure out her own schedule.
-    </button>
-    <button class="choice" data-id="s2_opt_c" aria-label="Choice C">
-      Have her shadow different team members randomly throughout the week.
-    </button>
+  <div class="choices" id="choices2" style="display: flex; flex-direction: column; gap: 20px;">
+    <div class="scenario-match" style="background: var(--card-bg); padding: 15px; border-radius: 8px; border-left: 3px solid var(--primary);">
+      <p style="margin-bottom: 12px;"><strong>A:</strong> Alex needs urgent clarification on meeting room location for client call in 10 min</p>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="choice channel-btn" data-scenario="a" data-channel="teams">📞 Teams Call</button>
+        <button class="choice channel-btn" data-scenario="a" data-channel="chat">💬 Quick Chat</button>
+        <button class="choice channel-btn" data-scenario="a" data-channel="email">📧 Email</button>
+      </div>
+    </div>
+    <div class="scenario-match" style="background: var(--card-bg); padding: 15px; border-radius: 8px; border-left: 3px solid var(--primary);">
+      <p style="margin-bottom: 12px;"><strong>B:</strong> Sending Alex formal benefits enrollment documents and deadlines</p>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="choice channel-btn" data-scenario="b" data-channel="teams">📞 Teams Call</button>
+        <button class="choice channel-btn" data-scenario="b" data-channel="chat">💬 Quick Chat</button>
+        <button class="choice channel-btn" data-scenario="b" data-channel="email">📧 Email</button>
+      </div>
+    </div>
+    <div class="scenario-match" style="background: var(--card-bg); padding: 15px; border-radius: 8px; border-left: 3px solid var(--primary);">
+      <p style="margin-bottom: 12px;"><strong>C:</strong> Quick check-in: "Did you find the parking pass?"</p>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="choice channel-btn" data-scenario="c" data-channel="teams">📞 Teams Call</button>
+        <button class="choice channel-btn" data-scenario="c" data-channel="chat">💬 Quick Chat</button>
+        <button class="choice channel-btn" data-scenario="c" data-channel="email">📧 Email</button>
+      </div>
+    </div>
   </div>
+  <button id="submitScene2" class="btn" style="display:none; margin: 20px auto; max-width: 300px;">Submit Matches</button>
 </div>
 
-<!-- Scene 3: Edge Case -->
+<!-- Scene 3: Coaching & Mentorship -->
 <div id="scene3" class="screen gameplay">
-  <div class="timer" id="timer3">2:00</div>
+  <div class="timer" id="timer3">1:15</div>
   
-  <div class="edge-case-alert">
-    <h3 style="color: var(--accent-yellow); margin-bottom: 10px;">⚡ EDGE CASE: New Hire Concern</h3>
-    <p>It's day 3 and Sarah messages you saying she feels overwhelmed, hasn't met everyone yet, and is unsure about her training progress. How do you respond?</p>
-  </div>
-
   <div class="scenario">
-    <h2>Step 4: Check In Frequently</h2>
-    <p>Time-sensitive decision required:</p>
+    <h2>🎓 Level 3: Coaching & Mentorship - Resource Selection</h2>
+    <p><strong>Action Cue:</strong> Identify which support resource best helps the new hire</p>
+    <p><strong>Context:</strong> Alex (Week 2) says: "I'm struggling to understand our project management workflow."</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best support resource</p>
   </div>
 
   <div class="choices" id="choices3">
-    <button class="choice" data-id="s3_opt_a" aria-label="Choice A">
-      Schedule an immediate 1-on-1 check-in via Teams, create a task list to track her progress, and invite her to the new hires channel for peer support.
+    <button class="choice" data-id="mentor_a" aria-label="Choice A">
+      Tell them to "just figure it out, everyone learns eventually"
     </button>
-    <button class="choice" data-id="s3_opt_b" aria-label="Choice B">
-      Tell her it's normal to feel overwhelmed and she'll figure it out eventually.
+    <button class="choice" data-id="mentor_b" aria-label="Choice B">
+      Share workflow documentation + connect them with project mentor for Q&A session
     </button>
-    <button class="choice" data-id="s3_opt_c" aria-label="Choice C">
-      Assign her a mentor from the team without discussing her concerns.
+    <button class="choice" data-id="mentor_c" aria-label="Choice C">
+      Complete their first project tasks for them as an example
+    </button>
+    <button class="choice" data-id="mentor_d" aria-label="Choice D">
+      Schedule formal training session in 3 months during review cycle
+    </button>
+  </div>
+</div>
+
+<!-- Scene 4: Feedback & Reflection -->
+<div id="scene4" class="screen gameplay">
+  <div class="timer" id="timer4">1:15</div>
+  
+  <div class="scenario">
+    <h2>💬 Level 4: Feedback & Reflection - Post-Review Action</h2>
+    <p><strong>Action Cue:</strong> Choose correct feedback action after performance review</p>
+    <p><strong>Context:</strong> After Alex's 30-day review, they received constructive feedback on time management. What's your next action?</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best feedback follow-up</p>
+  </div>
+
+  <div class="choices" id="choices4">
+    <button class="choice" data-id="feedback_a" aria-label="Choice A">
+      Schedule follow-up meeting in 2 weeks to track progress and offer coaching resources
+    </button>
+    <button class="choice" data-id="feedback_b" aria-label="Choice B">
+      Send a generic "work on it" email and move on
+    </button>
+    <button class="choice" data-id="feedback_c" aria-label="Choice C">
+      Wait until the next quarterly review to revisit the topic
+    </button>
+    <button class="choice" data-id="feedback_d" aria-label="Choice D">
+      Reassign their projects to reduce their workload without discussion
     </button>
   </div>
 </div>
@@ -495,15 +551,15 @@
   <div class="badge" id="levelBadge">CALCULATING...</div>
   <div class="stat">
     <div class="stat-value" id="accuracyValue">--</div>
-    <div class="stat-label">Accuracy</div>
+    <div class="stat-label">Overall Accuracy</div>
   </div>
   <div class="stat">
     <div class="stat-value" id="timeValue">--</div>
-    <div class="stat-label">Time (seconds)</div>
+    <div class="stat-label">Total Time</div>
   </div>
   <div class="stat">
-    <div class="stat-value" id="edgeValue">--</div>
-    <div class="stat-label">Edge Case Handling</div>
+    <div class="stat-value" id="xpValue">--</div>
+    <div class="stat-label">XP Earned</div>
   </div>
   <button class="btn" onclick="location.reload()" aria-label="Play Again">PLAY AGAIN</button>
 </div>
@@ -514,17 +570,36 @@
 // ═══════════════════════════════════════════════════════════════
 
 window.__CONFIG__ = {
-  mode: "training",
-  duration_s: 180,
-  competency: "People Management & HR Operations",
-  sub_competency: "Effective employee onboarding with Microsoft Teams",
-  thresholds: {
-    A2: 0.90,
-    A3: 0.95,
-    Tlimit: 180,
-    Ttight: 150,
-    EdgeL3: 0.80,
-    SessionsL3: 3
+  mode: "validator",
+  competencies: {
+    scene1: { 
+      name: "Planning & Organization: Initiative", 
+      time: 90, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 75 
+    },
+    scene2: { 
+      name: "Communication & Collaboration: Team Connection", 
+      time: 60, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 60 
+    },
+    scene3: { 
+      name: "Learning Agility: Coaching & Mentorship", 
+      time: 75, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 75 
+    },
+    scene4: { 
+      name: "Growth Mindset: Feedback & Reflection", 
+      time: 75, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 75 
+    }
   },
   xp: {
     L1: 100,  // Needs Work
@@ -534,9 +609,10 @@ window.__CONFIG__ = {
 };
 
 window.__GOLD_KEY__ = {
-  s1: ["s1_opt_a"],  // Clear, empathetic, timeline
-  s2: ["s2_opt_a"],  // Progress update with ETA
-  s3: ["s3_opt_a"]   // Escalation with proper routing
+  scene1: ["task_a", "task_c", "task_e"],  // Pre-day prep tasks
+  scene2: { a: "chat", b: "email", c: "chat" },  // Channel matching
+  scene3: "mentor_b",  // Best mentorship resource
+  scene4: "feedback_a"  // Best feedback follow-up
 };
 
 window.__EDGE__ = {
@@ -548,9 +624,9 @@ window.__EDGE__ = {
 window.__RESULT__ = {
   accuracy: 0,
   time_s: 0,
-  edge_score: 0,
   level: 0,
-  passed: false
+  passed: false,
+  scene_results: []
 };
 
 window.__PROOF__ = null;
@@ -561,9 +637,12 @@ window.__PROOF__ = null;
 
 let gameState = {
   startTime: 0,
+  sceneStartTimes: {},
   decisions: [],
   currentScene: 0,
-  timerInterval: null
+  timerInterval: null,
+  scene1Selections: new Set(),
+  scene2Selections: {}
 };
 
 // Telegram Mini-App Integration
@@ -571,19 +650,6 @@ if (window.Telegram && window.Telegram.WebApp) {
   const tg = window.Telegram.WebApp;
   tg.ready();
   tg.expand();
-}
-
-// Mascot Functions
-function showMascotMessage(message, duration = 2000) {
-  const bubble = document.getElementById('mascotBubble');
-  bubble.textContent = message;
-  bubble.classList.add('show');
-  setTimeout(() => bubble.classList.remove('show'), duration);
-}
-
-function setMascotMood(mood) {
-  const mascot = document.getElementById('mascot');
-  mascot.className = 'mascot ' + mood;
 }
 
 function createParticles(x, y, color) {
@@ -605,36 +671,70 @@ function createParticles(x, y, color) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Loading sequence
   const loadingScreen = document.getElementById('loadingScreen');
   const introScreen = document.getElementById('introScreen');
-  const mascot = document.getElementById('mascot');
   
   setTimeout(() => {
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
       loadingScreen.style.display = 'none';
       introScreen.classList.add('active');
-      mascot.style.display = 'block';
-      showMascotMessage("Ready to onboard? 🚀", 3000);
     }, 500);
   }, 2000);
   
   const startBtn = document.getElementById('startBtn');
-  
   if (startBtn) {
     startBtn.addEventListener('click', function() {
-      console.log('START clicked - transitioning to game');
-      showMascotMessage("Let's go! 💪", 1500);
-      setMascotMood('thinking');
       document.getElementById('introScreen').classList.remove('active');
       document.getElementById('scene1').classList.add('active');
       startGame();
     });
   }
 
-  // Add click handlers for all choices
-  document.querySelectorAll('.choice').forEach(btn => {
+  // Scene 1: Multi-select handler
+  document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const taskId = this.dataset.id;
+      if (gameState.scene1Selections.has(taskId)) {
+        gameState.scene1Selections.delete(taskId);
+        this.classList.remove('selected');
+      } else {
+        gameState.scene1Selections.add(taskId);
+        this.classList.add('selected');
+      }
+      
+      // Show submit button when selections made
+      const submitBtn = document.getElementById('submitScene1');
+      submitBtn.style.display = gameState.scene1Selections.size > 0 ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('submitScene1')?.addEventListener('click', () => handleScene1Submit());
+
+  // Scene 2: Channel matching handler
+  document.querySelectorAll('#scene2 .channel-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const scenario = this.dataset.scenario;
+      const channel = this.dataset.channel;
+      
+      // Remove selection from same scenario
+      document.querySelectorAll(`#scene2 [data-scenario="${scenario}"]`).forEach(b => {
+        b.classList.remove('selected');
+      });
+      
+      this.classList.add('selected');
+      gameState.scene2Selections[scenario] = channel;
+      
+      // Show submit when all 3 matched
+      const submitBtn = document.getElementById('submitScene2');
+      submitBtn.style.display = Object.keys(gameState.scene2Selections).length === 3 ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('submitScene2')?.addEventListener('click', () => handleScene2Submit());
+
+  // Scene 3 & 4: Single choice handlers
+  document.querySelectorAll('#scene3 .choice, #scene4 .choice').forEach(btn => {
     btn.addEventListener('click', function() {
       if (!this.classList.contains('selected')) {
         handleChoice(this);
@@ -645,6 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function startGame() {
   gameState.startTime = Date.now();
+  gameState.sceneStartTimes['scene1'] = Date.now();
   gameState.currentScene = 1;
   startTimer();
   logEvent('session.start', { timestamp: new Date().toISOString() });
@@ -654,27 +755,104 @@ function startTimer() {
   let elapsed = 0;
   gameState.timerInterval = setInterval(() => {
     elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
-    const remaining = Math.max(0, 180 - elapsed);
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
     
-    ['timer1', 'timer2', 'timer3'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    });
-
-    if (remaining === 0) {
-      clearInterval(gameState.timerInterval);
-      finishGame();
+    // Update all timers
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`timer${i}`);
+      if (el) {
+        const sceneConfig = window.__CONFIG__.competencies[`scene${i}`];
+        const sceneElapsed = gameState.sceneStartTimes[`scene${i}`] 
+          ? Math.floor((Date.now() - gameState.sceneStartTimes[`scene${i}`]) / 1000)
+          : 0;
+        const remaining = Math.max(0, sceneConfig.time - sceneElapsed);
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
     }
   }, 1000);
 }
 
+function handleScene1Submit() {
+  const goldKey = window.__GOLD_KEY__.scene1;
+  const selected = Array.from(gameState.scene1Selections);
+  
+  // Check correctness
+  const correct = selected.length === goldKey.length && 
+                  selected.every(t => goldKey.includes(t)) &&
+                  goldKey.every(t => selected.includes(t));
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene1']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 1,
+    correct: correct,
+    time: timeSpent,
+    selections: selected
+  });
+  
+  // Visual feedback
+  document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
+    const taskId = btn.dataset.id;
+    if (goldKey.includes(taskId)) {
+      btn.classList.add('correct');
+    } else if (selected.includes(taskId)) {
+      btn.classList.add('incorrect');
+    }
+    btn.style.pointerEvents = 'none';
+  });
+  
+  document.getElementById('submitScene1').style.display = 'none';
+  
+  logEvent('scene.complete', { scene: 1, correct, time: timeSpent });
+  
+  setTimeout(() => moveToNextScene(), 2000);
+}
+
+function handleScene2Submit() {
+  const goldKey = window.__GOLD_KEY__.scene2;
+  let correctCount = 0;
+  
+  Object.keys(goldKey).forEach(scenario => {
+    const userChoice = gameState.scene2Selections[scenario];
+    const correctChoice = goldKey[scenario];
+    const isCorrect = userChoice === correctChoice;
+    
+    if (isCorrect) correctCount++;
+    
+    // Visual feedback
+    document.querySelectorAll(`#scene2 [data-scenario="${scenario}"]`).forEach(btn => {
+      if (btn.dataset.channel === correctChoice) {
+        btn.classList.add('correct');
+      } else if (btn.dataset.channel === userChoice && !isCorrect) {
+        btn.classList.add('incorrect');
+      }
+      btn.style.pointerEvents = 'none';
+    });
+  });
+  
+  const correct = correctCount === 3;
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene2']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 2,
+    correct: correct,
+    time: timeSpent,
+    selections: gameState.scene2Selections
+  });
+  
+  document.getElementById('submitScene2').style.display = 'none';
+  
+  logEvent('scene.complete', { scene: 2, correct, time: timeSpent });
+  
+  setTimeout(() => moveToNextScene(), 2000);
+}
+
 function handleChoice(button) {
   const choiceId = button.dataset.id;
-  const scene = parseInt(button.closest('.screen').id.replace('scene', ''));
+  const sceneNum = parseInt(button.closest('.screen').id.replace('scene', ''));
   
-  // Mark as selected
+  // Disable all choices
   button.closest('.choices').querySelectorAll('.choice').forEach(b => {
     b.classList.remove('selected');
     b.style.pointerEvents = 'none';
@@ -682,108 +860,90 @@ function handleChoice(button) {
   button.classList.add('selected');
 
   // Check if correct
-  const goldKey = window.__GOLD_KEY__[`s${scene}`];
-  const isCorrect = goldKey && goldKey.includes(choiceId);
+  const goldKey = window.__GOLD_KEY__[`scene${sceneNum}`];
+  const isCorrect = choiceId === goldKey;
   
   button.classList.add(isCorrect ? 'correct' : 'incorrect');
   
-  // Mascot reactions and particles
+  // Particles
   const rect = button.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  
   if (isCorrect) {
-    setMascotMood('happy');
-    showMascotMessage(['Great choice! 🎉', 'Excellent! ✨', 'Perfect! 🌟'][Math.floor(Math.random() * 3)], 1500);
-    createParticles(centerX, centerY, 'var(--primary)');
-  } else {
-    setMascotMood('worried');
-    showMascotMessage(['Think it through... 🤔', 'Try another approach 💭', 'Consider the impact 🎯'][Math.floor(Math.random() * 3)], 1500);
+    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'var(--accent-green)');
   }
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes[`scene${sceneNum}`]) / 1000);
   
   gameState.decisions.push({
-    scene: scene,
+    scene: sceneNum,
     choice: choiceId,
     correct: isCorrect,
-    timestamp: Date.now()
+    time: timeSpent
   });
 
-  logEvent('decision.select', { scene, choice: choiceId, correct: isCorrect });
+  logEvent('scene.complete', { scene: sceneNum, choice: choiceId, correct: isCorrect, time: timeSpent });
 
-  // Edge case trigger in scene 3
-  if (scene === 3) {
-    window.__EDGE__.triggered = true;
-    window.__EDGE__.recovered = isCorrect;
-    window.__EDGE__.score = isCorrect ? 1.0 : 0.0;
-    logEvent('edge.trigger', { recovered: isCorrect });
-    
-    if (isCorrect) {
-      showMascotMessage('Crisis averted! 🛡️', 2000);
-    }
+  setTimeout(() => moveToNextScene(), 1500);
+}
+
+function moveToNextScene() {
+  const currentSceneNum = gameState.currentScene;
+  
+  if (currentSceneNum < 4) {
+    document.getElementById(`scene${currentSceneNum}`).classList.remove('active');
+    document.getElementById(`scene${currentSceneNum + 1}`).classList.add('active');
+    gameState.currentScene++;
+    gameState.sceneStartTimes[`scene${gameState.currentScene}`] = Date.now();
+  } else {
+    finishGame();
   }
-
-  // Move to next scene after 1.5s
-  setTimeout(() => {
-    setMascotMood('thinking');
-    if (scene < 3) {
-      document.getElementById(`scene${scene}`).classList.remove('active');
-      document.getElementById(`scene${scene + 1}`).classList.add('active');
-      gameState.currentScene++;
-    } else {
-      finishGame();
-    }
-  }, 1500);
 }
 
 function finishGame() {
   clearInterval(gameState.timerInterval);
 
-  const endTime = Date.now();
-  const timeElapsed = Math.floor((endTime - gameState.startTime) / 1000);
-  
+  const totalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
   const correctCount = gameState.decisions.filter(d => d.correct).length;
   const totalDecisions = gameState.decisions.length;
   const accuracy = totalDecisions > 0 ? correctCount / totalDecisions : 0;
 
-  // Calculate level based on v3.1 thresholds
-  let level = 1; // Needs Work
-  let passed = false;
-
-  if (accuracy >= 0.95 && timeElapsed <= 150 && window.__EDGE__.score >= 0.8) {
-    level = 3; // Mastery
-    passed = true;
-  } else if (accuracy >= 0.90 && timeElapsed <= 180) {
-    level = 2; // Proficient
-    passed = true;
+  // Calculate level
+  let level = 1;
+  let totalXP = 0;
+  
+  if (accuracy >= 0.95 && totalTime <= 270) {
+    level = 3;
+    totalXP = window.__CONFIG__.xp.L3 * 4;
+  } else if (accuracy >= 0.90 && totalTime <= 300) {
+    level = 2;
+    totalXP = window.__CONFIG__.xp.L2 * 4;
+  } else {
+    level = 1;
+    totalXP = window.__CONFIG__.xp.L1 * 4;
   }
 
   window.__RESULT__ = {
     accuracy: accuracy,
-    time_s: timeElapsed,
-    edge_score: window.__EDGE__.score,
+    time_s: totalTime,
     level: level,
-    passed: passed
+    passed: level >= 2,
+    scene_results: gameState.decisions,
+    xp_earned: totalXP
   };
 
-  // Generate proof receipt
   window.__PROOF__ = {
     proof_id: "demo-" + Date.now().toString(36),
-    template_id: "employee-onboarding-demo",
-    competency: window.__CONFIG__.competency,
-    sub_competency: window.__CONFIG__.sub_competency,
+    template_id: "hr-onboarding-playops-validator",
+    competencies: Object.values(window.__CONFIG__.competencies).map(c => c.name),
     level: level,
     metrics: {
       accuracy: accuracy,
-      time_s: timeElapsed,
-      edge_score: window.__EDGE__.score,
-      sessions: 1
+      time_s: totalTime,
+      xp_earned: totalXP
     },
     timestamp: new Date().toISOString()
   };
 
   logEvent('session.end', window.__RESULT__);
-
-  // Show results
   showResults();
 }
 
@@ -797,8 +957,6 @@ function showResults() {
   if (result.level === 3) {
     badge.textContent = '🏆 MASTERY';
     badge.className = 'badge mastery';
-    setMascotMood('happy');
-    showMascotMessage('Amazing work! 🌟', 3000);
     // Victory particles
     setTimeout(() => {
       for (let i = 0; i < 20; i++) {
@@ -806,7 +964,7 @@ function showResults() {
           createParticles(
             window.innerWidth / 2 + (Math.random() - 0.5) * 200,
             200,
-            ['var(--primary)', '#FFD700', 'var(--secondary)'][Math.floor(Math.random() * 3)]
+            ['var(--accent-green)', '#FFD700'][Math.floor(Math.random() * 2)]
           );
         }, i * 100);
       }
@@ -814,20 +972,14 @@ function showResults() {
   } else if (result.level === 2) {
     badge.textContent = '✅ PROFICIENT';
     badge.className = 'badge proficient';
-    setMascotMood('happy');
-    showMascotMessage('Well done! 👏', 3000);
   } else {
     badge.textContent = '📝 NEEDS WORK';
     badge.className = 'badge needs-work';
-    setMascotMood('thinking');
-    showMascotMessage('Keep practicing! 💪', 3000);
   }
 
   document.getElementById('accuracyValue').textContent = Math.round(result.accuracy * 100) + '%';
   document.getElementById('timeValue').textContent = result.time_s + 's';
-  document.getElementById('edgeValue').textContent = window.__EDGE__.triggered 
-    ? (window.__EDGE__.recovered ? '✅ Handled' : '⚠️ Needs Improvement')
-    : 'Not Triggered';
+  document.getElementById('xpValue').textContent = result.xp_earned + ' XP';
 }
 
 function logEvent(eventType, data) {
