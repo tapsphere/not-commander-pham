@@ -927,6 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Scene 1: Multi-select handler
   document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
     btn.addEventListener('click', function() {
+      console.log('Task clicked:', this.dataset.id);
       playSound('click');
       const taskId = this.dataset.id;
       
@@ -945,9 +946,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       
+      console.log('Current selections:', Array.from(gameState.scene1Selections));
+      console.log('Selection count:', gameState.scene1Selections.size);
+      
       // Show submit button when exactly 3 are selected
       const submitBtn = document.getElementById('submitScene1');
-      submitBtn.style.display = gameState.scene1Selections.size === 3 ? 'block' : 'none';
+      console.log('Submit button element:', submitBtn);
+      const shouldShow = gameState.scene1Selections.size === 3;
+      console.log('Should show submit?', shouldShow);
+      submitBtn.style.display = shouldShow ? 'block' : 'none';
+      console.log('Submit button display:', submitBtn.style.display);
     });
   });
 
