@@ -627,9 +627,7 @@
     <button class="choice multi-select" data-id="task_f" aria-label="Task F">
       Conduct first performance check-in (Week 1 task)
     </button>
-  </div>
-  <div style="text-align: center; padding: 30px 0 50px;">
-    <button id="submitScene1" class="btn" style="display:none; width: 100%; max-width: 600px;">Submit Selection (Select 3)</button>
+    <button id="submitScene1" class="btn" style="display:none; margin: 30px auto 50px; width: 100%; max-width: 600px;">Submit Selection (Select 3)</button>
   </div>
 </div>
 
@@ -673,9 +671,7 @@
         <button class="choice channel-btn" data-scenario="c" data-channel="email">📧 Email</button>
       </div>
     </div>
-  </div>
-  <div style="text-align: center; padding: 30px 0 50px;">
-    <button id="submitScene2" class="btn" style="display:none; width: 100%; max-width: 600px;">Submit Matches</button>
+    <button id="submitScene2" class="btn" style="display:none; margin: 30px auto 50px; width: 100%; max-width: 600px;">Submit Matches</button>
   </div>
 </div>
 
@@ -981,7 +977,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  document.getElementById('submitScene2')?.addEventListener('click', () => handleScene2Submit());
+  document.getElementById('submitScene2')?.addEventListener('click', () => {
+    console.log('Submit Scene 2 clicked');
+    handleScene2Submit();
+  });
 
   // Scene 3 & 4: Single choice handlers
   document.querySelectorAll('#scene3 .choice, #scene4 .choice').forEach(btn => {
