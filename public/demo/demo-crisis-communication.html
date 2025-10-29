@@ -955,7 +955,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  document.getElementById('submitScene1')?.addEventListener('click', () => handleScene1Submit());
+  document.getElementById('submitScene1')?.addEventListener('click', () => {
+    console.log('Submit Scene 1 clicked');
+    handleScene1Submit();
+  });
 
   // Scene 2: Channel matching handler
   document.querySelectorAll('#scene2 .channel-btn').forEach(btn => {
@@ -1104,6 +1107,7 @@ function startTimer() {
 }
 
 function handleScene1Submit() {
+  console.log('handleScene1Submit called', gameState.scene1Selections);
   const goldKey = window.__GOLD_KEY__.scene1;
   const selected = Array.from(gameState.scene1Selections);
   
