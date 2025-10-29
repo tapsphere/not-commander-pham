@@ -50,6 +50,7 @@ const App = () => (
           <Route path="/platform" element={<PlatformLayout />}>
             <Route index element={<Navigate to="/platform/marketplace" replace />} />
             <Route path="creator" element={<CreatorDashboard />} />
+            <Route path="creator/profile-edit" element={<BrandProfileEdit />} />
             <Route path="brand" element={<BrandDashboard />} />
             <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
             <Route path="marketplace" element={<Marketplace />} />

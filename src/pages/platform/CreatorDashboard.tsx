@@ -450,7 +450,7 @@ export default function CreatorDashboard() {
         </div>
         <div className="flex gap-3">
           <Button 
-            onClick={() => navigate('/platform/brand/profile-edit')}
+            onClick={() => navigate('/platform/creator/profile-edit')}
             variant="outline"
             className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
           >
