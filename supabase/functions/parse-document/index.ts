@@ -5,6 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -21,35 +23,86 @@ serve(async (req) => {
       );
     }
 
-    // For PDF/DOCX files, extract text using basic parsing
-    // This is a simplified version - in production you'd use a proper parser
+    console.log('Parsing document:', file.name, 'Type:', file.type, 'Size:', file.size);
+
+    // Convert file to base64 for AI processing
     const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    // Convert to text (this is very basic - real PDF parsing would need pdf-parse or similar)
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    let content = decoder.decode(uint8Array);
-    
-    // Clean up the content - remove control characters and normalize whitespace
-    content = content
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ') // Remove control characters
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim();
-    
-    // Extract readable text (very basic heuristic)
-    const words = content.split(/\s+/).filter(word => {
-      // Keep words that are mostly alphanumeric
-      const alphanumeric = word.match(/[a-zA-Z0-9]/g);
-      return alphanumeric && alphanumeric.length > word.length * 0.5;
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const dataUrl = `data:${file.type};base64,${base64}`;
+
+    console.log('Sending document to Lovable AI for extraction...');
+
+    // Use Lovable AI to extract text from PDF/DOCX
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a document text extractor. Extract all text content from the provided document in a clean, structured format. Preserve headings, paragraphs, and lists. Return only the extracted text, no commentary.'
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Extract all text content from this document:'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: dataUrl
+                }
+              }
+            ]
+          }
+        ],
+        temperature: 0.1, // Low temperature for consistent extraction
+      }),
     });
-    
-    const extractedText = words.join(' ').substring(0, 10000); // Limit to 10k chars
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI extraction failed:', response.status, errorText);
+      throw new Error(`AI extraction failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const extractedText = data.choices[0].message.content;
+
+    console.log('AI extraction successful. Text length:', extractedText.length);
+
+    // Limit to 50,000 characters
+    let finalText = extractedText;
+    if (finalText.length > 50000) {
+      console.log('Truncating text from', finalText.length, 'to 50000 characters');
+      finalText = finalText.substring(0, 50000) + '\n\n[Content truncated due to length]';
+    }
+
+    if (!finalText || finalText.length < 50) {
+      console.warn('Extracted text too short:', finalText.length, 'characters');
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Could not extract meaningful text from document. Please ensure the PDF is not scanned or image-based.',
+          content: '',
+          filename: file.name 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        content: extractedText,
-        filename: file.name 
+        content: finalText,
+        filename: file.name,
+        length: finalText.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -57,7 +110,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error parsing document:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? error.stack : undefined
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
