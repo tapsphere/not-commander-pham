@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { DesignPaletteEditor } from '@/components/platform/DesignPaletteEditor';
 
 export default function BrandProfileEdit() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -59,14 +60,17 @@ export default function BrandProfileEdit() {
       }
       setUserId(user.id);
 
-      // Check user role
+      // Check user roles (they might have multiple)
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      setUserRole(roleData?.role as 'brand' | 'creator' || null);
+      // Determine active role from URL path
+      const isCreatorPath = location.pathname.includes('/creator');
+      const detectedRole = isCreatorPath ? 'creator' : 'brand';
+      
+      setUserRole(detectedRole);
 
       const { data, error } = await supabase
         .from('profiles')
