@@ -348,6 +348,15 @@ Use these brand colors throughout the entire game:
 
 Load font: \`<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">\`
 
+**CRITICAL TEXT CONTRAST RULES:**
+1. Body and paragraph text MUST use var(--text-color)
+2. Button text color must contrast with button background:
+   - For colored button backgrounds (primary/secondary): Use #FFFFFF (white) text
+   - For light button backgrounds: Use #000000 (black) text
+3. Ensure minimum 4.5:1 contrast ratio for all text
+4. Headers can use var(--primary-color) but must contrast with background
+5. NEVER use white text on white/light backgrounds or black text on black/dark backgrounds
+
 **CRITICAL:** NEVER use hard-coded colors. Use the provided brand colors for ALL UI elements.
 
 # MOBILE-FIRST REQUIREMENTS
