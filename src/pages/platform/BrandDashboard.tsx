@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2, User } from 'lucide-react';
+import { Store, Play, Settings, Link2, Copy, Check, Calendar as CalendarIcon, Eye, EyeOff, Lock, ChevronDown, ChevronUp, Trash2, User, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -170,6 +170,73 @@ export default function BrandDashboard() {
     setLiveEndDate(endDate);
     setVisibility('public'); // Reset to public by default
     console.log('🔵 showDatePicker state set to true');
+  };
+
+  const handleRegenerateGame = async (customizationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      const { data: customData } = await supabase
+        .from('brand_customizations')
+        .select(`
+          primary_color, 
+          secondary_color, 
+          accent_color, 
+          background_color, 
+          logo_url,
+          template_id,
+          game_templates (
+            name,
+            description
+          )
+        `)
+        .eq('id', customizationId)
+        .single();
+
+      if (!customData || !customData.game_templates) {
+        toast.error('Template data not found');
+        return;
+      }
+
+      const template = customData.game_templates as any;
+      const templatePrompt = `Create a validator game for "${template.name}".
+Description: ${template.description}
+
+Create a 3-6 minute interactive game that assesses the player's ability to ${template.description.toLowerCase()}
+
+Include:
+- Clear scenario setup
+- Interactive decision points
+- Real-time feedback
+- Scoring based on accuracy and time`;
+
+      toast.info('Regenerating game HTML...');
+      
+      const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-game', {
+        body: {
+          templatePrompt,
+          primaryColor: customData.primary_color || '#00FF00',
+          secondaryColor: customData.secondary_color || '#9945FF',
+          accentColor: customData.accent_color || '#FF5722',
+          backgroundColor: customData.background_color || '#1A1A1A',
+          logoUrl: customData.logo_url || '',
+          previewMode: false,
+          customizationId
+        }
+      });
+
+      if (generateError) {
+        console.error('Generate error:', generateError);
+        toast.error('Failed to regenerate game');
+        return;
+      }
+
+      toast.success('Game regenerated! You can now play it.');
+      loadCustomizations();
+    } catch (error) {
+      console.error('Regenerate error:', error);
+      toast.error('Failed to regenerate game');
+    }
   };
 
   const handlePublish = async () => {
@@ -541,6 +608,14 @@ Include:
                       <Button 
                         size="sm" 
                         variant="outline"
+                        onClick={(e) => handleRegenerateGame(custom.id, e)}
+                        className="gap-2"
+                      >
+                        <Wand2 className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
                           console.log('Link clicked, customization:', custom);
@@ -577,6 +652,14 @@ Include:
                       >
                         <Eye className="h-3 w-3" />
                         Preview
+                      </Button>
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => handleRegenerateGame(custom.id, e)}
+                        className="gap-2"
+                      >
+                        <Wand2 className="h-3 w-3" />
                       </Button>
                       <Button 
                         size="sm" 
