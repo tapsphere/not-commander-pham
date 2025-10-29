@@ -12,13 +12,48 @@ serve(async (req) => {
   }
 
   try {
-     const { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, mascotAnimationType, customizationId, previewMode, subCompetencies } = await req.json();
+    let { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, mascotAnimationType, customizationId, previewMode, subCompetencies } = await req.json();
     
     console.log('Generating game with params:', { templatePrompt, primaryColor, secondaryColor, accentColor, backgroundColor, highlightColor, textColor, fontFamily, logoUrl, avatarUrl, particleEffect, mascotAnimationType, customizationId, previewMode, subCompetencies });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    // If colors aren't provided, fetch them from the database
+    if (!primaryColor && customizationId) {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      console.log('Fetching brand customization data from database...');
+      const { data: customization, error: fetchError } = await supabase
+        .from('brand_customizations')
+        .select('customization_prompt, primary_color, secondary_color, accent_color, background_color, highlight_color, text_color, font_family, logo_url, avatar_url, particle_effect, mascot_animation_type, template_id')
+        .eq('id', customizationId)
+        .single();
+      
+      if (fetchError) {
+        console.error('Failed to fetch customization:', fetchError);
+        throw new Error('Failed to fetch brand customization data');
+      }
+      
+      if (customization) {
+        console.log('Using colors from database:', customization);
+        primaryColor = customization.primary_color;
+        secondaryColor = customization.secondary_color;
+        accentColor = customization.accent_color;
+        backgroundColor = customization.background_color;
+        highlightColor = customization.highlight_color;
+        textColor = customization.text_color;
+        fontFamily = customization.font_family;
+        logoUrl = customization.logo_url;
+        avatarUrl = customization.avatar_url;
+        particleEffect = customization.particle_effect;
+        mascotAnimationType = customization.mascot_animation_type;
+        templatePrompt = customization.customization_prompt;
+      }
     }
 
     // ═══════════════════════════════════════════════════════════════
