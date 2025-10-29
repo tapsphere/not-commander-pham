@@ -278,15 +278,15 @@ export default function Play() {
           </div>
         </div>
 
-        {(validator.generated_game_html || validator.game_templates.custom_game_url) ? (
+        {(validator.generated_game_html || validator.game_templates?.custom_game_url) ? (
           /* Render the game in mobile viewport */
           <div className="pt-16">
             <MobileViewport>
               <div className="w-full" style={{ minHeight: 'calc(100vh - 4rem)' }}>
-                {validator.game_templates.template_type === 'custom_upload' && validator.game_templates.custom_game_url ? (
+                {validator.game_templates?.template_type === 'custom_upload' && validator.game_templates?.custom_game_url ? (
                   <iframe
                     key={JSON.stringify(remixedColors)} // Force reload on color change
-                    src={`${validator.game_templates.custom_game_url}?primaryColor=${encodeURIComponent(getCurrentColors().primary)}&secondaryColor=${encodeURIComponent(getCurrentColors().secondary)}&accentColor=${encodeURIComponent(getCurrentColors().accent)}&backgroundColor=${encodeURIComponent(getCurrentColors().background)}&logoUrl=${encodeURIComponent(validator.logo_url || '')}`}
+                    src={`${validator.game_templates?.custom_game_url}?primaryColor=${encodeURIComponent(getCurrentColors().primary)}&secondaryColor=${encodeURIComponent(getCurrentColors().secondary)}&accentColor=${encodeURIComponent(getCurrentColors().accent)}&backgroundColor=${encodeURIComponent(getCurrentColors().background)}&logoUrl=${encodeURIComponent(validator.logo_url || '')}`}
                     className="w-full border-0 rounded-lg shadow-2xl"
                     style={{ height: '812px' }} // iPhone 13 height
                     title="Custom Game Validator"
@@ -433,9 +433,9 @@ export default function Play() {
                   />
                 )}
                 <h1 className="text-2xl font-bold mb-3">
-                  {validator.game_templates.name}
+                  {validator.game_templates?.name || 'Game Validator'}
                 </h1>
-                {validator.game_templates.description && (
+                {validator.game_templates?.description && (
                   <p className="text-sm text-gray-300 mb-6">
                     {validator.game_templates.description}
                   </p>
