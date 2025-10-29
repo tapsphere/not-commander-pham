@@ -54,26 +54,25 @@
       }
     }
 
-    /* Animated Mascot */
+    /* Animated Mascot - Safe Zone (Bottom Right) */
     .mascot {
       position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 100px;
+      right: 20px;
       z-index: 1000;
       animation: float 3s ease-in-out infinite;
       transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
 
     .mascot-character {
-      width: 120px;
-      height: 120px;
+      width: 80px;
+      height: 80px;
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 60px;
+      font-size: 40px;
       position: relative;
       box-shadow: 0 10px 40px rgba(0, 255, 0, 0.4);
     }
@@ -93,8 +92,8 @@
     }
 
     @keyframes float {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-15px); }
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
 
     @keyframes think {
@@ -117,14 +116,14 @@
 
     .mascot-bubble {
       position: absolute;
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 100%;
+      right: 0;
+      margin-bottom: 10px;
       background: rgba(255, 255, 255, 0.95);
       color: #1A1A1A;
-      padding: 12px 20px;
-      border-radius: 20px;
-      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 16px;
+      font-size: 12px;
       font-weight: 600;
       white-space: nowrap;
       opacity: 0;
@@ -134,20 +133,19 @@
 
     .mascot-bubble.show {
       opacity: 1;
-      top: -70px;
+      margin-bottom: 15px;
     }
 
     .mascot-bubble::after {
       content: '';
       position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: -6px;
+      right: 20px;
       width: 0;
       height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-top: 8px solid rgba(255, 255, 255, 0.95);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid rgba(255, 255, 255, 0.95);
     }
 
     /* Particle Effects */
@@ -391,16 +389,79 @@
       letter-spacing: 1px;
     }
 
+    /* Loading Screen */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--background);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      transition: opacity 0.5s ease;
+    }
+
+    #loadingScreen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-logo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #0078D4, #50E6FF);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 30px;
+      animation: logoFloat 2s ease-in-out infinite;
+      box-shadow: 0 20px 60px rgba(0, 120, 212, 0.4);
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .loading-text {
+      color: #50E6FF;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .loading-subtext {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+    }
+
     @media (max-width: 768px) {
       .scenario h2 { font-size: 18px; }
       .choice { font-size: 14px; min-height: 52px; padding: 14px; }
+      .mascot { bottom: 80px; right: 10px; }
+      .mascot-character { width: 60px; height: 60px; font-size: 30px; }
     }
   </style>
 </head>
 <body>
 
-<!-- Animated Mascot -->
-<div class="mascot" id="mascot">
+<!-- Loading Screen -->
+<div id="loadingScreen">
+  <div class="loading-logo">N</div>
+  <div class="loading-text">NextCorp</div>
+  <div class="loading-subtext">Crisis Communication Training</div>
+</div>
+
+<!-- Animated Mascot (Safe Zone - Bottom Right) -->
+<div class="mascot" id="mascot" style="display: none;">
   <div class="mascot-character">🎯</div>
   <div class="mascot-bubble" id="mascotBubble"></div>
 </div>
@@ -409,7 +470,7 @@
 <div class="particles" id="particles"></div>
 
 <!-- Intro Screen -->
-<div id="introScreen" class="screen active">
+<div id="introScreen" class="screen">
   <h1>🚨 Crisis Communication</h1>
   
   <ul>
@@ -611,10 +672,22 @@ function createParticles(x, y, color) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  const startBtn = document.getElementById('startBtn');
+  // Loading sequence
+  const loadingScreen = document.getElementById('loadingScreen');
+  const introScreen = document.getElementById('introScreen');
+  const mascot = document.getElementById('mascot');
   
-  // Initial mascot message
-  showMascotMessage("Ready to handle a crisis? 🚀", 3000);
+  setTimeout(() => {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+      introScreen.classList.add('active');
+      mascot.style.display = 'block';
+      showMascotMessage("Ready to handle a crisis? 🚀", 3000);
+    }, 500);
+  }, 2000);
+  
+  const startBtn = document.getElementById('startBtn');
   
   if (startBtn) {
     startBtn.addEventListener('click', function() {

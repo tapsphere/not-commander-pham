@@ -33,13 +33,14 @@ export const BrandCustomizationDialog = ({
 }: BrandCustomizationDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [loadingDefaults, setLoadingDefaults] = useState(true);
-  const [primaryColor, setPrimaryColor] = useState('#00FF00');
-  const [secondaryColor, setSecondaryColor] = useState('#9945FF');
-  const [accentColor, setAccentColor] = useState('#FF5722');
-  const [backgroundColor, setBackgroundColor] = useState('#1A1A1A');
-  const [highlightColor, setHighlightColor] = useState('#F0C7A0');
-  const [textColor, setTextColor] = useState('#2D5556');
-  const [fontFamily, setFontFamily] = useState('Inter, sans-serif');
+  // Brand-specific defaults (Microsoft-style)
+  const [primaryColor, setPrimaryColor] = useState('#0078D4'); // Microsoft Blue
+  const [secondaryColor, setSecondaryColor] = useState('#50E6FF'); // Cyan accent
+  const [accentColor, setAccentColor] = useState('#0078D4');
+  const [backgroundColor, setBackgroundColor] = useState('#FFFFFF');
+  const [highlightColor, setHighlightColor] = useState('#E6F2FF');
+  const [textColor, setTextColor] = useState('#323130');
+  const [fontFamily, setFontFamily] = useState('Segoe UI, sans-serif');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
@@ -51,7 +52,7 @@ export const BrandCustomizationDialog = ({
   const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
-  // Load creator's profile defaults
+  // Load creator's profile defaults ONLY for avatar/particles, NOT colors
   useEffect(() => {
     const loadCreatorDefaults = async () => {
       if (!open || !template.id) return;
@@ -68,23 +69,11 @@ export const BrandCustomizationDialog = ({
         if (templateData?.creator_id) {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('design_palette, default_particle_effect, game_avatar_url, mascot_animation_type')
+            .select('default_particle_effect, game_avatar_url, mascot_animation_type')
             .eq('user_id', templateData.creator_id)
             .single();
 
           if (profileData) {
-            // Load design palette defaults
-            if (profileData.design_palette) {
-              const palette = profileData.design_palette as any;
-              setPrimaryColor(palette.primary || '#C8DBDB');
-              setSecondaryColor(palette.secondary || '#6C8FA4');
-              setAccentColor(palette.accent || '#2D5556');
-              setBackgroundColor(palette.background || '#F5EDD3');
-              setHighlightColor(palette.highlight || '#F0C7A0');
-              setTextColor(palette.text || '#2D5556');
-              setFontFamily(palette.font || 'Inter, sans-serif');
-            }
-            
             // Load particle effect default
             if (profileData.default_particle_effect) {
               setParticleEffect(profileData.default_particle_effect);
