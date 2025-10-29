@@ -292,12 +292,18 @@ Your task:
 2. For each match, use the EXACT sub_competency statement, action_cue, game_mechanic, and validator_type from the list
 3. Focus on quality over quantity - select only the strongest alignments
 4. Return the exact JSON format specified
+5. **CRITICAL FOR CONSISTENCY**: Always select competencies in the same priority order:
+   - First: Most directly mentioned in course content
+   - Second: Strongly implied by learning objectives
+   - Third: Supported by course activities/assessments
+   - Fourth: Relevant to target audience/industry
 
 CRITICAL CONSTRAINTS: 
 - Use ONLY sub-competencies from the C-BEN Framework list provided in the system prompt
 - Maximum 4 sub-competency mappings - no more, no less
 - Each mapping must have strong alignment with the course content
-- If fewer than 4 strong matches exist, still provide exactly 4 with lower priority ones`;
+- If fewer than 4 strong matches exist, still provide exactly 4 with lower priority ones
+- Use alphabetical tiebreaker when competencies have equal relevance`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

@@ -452,12 +452,12 @@ Generate a complete, playable HTML5 game that matches this description and uses 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash', // Changed to faster model
+          model: 'google/gemini-2.5-flash',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
-          temperature: 0.1, // Very low temperature = consistent game generation
+          temperature: 0.0, // Zero temperature = 100% deterministic
         }),
         signal: controller.signal,
       });
