@@ -311,6 +311,168 @@
       letter-spacing: 1px;
     }
 
+    /* Reputation Meter */
+    .reputation-meter {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      z-index: 100;
+      min-width: 180px;
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    }
+
+    .meter-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .meter-bar {
+      width: 100%;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--primary));
+      transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .meter-fill.danger {
+      background: linear-gradient(90deg, #EF4444, #DC2626);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+    }
+
+    .meter-emoji {
+      font-size: 24px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Progress Journey */
+    .progress-journey {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 2px solid var(--border);
+    }
+
+    .journey-node {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.4s ease;
+      position: relative;
+    }
+
+    .journey-node.active {
+      background: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 120, 212, 0.6);
+      animation: nodeGlow 1.5s ease-in-out infinite;
+    }
+
+    .journey-node.complete {
+      background: var(--accent-green);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .journey-connector {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      margin: 0 5px;
+      transition: all 0.5s ease;
+    }
+
+    .journey-connector.complete {
+      background: var(--accent-green);
+    }
+
+    @keyframes nodeGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 120, 212, 0.6); }
+      50% { box-shadow: 0 0 30px rgba(0, 120, 212, 0.9), 0 0 40px rgba(0, 120, 212, 0.4); }
+    }
+
+    /* Stakeholder Reactions */
+    .stakeholder-reactions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stakeholder {
+      background: var(--card-bg);
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: all 0.4s ease;
+    }
+
+    .stakeholder-emoji {
+      font-size: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .stakeholder.happy {
+      border-color: var(--accent-green);
+      animation: bounceHappy 0.6s ease;
+    }
+
+    .stakeholder.unhappy {
+      border-color: #EF4444;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes bounceHappy {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Timer Pulse when low */
+    .timer.warning {
+      animation: timerPulse 1s ease-in-out infinite;
+      border-color: var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+
+    .timer.danger {
+      animation: timerPulse 0.5s ease-in-out infinite;
+      border-color: #EF4444;
+      color: #EF4444;
+    }
+
+    @keyframes timerPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 4px 16px rgba(239, 68, 68, 0.6); }
+    }
+
     /* Loading Screen */
     #loadingScreen {
       position: fixed;
@@ -419,6 +581,26 @@
   </button>
 </div>
 
+<!-- Reputation Meter -->
+<div class="reputation-meter" id="reputationMeter">
+  <div class="meter-label">Company Reputation</div>
+  <div class="meter-bar">
+    <div class="meter-fill" id="meterFill" style="width: 100%;"></div>
+  </div>
+  <div class="meter-emoji" id="meterEmoji">😊</div>
+</div>
+
+<!-- Progress Journey -->
+<div class="progress-journey" id="progressJourney" style="display: none;">
+  <div class="journey-node active" data-scene="1">🎯</div>
+  <div class="journey-connector"></div>
+  <div class="journey-node" data-scene="2">📱</div>
+  <div class="journey-connector"></div>
+  <div class="journey-node" data-scene="3">🎓</div>
+  <div class="journey-connector"></div>
+  <div class="journey-node" data-scene="4">💬</div>
+</div>
+
 <!-- Scene 1: Initiative -->
 <div id="scene1" class="screen gameplay">
   <div class="timer" id="timer1">1:30</div>
@@ -428,6 +610,12 @@
     <p><strong>Action Cue:</strong> Choose correct pre-day tasks to prepare new hire workspace</p>
     <p><strong>Context:</strong> Alex starts Monday. Select ALL tasks that should be completed BEFORE their first day.</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 90 seconds | Multi-select: Choose 3 correct tasks</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders1">
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Manager</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> IT Team</div>
+    </div>
   </div>
 
   <div class="choices" id="choices1">
@@ -461,6 +649,11 @@
     <h2>📱 Level 2: Team Connection - Choose the Right Channel</h2>
     <p><strong>Action Cue:</strong> Match each scenario to best communication channel</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 60 seconds | Match all 3 scenarios to: Teams Call, Quick Chat, or Email</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders2">
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Team</div>
+    </div>
   </div>
 
   <div class="choices" id="choices2" style="display: flex; flex-direction: column; gap: 20px;">
@@ -501,6 +694,11 @@
     <p><strong>Action Cue:</strong> Identify which support resource best helps the new hire</p>
     <p><strong>Context:</strong> Alex (Week 2) says: "I'm struggling to understand our project management workflow."</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best support resource</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders3">
+      <div class="stakeholder"><span class="stakeholder-emoji">😕</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Mentor</div>
+    </div>
   </div>
 
   <div class="choices" id="choices3">
@@ -528,6 +726,11 @@
     <p><strong>Action Cue:</strong> Choose correct feedback action after performance review</p>
     <p><strong>Context:</strong> After Alex's 30-day review, they received constructive feedback on time management. What's your next action?</p>
     <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best feedback follow-up</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders4">
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> HR Team</div>
+    </div>
   </div>
 
   <div class="choices" id="choices4">
@@ -632,6 +835,56 @@ window.__RESULT__ = {
 window.__PROOF__ = null;
 
 // ═══════════════════════════════════════════════════════════════
+// SOUND EFFECTS
+// ═══════════════════════════════════════════════════════════════
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+function playSound(type) {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  if (type === 'click') {
+    oscillator.frequency.value = 800;
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.1);
+  } else if (type === 'success') {
+    oscillator.frequency.value = 600;
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    oscillator.stop(audioCtx.currentTime + 0.2);
+  } else if (type === 'error') {
+    oscillator.frequency.value = 400;
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    oscillator.stop(audioCtx.currentTime + 0.2);
+  } else if (type === 'victory') {
+    // Play a sequence of notes
+    [600, 750, 900, 1200].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.3);
+      osc.start(audioCtx.currentTime + i * 0.1);
+      osc.stop(audioCtx.currentTime + i * 0.1 + 0.3);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // GAME LOGIC
 // ═══════════════════════════════════════════════════════════════
 
@@ -642,7 +895,8 @@ let gameState = {
   currentScene: 0,
   timerInterval: null,
   scene1Selections: new Set(),
-  scene2Selections: {}
+  scene2Selections: {},
+  reputation: 100
 };
 
 // Telegram Mini-App Integration
@@ -682,18 +936,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
   }, 2000);
   
-  const startBtn = document.getElementById('startBtn');
-  if (startBtn) {
-    startBtn.addEventListener('click', function() {
-      document.getElementById('introScreen').classList.remove('active');
-      document.getElementById('scene1').classList.add('active');
-      startGame();
-    });
-  }
-
   // Scene 1: Multi-select handler
   document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
     btn.addEventListener('click', function() {
+      playSound('click');
       const taskId = this.dataset.id;
       if (gameState.scene1Selections.has(taskId)) {
         gameState.scene1Selections.delete(taskId);
@@ -714,6 +960,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Scene 2: Channel matching handler
   document.querySelectorAll('#scene2 .channel-btn').forEach(btn => {
     btn.addEventListener('click', function() {
+      playSound('click');
       const scenario = this.dataset.scenario;
       const channel = this.dataset.channel;
       
@@ -736,17 +983,92 @@ document.addEventListener('DOMContentLoaded', function() {
   // Scene 3 & 4: Single choice handlers
   document.querySelectorAll('#scene3 .choice, #scene4 .choice').forEach(btn => {
     btn.addEventListener('click', function() {
+      playSound('click');
       if (!this.classList.contains('selected')) {
         handleChoice(this);
       }
     });
   });
+  
+  // Add click sound to start button
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) {
+    startBtn.addEventListener('click', function() {
+      playSound('click');
+      document.getElementById('introScreen').classList.remove('active');
+      document.getElementById('scene1').classList.add('active');
+      startGame();
+    });
+  }
 });
+
+function updateReputation(correct) {
+  if (correct) {
+    gameState.reputation = Math.min(100, gameState.reputation + 5);
+    playSound('success');
+  } else {
+    gameState.reputation = Math.max(0, gameState.reputation - 15);
+    playSound('error');
+  }
+  
+  const meterFill = document.getElementById('meterFill');
+  const meterEmoji = document.getElementById('meterEmoji');
+  
+  meterFill.style.width = gameState.reputation + '%';
+  
+  if (gameState.reputation < 40) {
+    meterFill.classList.add('danger');
+    meterEmoji.textContent = '😰';
+  } else if (gameState.reputation < 70) {
+    meterFill.classList.remove('danger');
+    meterEmoji.textContent = '😐';
+  } else {
+    meterFill.classList.remove('danger');
+    meterEmoji.textContent = '😊';
+  }
+}
+
+function updateStakeholders(sceneNum, correct) {
+  const stakeholders = document.querySelectorAll(`#stakeholders${sceneNum} .stakeholder`);
+  stakeholders.forEach(s => {
+    s.classList.remove('happy', 'unhappy');
+    s.classList.add(correct ? 'happy' : 'unhappy');
+    const emoji = s.querySelector('.stakeholder-emoji');
+    emoji.textContent = correct ? '😊' : '😟';
+  });
+}
+
+function updateProgressJourney() {
+  const nodes = document.querySelectorAll('.journey-node');
+  const connectors = document.querySelectorAll('.journey-connector');
+  
+  nodes.forEach((node, i) => {
+    const sceneNum = i + 1;
+    if (sceneNum < gameState.currentScene) {
+      node.classList.add('complete');
+      node.classList.remove('active');
+    } else if (sceneNum === gameState.currentScene) {
+      node.classList.add('active');
+      node.classList.remove('complete');
+    }
+  });
+  
+  connectors.forEach((conn, i) => {
+    if (i + 1 < gameState.currentScene) {
+      conn.classList.add('complete');
+    }
+  });
+}
 
 function startGame() {
   gameState.startTime = Date.now();
   gameState.sceneStartTimes['scene1'] = Date.now();
   gameState.currentScene = 1;
+  gameState.reputation = 100;
+  
+  document.getElementById('progressJourney').style.display = 'flex';
+  updateProgressJourney();
+  
   startTimer();
   logEvent('session.start', { timestamp: new Date().toISOString() });
 }
@@ -759,7 +1081,7 @@ function startTimer() {
     // Update all timers
     for (let i = 1; i <= 4; i++) {
       const el = document.getElementById(`timer${i}`);
-      if (el) {
+      if (el && el.closest('.screen').classList.contains('active')) {
         const sceneConfig = window.__CONFIG__.competencies[`scene${i}`];
         const sceneElapsed = gameState.sceneStartTimes[`scene${i}`] 
           ? Math.floor((Date.now() - gameState.sceneStartTimes[`scene${i}`]) / 1000)
@@ -768,6 +1090,14 @@ function startTimer() {
         const minutes = Math.floor(remaining / 60);
         const seconds = remaining % 60;
         el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Add warning/danger classes based on time
+        el.classList.remove('warning', 'danger');
+        if (remaining <= 10) {
+          el.classList.add('danger');
+        } else if (remaining <= 20) {
+          el.classList.add('warning');
+        }
       }
     }
   }, 1000);
@@ -790,6 +1120,10 @@ function handleScene1Submit() {
     time: timeSpent,
     selections: selected
   });
+  
+  // Update reputation and stakeholders
+  updateReputation(correct);
+  updateStakeholders(1, correct);
   
   // Visual feedback
   document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
@@ -841,6 +1175,10 @@ function handleScene2Submit() {
     selections: gameState.scene2Selections
   });
   
+  // Update reputation and stakeholders
+  updateReputation(correct);
+  updateStakeholders(2, correct);
+  
   document.getElementById('submitScene2').style.display = 'none';
   
   logEvent('scene.complete', { scene: 2, correct, time: timeSpent });
@@ -865,10 +1203,16 @@ function handleChoice(button) {
   
   button.classList.add(isCorrect ? 'correct' : 'incorrect');
   
+  // Update reputation and stakeholders
+  updateReputation(isCorrect);
+  updateStakeholders(sceneNum, isCorrect);
+  
   // Particles
   const rect = button.getBoundingClientRect();
   if (isCorrect) {
     createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'var(--accent-green)');
+  } else {
+    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#EF4444');
   }
   
   const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes[`scene${sceneNum}`]) / 1000);
@@ -893,6 +1237,7 @@ function moveToNextScene() {
     document.getElementById(`scene${currentSceneNum + 1}`).classList.add('active');
     gameState.currentScene++;
     gameState.sceneStartTimes[`scene${gameState.currentScene}`] = Date.now();
+    updateProgressJourney();
   } else {
     finishGame();
   }
@@ -954,9 +1299,15 @@ function showResults() {
   document.getElementById('resultsScreen').classList.add('active');
 
   const badge = document.getElementById('levelBadge');
+  
+  // Hide reputation meter and progress journey
+  document.getElementById('reputationMeter').style.display = 'none';
+  document.getElementById('progressJourney').style.display = 'none';
+  
   if (result.level === 3) {
     badge.textContent = 'LEVEL 3 - 🏆 MASTERY';
     badge.className = 'badge mastery';
+    playSound('victory');
     // Victory particles
     setTimeout(() => {
       for (let i = 0; i < 20; i++) {
@@ -972,6 +1323,7 @@ function showResults() {
   } else if (result.level === 2) {
     badge.textContent = 'LEVEL 2 - ✅ PROFICIENT';
     badge.className = 'badge proficient';
+    playSound('success');
   } else {
     badge.textContent = 'LEVEL 1 - 📝 NEEDS WORK';
     badge.className = 'badge needs-work';
