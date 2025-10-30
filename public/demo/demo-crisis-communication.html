@@ -1108,7 +1108,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('submitScene1')?.addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Submit Scene 1 clicked');
+    alert('Submit button clicked! Selections: ' + Array.from(gameState.scene1Selections).join(', '));
+    console.log('=== SUBMIT SCENE 1 CLICKED ===');
+    console.log('Selections:', gameState.scene1Selections);
     handleScene1Submit();
   });
 
@@ -1265,6 +1267,8 @@ function startTimer() {
 }
 
 function handleScene1Submit() {
+  alert('handleScene1Submit function started!');
+  console.log('=== HANDLE SCENE 1 SUBMIT ===');
   console.log('handleScene1Submit called', gameState.scene1Selections);
   const goldKey = window.__GOLD_KEY__.scene1;
   const selected = Array.from(gameState.scene1Selections);
@@ -1320,9 +1324,11 @@ function handleScene1Submit() {
   
   logEvent('scene.complete', { scene: 1, correct, time: timeSpent });
   
-  console.log('Scene 1 complete, moving to scene 2 in 2 seconds');
+  console.log('Scene 1 complete, scheduling transition in 2 seconds');
+  alert('About to schedule transition to scene 2');
   setTimeout(() => {
-    console.log('Moving to next scene now');
+    console.log('=== TIMEOUT FIRED ===');
+    alert('Moving to scene 2 now!');
     moveToNextScene();
   }, 2000);
 }
