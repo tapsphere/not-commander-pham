@@ -915,6 +915,19 @@ function playSound(type) {
     oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
     oscillator.stop(audioCtx.currentTime + 0.2);
+  } else if (type === 'coins') {
+    // Coin shower sound - cascading chimes
+    [800, 1000, 1200, 1400, 1600].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.08 + 0.25);
+      osc.start(audioCtx.currentTime + i * 0.08);
+      osc.stop(audioCtx.currentTime + i * 0.08 + 0.25);
+    });
   } else if (type === 'victory') {
     // Play a sequence of notes
     [600, 750, 900, 1200].forEach((freq, i) => {
@@ -999,6 +1012,9 @@ function createCoinShower() {
   const rect = robotArea.getBoundingClientRect();
   const originX = (rect.left + rect.width / 2) / window.innerWidth;
   const originY = (rect.top + rect.height / 2) / window.innerHeight;
+
+  // Play coin sound
+  playSound('coins');
 
   if (typeof confetti === 'function') {
     // Burst 1
