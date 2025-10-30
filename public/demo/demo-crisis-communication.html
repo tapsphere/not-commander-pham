@@ -830,6 +830,27 @@ window.__PROOF__ = null;
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContext();
 
+// Voice synthesis function
+function speakWelcome() {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance('Welcome to Microsoft Teams: The Onboarding');
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    // Wait a bit for voices to load
+    setTimeout(() => {
+      const voices = speechSynthesis.getVoices();
+      // Try to use a good English voice
+      const englishVoice = voices.find(voice => voice.lang.startsWith('en-'));
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      speechSynthesis.speak(utterance);
+    }, 100);
+  }
+}
+
 function playSound(type) {
   const oscillator = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
@@ -922,6 +943,8 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
       loadingScreen.style.display = 'none';
       introScreen.classList.add('active');
+      // Speak welcome message when intro screen appears
+      speakWelcome();
     }, 500);
   }, 2000);
   
