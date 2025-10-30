@@ -957,20 +957,21 @@ if (window.Telegram && window.Telegram.WebApp) {
 function createParticles(x, y, color) {
   const isCorrect = color === 'var(--accent-green)' || color === '#10B981';
   
-  if (isCorrect) {
-    // Gold confetti for correct answers
+  if (isCorrect && typeof confetti === 'function') {
+    // Gold confetti burst for correct answers
     confetti({
-      particleCount: 50,
-      spread: 60,
+      particleCount: 100,
+      spread: 70,
       origin: { 
         x: x / window.innerWidth, 
         y: y / window.innerHeight 
       },
-      colors: ['#FFD700', '#FFA500', '#FFED4E', '#FFB800'],
+      colors: ['#FFD700', '#FFA500', '#FFED4E', '#FFB800', '#FFC107'],
       shapes: ['circle'],
-      scalar: 1.2,
-      gravity: 0.8,
-      ticks: 200
+      scalar: 1.5,
+      gravity: 1,
+      ticks: 300,
+      startVelocity: 30
     });
   } else {
     // Red particles for incorrect answers
