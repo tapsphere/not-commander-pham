@@ -207,6 +207,7 @@
     .gameplay {
       overflow-y: auto;
       justify-content: flex-start;
+      padding-bottom: 100px;
     }
 
     .timer {
@@ -243,7 +244,7 @@
       flex-direction: column;
       gap: 12px;
       margin-top: auto;
-      padding-bottom: 20px;
+      padding-bottom: 80px;
     }
 
     .choice {
@@ -663,7 +664,7 @@
     <button class="choice multi-select" data-id="task_f" aria-label="Task F">
       Conduct first performance check-in (Week 1 task)
     </button>
-    <button id="submitScene1" class="btn" style="display:none; margin: 30px auto 50px; width: 100%; max-width: 600px;">Submit Selection (Select 3)</button>
+    <button id="submitScene1" class="btn" style="display:none; margin: 20px auto 0; width: 100%; max-width: 600px;">Submit Selection (Select 3)</button>
   </div>
 </div>
 
@@ -1417,8 +1418,15 @@ function moveToNextScene() {
   
   if (currentSceneNum < 4) {
     console.log('Moving from scene', currentSceneNum, 'to scene', currentSceneNum + 1);
-    document.getElementById(`scene${currentSceneNum}`).classList.remove('active');
-    document.getElementById(`scene${currentSceneNum + 1}`).classList.add('active');
+    const currentScene = document.getElementById(`scene${currentSceneNum}`);
+    const nextScene = document.getElementById(`scene${currentSceneNum + 1}`);
+    
+    currentScene.classList.remove('active');
+    nextScene.classList.add('active');
+    
+    // Scroll to top of next scene
+    nextScene.scrollTop = 0;
+    
     gameState.currentScene++;
     gameState.sceneStartTimes[`scene${gameState.currentScene}`] = Date.now();
     updateProgressJourney();
