@@ -26,6 +26,7 @@ import BreathBalance from "./pages/BreathBalance";
 import ValidatorTest from "./pages/platform/ValidatorTest";
 import TestingGuide from "./pages/platform/TestingGuide";
 import PlayValidator from "./pages/platform/PlayValidator";
+import DemoRedirect from "./components/DemoRedirect";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,9 @@ const App = () => (
           {/* Public Play Route */}
           <Route path="/play/:code" element={<Play />} />
           <Route path="/play/preview/:customizationId" element={<Play />} />
+          
+          {/* Demo HTML Files - Redirect to static files */}
+          <Route path="/demo/:demoFile" element={<DemoRedirect />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
