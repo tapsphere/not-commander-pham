@@ -590,15 +590,13 @@
       gap: 24px;
       padding: 20px;
       margin-top: 20px;
-      max-height: calc(100vh - 300px);
-      overflow: hidden;
     }
 
     /* Drop Zones */
     .drop-zone,
     .resource-drop-zone,
     .feedback-drop-zone {
-      background: linear-gradient(135deg, rgba(0, 120, 212, 0.1), rgba(80, 230, 255, 0.05));
+      background: linear-gradient(135deg, rgba(0, 120, 212, 0.2), rgba(80, 230, 255, 0.1));
       border: 3px dashed var(--primary);
       border-radius: 16px;
       padding: 30px;
@@ -609,6 +607,7 @@
       justify-content: center;
       gap: 12px;
       transition: all 0.3s ease;
+      flex-shrink: 0;
     }
 
     .drop-zone.drag-over,
@@ -663,9 +662,8 @@
       gap: 16px;
       max-width: 900px;
       margin: 0 auto;
-      overflow-y: auto;
-      max-height: calc(100vh - 500px);
       padding: 10px;
+      width: 100%;
     }
 
     .task-card {
