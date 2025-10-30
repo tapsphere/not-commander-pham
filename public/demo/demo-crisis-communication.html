@@ -79,6 +79,30 @@
       opacity: 0;
     }
 
+    /* Coin Particles */
+    .coin {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+      border-radius: 50%;
+      border: 2px solid #FFA500;
+      animation: coin-float 1.5s ease-out forwards;
+      opacity: 0;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+    }
+
+    .coin::before {
+      content: '$';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #FFA500;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
     @keyframes particle-float {
       0% {
         opacity: 1;
@@ -87,6 +111,17 @@
       100% {
         opacity: 0;
         transform: translateY(var(--ty, -100px)) translateX(var(--tx, 0)) scale(0);
+      }
+    }
+
+    @keyframes coin-float {
+      0% {
+        opacity: 1;
+        transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(var(--ty, -150px)) translateX(var(--tx, 0)) scale(0.5) rotate(720deg);
       }
     }
 
@@ -832,7 +867,8 @@ const audioCtx = new AudioContext();
 
 // Voice synthesis function
 function speakWelcome() {
-  if ('speechSynthesis' in window) {
+  if ('speechSynthesis' in window && !gameState.hasSpokenWelcome) {
+    gameState.hasSpokenWelcome = true;
     const utterance = new SpeechSynthesisUtterance('Welcome to Microsoft Teams: The Onboarding');
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
@@ -906,7 +942,8 @@ let gameState = {
   timerInterval: null,
   scene1Selections: new Set(),
   scene2Selections: {},
-  reputation: 100
+  reputation: 100,
+  hasSpokenWelcome: false
 };
 
 // Telegram Mini-App Integration
@@ -934,6 +971,35 @@ function createParticles(x, y, color) {
   }
 }
 
+// Create coin particles shooting from robot
+function createCoinShower() {
+  const container = document.getElementById('particles');
+  const robotArea = document.querySelector('.intro-animation');
+  const rect = robotArea.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const coin = document.createElement('div');
+      coin.className = 'coin';
+      coin.style.left = centerX + 'px';
+      coin.style.top = centerY + 'px';
+      coin.style.animationDelay = (i * 0.05) + 's';
+      
+      // Random angle but bias towards upward and outward
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI;
+      const distance = 100 + Math.random() * 150;
+      
+      coin.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+      coin.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+      
+      container.appendChild(coin);
+      setTimeout(() => coin.remove(), 1500);
+    }, i * 50);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const loadingScreen = document.getElementById('loadingScreen');
   const introScreen = document.getElementById('introScreen');
@@ -945,6 +1011,8 @@ document.addEventListener('DOMContentLoaded', function() {
       introScreen.classList.add('active');
       // Speak welcome message when intro screen appears
       speakWelcome();
+      // Shoot coins from robot after a short delay
+      setTimeout(() => createCoinShower(), 500);
     }, 500);
   }, 2000);
   
