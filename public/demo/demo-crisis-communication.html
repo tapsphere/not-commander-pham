@@ -207,7 +207,8 @@
     .gameplay {
       overflow-y: auto;
       justify-content: flex-start;
-      padding-bottom: 100px;
+      padding-bottom: 150px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .timer {
@@ -244,7 +245,12 @@
       flex-direction: column;
       gap: 12px;
       margin-top: auto;
-      padding-bottom: 80px;
+      padding-bottom: 120px;
+    }
+
+    .btn {
+      position: relative;
+      z-index: 10;
     }
 
     .choice {
@@ -1099,7 +1105,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  document.getElementById('submitScene1')?.addEventListener('click', () => {
+  document.getElementById('submitScene1')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
     console.log('Submit Scene 1 clicked');
     handleScene1Submit();
   });
