@@ -6,6 +6,7 @@
   <title>Microsoft Teams: The Onboarding</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <style>
     :root {
       --primary: #0078D4;
@@ -954,26 +955,40 @@ if (window.Telegram && window.Telegram.WebApp) {
 }
 
 function createParticles(x, y, color) {
-  const container = document.getElementById('particles');
-  const useCoin = color === 'var(--accent-green)' || color === '#10B981';
+  const isCorrect = color === 'var(--accent-green)' || color === '#10B981';
   
-  for (let i = 0; i < 12; i++) {
-    const particle = document.createElement('div');
-    particle.className = useCoin ? 'coin' : 'particle';
-    particle.style.left = x + 'px';
-    particle.style.top = y + 'px';
-    
-    if (!useCoin) {
+  if (isCorrect) {
+    // Gold confetti for correct answers
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { 
+        x: x / window.innerWidth, 
+        y: y / window.innerHeight 
+      },
+      colors: ['#FFD700', '#FFA500', '#FFED4E', '#FFB800'],
+      shapes: ['circle'],
+      scalar: 1.2,
+      gravity: 0.8,
+      ticks: 200
+    });
+  } else {
+    // Red particles for incorrect answers
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 12; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
       particle.style.background = color;
+      particle.style.animationDelay = (i * 0.05) + 's';
+      const angle = (Math.PI * 2 * i) / 12;
+      const distance = 50 + Math.random() * 50;
+      particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+      particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+      container.appendChild(particle);
+      setTimeout(() => particle.remove(), 1000);
     }
-    
-    particle.style.animationDelay = (i * 0.05) + 's';
-    const angle = (Math.PI * 2 * i) / 12;
-    const distance = 50 + Math.random() * 50;
-    particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
-    particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
-    container.appendChild(particle);
-    setTimeout(() => particle.remove(), useCoin ? 1500 : 1000);
   }
 }
 
