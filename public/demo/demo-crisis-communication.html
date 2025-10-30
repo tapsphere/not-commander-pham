@@ -1253,11 +1253,29 @@ function handleScene1Submit() {
   updateReputation(correct);
   updateStakeholders(1, correct);
   
-  // Visual feedback
+  // Visual feedback with particles
   document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
     const taskId = btn.dataset.id;
+    const rect = btn.getBoundingClientRect();
+    
     if (goldKey.includes(taskId)) {
       btn.classList.add('correct');
+      // Show gold confetti for correct choices
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 30,
+          spread: 50,
+          origin: { 
+            x: (rect.left + rect.width / 2) / window.innerWidth, 
+            y: (rect.top + rect.height / 2) / window.innerHeight 
+          },
+          colors: ['#FFD700', '#FFA500', '#FFED4E'],
+          shapes: ['circle'],
+          scalar: 1.2,
+          gravity: 1,
+          ticks: 200
+        });
+      }
     } else if (selected.includes(taskId)) {
       btn.classList.add('incorrect');
     }
@@ -1268,7 +1286,11 @@ function handleScene1Submit() {
   
   logEvent('scene.complete', { scene: 1, correct, time: timeSpent });
   
-  setTimeout(() => moveToNextScene(), 2000);
+  console.log('Scene 1 complete, moving to scene 2 in 2 seconds');
+  setTimeout(() => {
+    console.log('Moving to next scene now');
+    moveToNextScene();
+  }, 2000);
 }
 
 function handleScene2Submit() {
