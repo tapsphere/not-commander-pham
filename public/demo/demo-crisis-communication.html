@@ -577,6 +577,298 @@
       font-size: 14px;
     }
 
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* DRAG AND DROP GAME STYLES */
+    /* ═══════════════════════════════════════════════════════════════ */
+
+    .drag-game-container,
+    .matching-game-container,
+    .resource-game-container,
+    .feedback-game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    /* Drop Zones */
+    .drop-zone,
+    .resource-drop-zone,
+    .feedback-drop-zone {
+      background: linear-gradient(135deg, rgba(0, 120, 212, 0.1), rgba(80, 230, 255, 0.05));
+      border: 3px dashed var(--primary);
+      border-radius: 16px;
+      padding: 30px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .drop-zone.drag-over,
+    .channel-drop-zone.drag-over,
+    .resource-drop-zone.drag-over,
+    .feedback-drop-zone.drag-over {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      transform: scale(1.02);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+    }
+
+    .folder-icon,
+    .resource-icon,
+    .feedback-icon {
+      font-size: 64px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .drop-zone-label {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .drop-zone-count {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .dropped-items,
+    .dropped-resource,
+    .dropped-feedback {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      min-height: 40px;
+    }
+
+    /* Task Cards (Scene 1) */
+    .card-pile {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .task-card {
+      background: linear-gradient(135deg, #FFF9F0 0%, #FFEBD4 100%);
+      border: 2px solid #D4A574;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: grab;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      transform-origin: center;
+    }
+
+    .task-card:active {
+      cursor: grabbing;
+    }
+
+    .task-card.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg) scale(0.95);
+    }
+
+    .task-card:hover {
+      transform: translateY(-4px) rotate(-1deg);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-emoji {
+      font-size: 36px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .card-text {
+      font-size: 14px;
+      color: #2D2D2D;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .task-card.dropped-correct {
+      background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+      border-color: var(--accent-green);
+      animation: correctDrop 0.6s ease;
+    }
+
+    .task-card.dropped-incorrect {
+      background: linear-gradient(135deg, #FEE2E2, #FECACA);
+      border-color: #EF4444;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes correctDrop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Scenario Cards (Scene 2) */
+    .scenario-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scenario-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .scenario-label {
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 8px;
+    }
+
+    .scenario-text {
+      color: var(--text);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .channel-drop-zone {
+      background: rgba(0, 120, 212, 0.05);
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .drop-placeholder {
+      color: rgba(255, 255, 255, 0.4);
+      font-style: italic;
+    }
+
+    .channel-icons {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .channel-icon {
+      background: linear-gradient(135deg, var(--card-bg), rgba(0, 120, 212, 0.1));
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      padding: 24px;
+      min-width: 140px;
+      cursor: grab;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+    }
+
+    .channel-icon:active {
+      cursor: grabbing;
+    }
+
+    .channel-icon.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .channel-icon:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 120, 212, 0.4);
+    }
+
+    .icon-large {
+      font-size: 48px;
+    }
+
+    .icon-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .channel-icon.dropped {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* Resource Cards (Scene 3 & 4) */
+    .resource-cards,
+    .action-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .resource-card,
+    .action-card {
+      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+      border: 2px solid #60A5FA;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: grab;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .resource-card:active,
+    .action-card:active {
+      cursor: grabbing;
+    }
+
+    .resource-card.dragging,
+    .action-card.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .resource-card:hover,
+    .action-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(96, 165, 250, 0.4);
+    }
+
+    .resource-card .card-emoji,
+    .action-card .card-emoji {
+      font-size: 32px;
+      text-align: center;
+    }
+
+    .resource-card .card-text,
+    .action-card .card-text {
+      font-size: 14px;
+      color: #1E3A8A;
+      line-height: 1.4;
+    }
+
     @media (max-width: 768px) {
       .scenario h2 { font-size: 18px; }
       .choice { font-size: 14px; min-height: 52px; padding: 14px; }
@@ -635,14 +927,14 @@
   <div class="journey-node" data-scene="4">💬</div>
 </div>
 
-<!-- Scene 1: Initiative -->
+<!-- Scene 1: Initiative - Drag Tasks to Folder -->
 <div id="scene1" class="screen gameplay">
   <div class="timer" id="timer1">1:30</div>
   
   <div class="scenario">
     <h2>🎯 Level 1: Initiative - Pre-Onboarding Prep</h2>
-    <p>Alex starts Monday. Select ALL tasks that should be completed BEFORE their first day to prepare the new hire workspace.</p>
-    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 90 seconds | Multi-select: Choose 3 correct tasks</p>
+    <p>Alex starts Monday. Drag 3 tasks that should be completed BEFORE their first day into the "Complete Before Day 1" folder.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 90 seconds | Drag 3 correct tasks</p>
     
     <div class="stakeholder-reactions" id="stakeholders1">
       <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
@@ -651,37 +943,53 @@
     </div>
   </div>
 
-  <div class="choices" id="choices1">
-    <button class="choice multi-select" data-id="task_a" aria-label="Task A">
-      Set up workspace with laptop, monitor, and login credentials
-    </button>
-    <button class="choice multi-select" data-id="task_b" aria-label="Task B">
-      Schedule 1-on-1 intro meeting (can be done Day 1)
-    </button>
-    <button class="choice multi-select" data-id="task_c" aria-label="Task C">
-      Add to Microsoft Teams channels and distribution lists
-    </button>
-    <button class="choice multi-select" data-id="task_d" aria-label="Task D">
-      Send Day 1 welcome survey (first-day task)
-    </button>
-    <button class="choice multi-select" data-id="task_e" aria-label="Task E">
-      Prepare welcome packet with badge, handbook, and resources
-    </button>
-    <button class="choice multi-select" data-id="task_f" aria-label="Task F">
-      Conduct first performance check-in (Week 1 task)
-    </button>
-    <button id="submitScene1" class="btn" style="display:none; margin: 20px auto 0; width: 100%; max-width: 600px;">Submit Selection (Select 3)</button>
+  <div class="drag-game-container">
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="dropZone1" data-scene="1">
+      <div class="folder-icon">📁</div>
+      <div class="drop-zone-label">Complete Before Day 1</div>
+      <div class="drop-zone-count">0 / 3 tasks</div>
+      <div class="dropped-items" id="droppedItems1"></div>
+    </div>
+
+    <!-- Draggable Cards -->
+    <div class="card-pile">
+      <div class="task-card" draggable="true" data-id="task_a">
+        <div class="card-emoji">💻</div>
+        <div class="card-text">Set up workspace with laptop, monitor, and login credentials</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_b">
+        <div class="card-emoji">📅</div>
+        <div class="card-text">Schedule 1-on-1 intro meeting (can be done Day 1)</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_c">
+        <div class="card-emoji">👥</div>
+        <div class="card-text">Add to Microsoft Teams channels and distribution lists</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_d">
+        <div class="card-emoji">📋</div>
+        <div class="card-text">Send Day 1 welcome survey (first-day task)</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_e">
+        <div class="card-emoji">📦</div>
+        <div class="card-text">Prepare welcome packet with badge, handbook, and resources</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_f">
+        <div class="card-emoji">📊</div>
+        <div class="card-text">Conduct first performance check-in (Week 1 task)</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Scene 2: Team Connection -->
+<!-- Scene 2: Team Connection - Drag Channels to Scenarios -->
 <div id="scene2" class="screen gameplay">
   <div class="timer" id="timer2">1:00</div>
   
   <div class="scenario">
     <h2>📱 Level 2: Team Connection - Choose the Right Channel</h2>
-    <p>Match each scenario to the best communication channel.</p>
-    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 60 seconds | Match all 3 scenarios to: Teams Call, Quick Chat, or Email</p>
+    <p>Drag the correct communication method to each scenario card.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 60 seconds | Match all 3 scenarios</p>
     
     <div class="stakeholder-reactions" id="stakeholders2">
       <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
@@ -689,43 +997,60 @@
     </div>
   </div>
 
-  <div class="choices" id="choices2" style="display: flex; flex-direction: column; gap: 20px;">
-    <div class="scenario-match" style="background: var(--card-bg); padding: 15px; border-radius: 8px; border-left: 3px solid var(--primary);">
-      <p style="margin-bottom: 12px;"><strong>A:</strong> Alex needs urgent clarification on meeting room location for client call in 10 min</p>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="choice channel-btn" data-scenario="a" data-channel="teams">📞 Teams Call</button>
-        <button class="choice channel-btn" data-scenario="a" data-channel="chat">💬 Quick Chat</button>
-        <button class="choice channel-btn" data-scenario="a" data-channel="email">📧 Email</button>
+  <div class="matching-game-container">
+    <!-- Scenario Cards with Drop Zones -->
+    <div class="scenario-cards">
+      <div class="scenario-card" data-scenario="a">
+        <div class="scenario-label">Scenario A:</div>
+        <div class="scenario-text">Alex needs urgent clarification on meeting room location for client call in 10 min</div>
+        <div class="channel-drop-zone" data-scenario="a">
+          <span class="drop-placeholder">Drop channel here</span>
+        </div>
+      </div>
+
+      <div class="scenario-card" data-scenario="b">
+        <div class="scenario-label">Scenario B:</div>
+        <div class="scenario-text">Sending Alex formal benefits enrollment documents and deadlines</div>
+        <div class="channel-drop-zone" data-scenario="b">
+          <span class="drop-placeholder">Drop channel here</span>
+        </div>
+      </div>
+
+      <div class="scenario-card" data-scenario="c">
+        <div class="scenario-label">Scenario C:</div>
+        <div class="scenario-text">Quick check-in: "Did you find the parking pass?"</div>
+        <div class="channel-drop-zone" data-scenario="c">
+          <span class="drop-placeholder">Drop channel here</span>
+        </div>
       </div>
     </div>
-    <div class="scenario-match" style="background: var(--card-bg); padding: 15px; border-radius: 8px; border-left: 3px solid var(--primary);">
-      <p style="margin-bottom: 12px;"><strong>B:</strong> Sending Alex formal benefits enrollment documents and deadlines</p>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="choice channel-btn" data-scenario="b" data-channel="teams">📞 Teams Call</button>
-        <button class="choice channel-btn" data-scenario="b" data-channel="chat">💬 Quick Chat</button>
-        <button class="choice channel-btn" data-scenario="b" data-channel="email">📧 Email</button>
+
+    <!-- Draggable Channel Icons -->
+    <div class="channel-icons">
+      <div class="channel-icon" draggable="true" data-channel="teams">
+        <div class="icon-large">📞</div>
+        <div class="icon-label">Teams Call</div>
+      </div>
+      <div class="channel-icon" draggable="true" data-channel="chat">
+        <div class="icon-large">💬</div>
+        <div class="icon-label">Quick Chat</div>
+      </div>
+      <div class="channel-icon" draggable="true" data-channel="email">
+        <div class="icon-large">📧</div>
+        <div class="icon-label">Email</div>
       </div>
     </div>
-    <div class="scenario-match" style="background: var(--card-bg); padding: 15px; border-radius: 8px; border-left: 3px solid var(--primary);">
-      <p style="margin-bottom: 12px;"><strong>C:</strong> Quick check-in: "Did you find the parking pass?"</p>
-      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <button class="choice channel-btn" data-scenario="c" data-channel="teams">📞 Teams Call</button>
-        <button class="choice channel-btn" data-scenario="c" data-channel="chat">💬 Quick Chat</button>
-        <button class="choice channel-btn" data-scenario="c" data-channel="email">📧 Email</button>
-      </div>
-    </div>
-    <button id="submitScene2" class="btn" style="display:none; margin: 30px auto 50px; width: 100%; max-width: 600px;">Submit Matches</button>
   </div>
 </div>
 
-<!-- Scene 3: Coaching & Mentorship -->
+<!-- Scene 3: Coaching & Mentorship - Drag Resources to Build Stack -->
 <div id="scene3" class="screen gameplay">
   <div class="timer" id="timer3">1:15</div>
   
   <div class="scenario">
     <h2>🎓 Level 3: Coaching & Mentorship - Resource Selection</h2>
-    <p>Alex (Week 2) says: "I'm struggling to understand our project management workflow."</p>
-    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best support resource</p>
+    <p>Alex (Week 2) says: "I'm struggling to understand our project management workflow." Drag the BEST support resource.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose one resource</p>
     
     <div class="stakeholder-reactions" id="stakeholders3">
       <div class="stakeholder"><span class="stakeholder-emoji">😕</span> Alex</div>
@@ -733,30 +1058,44 @@
     </div>
   </div>
 
-  <div class="choices" id="choices3">
-    <button class="choice" data-id="mentor_a" aria-label="Choice A">
-      Tell them to "just figure it out, everyone learns eventually"
-    </button>
-    <button class="choice" data-id="mentor_b" aria-label="Choice B">
-      Share workflow documentation + connect them with project mentor for Q&A session
-    </button>
-    <button class="choice" data-id="mentor_c" aria-label="Choice C">
-      Complete their first project tasks for them as an example
-    </button>
-    <button class="choice" data-id="mentor_d" aria-label="Choice D">
-      Schedule formal training session in 3 months during review cycle
-    </button>
+  <div class="resource-game-container">
+    <!-- Drop Zone for Best Resource -->
+    <div class="resource-drop-zone" id="resourceDropZone">
+      <div class="resource-icon">🎯</div>
+      <div class="drop-zone-label">Best Support Resource</div>
+      <div class="dropped-resource" id="droppedResource"></div>
+    </div>
+
+    <!-- Resource Cards -->
+    <div class="resource-cards">
+      <div class="resource-card" draggable="true" data-id="mentor_a">
+        <div class="card-emoji">🤷</div>
+        <div class="card-text">Tell them to "just figure it out, everyone learns eventually"</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_b">
+        <div class="card-emoji">📚</div>
+        <div class="card-text">Share workflow documentation + connect them with project mentor for Q&A session</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_c">
+        <div class="card-emoji">🔨</div>
+        <div class="card-text">Complete their first project tasks for them as an example</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_d">
+        <div class="card-emoji">📆</div>
+        <div class="card-text">Schedule formal training session in 3 months during review cycle</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Scene 4: Feedback & Reflection -->
+<!-- Scene 4: Feedback & Reflection - Order Actions by Priority -->
 <div id="scene4" class="screen gameplay">
   <div class="timer" id="timer4">1:15</div>
   
   <div class="scenario">
     <h2>💬 Level 4: Feedback & Reflection - Post-Review Action</h2>
-    <p>After Alex's 30-day review, they received constructive feedback on time management. What's your next action?</p>
-    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best feedback follow-up</p>
+    <p>After Alex's 30-day review, they received constructive feedback on time management. Drag the BEST follow-up action.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Choose the best action</p>
     
     <div class="stakeholder-reactions" id="stakeholders4">
       <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
@@ -764,19 +1103,33 @@
     </div>
   </div>
 
-  <div class="choices" id="choices4">
-    <button class="choice" data-id="feedback_a" aria-label="Choice A">
-      Schedule follow-up meeting in 2 weeks to track progress and offer coaching resources
-    </button>
-    <button class="choice" data-id="feedback_b" aria-label="Choice B">
-      Send a generic "work on it" email and move on
-    </button>
-    <button class="choice" data-id="feedback_c" aria-label="Choice C">
-      Wait until the next quarterly review to revisit the topic
-    </button>
-    <button class="choice" data-id="feedback_d" aria-label="Choice D">
-      Reassign their projects to reduce their workload without discussion
-    </button>
+  <div class="feedback-game-container">
+    <!-- Drop Zone -->
+    <div class="feedback-drop-zone" id="feedbackDropZone">
+      <div class="feedback-icon">✅</div>
+      <div class="drop-zone-label">Best Feedback Action</div>
+      <div class="dropped-feedback" id="droppedFeedback"></div>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="action-cards">
+      <div class="action-card" draggable="true" data-id="feedback_a">
+        <div class="card-emoji">📅</div>
+        <div class="card-text">Schedule follow-up meeting in 2 weeks to track progress and offer coaching resources</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_b">
+        <div class="card-emoji">📧</div>
+        <div class="card-text">Send a generic "work on it" email and move on</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_c">
+        <div class="card-emoji">⏳</div>
+        <div class="card-text">Wait until the next quarterly review to revisit the topic</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_d">
+        <div class="card-emoji">📤</div>
+        <div class="card-text">Reassign their projects to reduce their workload without discussion</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1063,96 +1416,242 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => {
       loadingScreen.style.display = 'none';
       introScreen.classList.add('active');
-      // Speak welcome message when intro screen appears
       speakWelcome();
-      // Shoot coins from robot after a short delay
       setTimeout(() => createCoinShower(), 500);
     }, 500);
   }, 2000);
   
-  // Scene 1: Multi-select handler
-  document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
-    btn.addEventListener('click', function() {
-      console.log('Task clicked:', this.dataset.id);
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 1: DRAG TASKS TO FOLDER
+  // ═══════════════════════════════════════════════════════════════
+  
+  const dropZone1 = document.getElementById('dropZone1');
+  const droppedItems1 = document.getElementById('droppedItems1');
+  let scene1Dropped = new Set();
+  
+  // Drag event handlers for Scene 1 tasks
+  document.querySelectorAll('#scene1 .task-card').forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.dataset.id);
+      e.dataTransfer.setData('type', 'task');
+      this.classList.add('dragging');
       playSound('click');
-      const taskId = this.dataset.id;
+    });
+    
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  // Drop zone handlers
+  [dropZone1].forEach(zone => {
+    zone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      this.classList.add('drag-over');
+    });
+    
+    zone.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+    });
+    
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
       
-      if (gameState.scene1Selections.has(taskId)) {
-        // Deselect
-        gameState.scene1Selections.delete(taskId);
-        this.classList.remove('selected');
-      } else {
-        // Only allow selection if less than 3 are selected
-        if (gameState.scene1Selections.size < 3) {
-          gameState.scene1Selections.add(taskId);
-          this.classList.add('selected');
-        } else {
-          // Play error sound when trying to select more than 3
-          playSound('error');
-        }
+      const taskId = e.dataTransfer.getData('text/plain');
+      const type = e.dataTransfer.getData('type');
+      
+      if (type !== 'task') return;
+      
+      // Only allow 3 tasks
+      if (scene1Dropped.size >= 3 && !scene1Dropped.has(taskId)) {
+        playSound('error');
+        return;
       }
       
-      console.log('Current selections:', Array.from(gameState.scene1Selections));
-      console.log('Selection count:', gameState.scene1Selections.size);
+      scene1Dropped.add(taskId);
+      gameState.scene1Selections = scene1Dropped;
       
-      // Show submit button when exactly 3 are selected
-      const submitBtn = document.getElementById('submitScene1');
-      console.log('Submit button element:', submitBtn);
-      const shouldShow = gameState.scene1Selections.size === 3;
-      console.log('Should show submit?', shouldShow);
-      submitBtn.style.display = shouldShow ? 'block' : 'none';
-      console.log('Submit button display:', submitBtn.style.display);
-    });
-  });
-
-  document.getElementById('submitScene1')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('=== SUBMIT SCENE 1 CLICKED ===');
-    console.log('Selections:', gameState.scene1Selections);
-    handleScene1Submit();
-  });
-
-  // Scene 2: Channel matching handler
-  document.querySelectorAll('#scene2 .channel-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      playSound('click');
-      const scenario = this.dataset.scenario;
-      const channel = this.dataset.channel;
+      // Update counter
+      document.querySelector('#dropZone1 .drop-zone-count').textContent = 
+        `${scene1Dropped.size} / 3 tasks`;
       
-      // Remove selection from same scenario
-      document.querySelectorAll(`#scene2 [data-scenario="${scenario}"]`).forEach(b => {
-        b.classList.remove('selected');
-      });
+      playSound('success');
       
-      this.classList.add('selected');
-      gameState.scene2Selections[scenario] = channel;
-      
-      // Show submit when all 3 matched
-      const submitBtn = document.getElementById('submitScene2');
-      submitBtn.style.display = Object.keys(gameState.scene2Selections).length === 3 ? 'block' : 'none';
-    });
-  });
-
-  document.getElementById('submitScene2')?.addEventListener('click', () => {
-    console.log('Submit Scene 2 clicked');
-    handleScene2Submit();
-  });
-
-  // Scene 3 & 4: Single choice handlers
-  document.querySelectorAll('#scene3 .choice, #scene4 .choice').forEach(btn => {
-    btn.addEventListener('click', function() {
-      console.log('Scene 3/4 choice clicked:', this.dataset.id);
-      playSound('click');
-      if (!this.classList.contains('selected')) {
-        handleChoice(this);
-      } else {
-        console.log('Choice already selected, ignoring');
+      // Check if done
+      if (scene1Dropped.size === 3) {
+        setTimeout(() => handleScene1Submit(), 500);
       }
     });
   });
   
-  // Add click sound to start button
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 2: DRAG CHANNELS TO SCENARIOS
+  // ═══════════════════════════════════════════════════════════════
+  
+  const channelDropZones = document.querySelectorAll('.channel-drop-zone');
+  let scene2Matches = {};
+  
+  // Channel icons drag handlers
+  document.querySelectorAll('#scene2 .channel-icon').forEach(icon => {
+    icon.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.setData('channel', this.dataset.channel);
+      e.dataTransfer.setData('type', 'channel');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    icon.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  // Scenario drop zones
+  channelDropZones.forEach(zone => {
+    zone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      this.classList.add('drag-over');
+    });
+    
+    zone.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+    });
+    
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      
+      const channel = e.dataTransfer.getData('channel');
+      const type = e.dataTransfer.getData('type');
+      const scenario = this.dataset.scenario;
+      
+      if (type !== 'channel') return;
+      
+      // Update match
+      scene2Matches[scenario] = channel;
+      gameState.scene2Selections = scene2Matches;
+      
+      // Show matched icon in drop zone
+      const iconMap = {
+        'teams': '📞 Teams',
+        'chat': '💬 Chat',
+        'email': '📧 Email'
+      };
+      
+      this.innerHTML = `<div style="font-size: 24px;">${iconMap[channel]}</div>`;
+      this.style.background = 'rgba(16, 185, 129, 0.2)';
+      this.style.borderColor = 'var(--accent-green)';
+      
+      playSound('success');
+      
+      // Check if all matched
+      if (Object.keys(scene2Matches).length === 3) {
+        setTimeout(() => handleScene2Submit(), 500);
+      }
+    });
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 3: DRAG RESOURCE TO DROP ZONE
+  // ═══════════════════════════════════════════════════════════════
+  
+  const resourceDropZone = document.getElementById('resourceDropZone');
+  const droppedResource = document.getElementById('droppedResource');
+  let scene3Choice = null;
+  
+  document.querySelectorAll('#scene3 .resource-card').forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('resourceId', this.dataset.id);
+      e.dataTransfer.setData('type', 'resource');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  resourceDropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+  });
+  
+  resourceDropZone.addEventListener('dragleave', function() {
+    this.classList.remove('drag-over');
+  });
+  
+  resourceDropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    
+    const resourceId = e.dataTransfer.getData('resourceId');
+    const type = e.dataTransfer.getData('type');
+    
+    if (type !== 'resource') return;
+    
+    scene3Choice = resourceId;
+    playSound('success');
+    
+    // Show feedback immediately
+    setTimeout(() => handleScene3Choice(resourceId), 500);
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 4: DRAG FEEDBACK ACTION TO DROP ZONE
+  // ═══════════════════════════════════════════════════════════════
+  
+  const feedbackDropZone = document.getElementById('feedbackDropZone');
+  const droppedFeedback = document.getElementById('droppedFeedback');
+  let scene4Choice = null;
+  
+  document.querySelectorAll('#scene4 .action-card').forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('actionId', this.dataset.id);
+      e.dataTransfer.setData('type', 'action');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  feedbackDropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+  });
+  
+  feedbackDropZone.addEventListener('dragleave', function() {
+    this.classList.remove('drag-over');
+  });
+  
+  feedbackDropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    
+    const actionId = e.dataTransfer.getData('actionId');
+    const type = e.dataTransfer.getData('type');
+    
+    if (type !== 'action') return;
+    
+    scene4Choice = actionId;
+    playSound('success');
+    
+    // Show feedback immediately
+    setTimeout(() => handleScene4Choice(actionId), 500);
+  });
+  
+  // Start button handler
   const startBtn = document.getElementById('startBtn');
   if (startBtn) {
     startBtn.addEventListener('click', function() {
@@ -1371,6 +1870,98 @@ function handleScene2Submit() {
   document.getElementById('submitScene2').style.display = 'none';
   
   logEvent('scene.complete', { scene: 2, correct, time: timeSpent });
+  
+  setTimeout(() => moveToNextScene(), 2000);
+}
+
+function handleScene3Choice(choiceId) {
+  console.log('=== HANDLE SCENE 3 CHOICE ===', choiceId);
+  const goldKey = window.__GOLD_KEY__.scene3;
+  const isCorrect = choiceId === goldKey;
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene3']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 3,
+    choice: choiceId,
+    correct: isCorrect,
+    time: timeSpent
+  });
+  
+  // Update reputation and stakeholders
+  updateReputation(isCorrect);
+  updateStakeholders(3, isCorrect);
+  
+  // Visual feedback on all cards
+  document.querySelectorAll('#scene3 .resource-card').forEach(card => {
+    if (card.dataset.id === goldKey) {
+      card.classList.add('dropped-correct');
+    } else if (card.dataset.id === choiceId && !isCorrect) {
+      card.classList.add('dropped-incorrect');
+    }
+    card.setAttribute('draggable', 'false');
+    card.style.cursor = 'not-allowed';
+  });
+  
+  // Show confetti if correct
+  if (isCorrect && typeof confetti === 'function') {
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 },
+      colors: ['#FFD700', '#FFA500', '#FFED4E'],
+      shapes: ['circle'],
+      scalar: 1.3
+    });
+  }
+  
+  logEvent('scene.complete', { scene: 3, choice: choiceId, correct: isCorrect, time: timeSpent });
+  
+  setTimeout(() => moveToNextScene(), 2000);
+}
+
+function handleScene4Choice(choiceId) {
+  console.log('=== HANDLE SCENE 4 CHOICE ===', choiceId);
+  const goldKey = window.__GOLD_KEY__.scene4;
+  const isCorrect = choiceId === goldKey;
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene4']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 4,
+    choice: choiceId,
+    correct: isCorrect,
+    time: timeSpent
+  });
+  
+  // Update reputation and stakeholders
+  updateReputation(isCorrect);
+  updateStakeholders(4, isCorrect);
+  
+  // Visual feedback on all cards
+  document.querySelectorAll('#scene4 .action-card').forEach(card => {
+    if (card.dataset.id === goldKey) {
+      card.classList.add('dropped-correct');
+    } else if (card.dataset.id === choiceId && !isCorrect) {
+      card.classList.add('dropped-incorrect');
+    }
+    card.setAttribute('draggable', 'false');
+    card.style.cursor = 'not-allowed';
+  });
+  
+  // Show confetti if correct
+  if (isCorrect && typeof confetti === 'function') {
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 },
+      colors: ['#FFD700', '#FFA500', '#FFED4E'],
+      shapes: ['circle'],
+      scalar: 1.3
+    });
+  }
+  
+  logEvent('scene.complete', { scene: 4, choice: choiceId, correct: isCorrect, time: timeSpent });
   
   setTimeout(() => moveToNextScene(), 2000);
 }
