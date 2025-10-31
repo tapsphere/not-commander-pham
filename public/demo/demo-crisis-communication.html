@@ -1578,6 +1578,8 @@ document.addEventListener('DOMContentLoaded', function() {
   let scene2Matches = {};
   
   // Channel icons drag handlers
+  let autoScrollInterval2 = null;
+  
   document.querySelectorAll('#scene2 .channel-icon').forEach(icon => {
     icon.addEventListener('dragstart', function(e) {
       e.dataTransfer.effectAllowed = 'copy';
@@ -1587,8 +1589,37 @@ document.addEventListener('DOMContentLoaded', function() {
       playSound('click');
     });
     
+    icon.addEventListener('drag', function(e) {
+      // Auto-scroll when near top or bottom
+      const scrollZone = 100;
+      const scrollSpeed = 10;
+      
+      if (e.clientY < scrollZone && e.clientY > 0) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, -scrollSpeed);
+          }, 16);
+        }
+      } else if (e.clientY > window.innerHeight - scrollZone) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, scrollSpeed);
+          }, 16);
+        }
+      } else {
+        if (autoScrollInterval2) {
+          clearInterval(autoScrollInterval2);
+          autoScrollInterval2 = null;
+        }
+      }
+    });
+    
     icon.addEventListener('dragend', function() {
       this.classList.remove('dragging');
+      if (autoScrollInterval2) {
+        clearInterval(autoScrollInterval2);
+        autoScrollInterval2 = null;
+      }
     });
   });
   
