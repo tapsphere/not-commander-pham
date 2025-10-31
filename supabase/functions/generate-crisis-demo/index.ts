@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { brandName, courseName, courseDescription, learningObjectives } = await req.json();
+    const { brandName, courseName, courseDescription, learningObjectives, primaryColor, secondaryColor, logoUrl, mascotUrl } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -157,7 +157,7 @@ Create scenarios that feel authentic to their workplace context.`;
     const scenarios = JSON.parse(toolCall.function.arguments);
 
     // Generate the HTML game using the demo template
-    const html = generateGameHTML(scenarios);
+    const html = generateGameHTML(scenarios, { primaryColor, secondaryColor, logoUrl, mascotUrl });
 
     return new Response(
       JSON.stringify({ html }),
@@ -179,7 +179,12 @@ Create scenarios that feel authentic to their workplace context.`;
   }
 });
 
-function generateGameHTML(scenarios: any): string {
+function generateGameHTML(scenarios: any, branding?: { primaryColor?: string; secondaryColor?: string; logoUrl?: string; mascotUrl?: string }): string {
+  const primaryColor = branding?.primaryColor || '#667eea';
+  const secondaryColor = branding?.secondaryColor || '#764ba2';
+  const logoUrl = branding?.logoUrl;
+  const mascotUrl = branding?.mascotUrl;
+
   // Read the demo template and inject custom scenarios
   return `<!DOCTYPE html>
 <html lang="en">
@@ -191,7 +196,7 @@ function generateGameHTML(scenarios: any): string {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -205,11 +210,64 @@ function generateGameHTML(scenarios: any): string {
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
+      position: relative;
+    }
+    .brand-logo {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      max-height: 50px;
+      max-width: 150px;
+      object-fit: contain;
+      z-index: 10;
     }
     .scene { padding: 40px; min-height: 600px; }
     .scene-hidden { display: none; }
-    h1 { font-size: 2.5em; margin-bottom: 20px; color: #667eea; }
-    h2 { font-size: 1.8em; margin-bottom: 15px; color: #764ba2; }
+    .mascot-section {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      margin: 30px 0;
+      padding: 30px;
+      background: #f8f9fa;
+      border-radius: 16px;
+      border: 2px solid ${primaryColor};
+    }
+    .mascot-image {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .mascot-instructions {
+      flex: 1;
+    }
+    .mascot-instructions h3 {
+      color: ${primaryColor};
+      margin-bottom: 15px;
+      font-size: 1.5em;
+    }
+    .mascot-instructions ul {
+      list-style: none;
+      padding: 0;
+    }
+    .mascot-instructions li {
+      padding: 10px 0;
+      padding-left: 30px;
+      position: relative;
+      font-size: 1.05em;
+      line-height: 1.6;
+    }
+    .mascot-instructions li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: ${primaryColor};
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    h1 { font-size: 2.5em; margin-bottom: 20px; color: ${primaryColor}; }
+    h2 { font-size: 1.8em; margin-bottom: 15px; color: ${secondaryColor}; }
     .context { font-size: 1.1em; color: #666; margin-bottom: 30px; line-height: 1.6; }
     .task-grid, .resource-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
     .task-card, .resource-card, .action-card {
@@ -224,15 +282,15 @@ function generateGameHTML(scenarios: any): string {
     .task-card:hover, .resource-card:hover, .action-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      border-color: #667eea;
+      border-color: ${primaryColor};
     }
     .drop-zone {
       min-height: 120px;
-      border: 3px dashed #667eea;
+      border: 3px dashed ${primaryColor};
       border-radius: 12px;
       padding: 20px;
       margin: 20px 0;
-      background: #f0f4ff;
+      background: ${primaryColor}15;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -253,7 +311,7 @@ function generateGameHTML(scenarios: any): string {
     .channel-icon {
       padding: 15px 25px;
       background: white;
-      border: 2px solid #667eea;
+      border: 2px solid ${primaryColor};
       border-radius: 8px;
       cursor: move;
       transition: all 0.3s;
@@ -261,7 +319,7 @@ function generateGameHTML(scenarios: any): string {
       font-size: 0.9em;
     }
     .channel-icon:hover {
-      background: #667eea;
+      background: ${primaryColor};
       color: white;
       transform: scale(1.05);
     }
@@ -275,11 +333,11 @@ function generateGameHTML(scenarios: any): string {
       font-weight: 600;
     }
     .btn-primary {
-      background: #667eea;
+      background: ${primaryColor};
       color: white;
     }
     .btn-primary:hover {
-      background: #5568d3;
+      background: ${secondaryColor};
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
@@ -289,14 +347,14 @@ function generateGameHTML(scenarios: any): string {
       gap: 10px;
       min-height: 300px;
       padding: 20px;
-      background: #f0f4ff;
+      background: ${primaryColor}15;
       border-radius: 12px;
-      border: 3px dashed #667eea;
+      border: 3px dashed ${primaryColor};
     }
     .stack-layer {
       padding: 20px;
       background: white;
-      border: 2px solid #667eea;
+      border: 2px solid ${primaryColor};
       border-radius: 8px;
       text-align: center;
       font-weight: 600;
@@ -309,17 +367,17 @@ function generateGameHTML(scenarios: any): string {
     .priority-slot {
       flex: 1;
       min-height: 150px;
-      border: 3px dashed #667eea;
+      border: 3px dashed ${primaryColor};
       border-radius: 12px;
       padding: 20px;
-      background: #f0f4ff;
+      background: ${primaryColor}15;
       text-align: center;
     }
     .confetti {
       position: fixed;
       width: 10px;
       height: 10px;
-      background: #667eea;
+      background: ${primaryColor};
       position: fixed;
       animation: confetti-fall 3s linear forwards;
     }
@@ -336,7 +394,7 @@ function generateGameHTML(scenarios: any): string {
     .xp-badge {
       display: inline-block;
       padding: 20px 40px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, ${primaryColor}, ${secondaryColor});
       color: white;
       border-radius: 50px;
       font-size: 2em;
@@ -347,11 +405,40 @@ function generateGameHTML(scenarios: any): string {
 </head>
 <body>
   <div class="game-container">
+    ${logoUrl ? `<img src="${logoUrl}" alt="Brand Logo" class="brand-logo" />` : ''}
     <!-- Intro Scene -->
     <div id="scene-intro" class="scene">
       <h1>${scenarios.brandName}</h1>
       <h2>${scenarios.courseName}</h2>
       <p class="context">Welcome to your personalized competency validator. This interactive experience will assess your skills across 4 key areas through realistic workplace scenarios.</p>
+      
+      ${mascotUrl ? `
+      <div class="mascot-section">
+        <img src="${mascotUrl}" alt="Game Mascot" class="mascot-image" />
+        <div class="mascot-instructions">
+          <h3>How to Play</h3>
+          <ul>
+            <li><strong>Drag & Drop:</strong> Move items to the correct zones using your mouse or touch</li>
+            <li><strong>4 Scenarios:</strong> Complete each challenge to test your competencies</li>
+            <li><strong>Earn XP:</strong> Get points for correct choices and achieve proficiency levels</li>
+            <li><strong>Realistic Context:</strong> All scenarios are based on ${scenarios.brandName} workplace situations</li>
+          </ul>
+        </div>
+      </div>
+      ` : `
+      <div class="mascot-section">
+        <div class="mascot-instructions">
+          <h3>How to Play</h3>
+          <ul>
+            <li><strong>Drag & Drop:</strong> Move items to the correct zones using your mouse or touch</li>
+            <li><strong>4 Scenarios:</strong> Complete each challenge to test your competencies</li>
+            <li><strong>Earn XP:</strong> Get points for correct choices and achieve proficiency levels</li>
+            <li><strong>Realistic Context:</strong> All scenarios are based on ${scenarios.brandName} workplace situations</li>
+          </ul>
+        </div>
+      </div>
+      `}
+      
       <button class="btn btn-primary" onclick="startGame()">Begin Assessment</button>
     </div>
 

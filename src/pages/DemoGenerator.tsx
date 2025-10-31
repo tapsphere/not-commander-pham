@@ -17,6 +17,8 @@ export default function DemoGenerator() {
   const [gameUrl, setGameUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [mascotFile, setMascotFile] = useState<File | null>(null);
+  const [mascotPreview, setMascotPreview] = useState<string | null>(null);
   const [primaryColor, setPrimaryColor] = useState('#0078D4');
   const [secondaryColor, setSecondaryColor] = useState('#50E6FF');
   const { toast } = useToast();
@@ -65,6 +67,37 @@ export default function DemoGenerator() {
     const reader = new FileReader();
     reader.onload = (e) => {
       setLogoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMascotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Mascot image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setMascotFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setMascotPreview(e.target?.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -138,6 +171,7 @@ export default function DemoGenerator() {
           primaryColor,
           secondaryColor,
           logoUrl: logoPreview || null,
+          mascotUrl: mascotPreview || null,
         },
       });
 
@@ -281,6 +315,45 @@ export default function DemoGenerator() {
                       src={logoPreview}
                       alt="Brand logo"
                       className="max-h-20 object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Mascot Upload */}
+              <div className="space-y-2">
+                <Label htmlFor="mascot" className="text-white">Game Mascot / Character (Optional)</Label>
+                <p className="text-xs text-gray-400">Upload a character that will appear in scene one (instructions/how to play)</p>
+                <div className="flex items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('mascot-upload')?.click()}
+                    disabled={loading}
+                    className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Mascot
+                  </Button>
+                  <input
+                    id="mascot-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleMascotChange}
+                    className="hidden"
+                  />
+                  <span className="text-sm text-gray-400">
+                    {mascotFile ? mascotFile.name : 'PNG, JPG, GIF (max 5MB)'}
+                  </span>
+                </div>
+                
+                {mascotPreview && (
+                  <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mt-2">
+                    <p className="text-sm text-gray-400 mb-2">Mascot Preview:</p>
+                    <img
+                      src={mascotPreview}
+                      alt="Game mascot"
+                      className="max-h-32 object-contain mx-auto"
                     />
                   </div>
                 )}
