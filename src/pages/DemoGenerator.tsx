@@ -77,10 +77,12 @@ export default function DemoGenerator() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
       toast({
-        title: "Invalid file",
-        description: "Please upload an image file",
+        title: "Invalid file type",
+        description: "Please upload a PNG, JPG, GIF, or SVG image",
         variant: "destructive",
       });
       return;
@@ -406,12 +408,12 @@ export default function DemoGenerator() {
                   <input
                     id="mascot-upload"
                     type="file"
-                    accept="image/*"
+                    accept=".png,.jpg,.jpeg,.gif,.svg"
                     onChange={handleMascotChange}
                     className="hidden"
                   />
                   <span className="text-sm text-gray-400">
-                    {mascotFile ? mascotFile.name : 'PNG, JPG, GIF (max 5MB)'}
+                    {mascotFile ? mascotFile.name : 'PNG, JPG, GIF, SVG • Max 5MB'}
                   </span>
                 </div>
                 

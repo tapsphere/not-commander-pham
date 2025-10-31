@@ -91,11 +91,12 @@ async function generateBrandedGameHTML(branding: {
     customHTML = customHTML.replace('<body>', `<body>${logoHTML}`);
   }
   
-  // Add custom mascot if provided - replace the Lottie animation
+  // Add custom mascot if provided - only in the scene-intro (game directions scene)
   if (branding.mascotUrl) {
+    // Find the scene-intro section and replace only the Lottie player within it
     customHTML = customHTML.replace(
-      /<lottie-player[\s\S]*?<\/lottie-player>/,
-      `<img src="${branding.mascotUrl}" alt="Game Mascot" style="width: 300px; height: 300px; object-fit: contain; margin: 0 auto 20px;" />`
+      /(<div[^>]*id="scene-intro"[^>]*>[\s\S]*?)(<lottie-player[\s\S]*?<\/lottie-player>)/,
+      `$1<img src="${branding.mascotUrl}" alt="Game Mascot" style="width: 300px; height: 300px; object-fit: contain; margin: 0 auto 20px;" />`
     );
   }
   
