@@ -133,22 +133,25 @@ export default function DemoGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-neon-green text-glow-green">Custom Demo Generator</h1>
-          <p className="text-gray-400 text-lg">
+    <div className="min-h-screen bg-black text-white p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
+            Custom Demo Generator
+          </h2>
+          <p className="text-gray-400 mt-2">
             Upload your training content and generate a custom crisis communication validator game
           </p>
         </div>
 
         {/* Upload Section */}
-        <Card className="p-8 bg-card border-gray-800">
+        <Card className="p-8 bg-gray-900 border-gray-800">
           <div className="space-y-6">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-neon-green/30 rounded-lg p-12 space-y-4 hover:border-neon-green/50 transition-colors">
-              <Upload className="w-12 h-12 text-neon-green" />
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-lg p-12 space-y-4 hover:border-neon-green/50 transition-colors bg-black/20">
+              <Upload className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} />
               <div className="text-center space-y-2">
-                <p className="text-lg font-medium text-foreground">Upload Training PDF</p>
+                <p className="text-lg font-medium text-white">Upload Training PDF</p>
                 <p className="text-sm text-gray-400">
                   Upload your course materials, onboarding docs, or training content
                 </p>
@@ -161,12 +164,16 @@ export default function DemoGenerator() {
                 id="file-upload"
               />
               <label htmlFor="file-upload">
-                <Button variant="outline" className="cursor-pointer border-neon-green text-neon-green hover:bg-neon-green hover:text-black" asChild>
+                <Button 
+                  variant="outline" 
+                  className="cursor-pointer border-neon-green text-neon-green hover:bg-neon-green hover:text-black" 
+                  asChild
+                >
                   <span>Choose File</span>
                 </Button>
               </label>
               {file && (
-                <p className="text-sm text-neon-green">
+                <p className="text-sm" style={{ color: 'hsl(var(--neon-green))' }}>
                   Selected: {file.name}
                 </p>
               )}
@@ -176,7 +183,7 @@ export default function DemoGenerator() {
               <Button
                 onClick={analyzeDocument}
                 disabled={loading}
-                className="w-full"
+                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                 size="lg"
               >
                 {analyzing ? (
@@ -197,13 +204,18 @@ export default function DemoGenerator() {
 
         {/* Extracted Data Preview */}
         {extractedData && (
-          <Card className="p-8 space-y-6 bg-card border-gray-800">
+          <Card className="p-8 space-y-6 bg-gray-900 border-gray-800">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-neon-green/10 flex items-center justify-center border border-neon-green/30">
-                <Sparkles className="h-5 w-5 text-neon-green" />
+              <div className="h-10 w-10 rounded-full flex items-center justify-center border" style={{ 
+                backgroundColor: 'hsl(var(--neon-green) / 0.1)',
+                borderColor: 'hsl(var(--neon-green) / 0.3)'
+              }}>
+                <Sparkles className="h-5 w-5" style={{ color: 'hsl(var(--neon-green))' }} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-neon-green">Analysis Complete</h3>
+                <h3 className="text-xl font-semibold" style={{ color: 'hsl(var(--neon-green))' }}>
+                  Analysis Complete
+                </h3>
                 <p className="text-sm text-gray-400">
                   AI has extracted key information from your content
                 </p>
@@ -213,11 +225,11 @@ export default function DemoGenerator() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-400">Company</p>
-                <p className="text-lg text-foreground">{extractedData.company_name || "Not detected"}</p>
+                <p className="text-lg text-white">{extractedData.company_name || "Not detected"}</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-400">Course Name</p>
-                <p className="text-lg text-foreground">{extractedData.course_name || "Not detected"}</p>
+                <p className="text-lg text-white">{extractedData.course_name || "Not detected"}</p>
               </div>
             </div>
 
@@ -236,7 +248,7 @@ export default function DemoGenerator() {
               <Button
                 onClick={generateGame}
                 disabled={loading}
-                className="w-full"
+                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                 size="lg"
               >
                 {generating ? (
@@ -257,26 +269,35 @@ export default function DemoGenerator() {
 
         {/* Game Preview & Download */}
         {gameUrl && (
-          <Card className="p-8 space-y-6 bg-card border-gray-800">
-            <div className="flex items-center justify-between">
+          <Card className="p-8 space-y-6 bg-gray-900 border-gray-800">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-neon-green/10 flex items-center justify-center border border-neon-green/30">
-                  <Sparkles className="h-5 w-5 text-neon-green" />
+                <div className="h-10 w-10 rounded-full flex items-center justify-center border" style={{ 
+                  backgroundColor: 'hsl(var(--neon-green) / 0.1)',
+                  borderColor: 'hsl(var(--neon-green) / 0.3)'
+                }}>
+                  <Sparkles className="h-5 w-5" style={{ color: 'hsl(var(--neon-green))' }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-neon-green">Game Ready!</h3>
+                  <h3 className="text-xl font-semibold" style={{ color: 'hsl(var(--neon-green))' }}>
+                    Game Ready!
+                  </h3>
                   <p className="text-sm text-gray-400">
                     Your custom validator game has been generated
                   </p>
                 </div>
               </div>
-              <Button onClick={downloadGame} variant="outline" className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black">
+              <Button 
+                onClick={downloadGame} 
+                variant="outline" 
+                className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-white"
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Download HTML
               </Button>
             </div>
 
-            <div className="border border-gray-800 rounded-lg overflow-hidden">
+            <div className="border border-gray-800 rounded-lg overflow-hidden bg-black/40">
               <iframe
                 src={gameUrl}
                 className="w-full h-[600px]"
@@ -284,8 +305,12 @@ export default function DemoGenerator() {
               />
             </div>
 
-            <div className="flex gap-4">
-              <Button onClick={downloadGame} className="flex-1 bg-neon-green text-black hover:bg-neon-green/90" size="lg">
+            <div className="flex flex-col md:flex-row gap-4">
+              <Button 
+                onClick={downloadGame} 
+                className="flex-1 bg-neon-green text-black hover:bg-neon-green/90" 
+                size="lg"
+              >
                 <Download className="mr-2 h-5 w-5" />
                 Download Game
               </Button>
