@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles, Download, Brain, PlayCircle, Upload, Palette } from "lucide-react";
+import { Loader2, Sparkles, Brain, PlayCircle, Upload, Palette } from "lucide-react";
+import { MobileViewport } from "@/components/MobileViewport";
 
 export default function DemoGenerator() {
   const [file, setFile] = useState<File | null>(null);
@@ -260,13 +261,6 @@ export default function DemoGenerator() {
     }
   };
 
-  const downloadGame = () => {
-    if (!gameUrl) return;
-    const a = document.createElement("a");
-    a.href = gameUrl;
-    a.download = `${extractedData?.course_name || "game"}-crisis-demo.html`;
-    a.click();
-  };
 
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8">
@@ -649,61 +643,43 @@ export default function DemoGenerator() {
           </Card>
         )}
 
-        {/* Game Preview & Download */}
+        {/* Game Preview */}
         {gameUrl && (
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-green/30 bg-neon-green/10">
-                    <Sparkles className="h-5 w-5 text-neon-green" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl text-neon-green">
-                      Game Ready!
-                    </CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Your custom validator game has been generated
-                    </CardDescription>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-green/30 bg-neon-green/10">
+                  <Sparkles className="h-5 w-5 text-neon-green" />
                 </div>
-                <Button 
-                  onClick={downloadGame} 
-                  variant="outline" 
-                  className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-white"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download HTML
-                </Button>
+                <div>
+                  <CardTitle className="text-xl text-neon-green">
+                    Game Ready!
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Your custom validator game has been generated
+                  </CardDescription>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="border border-gray-800 rounded-lg overflow-hidden bg-black/40">
-                <iframe
-                  src={gameUrl}
-                  className="w-full h-[600px]"
-                  title="Generated Game Preview"
-                />
+              <div className="flex justify-center">
+                <MobileViewport>
+                  <iframe
+                    src={gameUrl}
+                    className="w-full h-full"
+                    title="Generated Game Preview"
+                  />
+                </MobileViewport>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-4">
-                <Button 
-                  onClick={downloadGame} 
-                  className="flex-1 bg-neon-green text-black hover:bg-neon-green/90" 
-                  size="lg"
-                >
-                  <Download className="mr-2 h-5 w-5" />
-                  Download Game
-                </Button>
-                <Button
-                  onClick={() => window.open(gameUrl, "_blank")}
-                  variant="outline"
-                  className="flex-1 border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
-                  size="lg"
-                >
-                  Open in New Tab
-                </Button>
-              </div>
+              <Button
+                onClick={() => window.open(gameUrl, "_blank")}
+                variant="outline"
+                className="w-full border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
+                size="lg"
+              >
+                Open in New Tab
+              </Button>
             </CardContent>
           </Card>
         )}
