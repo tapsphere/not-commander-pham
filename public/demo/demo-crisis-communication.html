@@ -1061,6 +1061,10 @@
         <div class="icon-label">Email</div>
       </div>
     </div>
+    
+    <button id="submitScene2" class="choice-btn" style="display: none; margin-top: 24px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; font-weight: bold; padding: 14px 28px; font-size: 1.1em; animation: pulse 1s infinite; cursor: pointer; border: none;">
+      Continue ✓
+    </button>
   </div>
 </div>
 
@@ -1684,7 +1688,9 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Check if all matched
       if (Object.keys(scene2Matches).length === 3) {
-        setTimeout(() => handleScene2Submit(), 500);
+        const submitBtn = document.getElementById('submitScene2');
+        submitBtn.style.display = 'block';
+        submitBtn.onclick = () => handleScene2Submit();
       }
     });
   });
