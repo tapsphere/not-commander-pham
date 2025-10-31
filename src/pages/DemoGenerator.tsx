@@ -324,57 +324,62 @@ export default function DemoGenerator() {
                 className="bg-black border-neon-green text-white placeholder:text-gray-500 min-h-[100px]"
               />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Brand Profile Info Card */}
-            {!profileLoading && brandProfile && (
-              <Card className="bg-black/50 border-neon-purple p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-white">Brand Profile Settings</h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/platform/brand/profile-edit')}
-                    className="text-neon-green border-neon-green hover:bg-neon-green hover:text-black"
-                  >
-                    Edit Profile
-                  </Button>
+        {/* Brand Profile Settings Card - Separate card like in Brand Dashboard */}
+        {!profileLoading && brandProfile && (
+          <Card className="bg-gray-900 border-gray-800 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white">Brand Profile Settings</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/platform/brand/profile-edit')}
+                className="border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
+              >
+                Edit Profile
+              </Button>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">
+              These settings from your profile will be used in the generated demo
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">Logo</p>
+                <p className="text-white font-medium">{brandProfile.company_logo_url ? '✓ Uploaded' : '— Not set'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">Mascot</p>
+                <p className="text-white font-medium">{brandProfile.game_avatar_url ? '✓ Uploaded' : '— Not set'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">Primary Color</p>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-5 h-5 rounded border border-gray-600" 
+                    style={{ backgroundColor: brandProfile.primary_color || '#0078D4' }}
+                  />
+                  <p className="text-white font-mono text-sm">{brandProfile.primary_color || '#0078D4'}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <p className="text-gray-400">Logo</p>
-                    <p className="text-white">{brandProfile.company_logo_url ? '✓ Uploaded' : '— Not set'}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Mascot</p>
-                    <p className="text-white">{brandProfile.game_avatar_url ? '✓ Uploaded' : '— Not set'}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Primary Color</p>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-4 h-4 rounded border border-gray-600" 
-                        style={{ backgroundColor: brandProfile.primary_color || '#0078D4' }}
-                      />
-                      <p className="text-white">{brandProfile.primary_color || '#0078D4'}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-gray-400">Secondary Color</p>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-4 h-4 rounded border border-gray-600" 
-                        style={{ backgroundColor: brandProfile.secondary_color || '#50E6FF' }}
-                      />
-                      <p className="text-white">{brandProfile.secondary_color || '#50E6FF'}</p>
-                    </div>
-                  </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-gray-400">Secondary Color</p>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-5 h-5 rounded border border-gray-600" 
+                    style={{ backgroundColor: brandProfile.secondary_color || '#50E6FF' }}
+                  />
+                  <p className="text-white font-mono text-sm">{brandProfile.secondary_color || '#50E6FF'}</p>
                 </div>
-                <p className="text-xs text-gray-400 italic">
-                  These settings from your profile will be used in the generated demo
-                </p>
-              </Card>
-            )}
+              </div>
+            </div>
+          </Card>
+        )}
 
+        {/* Action Buttons */}
+        {!profileLoading && (
+          <Card className="bg-gray-900 border-gray-800 p-6">
             {file && !extractedData && (
               <Button
                 onClick={analyzeDocument}
@@ -416,8 +421,8 @@ export default function DemoGenerator() {
                 )}
               </Button>
             )}
-          </CardContent>
-        </Card>
+          </Card>
+        )}
 
         {/* Extracted Data Preview */}
         {extractedData && (
