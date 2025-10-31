@@ -248,17 +248,17 @@ export default function DemoGenerator() {
         </div>
 
         <div className="space-y-6">
-          {/* Main Form Card */}
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white text-xl">
-                <Brain className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
-                Course Information
-              </CardTitle>
-              <CardDescription className="text-gray-400 text-sm">
-                Provide your course details to generate a customized game experience
-              </CardDescription>
-            </CardHeader>
+        {/* Main Form Card */}
+        <Card className="bg-[#1e293b] border-[#334155]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white text-xl">
+              <Brain className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
+              Course Information
+            </CardTitle>
+            <CardDescription className="text-gray-400 text-sm">
+              Provide your course details to generate a customized game experience
+            </CardDescription>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="courseName" className="text-white">Course Name *</Label>
@@ -329,7 +329,7 @@ export default function DemoGenerator() {
 
         {/* Brand Profile Settings Card - Separate card like in Brand Dashboard */}
         {!profileLoading && brandProfile && (
-          <Card className="bg-gray-900 border-gray-800 p-6">
+          <Card className="bg-[#1e293b] border-[#334155] p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-white">Brand Profile Settings</h3>
               <Button
@@ -379,7 +379,7 @@ export default function DemoGenerator() {
 
         {/* Action Buttons */}
         {!profileLoading && (
-          <Card className="bg-gray-900 border-gray-800 p-6">
+          <Card className="bg-[#1e293b] border-[#334155] p-6">
             {file && !extractedData && (
               <Button
                 onClick={analyzeDocument}
@@ -426,7 +426,7 @@ export default function DemoGenerator() {
 
         {/* Extracted Data Preview */}
         {extractedData && (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-[#1e293b] border-[#334155]">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-green/30 bg-neon-green/10">
@@ -470,7 +470,7 @@ export default function DemoGenerator() {
 
         {/* Competency Mappings */}
         {competencyMappings && (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-[#1e293b] border-[#334155]">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-purple/30 bg-neon-purple/10">
@@ -531,7 +531,7 @@ export default function DemoGenerator() {
 
         {/* Game Preview */}
         {gameUrl && (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-[#1e293b] border-[#334155]">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-green/30 bg-neon-green/10">
