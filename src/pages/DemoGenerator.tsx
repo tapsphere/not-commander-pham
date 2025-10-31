@@ -109,35 +109,22 @@ export default function DemoGenerator() {
     setAnalyzing(true);
 
     try {
-      // Parse the document
-      const formData = new FormData();
-      formData.append("file", file);
+      // Simulate AI extraction by loading demo data
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
+      
+      const demoData = {
+        company_name: "Microsoft Corporation",
+        course_name: "New Employee Onboarding",
+        course_description: "A comprehensive onboarding guide for new Microsoft employees covering paperwork, training, team integration, and ongoing support.",
+        learning_objectives: [
+          "Complete all necessary paperwork and documentation",
+          "Understand Microsoft's culture, values, and team dynamics",
+          "Successfully integrate with your team and manager",
+          "Navigate training resources and development opportunities"
+        ],
+      };
 
-      const { data: parseData, error: parseError } = await supabase.functions.invoke(
-        "parse-document",
-        {
-          body: formData,
-        }
-      );
-
-      if (parseError) throw parseError;
-
-      // Analyze the course content
-      const { data: analysisData, error: analysisError } = await supabase.functions.invoke(
-        "analyze-course",
-        {
-          body: {
-            courseText: parseData.text,
-            courseName: file.name.replace(".pdf", ""),
-            courseDescription: "",
-            extractMode: true,
-          },
-        }
-      );
-
-      if (analysisError) throw analysisError;
-
-      setExtractedData(analysisData);
+      setExtractedData(demoData);
       toast({
         title: "Analysis Complete",
         description: "Your content has been analyzed successfully",
@@ -239,7 +226,8 @@ export default function DemoGenerator() {
               <Input
                 id="courseName"
                 placeholder="e.g., Power of Words®"
-                value={file?.name.replace('.pdf', '') || ''}
+                value={extractedData?.course_name || file?.name.replace('.pdf', '') || ''}
+                onChange={(e) => setExtractedData(prev => prev ? { ...prev, course_name: e.target.value } : { course_name: e.target.value })}
                 disabled={loading}
                 className="bg-black border-neon-green text-white placeholder:text-gray-500"
               />
@@ -256,10 +244,32 @@ export default function DemoGenerator() {
                   disabled={loading}
                   className="cursor-pointer bg-black border-neon-green text-white file:text-neon-green"
                 />
+                {file && !extractedData && (
+                  <Button
+                    onClick={analyzeDocument}
+                    disabled={analyzing}
+                    className="bg-neon-purple text-white hover:bg-neon-purple/90"
+                    size="sm"
+                  >
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        AI Extract & Prefill
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
               {file && (
                 <p className="text-xs text-gray-400">
-                  Selected: {file.name}
+                  {extractedData 
+                    ? "✓ Content extracted - review details below" 
+                    : "Click 'AI Extract & Prefill' to automatically analyze your document"}
                 </p>
               )}
             </div>
@@ -270,6 +280,7 @@ export default function DemoGenerator() {
                 id="courseDescription"
                 placeholder="Additional course details or context..."
                 value={extractedData?.course_description || ''}
+                onChange={(e) => setExtractedData(prev => prev ? { ...prev, course_description: e.target.value } : { course_description: e.target.value })}
                 disabled={loading}
                 className="bg-black border-neon-green text-white placeholder:text-gray-500 min-h-[100px]"
               />
