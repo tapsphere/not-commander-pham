@@ -1834,7 +1834,8 @@ function handleScene1Submit() {
     btn.style.pointerEvents = 'none';
   });
   
-  document.getElementById('submitScene1').style.display = 'none';
+  const nextBtn = document.getElementById('scene1NextBtn');
+  if (nextBtn) nextBtn.style.display = 'none';
   
   logEvent('scene.complete', { scene: 1, correct, time: timeSpent });
   
