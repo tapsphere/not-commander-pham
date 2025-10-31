@@ -198,28 +198,17 @@ export default function DemoGenerator() {
     <div className="min-h-screen bg-black text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-neon-green">
-                  <Brain className="w-5 h-5" />
-                  Course Gamifier
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Upload your training course or lesson content, and we'll map it to C-BEN competencies and recommend PlayOps validators for measurable skill assessment.
-                </CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={loading}
-                className="flex items-center gap-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
-              >
-                <PlayCircle className="w-4 h-4" />
-                Load Sample Data
-              </Button>
-            </div>
-          </CardHeader>
+        <CardHeader>
+          <div>
+            <CardTitle className="flex items-center gap-2 text-neon-green">
+              <Brain className="w-5 h-5" />
+              Course Gamifier
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              Upload your training course or lesson content, and we'll map it to C-BEN competencies and recommend PlayOps validators for measurable skill assessment.
+            </CardDescription>
+          </div>
+        </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="courseName" className="text-white">Course Name *</Label>
