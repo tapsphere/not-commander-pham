@@ -1805,13 +1805,16 @@ function handleScene1Submit() {
   updateReputation(correct);
   updateStakeholders(1, correct);
   
-  // Visual feedback with particles
-  document.querySelectorAll('#scene1 .choice.multi-select').forEach(btn => {
-    const taskId = btn.dataset.id;
-    const rect = btn.getBoundingClientRect();
+  // Visual feedback with particles for drag-and-drop
+  const droppedItems = document.querySelectorAll('#droppedItems1 .task-card');
+  droppedItems.forEach(card => {
+    const taskId = card.dataset.id;
+    const rect = card.getBoundingClientRect();
     
     if (goldKey.includes(taskId)) {
-      btn.classList.add('correct');
+      card.classList.add('correct');
+      card.style.borderColor = '#4CAF50';
+      card.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))';
       // Show gold confetti for correct choices
       if (typeof confetti === 'function') {
         confetti({
@@ -1828,10 +1831,11 @@ function handleScene1Submit() {
           ticks: 200
         });
       }
-    } else if (selected.includes(taskId)) {
-      btn.classList.add('incorrect');
+    } else {
+      card.classList.add('incorrect');
+      card.style.borderColor = '#f44336';
+      card.style.background = 'linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(229, 57, 53, 0.3))';
     }
-    btn.style.pointerEvents = 'none';
   });
   
   const nextBtn = document.getElementById('scene1NextBtn');
