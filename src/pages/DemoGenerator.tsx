@@ -133,23 +133,23 @@ export default function DemoGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold">Custom Demo Generator</h1>
-          <p className="text-muted-foreground text-lg">
+          <h1 className="text-4xl font-bold text-neon-green text-glow-green">Custom Demo Generator</h1>
+          <p className="text-gray-400 text-lg">
             Upload your training content and generate a custom crisis communication validator game
           </p>
         </div>
 
         {/* Upload Section */}
-        <Card className="p-8">
+        <Card className="p-8 bg-card border-gray-800">
           <div className="space-y-6">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg p-12 space-y-4">
-              <Upload className="w-12 h-12 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-neon-green/30 rounded-lg p-12 space-y-4 hover:border-neon-green/50 transition-colors">
+              <Upload className="w-12 h-12 text-neon-green" />
               <div className="text-center space-y-2">
-                <p className="text-lg font-medium">Upload Training PDF</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-lg font-medium text-foreground">Upload Training PDF</p>
+                <p className="text-sm text-gray-400">
                   Upload your course materials, onboarding docs, or training content
                 </p>
               </div>
@@ -161,12 +161,12 @@ export default function DemoGenerator() {
                 id="file-upload"
               />
               <label htmlFor="file-upload">
-                <Button variant="outline" className="cursor-pointer" asChild>
+                <Button variant="outline" className="cursor-pointer border-neon-green text-neon-green hover:bg-neon-green hover:text-black" asChild>
                   <span>Choose File</span>
                 </Button>
               </label>
               {file && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-neon-green">
                   Selected: {file.name}
                 </p>
               )}
@@ -197,14 +197,14 @@ export default function DemoGenerator() {
 
         {/* Extracted Data Preview */}
         {extractedData && (
-          <Card className="p-8 space-y-6">
+          <Card className="p-8 space-y-6 bg-card border-gray-800">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-neon-green/10 flex items-center justify-center border border-neon-green/30">
+                <Sparkles className="h-5 w-5 text-neon-green" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold">Analysis Complete</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-xl font-semibold text-neon-green">Analysis Complete</h3>
+                <p className="text-sm text-gray-400">
                   AI has extracted key information from your content
                 </p>
               </div>
@@ -212,21 +212,21 @@ export default function DemoGenerator() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Company</p>
-                <p className="text-lg">{extractedData.company_name || "Not detected"}</p>
+                <p className="text-sm font-medium text-gray-400">Company</p>
+                <p className="text-lg text-foreground">{extractedData.company_name || "Not detected"}</p>
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Course Name</p>
-                <p className="text-lg">{extractedData.course_name || "Not detected"}</p>
+                <p className="text-sm font-medium text-gray-400">Course Name</p>
+                <p className="text-lg text-foreground">{extractedData.course_name || "Not detected"}</p>
               </div>
             </div>
 
             {extractedData.learning_objectives && extractedData.learning_objectives.length > 0 && (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Learning Objectives</p>
+                <p className="text-sm font-medium text-gray-400">Learning Objectives</p>
                 <ul className="list-disc list-inside space-y-1">
                   {extractedData.learning_objectives.slice(0, 3).map((obj: string, idx: number) => (
-                    <li key={idx} className="text-sm">{obj}</li>
+                    <li key={idx} className="text-sm text-gray-300">{obj}</li>
                   ))}
                 </ul>
               </div>
@@ -257,26 +257,26 @@ export default function DemoGenerator() {
 
         {/* Game Preview & Download */}
         {gameUrl && (
-          <Card className="p-8 space-y-6">
+          <Card className="p-8 space-y-6 bg-card border-gray-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-green-500" />
+                <div className="h-10 w-10 rounded-full bg-neon-green/10 flex items-center justify-center border border-neon-green/30">
+                  <Sparkles className="h-5 w-5 text-neon-green" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">Game Ready!</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="text-xl font-semibold text-neon-green">Game Ready!</h3>
+                  <p className="text-sm text-gray-400">
                     Your custom validator game has been generated
                   </p>
                 </div>
               </div>
-              <Button onClick={downloadGame} variant="outline">
+              <Button onClick={downloadGame} variant="outline" className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black">
                 <Download className="mr-2 h-4 w-4" />
                 Download HTML
               </Button>
             </div>
 
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border border-gray-800 rounded-lg overflow-hidden">
               <iframe
                 src={gameUrl}
                 className="w-full h-[600px]"
@@ -285,14 +285,14 @@ export default function DemoGenerator() {
             </div>
 
             <div className="flex gap-4">
-              <Button onClick={downloadGame} className="flex-1" size="lg">
+              <Button onClick={downloadGame} className="flex-1 bg-neon-green text-black hover:bg-neon-green/90" size="lg">
                 <Download className="mr-2 h-5 w-5" />
                 Download Game
               </Button>
               <Button
                 onClick={() => window.open(gameUrl, "_blank")}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
                 size="lg"
               >
                 Open in New Tab
