@@ -1609,15 +1609,47 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
       this.classList.add('drag-over');
+      
+      // Auto-scroll when dragging over drop zones near edges
+      const scrollZone = 100;
+      const scrollSpeed = 10;
+      
+      if (e.clientY < scrollZone && e.clientY > 0) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, -scrollSpeed);
+          }, 16);
+        }
+      } else if (e.clientY > window.innerHeight - scrollZone) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, scrollSpeed);
+          }, 16);
+        }
+      } else {
+        if (autoScrollInterval2) {
+          clearInterval(autoScrollInterval2);
+          autoScrollInterval2 = null;
+        }
+      }
     });
     
     zone.addEventListener('dragleave', function() {
       this.classList.remove('drag-over');
+      if (autoScrollInterval2) {
+        clearInterval(autoScrollInterval2);
+        autoScrollInterval2 = null;
+      }
     });
     
     zone.addEventListener('drop', function(e) {
       e.preventDefault();
       this.classList.remove('drag-over');
+      
+      if (autoScrollInterval2) {
+        clearInterval(autoScrollInterval2);
+        autoScrollInterval2 = null;
+      }
       
       const channel = e.dataTransfer.getData('channel');
       const type = e.dataTransfer.getData('type');
