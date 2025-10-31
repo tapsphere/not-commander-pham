@@ -1524,12 +1524,12 @@ document.addEventListener('DOMContentLoaded', function() {
       scene1Dropped.add(taskId);
       gameState.scene1Selections = scene1Dropped;
       
-      // Move the card element to dropped items
+      // Just mark the card as selected (don't move it)
       const cardElement = document.querySelector(`#scene1 .task-card[data-id="${taskId}"]`);
-      if (cardElement && !droppedItems1.contains(cardElement)) {
-        cardElement.style.margin = '8px 0';
-        cardElement.style.width = '100%';
-        droppedItems1.appendChild(cardElement);
+      if (cardElement) {
+        cardElement.style.opacity = '0.5';
+        cardElement.style.border = '3px solid #4CAF50';
+        cardElement.draggable = false;
       }
       
       // Update counter
