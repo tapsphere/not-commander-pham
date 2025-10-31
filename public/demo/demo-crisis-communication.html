@@ -1438,6 +1438,43 @@ document.addEventListener('DOMContentLoaded', function() {
   const droppedItems1 = document.getElementById('droppedItems1');
   let scene1Dropped = new Set();
   
+  // Auto-scroll functionality during drag
+  let autoScrollInterval = null;
+  
+  document.addEventListener('drag', function(e) {
+    const scrollSpeed = 10;
+    const scrollZone = 100; // pixels from edge to trigger scroll
+    
+    if (e.clientY < scrollZone) {
+      // Near top - scroll up
+      if (!autoScrollInterval) {
+        autoScrollInterval = setInterval(() => {
+          window.scrollBy(0, -scrollSpeed);
+        }, 16);
+      }
+    } else if (e.clientY > window.innerHeight - scrollZone) {
+      // Near bottom - scroll down
+      if (!autoScrollInterval) {
+        autoScrollInterval = setInterval(() => {
+          window.scrollBy(0, scrollSpeed);
+        }, 16);
+      }
+    } else {
+      // Not in scroll zone - stop scrolling
+      if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+      }
+    }
+  });
+  
+  document.addEventListener('dragend', function() {
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      autoScrollInterval = null;
+    }
+  });
+  
   // Drag event handlers for Scene 1 tasks
   document.querySelectorAll('#scene1 .task-card').forEach(card => {
     card.addEventListener('dragstart', function(e) {
