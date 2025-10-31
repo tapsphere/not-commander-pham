@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.session-manager]
 verify_jwt = false
+
+[functions.generate-crisis-demo]
+verify_jwt = true

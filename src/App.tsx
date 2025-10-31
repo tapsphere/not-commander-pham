@@ -27,6 +27,7 @@ import ValidatorTest from "./pages/platform/ValidatorTest";
 import TestingGuide from "./pages/platform/TestingGuide";
 import PlayValidator from "./pages/platform/PlayValidator";
 import DemoRedirect from "./components/DemoRedirect";
+import DemoGenerator from "./pages/DemoGenerator";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
           {/* Validator Demos */}
           <Route path="/validator-demo" element={<ValidatorDemo />} />
           <Route path="/breath-balance" element={<BreathBalance />} />
+          <Route path="/demo-generator" element={<DemoGenerator />} />
           
           {/* Public Play Route */}
           <Route path="/play/:code" element={<Play />} />
