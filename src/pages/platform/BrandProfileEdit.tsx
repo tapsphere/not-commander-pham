@@ -29,6 +29,8 @@ export default function BrandProfileEdit() {
   const [gameAvatarUrl, setGameAvatarUrl] = useState('');
   const [particleEffect, setParticleEffect] = useState('sparkles');
   const [mascotAnimationType, setMascotAnimationType] = useState<'static' | 'gif' | 'lottie' | 'sprite'>('static');
+  const [primaryColor, setPrimaryColor] = useState('#0078D4');
+  const [secondaryColor, setSecondaryColor] = useState('#50E6FF');
   const [designPalette, setDesignPalette] = useState({
     primary: '#C8DBDB',
     secondary: '#6C8FA4',
@@ -74,7 +76,7 @@ export default function BrandProfileEdit() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette, game_avatar_url, default_particle_effect, mascot_animation_type')
+        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette, game_avatar_url, default_particle_effect, mascot_animation_type, primary_color, secondary_color')
         .eq('user_id', user.id)
         .single();
 
@@ -89,6 +91,8 @@ export default function BrandProfileEdit() {
         setCompanyLogoUrl(data.company_logo_url || '');
         setGameAvatarUrl(data.game_avatar_url || '');
         setParticleEffect(data.default_particle_effect || 'sparkles');
+        setPrimaryColor(data.primary_color || '#0078D4');
+        setSecondaryColor(data.secondary_color || '#50E6FF');
         const animType = data.mascot_animation_type as 'static' | 'gif' | 'lottie' | 'sprite';
         setMascotAnimationType(animType || 'static');
         
@@ -284,6 +288,8 @@ export default function BrandProfileEdit() {
       updates.game_avatar_url = gameAvatarUrl;
       updates.default_particle_effect = particleEffect;
       updates.mascot_animation_type = mascotAnimationType;
+      updates.primary_color = primaryColor;
+      updates.secondary_color = secondaryColor;
 
       const { error } = await supabase
         .from('profiles')
@@ -604,6 +610,51 @@ export default function BrandProfileEdit() {
                 Choose the default particle effect that appears when players interact with your mascot.
               </p>
             </div>
+
+            {/* Brand Colors - For brands only */}
+            {userRole === 'brand' && (
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="space-y-2">
+                  <Label htmlFor="primaryColor" className="text-white">Primary Brand Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="primaryColor"
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-20 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="flex-1 bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400">Main brand color for demos</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="secondaryColor" className="text-white">Secondary Brand Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="secondaryColor"
+                      type="color"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      className="w-20 h-10 p-1 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      className="flex-1 bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400">Accent color for demos</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Actions */}

@@ -414,6 +414,8 @@ export type Database = {
           id: string
           location: string | null
           mascot_animation_type: string | null
+          primary_color: string | null
+          secondary_color: string | null
           updated_at: string | null
           user_id: string
           wallet_address: string | null
@@ -432,6 +434,8 @@ export type Database = {
           id?: string
           location?: string | null
           mascot_animation_type?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string | null
           user_id: string
           wallet_address?: string | null
@@ -450,6 +454,8 @@ export type Database = {
           id?: string
           location?: string | null
           mascot_animation_type?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string | null
           user_id?: string
           wallet_address?: string | null

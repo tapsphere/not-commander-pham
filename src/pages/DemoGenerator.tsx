@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles, Brain, PlayCircle, Upload, Palette } from "lucide-react";
+import { Loader2, Sparkles, Brain, PlayCircle } from "lucide-react";
 import { MobileViewport } from "@/components/MobileViewport";
+import { useNavigate } from "react-router-dom";
 
 export default function DemoGenerator() {
   const [file, setFile] = useState<File | null>(null);
@@ -17,13 +18,46 @@ export default function DemoGenerator() {
   const [extractedData, setExtractedData] = useState<any>(null);
   const [competencyMappings, setCompetencyMappings] = useState<any>(null);
   const [gameUrl, setGameUrl] = useState<string | null>(null);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [mascotFile, setMascotFile] = useState<File | null>(null);
-  const [mascotPreview, setMascotPreview] = useState<string | null>(null);
-  const [primaryColor, setPrimaryColor] = useState('#0078D4');
-  const [secondaryColor, setSecondaryColor] = useState('#50E6FF');
+  const [profileLoading, setProfileLoading] = useState(true);
+  
+  // Brand profile data loaded from database
+  const [brandProfile, setBrandProfile] = useState<{
+    company_logo_url?: string;
+    game_avatar_url?: string;
+    primary_color?: string;
+    secondary_color?: string;
+    company_name?: string;
+  } | null>(null);
+  
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadBrandProfile();
+  }, []);
+
+  const loadBrandProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('company_logo_url, game_avatar_url, primary_color, secondary_color, company_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setBrandProfile(data);
+      }
+    } catch (error) {
+      console.error('Failed to load brand profile:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -40,70 +74,6 @@ export default function DemoGenerator() {
         });
       }
     }
-  };
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file",
-        description: "Please upload an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Logo must be less than 2MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLogoFile(file);
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setLogoPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleMascotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type - support both images and Lottie animations (JSON)
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml', 'application/json'];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a PNG, JPG, GIF, SVG image or Lottie animation (JSON)",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Mascot file must be less than 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setMascotFile(file);
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setMascotPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const analyzeDocument = async () => {
@@ -228,14 +198,14 @@ export default function DemoGenerator() {
     try {
       const { data, error } = await supabase.functions.invoke("generate-crisis-demo", {
         body: {
-          brandName: extractedData.company_name || "Your Company",
+          brandName: brandProfile?.company_name || extractedData.company_name || "Your Company",
           courseName: extractedData.course_name || "Leadership Training",
           courseDescription: extractedData.course_description || "",
           learningObjectives: extractedData.learning_objectives || [],
-          primaryColor,
-          secondaryColor,
-          logoUrl: logoPreview || null,
-          mascotUrl: mascotPreview || null,
+          primaryColor: brandProfile?.primary_color || '#0078D4',
+          secondaryColor: brandProfile?.secondary_color || '#50E6FF',
+          logoUrl: brandProfile?.company_logo_url || null,
+          mascotUrl: brandProfile?.game_avatar_url || null,
         },
       });
 
@@ -355,156 +325,55 @@ export default function DemoGenerator() {
               />
             </div>
 
-            {/* Brand Customization Section */}
-            <div className="space-y-4 border-t border-gray-800 pt-4">
-              <h3 className="font-semibold text-lg flex items-center gap-2 text-neon-green">
-                <Palette className="h-5 w-5" />
-                Brand Customization
-              </h3>
-              
-              {/* Logo Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="logo" className="text-white">Brand Logo (Optional)</Label>
-                <div className="flex items-center gap-4">
+            {/* Brand Profile Info Card */}
+            {!profileLoading && brandProfile && (
+              <Card className="bg-black/50 border-neon-purple p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-white">Brand Profile Settings</h4>
                   <Button
-                    type="button"
                     variant="outline"
-                    onClick={() => document.getElementById('logo-upload')?.click()}
-                    disabled={loading}
-                    className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
+                    size="sm"
+                    onClick={() => navigate('/platform/brand/profile-edit')}
+                    className="text-neon-green border-neon-green hover:bg-neon-green hover:text-black"
                   >
-                    <Upload className="h-4 w-4" />
-                    Upload Logo
+                    Edit Profile
                   </Button>
-                  <input
-                    id="logo-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleLogoChange}
-                    className="hidden"
-                  />
-                  <span className="text-sm text-gray-400">
-                    {logoFile ? logoFile.name : 'PNG, JPG, SVG (max 2MB)'}
-                  </span>
                 </div>
-                
-                {logoPreview && (
-                  <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mt-2">
-                    <p className="text-sm text-gray-400 mb-2">Logo Preview:</p>
-                    <img
-                      src={logoPreview}
-                      alt="Brand logo"
-                      className="max-h-20 object-contain"
-                    />
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <p className="text-gray-400">Logo</p>
+                    <p className="text-white">{brandProfile.company_logo_url ? '✓ Uploaded' : '— Not set'}</p>
                   </div>
-                )}
-              </div>
-
-              {/* Mascot Upload */}
-              <div className="space-y-2">
-                <Label htmlFor="mascot" className="text-white">Game Mascot / Character (Optional)</Label>
-                <p className="text-xs text-gray-400">Upload an image or Lottie animation that will appear in scene one (instructions/how to play)</p>
-                <div className="flex items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('mascot-upload')?.click()}
-                    disabled={loading}
-                    className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Upload Mascot
-                  </Button>
-                  <input
-                    id="mascot-upload"
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.gif,.svg,.json"
-                    onChange={handleMascotChange}
-                    className="hidden"
-                  />
-                  <span className="text-sm text-gray-400">
-                    {mascotFile ? mascotFile.name : 'Image or Lottie JSON • Max 5MB'}
-                  </span>
-                </div>
-                
-                {mascotPreview && (
-                  <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 mt-2">
-                    <p className="text-sm text-gray-400 mb-2">Mascot Preview:</p>
-                    <img
-                      src={mascotPreview}
-                      alt="Game mascot"
-                      className="max-h-32 object-contain mx-auto"
-                    />
+                  <div>
+                    <p className="text-gray-400">Mascot</p>
+                    <p className="text-white">{brandProfile.game_avatar_url ? '✓ Uploaded' : '— Not set'}</p>
                   </div>
-                )}
-              </div>
-
-              {/* Color Pickers */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryColor" className="text-white">Primary Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="primaryColor"
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      disabled={loading}
-                      className="w-20 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      disabled={loading}
-                      className="flex-1 bg-black border-neon-green text-white"
-                    />
+                  <div>
+                    <p className="text-gray-400">Primary Color</p>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded border border-gray-600" 
+                        style={{ backgroundColor: brandProfile.primary_color || '#0078D4' }}
+                      />
+                      <p className="text-white">{brandProfile.primary_color || '#0078D4'}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-gray-400">Secondary Color</p>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded border border-gray-600" 
+                        style={{ backgroundColor: brandProfile.secondary_color || '#50E6FF' }}
+                      />
+                      <p className="text-white">{brandProfile.secondary_color || '#50E6FF'}</p>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="secondaryColor" className="text-white">Secondary Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="secondaryColor"
-                      type="color"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      disabled={loading}
-                      className="w-20 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      disabled={loading}
-                      className="flex-1 bg-black border-neon-green text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Color Preview */}
-              <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-                <p className="text-sm text-gray-400 mb-3">Color Preview:</p>
-                <div className="flex gap-4">
-                  <div className="text-center">
-                    <div
-                      className="w-16 h-16 rounded-lg border-2"
-                      style={{ backgroundColor: primaryColor, borderColor: primaryColor }}
-                    />
-                    <p className="text-xs text-gray-400 mt-2">Primary</p>
-                  </div>
-                  <div className="text-center">
-                    <div
-                      className="w-16 h-16 rounded-lg border-2"
-                      style={{ backgroundColor: secondaryColor, borderColor: secondaryColor }}
-                    />
-                    <p className="text-xs text-gray-400 mt-2">Secondary</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                <p className="text-xs text-gray-400 italic">
+                  These settings from your profile will be used in the generated demo
+                </p>
+              </Card>
+            )}
 
             {file && !extractedData && (
               <Button
