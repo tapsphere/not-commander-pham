@@ -956,7 +956,7 @@
       <div class="drop-zone-label">Complete Before Day 1</div>
       <div class="drop-zone-count">0 / 3 tasks</div>
       <div class="dropped-items" id="droppedItems1"></div>
-      <button id="scene1NextBtn" class="choice-btn" style="display: none; margin-top: 16px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; font-weight: bold; padding: 14px 28px; font-size: 1.1em; animation: pulse 1s infinite;">
+      <button id="scene1NextBtn" class="choice-btn" style="display: none; margin-top: 16px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; font-weight: bold; padding: 14px 28px; font-size: 1.1em; animation: pulse 1s infinite; cursor: pointer; z-index: 100; position: relative; border: none;">
         Continue ✓
       </button>
     </div>
@@ -1493,7 +1493,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (scene1Dropped.size === 3) {
         const nextBtn = document.getElementById('scene1NextBtn');
         nextBtn.style.display = 'block';
-        nextBtn.onclick = () => handleScene1Submit();
+        nextBtn.onclick = () => {
+          console.log('Continue button clicked!');
+          handleScene1Submit();
+        };
       }
     });
   });
