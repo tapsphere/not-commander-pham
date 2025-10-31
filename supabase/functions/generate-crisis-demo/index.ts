@@ -93,11 +93,22 @@ async function generateBrandedGameHTML(branding: {
   
   // Add custom mascot if provided - only in the scene-intro (game directions scene)
   if (branding.mascotUrl) {
-    // Find the scene-intro section and replace only the Lottie player within it
-    customHTML = customHTML.replace(
-      /(<div[^>]*id="scene-intro"[^>]*>[\s\S]*?)(<lottie-player[\s\S]*?<\/lottie-player>)/,
-      `$1<img src="${branding.mascotUrl}" alt="Game Mascot" style="width: 300px; height: 300px; object-fit: contain; margin: 0 auto 20px;" />`
-    );
+    // Check if it's a Lottie animation (JSON data URL) or an image
+    const isLottie = branding.mascotUrl.startsWith('data:application/json');
+    
+    if (isLottie) {
+      // For Lottie animations, update the existing lottie-player src
+      customHTML = customHTML.replace(
+        /(<div[^>]*id="scene-intro"[^>]*>[\s\S]*?<lottie-player[^>]*src=")([^"]*?)("[\s\S]*?<\/lottie-player>)/,
+        `$1${branding.mascotUrl}$3`
+      );
+    } else {
+      // For images, replace the Lottie player with an img tag
+      customHTML = customHTML.replace(
+        /(<div[^>]*id="scene-intro"[^>]*>[\s\S]*?)(<lottie-player[\s\S]*?<\/lottie-player>)/,
+        `$1<img src="${branding.mascotUrl}" alt="Game Mascot" style="width: 300px; height: 300px; object-fit: contain; margin: 0 auto 20px;" />`
+      );
+    }
   }
   
   return customHTML;

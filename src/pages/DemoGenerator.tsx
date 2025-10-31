@@ -77,12 +77,12 @@ export default function DemoGenerator() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml'];
+    // Validate file type - support both images and Lottie animations (JSON)
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml', 'application/json'];
     if (!validTypes.includes(file.type)) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a PNG, JPG, GIF, or SVG image",
+        description: "Please upload a PNG, JPG, GIF, SVG image or Lottie animation (JSON)",
         variant: "destructive",
       });
       return;
@@ -91,7 +91,7 @@ export default function DemoGenerator() {
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Mascot image must be less than 5MB",
+        description: "Mascot file must be less than 5MB",
         variant: "destructive",
       });
       return;
@@ -393,7 +393,7 @@ export default function DemoGenerator() {
               {/* Mascot Upload */}
               <div className="space-y-2">
                 <Label htmlFor="mascot" className="text-white">Game Mascot / Character (Optional)</Label>
-                <p className="text-xs text-gray-400">Upload a character that will appear in scene one (instructions/how to play)</p>
+                <p className="text-xs text-gray-400">Upload an image or Lottie animation that will appear in scene one (instructions/how to play)</p>
                 <div className="flex items-center gap-4">
                   <Button
                     type="button"
@@ -408,12 +408,12 @@ export default function DemoGenerator() {
                   <input
                     id="mascot-upload"
                     type="file"
-                    accept=".png,.jpg,.jpeg,.gif,.svg"
+                    accept=".png,.jpg,.jpeg,.gif,.svg,.json"
                     onChange={handleMascotChange}
                     className="hidden"
                   />
                   <span className="text-sm text-gray-400">
-                    {mascotFile ? mascotFile.name : 'PNG, JPG, GIF, SVG • Max 5MB'}
+                    {mascotFile ? mascotFile.name : 'Image or Lottie JSON • Max 5MB'}
                   </span>
                 </div>
                 
