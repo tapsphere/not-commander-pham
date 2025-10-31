@@ -266,19 +266,29 @@ export default function DemoGenerator() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <Card className="bg-gray-900 border-gray-800">
-        <CardHeader>
-          <div>
-            <CardTitle className="flex items-center gap-2 text-neon-green">
-              <Brain className="w-5 h-5" />
-              Course Gamifier
-            </CardTitle>
-            <CardDescription className="text-gray-400">
-              Upload your training course or lesson content, and we'll map it to C-BEN competencies and recommend PlayOps validators for measurable skill assessment.
-            </CardDescription>
-          </div>
-        </CardHeader>
+      <div className="max-w-7xl mx-auto">
+        {/* Page Header - matching BrandDashboard style */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
+            Demo Generator
+          </h2>
+          <p className="text-gray-400">
+            Upload your training course or lesson content, and we'll create a custom branded game demo
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          {/* Main Form Card */}
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-white text-xl">
+                <Brain className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
+                Course Information
+              </CardTitle>
+              <CardDescription className="text-gray-400 text-sm">
+                Provide your course details to generate a customized game experience
+              </CardDescription>
+            </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="courseName" className="text-white">Course Name *</Label>
@@ -685,6 +695,7 @@ export default function DemoGenerator() {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
     </div>
   );
