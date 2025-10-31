@@ -1520,6 +1520,14 @@ document.addEventListener('DOMContentLoaded', function() {
       scene1Dropped.add(taskId);
       gameState.scene1Selections = scene1Dropped;
       
+      // Move the card element to dropped items
+      const cardElement = document.querySelector(`#scene1 .task-card[data-id="${taskId}"]`);
+      if (cardElement) {
+        cardElement.style.margin = '8px 0';
+        cardElement.style.width = '100%';
+        droppedItems1.appendChild(cardElement);
+      }
+      
       // Update counter
       document.querySelector('#dropZone1 .drop-zone-count').textContent = 
         `${scene1Dropped.size} / 3 tasks`;
