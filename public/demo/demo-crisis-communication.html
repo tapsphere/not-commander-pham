@@ -1524,32 +1524,12 @@ document.addEventListener('DOMContentLoaded', function() {
       scene1Dropped.add(taskId);
       gameState.scene1Selections = scene1Dropped;
       
-      // Create a copy in dropped items (keep original in pile)
-      const originalCard = document.querySelector(`#scene1 .card-pile .task-card[data-id="${taskId}"]`);
-      if (originalCard && !document.querySelector(`#droppedItems1 .task-card[data-id="${taskId}"]`)) {
-        const cardCopy = originalCard.cloneNode(true);
-        cardCopy.style.margin = '8px 0';
-        cardCopy.style.width = '100%';
-        cardCopy.style.cursor = 'pointer';
-        cardCopy.title = 'Click to remove';
-        
-        // Mark original as selected
-        originalCard.style.opacity = '0.5';
-        originalCard.style.border = '3px solid #4CAF50';
-        
-        // Allow clicking to remove from drop zone
-        cardCopy.onclick = () => {
-          scene1Dropped.delete(taskId);
-          gameState.scene1Selections = scene1Dropped;
-          cardCopy.remove();
-          originalCard.style.opacity = '1';
-          originalCard.style.border = '';
-          document.querySelector('#dropZone1 .drop-zone-count').textContent = 
-            `${scene1Dropped.size} / 3 tasks`;
-          document.getElementById('scene1NextBtn').style.display = 'none';
-        };
-        
-        droppedItems1.appendChild(cardCopy);
+      // Move the card element to dropped items
+      const cardElement = document.querySelector(`#scene1 .task-card[data-id="${taskId}"]`);
+      if (cardElement && !droppedItems1.contains(cardElement)) {
+        cardElement.style.margin = '8px 0';
+        cardElement.style.width = '100%';
+        droppedItems1.appendChild(cardElement);
       }
       
       // Update counter
