@@ -14,6 +14,7 @@ export default function DemoGenerator() {
   const [analyzing, setAnalyzing] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [extractedData, setExtractedData] = useState<any>(null);
+  const [competencyMappings, setCompetencyMappings] = useState<any>(null);
   const [gameUrl, setGameUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -125,6 +126,9 @@ export default function DemoGenerator() {
       };
 
       setExtractedData(demoData);
+      setCompetencyMappings(null);
+      setGameUrl(null);
+      
       toast({
         title: "Analysis Complete",
         description: "Your content has been analyzed successfully",
@@ -142,8 +146,78 @@ export default function DemoGenerator() {
     }
   };
 
-  const generateGame = async () => {
+  const analyzeCompetencies = async () => {
     if (!extractedData) return;
+
+    setLoading(true);
+    setAnalyzing(true);
+
+    try {
+      // Simulate competency analysis by loading demo competencies
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      const demoCompetencies = {
+        competency_mappings: [
+          {
+            domain: "Professional Excellence & Initiative",
+            competency: "Initiative",
+            sub_competency: "Proactive Action Taking",
+            alignment_summary: "The course emphasizes taking initiative in completing paperwork, accessing documents, and organizing onboarding tasks proactively on day one.",
+            validator_type: "Task Completion Simulation",
+            evidence_metric: "Tasks completed proactively and accurately"
+          },
+          {
+            domain: "Collaboration & Teamwork",
+            competency: "Team Connection",
+            sub_competency: "Building Team Relationships",
+            alignment_summary: "The onboarding process focuses on integrating new hires with colleagues, scheduling team meetings, and creating channels for connection.",
+            validator_type: "Relationship Building Simulation",
+            evidence_metric: "Quality of team interactions and connections established"
+          },
+          {
+            domain: "Leadership & Development",
+            competency: "Coaching & Mentorship",
+            sub_competency: "Guiding and Supporting Others",
+            alignment_summary: "The course covers planning training sessions, sharing training materials, and providing ongoing support to new employees.",
+            validator_type: "Coaching Scenario Simulation",
+            evidence_metric: "Quality of coaching and support provided"
+          },
+          {
+            domain: "Communication & Reflection",
+            competency: "Feedback & Reflection",
+            sub_competency: "Providing and Receiving Feedback",
+            alignment_summary: "The onboarding emphasizes frequent check-ins, discussing job progress, asking questions, and maintaining open communication channels.",
+            validator_type: "Communication Simulation",
+            evidence_metric: "Quality and frequency of feedback interactions"
+          }
+        ],
+        summary: {
+          total_competencies: 4,
+          domains_covered: ["Professional Excellence & Initiative", "Collaboration & Teamwork", "Leadership & Development", "Communication & Reflection"]
+        }
+      };
+
+      setCompetencyMappings(demoCompetencies);
+      
+      toast({
+        title: "Competency Analysis Complete",
+        description: `Identified ${demoCompetencies.summary.total_competencies} competencies across ${demoCompetencies.summary.domains_covered.length} domains`,
+      });
+    } catch (error) {
+      console.error("Competency analysis error:", error);
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze competencies",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setAnalyzing(false);
+    }
+  };
+
+  const generateGame = async () => {
+    if (!extractedData || !competencyMappings) return;
 
     setLoading(true);
     setGenerating(true);
@@ -436,7 +510,28 @@ export default function DemoGenerator() {
                 {analyzing ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Analyzing Course...
+                    Extracting Content...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    AI Extract & Prefill
+                  </>
+                )}
+              </Button>
+            )}
+
+            {extractedData && !competencyMappings && (
+              <Button
+                onClick={analyzeCompetencies}
+                disabled={loading}
+                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
+                size="lg"
+              >
+                {analyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Analyzing Competencies...
                   </>
                 ) : (
                   <>
@@ -459,10 +554,10 @@ export default function DemoGenerator() {
                 </div>
                 <div>
                   <CardTitle className="text-xl text-neon-green">
-                    Analysis Complete
+                    Content Extracted
                   </CardTitle>
                   <CardDescription className="text-gray-400">
-                    AI has extracted key information from your content
+                    AI has extracted key information from your document
                   </CardDescription>
                 </div>
               </div>
@@ -483,12 +578,52 @@ export default function DemoGenerator() {
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-400">Learning Objectives</p>
                   <ul className="list-disc list-inside space-y-1">
-                    {extractedData.learning_objectives.slice(0, 3).map((obj: string, idx: number) => (
+                    {extractedData.learning_objectives.map((obj: string, idx: number) => (
                       <li key={idx} className="text-sm text-gray-300">{obj}</li>
                     ))}
                   </ul>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Competency Mappings */}
+        {competencyMappings && (
+          <Card className="bg-gray-900 border-gray-800">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-purple/30 bg-neon-purple/10">
+                  <Brain className="h-5 w-5 text-neon-purple" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl text-neon-purple">
+                    Competency Analysis Complete
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    {competencyMappings.summary.total_competencies} competencies mapped across {competencyMappings.summary.domains_covered.length} domains
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {competencyMappings.competency_mappings.map((mapping: any, idx: number) => (
+                <div key={idx} className="bg-black/40 border border-gray-800 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="text-neon-green font-semibold">{mapping.sub_competency}</h4>
+                      <p className="text-sm text-gray-400">{mapping.domain} • {mapping.competency}</p>
+                    </div>
+                    <span className="text-xs px-3 py-1 bg-neon-purple/20 text-neon-purple rounded-full border border-neon-purple/30">
+                      {mapping.validator_type}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300 mt-2">{mapping.alignment_summary}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    <strong>Evidence:</strong> {mapping.evidence_metric}
+                  </p>
+                </div>
+              ))}
 
               {!gameUrl && (
                 <Button
