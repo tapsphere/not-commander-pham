@@ -196,17 +196,15 @@ Return ONLY the JSON structure as specified.`;
 
     // Fetch Excel file from app's public folder
     console.log('Fetching framework Excel file from app...');
-    const excelUrl = 'https://188e4cad-de5e-49fb-8008-62d777ec2103.lovableproject.com/CBEN_PlayOps_Framework_Finale.xlsx';
+    // Use relative path to public folder - Deno can read local files
+    const excelPath = new URL('../../../public/CBEN_PlayOps_Framework_Finale.xlsx', import.meta.url).pathname;
     
     let fileData;
     try {
-      const fileResponse = await fetch(excelUrl);
-      if (!fileResponse.ok) {
-        throw new Error(`HTTP ${fileResponse.status}`);
-      }
-      fileData = await fileResponse.arrayBuffer();
+      // Read the file directly from the file system
+      fileData = await Deno.readFile(excelPath);
     } catch (fetchError) {
-      console.error('Failed to fetch Excel file from URL:', fetchError);
+      console.error('Failed to read Excel file:', fetchError);
       return new Response(
         JSON.stringify({ error: 'Failed to load framework file' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -215,7 +213,7 @@ Return ONLY the JSON structure as specified.`;
 
     // Parse Excel file
     console.log('Parsing Excel file...');
-    const workbook = XLSX.read(new Uint8Array(fileData), { type: 'array' });
+    const workbook = XLSX.read(fileData, { type: 'array' });
     
     // Get the game design sheet (Page 3 in the parsed doc, likely "Sheet3" or similar)
     const gameDesignSheet = workbook.Sheets[workbook.SheetNames[2]]; // 3rd sheet (0-indexed)
