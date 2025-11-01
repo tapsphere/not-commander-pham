@@ -27,7 +27,16 @@ serve(async (req) => {
 
     // Convert file to base64 for AI processing
     const arrayBuffer = await file.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Convert to base64 in chunks to avoid stack overflow on large files
+    const chunkSize = 8192;
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, Math.min(i + chunkSize, uint8Array.length));
+      binary += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const base64 = btoa(binary);
     const dataUrl = `data:${file.type};base64,${base64}`;
 
     console.log('Sending document to Lovable AI for extraction...');

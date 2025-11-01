@@ -194,19 +194,22 @@ Return ONLY the JSON structure as specified.`;
     // Regular analysis mode - fetch available sub-competencies from Excel file
     console.log('Analyzing course:', courseName);
 
-    // Fetch Excel file from app's public folder
-    console.log('Fetching framework Excel file from app...');
-    // Use relative path to public folder - Deno can read local files
-    const excelPath = new URL('../../../public/CBEN_PlayOps_Framework_Finale.xlsx', import.meta.url).pathname;
+    // Fetch Excel file from Supabase Storage
+    console.log('Fetching framework Excel file...');
+    const excelUrl = `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/framework-files/CBEN_PlayOps_Framework_Finale.xlsx`;
     
     let fileData;
     try {
-      // Read the file directly from the file system
-      fileData = await Deno.readFile(excelPath);
+      const fileResponse = await fetch(excelUrl);
+      if (!fileResponse.ok) {
+        throw new Error(`HTTP ${fileResponse.status}`);
+      }
+      const arrayBuffer = await fileResponse.arrayBuffer();
+      fileData = new Uint8Array(arrayBuffer);
     } catch (fetchError) {
-      console.error('Failed to read Excel file:', fetchError);
+      console.error('Failed to fetch Excel file:', fetchError);
       return new Response(
-        JSON.stringify({ error: 'Failed to load framework file' }),
+        JSON.stringify({ error: 'Failed to load framework file. Please contact support.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
