@@ -19,6 +19,7 @@ export default function DemoGenerator() {
   const [competencyMappings, setCompetencyMappings] = useState<any>(null);
   const [gameUrl, setGameUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [hasGenerated, setHasGenerated] = useState(false);
   
   // Brand profile data loaded from database
   const [brandProfile, setBrandProfile] = useState<{
@@ -66,6 +67,7 @@ export default function DemoGenerator() {
         setFile(selectedFile);
         setExtractedData(null);
         setGameUrl(null);
+        setHasGenerated(false);
       } else {
         toast({
           title: "Invalid File",
@@ -101,6 +103,7 @@ export default function DemoGenerator() {
       setExtractedData(demoData);
       setCompetencyMappings(null);
       setGameUrl(null);
+      setHasGenerated(true);
       
       toast({
         title: "Analysis Complete",
@@ -171,6 +174,7 @@ export default function DemoGenerator() {
       };
 
       setCompetencyMappings(demoCompetencies);
+      setHasGenerated(true);
       
       toast({
         title: "Competency Analysis Complete",
@@ -466,7 +470,7 @@ export default function DemoGenerator() {
       )}
 
       {/* Extracted Data Preview */}
-      {extractedData && (
+      {extractedData && hasGenerated && (
           <Card className="bg-[#1e293b] border-[#334155]">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -510,7 +514,7 @@ export default function DemoGenerator() {
         )}
 
         {/* Competency Mappings */}
-        {competencyMappings && (
+        {competencyMappings && hasGenerated && (
           <Card className="bg-[#1e293b] border-[#334155]">
             <CardHeader>
               <div className="flex items-center gap-3">
