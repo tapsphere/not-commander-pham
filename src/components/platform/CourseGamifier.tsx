@@ -104,12 +104,13 @@ export function CourseGamifier() {
 
   const loadExistingAnalysis = (analysis: any) => {
     setSelectedAnalysisId(analysis.id);
-    setAnalysisResult(analysis.analysis_results);
+    // Don't automatically show analysis results - only load metadata
+    setCourseName(analysis.course_name || courseName);
     setCourseDescription(analysis.course_description || "");
     setIndustry(analysis.industry || "");
     toast({
-      title: "Analysis loaded",
-      description: "Using saved analysis. You can edit it below.",
+      title: "Course details loaded",
+      description: "Generate a new analysis to see results",
     });
   };
 
