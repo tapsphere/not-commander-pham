@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles, Brain, PlayCircle } from "lucide-react";
+import { Loader2, Sparkles, Brain, PlayCircle, Store, Play, FileText, Zap } from "lucide-react";
 import { MobileViewport } from "@/components/MobileViewport";
 import { useNavigate } from "react-router-dom";
 
@@ -237,28 +237,73 @@ export default function DemoGenerator() {
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Page Header - matching BrandDashboard style */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
-            Demo Generator
-          </h2>
-          <p className="text-gray-400">
-            Upload your training course or lesson content, and we'll create a custom branded game demo
-          </p>
-        </div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
+          Brand Dashboard
+        </h2>
+        <p className="text-gray-400">Manage your company profile and game experiences</p>
+      </div>
 
-        <div className="space-y-6">
-        {/* Main Form Card */}
-        <Card className="bg-[#1e293b] border-[#334155]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white text-xl">
-              <Brain className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
-              Course Information
-            </CardTitle>
-            <CardDescription className="text-gray-400 text-sm">
-              Provide your course details to generate a customized game experience
-            </CardDescription>
-          </CardHeader>
+      {/* Company Profile Section */}
+      {!profileLoading && brandProfile && (
+        <Card className="bg-[#1e293b] border-[#334155] p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-white">Company Profile</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/platform/brand/profile-edit')}
+            >
+              Edit Profile
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-gray-400">Company Logo:</span>
+              <span className="ml-2 text-white">
+                {brandProfile.company_logo_url ? '✓ Set' : '✗ Not set'}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-400">Mascot:</span>
+              <span className="ml-2 text-white">
+                {brandProfile.game_avatar_url ? '✓ Set' : '✗ Not set'}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-400">Primary Color:</span>
+              {brandProfile.primary_color && (
+                <span 
+                  className="ml-2 inline-block w-6 h-6 rounded border border-gray-600 align-middle"
+                  style={{ backgroundColor: brandProfile.primary_color }}
+                />
+              )}
+            </div>
+            <div>
+              <span className="text-gray-400">Secondary Color:</span>
+              {brandProfile.secondary_color && (
+                <span 
+                  className="ml-2 inline-block w-6 h-6 rounded border border-gray-600 align-middle"
+                  style={{ backgroundColor: brandProfile.secondary_color }}
+                />
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Course Information Card */}
+      <Card className="bg-[#1e293b] border-[#334155] mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-white text-xl">
+            <Brain className="w-5 h-5" style={{ color: 'hsl(var(--neon-green))' }} />
+            Course
+          </CardTitle>
+          <CardDescription className="text-gray-400 text-sm">
+            Upload your training course or lesson content to create a custom branded game demo
+          </CardDescription>
+        </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="courseName" className="text-white">Course Name *</Label>
@@ -324,108 +369,104 @@ export default function DemoGenerator() {
                 className="bg-black border-neon-green text-white placeholder:text-gray-500 min-h-[100px]"
               />
             </div>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
 
-        {/* Brand Profile Settings Card - Separate card like in Brand Dashboard */}
-        {!profileLoading && brandProfile && (
-          <Card className="bg-[#1e293b] border-[#334155] p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">Brand Profile Settings</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/platform/brand/profile-edit')}
-                className="border-neon-green text-neon-green hover:bg-neon-green hover:text-black"
-              >
-                Edit Profile
-              </Button>
-            </div>
-            <p className="text-gray-400 text-sm mb-4">
-              These settings from your profile will be used in the generated demo
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">Logo</p>
-                <p className="text-white font-medium">{brandProfile.company_logo_url ? '✓ Uploaded' : '— Not set'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">Mascot</p>
-                <p className="text-white font-medium">{brandProfile.game_avatar_url ? '✓ Uploaded' : '— Not set'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">Primary Color</p>
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-5 h-5 rounded border border-gray-600" 
-                    style={{ backgroundColor: brandProfile.primary_color || '#0078D4' }}
-                  />
-                  <p className="text-white font-mono text-sm">{brandProfile.primary_color || '#0078D4'}</p>
+      {/* Three Column Grid - Actions */}
+      {!profileLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Active Gamifier */}
+          <Card className="p-6 bg-[#1e293b] border-[#334155]">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-neon-green/10 rounded-lg">
+                  <Play className="w-6 h-6" style={{ color: 'hsl(var(--neon-green))' }} />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Active Gamifier</p>
+                  <p className="text-2xl font-bold text-white">{file ? '1' : '0'}</p>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-gray-400">Secondary Color</p>
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-5 h-5 rounded border border-gray-600" 
-                    style={{ backgroundColor: brandProfile.secondary_color || '#50E6FF' }}
-                  />
-                  <p className="text-white font-mono text-sm">{brandProfile.secondary_color || '#50E6FF'}</p>
-                </div>
-              </div>
+              {file && !extractedData && (
+                <Button
+                  onClick={analyzeDocument}
+                  disabled={analyzing}
+                  className="w-full bg-neon-green text-slate-900 hover:bg-neon-green/90"
+                  size="sm"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Analyze
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </Card>
-        )}
 
-        {/* Action Buttons */}
-        {!profileLoading && (
-          <Card className="bg-[#1e293b] border-[#334155] p-6">
-            {file && !extractedData && (
-              <Button
-                onClick={analyzeDocument}
-                disabled={loading}
-                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
-                size="lg"
-              >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Extracting Content...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    AI Extract & Prefill
-                  </>
-                )}
-              </Button>
-            )}
-
-            {extractedData && !competencyMappings && (
-              <Button
-                onClick={analyzeCompetencies}
-                disabled={loading}
-                className="w-full bg-neon-green text-black hover:bg-neon-green/90"
-                size="lg"
-              >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Analyzing Competencies...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Analyze Course
-                  </>
-                )}
-              </Button>
-            )}
+          {/* In Progress */}
+          <Card className="p-6 bg-[#1e293b] border-[#334155]">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-neon-purple/10 rounded-lg">
+                  <Loader2 className="w-6 h-6" style={{ color: 'hsl(var(--neon-purple))' }} />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">In Progress</p>
+                  <p className="text-2xl font-bold text-white">{competencyMappings ? '1' : '0'}</p>
+                </div>
+              </div>
+              {extractedData && competencyMappings && !gameUrl && (
+                <Button
+                  onClick={generateGame}
+                  disabled={generating}
+                  className="w-full bg-neon-purple text-white hover:bg-neon-purple/90"
+                  size="sm"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="mr-2 h-4 w-4" />
+                      Generate
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </Card>
-        )}
 
-        {/* Extracted Data Preview */}
-        {extractedData && (
+          {/* Marketplace */}
+          <Card className="p-6 bg-[#1e293b] border-[#334155]">
+            <button
+              onClick={() => navigate('/platform/marketplace')}
+              className="w-full text-left flex items-center justify-between hover:opacity-80 transition-opacity"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-lg">
+                  <Store className="w-6 h-6 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Marketplace</p>
+                  <p className="text-white font-semibold">Browse Games</p>
+                </div>
+              </div>
+            </button>
+          </Card>
+        </div>
+      )}
+
+      {/* Extracted Data Preview */}
+      {extractedData && (
           <Card className="bg-[#1e293b] border-[#334155]">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -569,7 +610,6 @@ export default function DemoGenerator() {
             </CardContent>
           </Card>
         )}
-        </div>
       </div>
     </div>
   );
