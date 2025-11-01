@@ -55,6 +55,7 @@ const App = () => (
             <Route path="creator/profile-edit" element={<BrandProfileEdit />} />
             <Route path="brand" element={<BrandDashboard />} />
             <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
+            <Route path="brand/demo-generator" element={<DemoGenerator />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="template/:templateId" element={<TemplateDetail />} />
             <Route path="validator-test" element={<ValidatorTest />} />
