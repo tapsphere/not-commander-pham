@@ -78,7 +78,7 @@ interface GlobeProps {
 export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: GlobeProps) => {
   const globeRef = useRef<THREE.Group>(null);
   const atmosphereRef = useRef<THREE.Mesh>(null);
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const [isDragging, setIsDragging] = useState(false);
   const [introComplete, setIntroComplete] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
@@ -267,71 +267,50 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
 
   // Enhanced drag interaction
   useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
+    const canvas = gl.domElement;
+    if (!canvas) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      e.preventDefault();
       setIsDragging(true);
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+      canvas.setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      
+      rotationRef.current.y += deltaX * 0.005;
+      rotationRef.current.x += deltaY * 0.005;
+      rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
+      
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        const deltaX = e.clientX - dragStartRef.current.x;
-        const deltaY = e.clientY - dragStartRef.current.y;
-        
-        rotationRef.current.y += deltaX * 0.005;
-        rotationRef.current.x += deltaY * 0.005;
-        rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
-        
-        dragStartRef.current = { x: e.clientX, y: e.clientY };
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        e.preventDefault(); // Prevent default touch behaviors
-        setIsDragging(true);
-        dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isDragging && e.touches.length > 0) {
-        e.preventDefault(); // Prevent scrolling while dragging
-        const deltaX = e.touches[0].clientX - dragStartRef.current.x;
-        const deltaY = e.touches[0].clientY - dragStartRef.current.y;
-        
-        rotationRef.current.y += deltaX * 0.005;
-        rotationRef.current.x += deltaY * 0.005;
-        rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
-        
-        dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
+    const handlePointerUp = (e: PointerEvent) => {
       e.preventDefault();
       setIsDragging(false);
+      if (canvas.hasPointerCapture(e.pointerId)) {
+        canvas.releasePointerCapture(e.pointerId);
+      }
     };
 
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd, { passive: false });
+    canvas.addEventListener('pointerdown', handlePointerDown);
+    canvas.addEventListener('pointermove', handlePointerMove);
+    canvas.addEventListener('pointerup', handlePointerUp);
+    canvas.addEventListener('pointercancel', handlePointerUp);
 
     return () => {
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
+      canvas.removeEventListener('pointerdown', handlePointerDown);
+      canvas.removeEventListener('pointermove', handlePointerMove);
+      canvas.removeEventListener('pointerup', handlePointerUp);
+      canvas.removeEventListener('pointercancel', handlePointerUp);
     };
-  }, [isDragging]);
+  }, [isDragging, gl]);
 
   useFrame((state) => {
     if (!globeRef.current) return;
