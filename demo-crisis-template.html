@@ -1,0 +1,2494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Microsoft Teams: The Onboarding</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --primary: #0078D4;
+      --secondary: #50E6FF;
+      --accent-green: #10B981;
+      --accent-yellow: #FBBF24;
+      --background: #0A0A0A;
+      --text: #FFFFFF;
+      --card-bg: #1A1A1A;
+      --border: #2D2D2D;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      padding: 20px;
+      overflow-y: auto;
+      animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Particle Effects */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .particle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: particle-float 1s ease-out forwards;
+      opacity: 0;
+    }
+
+    /* Coin Particles */
+    .coin {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+      border-radius: 50%;
+      border: 2px solid #FFA500;
+      animation: coin-float 1.5s ease-out forwards;
+      opacity: 0;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+    }
+
+    .coin::before {
+      content: '$';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #FFA500;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    @keyframes particle-float {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(var(--ty, -100px)) translateX(var(--tx, 0)) scale(0);
+      }
+    }
+
+    @keyframes coin-float {
+      0% {
+        opacity: 1;
+        transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(var(--ty, -150px)) translateX(var(--tx, 0)) scale(0.5) rotate(720deg);
+      }
+    }
+
+    /* Intro Screen */
+    #introScreen {
+      overflow-y: auto;
+      padding-bottom: 100px;
+      align-items: center;
+    }
+
+    .intro-animation {
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 20px;
+    }
+
+    #introScreen h1 {
+      color: var(--primary);
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #introScreen ul {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+
+    #introScreen li {
+      background: var(--card-bg);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 3px solid var(--primary);
+      box-shadow: 0 2px 4px rgba(0, 120, 212, 0.2);
+    }
+
+    #introScreen li strong {
+      color: var(--primary);
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      min-height: 56px;
+      touch-action: manipulation;
+      box-shadow: 0 4px 8px rgba(0, 120, 212, 0.2);
+    }
+
+    .btn:hover {
+      background: #005A9E;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 120, 212, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      background: #004578;
+    }
+
+    #startBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      width: calc(100% - 40px);
+      max-width: 600px;
+      margin: 0 auto;
+      z-index: 100;
+    }
+
+    /* Gameplay Screens */
+    .gameplay {
+      overflow-y: auto;
+      justify-content: flex-start;
+      padding-bottom: 150px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timer {
+      background: var(--card-bg);
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 20px;
+      border: 2px solid var(--primary);
+      box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+    }
+
+    .scenario {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid var(--primary);
+      margin-bottom: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0, 120, 212, 0.2);
+    }
+
+    .scenario h2 {
+      color: var(--secondary);
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: auto;
+      padding-bottom: 120px;
+    }
+
+    .btn {
+      position: relative;
+      z-index: 10;
+    }
+
+    .choice {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      padding: 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      touch-action: manipulation;
+      box-shadow: 0 2px 4px rgba(0, 120, 212, 0.1);
+      color: var(--text);
+    }
+
+    .choice:hover {
+      background: rgba(0, 120, 212, 0.15);
+      border-color: var(--primary);
+      transform: translateX(5px) scale(1.01);
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4);
+    }
+
+    .choice.selected {
+      background: rgba(0, 120, 212, 0.2);
+      border-color: var(--primary);
+      animation: selectBounce 0.4s ease;
+    }
+
+    .choice.correct {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      animation: correctPulse 0.6s ease;
+    }
+
+    .choice.incorrect {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #EF4444;
+      color: #EF4444;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes selectBounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes correctPulse {
+      0%, 100% { transform: scale(1); }
+      25% { transform: scale(1.08); box-shadow: 0 0 30px rgba(16, 185, 129, 0.6); }
+      75% { transform: scale(1.02); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    /* Results Screen */
+    #resultsScreen {
+      text-align: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .badge {
+      font-size: 48px;
+      font-weight: 700;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .badge.mastery { color: var(--accent-green); }
+    .badge.proficient { color: var(--primary); }
+    .badge.needs-work { color: var(--accent-yellow); }
+
+    .stat {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 15px 0;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0, 120, 212, 0.2);
+    }
+
+    .stat-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Reputation Meter */
+    .reputation-meter {
+      position: fixed;
+      bottom: 80px;
+      left: 20px;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      z-index: 100;
+      min-width: 180px;
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    }
+
+    .meter-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .meter-bar {
+      width: 100%;
+      height: 20px;
+      background: var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), var(--primary));
+      transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .meter-fill.danger {
+      background: linear-gradient(90deg, #EF4444, #DC2626);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+    }
+
+    .meter-emoji {
+      font-size: 24px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Progress Journey */
+    .progress-journey {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 2px solid var(--border);
+    }
+
+    .journey-node {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.4s ease;
+      position: relative;
+    }
+
+    .journey-node.active {
+      background: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 120, 212, 0.6);
+      animation: nodeGlow 1.5s ease-in-out infinite;
+    }
+
+    .journey-node.complete {
+      background: var(--accent-green);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+    }
+
+    .journey-connector {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      margin: 0 5px;
+      transition: all 0.5s ease;
+    }
+
+    .journey-connector.complete {
+      background: var(--accent-green);
+    }
+
+    @keyframes nodeGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(0, 120, 212, 0.6); }
+      50% { box-shadow: 0 0 30px rgba(0, 120, 212, 0.9), 0 0 40px rgba(0, 120, 212, 0.4); }
+    }
+
+    /* Stakeholder Reactions */
+    .stakeholder-reactions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .stakeholder {
+      background: var(--card-bg);
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: all 0.4s ease;
+    }
+
+    .stakeholder-emoji {
+      font-size: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .stakeholder.happy {
+      border-color: var(--accent-green);
+      animation: bounceHappy 0.6s ease;
+    }
+
+    .stakeholder.unhappy {
+      border-color: #EF4444;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes bounceHappy {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Timer Pulse when low */
+    .timer.warning {
+      animation: timerPulse 1s ease-in-out infinite;
+      border-color: var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+
+    .timer.danger {
+      animation: timerPulse 0.5s ease-in-out infinite;
+      border-color: #EF4444;
+      color: #EF4444;
+    }
+
+    @keyframes timerPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 4px 16px rgba(239, 68, 68, 0.6); }
+    }
+
+    /* Loading Screen */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--background);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      transition: opacity 0.5s ease;
+    }
+
+    #loadingScreen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-logo {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #0078D4, #50E6FF);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 30px;
+      animation: logoFloat 2s ease-in-out infinite;
+      box-shadow: 0 20px 60px rgba(0, 120, 212, 0.4);
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .loading-text {
+      color: #50E6FF;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .loading-subtext {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+    }
+
+    .channel-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════ */
+    /* DRAG AND DROP GAME STYLES */
+    /* ═══════════════════════════════════════════════════════════════ */
+
+    .drag-game-container,
+    .matching-game-container,
+    .resource-game-container,
+    .feedback-game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    /* Drop Zones */
+    .drop-zone,
+    .resource-drop-zone,
+    .feedback-drop-zone {
+      background: linear-gradient(135deg, rgba(0, 120, 212, 0.95), rgba(80, 230, 255, 0.85));
+      backdrop-filter: blur(10px);
+      border: 3px dashed var(--primary);
+      border-radius: 16px;
+      padding: 30px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+      position: sticky;
+      top: 20px;
+      z-index: 50;
+    }
+
+    .drop-zone.drag-over,
+    .channel-drop-zone.drag-over,
+    .resource-drop-zone.drag-over,
+    .feedback-drop-zone.drag-over {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+      transform: scale(1.02);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+    }
+
+    .folder-icon,
+    .resource-icon,
+    .feedback-icon {
+      font-size: 64px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .drop-zone-label {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .drop-zone-count {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .dropped-items,
+    .dropped-resource,
+    .dropped-feedback {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      min-height: 40px;
+    }
+
+    /* Task Cards (Scene 1) */
+    .card-pile {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 10px;
+      width: 100%;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 20px;
+    }
+
+    .task-card {
+      background: linear-gradient(135deg, #FFF9F0 0%, #FFEBD4 100%);
+      border: 2px solid #D4A574;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: grab;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      transform-origin: center;
+    }
+
+    .task-card:active {
+      cursor: grabbing;
+    }
+
+    .task-card.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg) scale(0.95);
+    }
+
+    .task-card:hover {
+      transform: translateY(-4px) rotate(-1deg);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-emoji {
+      font-size: 36px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .card-text {
+      font-size: 14px;
+      color: #2D2D2D;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .task-card.dropped-correct {
+      background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+      border-color: var(--accent-green);
+      animation: correctDrop 0.6s ease;
+    }
+
+    .task-card.dropped-incorrect {
+      background: linear-gradient(135deg, #FEE2E2, #FECACA);
+      border-color: #EF4444;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes correctDrop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Scenario Cards (Scene 2) */
+    .scenario-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scenario-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .scenario-label {
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 8px;
+    }
+
+    .scenario-text {
+      color: var(--text);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .channel-drop-zone {
+      background: rgba(0, 120, 212, 0.05);
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .drop-placeholder {
+      color: rgba(255, 255, 255, 0.4);
+      font-style: italic;
+    }
+
+    .channel-icons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: nowrap;
+      margin-top: 20px;
+      position: sticky;
+      top: 20px;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .channel-icon {
+      background: linear-gradient(135deg, var(--card-bg), rgba(0, 120, 212, 0.1));
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      padding: 6px 10px;
+      min-width: 80px;
+      cursor: grab;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+    }
+
+    .channel-icon:active {
+      cursor: grabbing;
+    }
+
+    .channel-icon.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .channel-icon:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 120, 212, 0.4);
+    }
+
+    .icon-large {
+      font-size: 18px;
+    }
+
+    .icon-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .channel-icon.dropped {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* Resource Cards (Scene 3 & 4) */
+    .resource-cards,
+    .action-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .resource-card,
+    .action-card {
+      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+      border: 2px solid #60A5FA;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: grab;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .resource-card:active,
+    .action-card:active {
+      cursor: grabbing;
+    }
+
+    .resource-card.dragging,
+    .action-card.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .resource-card:hover,
+    .action-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(96, 165, 250, 0.4);
+    }
+
+    .resource-card .card-emoji,
+    .action-card .card-emoji {
+      font-size: 32px;
+      text-align: center;
+    }
+
+    .resource-card .card-text,
+    .action-card .card-text {
+      font-size: 14px;
+      color: #1E3A8A;
+      line-height: 1.4;
+    }
+
+    /* Stack Builder (Scene 3) */
+    .stack-builder {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 200px;
+    }
+
+    .stack-layer {
+      background: rgba(96, 165, 250, 0.1);
+      border: 2px dashed rgba(96, 165, 250, 0.4);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .stack-layer.filled {
+      border-style: solid;
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .stack-layer .resource-card {
+      margin: 0;
+      transform: scale(0.85);
+    }
+
+    /* Priority Timeline (Scene 4) */
+    .priority-timeline {
+      display: flex;
+      gap: 16px;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .priority-slot {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(0, 120, 212, 0.05);
+      border: 2px dashed rgba(0, 120, 212, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .priority-slot.drag-over {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--accent-green);
+      transform: scale(1.02);
+    }
+
+    .priority-slot.filled {
+      border-style: solid;
+      border-color: var(--primary);
+    }
+
+    .priority-number {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .priority-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .priority-slot .action-card {
+      margin: 0;
+      transform: scale(0.9);
+      cursor: default;
+    }
+
+    @media (max-width: 768px) {
+      .scenario h2 { font-size: 18px; }
+      .choice { font-size: 14px; min-height: 52px; padding: 14px; }
+      .intro-animation { width: 250px; height: 250px; }
+      .channel-btn { font-size: 12px; padding: 10px 12px; min-width: 80px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loadingScreen">
+  <img src="../microsoft-logo.png" alt="Microsoft Logo" style="width: 120px; height: auto; margin-bottom: 20px; animation: logoFloat 2s ease-in-out infinite;" />
+  <div class="loading-text">Microsoft Teams</div>
+  <div class="loading-subtext">The Onboarding Experience</div>
+</div>
+
+<!-- Particles Container -->
+<div class="particles" id="particles"></div>
+
+<!-- Intro Screen -->
+<div id="introScreen" class="screen">
+  <lottie-player 
+    class="intro-animation"
+    src="robot-bot-3d.json" 
+    background="transparent" 
+    speed="1" 
+    loop 
+    autoplay>
+  </lottie-player>
+  
+  <h1>Microsoft Teams: The Onboarding</h1>
+  
+  <ul>
+    <li><strong>WHO:</strong> You're an HR Manager onboarding Alex, a new hire</li>
+    <li><strong>LEVEL 1:</strong> Initiative - Prepare pre-day tasks (90s)</li>
+    <li><strong>LEVEL 2:</strong> Team Connection - Match communication channels (60s)</li>
+    <li><strong>LEVEL 3:</strong> Coaching & Mentorship - Select support resources (75s)</li>
+    <li><strong>LEVEL 4:</strong> Feedback & Reflection - Choose feedback actions (75s)</li>
+    <li><strong>GOAL:</strong> Achieve Mastery across all 4 competencies</li>
+  </ul>
+
+  <button id="startBtn" class="btn" aria-label="Start Competency Validator">
+    START VALIDATOR
+  </button>
+</div>
+
+<!-- Progress Journey -->
+<div class="progress-journey" id="progressJourney" style="display: none;">
+  <div class="journey-node active" data-scene="1">🎯</div>
+  <div class="journey-connector"></div>
+  <div class="journey-node" data-scene="2">📱</div>
+  <div class="journey-connector"></div>
+  <div class="journey-node" data-scene="3">🎓</div>
+  <div class="journey-connector"></div>
+  <div class="journey-node" data-scene="4">💬</div>
+</div>
+
+<!-- Scene 1: Initiative - Drag Tasks to Folder -->
+<div id="scene1" class="screen gameplay">
+  <div class="timer" id="timer1">1:30</div>
+  
+  <div class="scenario">
+    <h2>🎯 Level 1: Initiative - Pre-Onboarding Prep</h2>
+    <p>Alex starts Monday. Drag 3 tasks that should be completed BEFORE their first day into the "Complete Before Day 1" folder.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 90 seconds | Drag 3 correct tasks</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders1">
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Manager</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> IT Team</div>
+    </div>
+  </div>
+
+  <div class="drag-game-container">
+    <!-- Drop Zone -->
+    <div class="drop-zone" id="dropZone1" data-scene="1">
+      <div class="folder-icon">📁</div>
+      <div class="drop-zone-label">Complete Before Day 1</div>
+      <div class="drop-zone-count">0 / 3 tasks</div>
+      <div class="dropped-items" id="droppedItems1"></div>
+      <button id="scene1NextBtn" class="choice-btn" style="display: none; margin-top: 16px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; font-weight: bold; padding: 14px 28px; font-size: 1.1em; animation: pulse 1s infinite; cursor: pointer; z-index: 100; position: relative; border: none;">
+        Continue ✓
+      </button>
+    </div>
+
+    <!-- Draggable Cards -->
+    <div class="card-pile">
+      <div class="task-card" draggable="true" data-id="task_a">
+        <div class="card-emoji">💻</div>
+        <div class="card-text">Set up workspace with laptop, monitor, and login credentials</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_b">
+        <div class="card-emoji">📅</div>
+        <div class="card-text">Schedule 1-on-1 intro meeting (can be done Day 1)</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_c">
+        <div class="card-emoji">👥</div>
+        <div class="card-text">Add to Microsoft Teams channels and distribution lists</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_d">
+        <div class="card-emoji">📋</div>
+        <div class="card-text">Send Day 1 welcome survey (first-day task)</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_e">
+        <div class="card-emoji">📦</div>
+        <div class="card-text">Prepare welcome packet with badge, handbook, and resources</div>
+      </div>
+      <div class="task-card" draggable="true" data-id="task_f">
+        <div class="card-emoji">📊</div>
+        <div class="card-text">Conduct first performance check-in (Week 1 task)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 2: Team Connection - Drag Channels to Scenarios -->
+<div id="scene2" class="screen gameplay">
+  <div class="timer" id="timer2">1:00</div>
+  
+  <div class="scenario">
+    <h2>📱 Level 2: Team Connection - Choose the Right Channel</h2>
+    <p>Drag the correct communication method to each scenario card.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 60 seconds | Match all 3 scenarios</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders2">
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Team</div>
+    </div>
+  </div>
+
+  <div class="matching-game-container">
+    <!-- Scenario Cards with Drop Zones -->
+    <div class="scenario-cards">
+      <div class="scenario-card" data-scenario="a">
+        <div class="scenario-label">Scenario A:</div>
+        <div class="scenario-text">Alex needs urgent clarification on meeting room location for client call in 10 min</div>
+        <div class="channel-drop-zone" data-scenario="a">
+          <span class="drop-placeholder">Drop channel here</span>
+        </div>
+      </div>
+
+      <div class="scenario-card" data-scenario="b">
+        <div class="scenario-label">Scenario B:</div>
+        <div class="scenario-text">Sending Alex formal benefits enrollment documents and deadlines</div>
+        <div class="channel-drop-zone" data-scenario="b">
+          <span class="drop-placeholder">Drop channel here</span>
+        </div>
+      </div>
+
+      <div class="scenario-card" data-scenario="c">
+        <div class="scenario-label">Scenario C:</div>
+        <div class="scenario-text">Quick check-in: "Did you find the parking pass?"</div>
+        <div class="channel-drop-zone" data-scenario="c">
+          <span class="drop-placeholder">Drop channel here</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draggable Channel Icons -->
+    <div class="channel-icons">
+      <div class="channel-icon" draggable="true" data-channel="teams">
+        <div class="icon-large">📞</div>
+        <div class="icon-label">Teams<br>Call</div>
+      </div>
+      <div class="channel-icon" draggable="true" data-channel="chat">
+        <div class="icon-large">💬</div>
+        <div class="icon-label">Quick<br>Chat</div>
+      </div>
+      <div class="channel-icon" draggable="true" data-channel="email">
+        <div class="icon-large">📧</div>
+        <div class="icon-label">Email</div>
+      </div>
+    </div>
+    
+    <button id="submitScene2" class="choice-btn" style="display: none; margin-top: 24px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; font-weight: bold; padding: 14px 28px; font-size: 1.1em; animation: pulse 1s infinite; cursor: pointer; border: none;">
+      Continue ✓
+    </button>
+  </div>
+</div>
+
+<!-- Scene 3: Coaching & Mentorship - Build Support Stack -->
+<div id="scene3" class="screen gameplay">
+  <div class="timer" id="timer3">1:15</div>
+  
+  <div class="scenario">
+    <h2>🎓 Level 3: Coaching & Mentorship - Build Support Stack</h2>
+    <p>Alex (Week 2) says: "I'm struggling to understand our project management workflow." Build the best support stack by dragging 3 resources.</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Drag 3 resources to build your support stack</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders3">
+      <div class="stakeholder"><span class="stakeholder-emoji">😕</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Mentor</div>
+    </div>
+  </div>
+
+  <div class="resource-game-container">
+    <!-- Stack Builder Zone -->
+    <div class="resource-drop-zone" id="resourceDropZone">
+      <div class="resource-icon">🎯</div>
+      <div class="drop-zone-label">Support Stack Builder</div>
+      <div class="drop-zone-count" id="stackCount">0 / 3 Resources</div>
+      <div class="stack-builder" id="stackBuilder"></div>
+    </div>
+    
+    <button class="btn" id="submitScene3" style="display: none;">Submit Stack</button>
+
+    <!-- Resource Cards -->
+    <div class="resource-cards">
+      <div class="resource-card" draggable="true" data-id="mentor_a" data-value="poor">
+        <div class="card-emoji">🤷</div>
+        <div class="card-text">Tell them to "just figure it out, everyone learns eventually"</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_b" data-value="good">
+        <div class="card-emoji">📚</div>
+        <div class="card-text">Documentation + Mentor Connection</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_c" data-value="poor">
+        <div class="card-emoji">🔨</div>
+        <div class="card-text">Complete their work for them</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_d" data-value="poor">
+        <div class="card-emoji">📆</div>
+        <div class="card-text">Wait 3 months for formal training</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_e" data-value="good">
+        <div class="card-emoji">👥</div>
+        <div class="card-text">Pair Programming Session</div>
+      </div>
+      <div class="resource-card" draggable="true" data-id="mentor_f" data-value="good">
+        <div class="card-emoji">📖</div>
+        <div class="card-text">Quick Reference Guide</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 4: Feedback & Reflection - Priority Timeline -->
+<div id="scene4" class="screen gameplay">
+  <div class="timer" id="timer4">1:15</div>
+  
+  <div class="scenario">
+    <h2>💬 Level 4: Feedback & Reflection - Action Sequencing</h2>
+    <p>After Alex's 30-day review, they received constructive feedback on time management. Drag actions into the timeline in priority order (what to do first, second, third).</p>
+    <p style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;">⏱️ 75 seconds | Drag actions into priority slots</p>
+    
+    <div class="stakeholder-reactions" id="stakeholders4">
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> Alex</div>
+      <div class="stakeholder"><span class="stakeholder-emoji">🤔</span> HR Team</div>
+    </div>
+  </div>
+
+  <div class="feedback-game-container">
+    <!-- Priority Timeline -->
+    <div class="priority-timeline">
+      <div class="priority-slot" data-position="1">
+        <div class="priority-number">1st</div>
+        <div class="priority-label">Do This First</div>
+        <div class="priority-content" id="priority1"></div>
+      </div>
+      <div class="priority-slot" data-position="2">
+        <div class="priority-number">2nd</div>
+        <div class="priority-label">Do This Second</div>
+        <div class="priority-content" id="priority2"></div>
+      </div>
+      <div class="priority-slot" data-position="3">
+        <div class="priority-number">3rd</div>
+        <div class="priority-label">Do This Third</div>
+        <div class="priority-content" id="priority3"></div>
+      </div>
+    </div>
+    
+    <button class="btn" id="submitScene4" style="display: none;">Submit Timeline</button>
+
+    <!-- Action Cards -->
+    <div class="action-cards">
+      <div class="action-card" draggable="true" data-id="feedback_a">
+        <div class="card-emoji">📅</div>
+        <div class="card-text">Schedule immediate 1-on-1 check-in</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_b">
+        <div class="card-emoji">📊</div>
+        <div class="card-text">Create action plan with specific goals</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_c">
+        <div class="card-emoji">🎯</div>
+        <div class="card-text">Offer time management tools/resources</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_d">
+        <div class="card-emoji">📧</div>
+        <div class="card-text">Send generic follow-up email</div>
+      </div>
+      <div class="action-card" draggable="true" data-id="feedback_e">
+        <div class="card-emoji">📆</div>
+        <div class="card-text">Schedule 2-week progress review</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Results Screen -->
+<div id="resultsScreen" class="screen">
+  <div class="badge" id="levelBadge">CALCULATING...</div>
+  <div class="stat">
+    <div class="stat-value" id="accuracyValue">--</div>
+    <div class="stat-label">Overall Accuracy</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="timeValue">--</div>
+    <div class="stat-label">Total Time</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="xpValue">--</div>
+    <div class="stat-label">XP Earned</div>
+  </div>
+  <button class="btn" onclick="location.reload()" aria-label="Play Again">PLAY AGAIN</button>
+</div>
+
+<script>
+console.log('Script loaded successfully');
+// ═══════════════════════════════════════════════════════════════
+// EMBEDDED CONFIGURATION (v3.1 BASE LAYER 1)
+// ═══════════════════════════════════════════════════════════════
+
+window.__CONFIG__ = {
+  mode: "validator",
+  competencies: {
+    scene1: { 
+      name: "Planning & Organization: Initiative", 
+      time: 90, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 75 
+    },
+    scene2: { 
+      name: "Communication & Collaboration: Team Connection", 
+      time: 60, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 60 
+    },
+    scene3: { 
+      name: "Learning Agility: Coaching & Mentorship", 
+      time: 75, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 75 
+    },
+    scene4: { 
+      name: "Growth Mindset: Feedback & Reflection", 
+      time: 75, 
+      threshold_proficient: 0.90, 
+      threshold_mastery: 0.95, 
+      mastery_time: 75 
+    }
+  },
+  xp: {
+    L1: 100,  // Needs Work
+    L2: 250,  // Proficient
+    L3: 500   // Mastery
+  }
+};
+
+window.__GOLD_KEY__ = {
+  scene1: ["task_a", "task_c", "task_e"],  // Pre-day prep tasks
+  scene2: { a: "chat", b: "email", c: "chat" },  // Channel matching
+  scene3: ["mentor_b", "mentor_e", "mentor_f"],  // Best support stack (must include at least 2 good resources)
+  scene4: ["feedback_a", "feedback_b", "feedback_e"]  // Priority order: 1st = immediate check-in, 2nd = action plan, 3rd = progress review
+};
+
+window.__EDGE__ = {
+  triggered: false,
+  recovered: false,
+  score: 0
+};
+
+window.__RESULT__ = {
+  accuracy: 0,
+  time_s: 0,
+  level: 0,
+  passed: false,
+  scene_results: []
+};
+
+window.__PROOF__ = null;
+
+// ═══════════════════════════════════════════════════════════════
+// SOUND EFFECTS
+// ═══════════════════════════════════════════════════════════════
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+// Voice synthesis function
+function speakWelcome() {
+  if ('speechSynthesis' in window && !gameState.hasSpokenWelcome) {
+    gameState.hasSpokenWelcome = true;
+    const utterance = new SpeechSynthesisUtterance('Welcome to Microsoft Teams: The Onboarding');
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    // Wait a bit for voices to load
+    setTimeout(() => {
+      const voices = speechSynthesis.getVoices();
+      // Try to use a good English voice
+      const englishVoice = voices.find(voice => voice.lang.startsWith('en-'));
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      speechSynthesis.speak(utterance);
+    }, 100);
+  }
+}
+
+function playSound(type) {
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  if (type === 'click') {
+    oscillator.frequency.value = 800;
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.1);
+  } else if (type === 'success') {
+    oscillator.frequency.value = 600;
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.2);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    oscillator.stop(audioCtx.currentTime + 0.2);
+  } else if (type === 'error') {
+    oscillator.frequency.value = 400;
+    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    oscillator.stop(audioCtx.currentTime + 0.2);
+  } else if (type === 'coins') {
+    // Coin shower sound - cascading chimes
+    [800, 1000, 1200, 1400, 1600].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.08 + 0.25);
+      osc.start(audioCtx.currentTime + i * 0.08);
+      osc.stop(audioCtx.currentTime + i * 0.08 + 0.25);
+    });
+  } else if (type === 'victory') {
+    // Play a sequence of notes
+    [600, 750, 900, 1200].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.3);
+      osc.start(audioCtx.currentTime + i * 0.1);
+      osc.stop(audioCtx.currentTime + i * 0.1 + 0.3);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════════════════════
+
+let gameState = {
+  startTime: 0,
+  sceneStartTimes: {},
+  decisions: [],
+  currentScene: 0,
+  timerInterval: null,
+  scene1Selections: new Set(),
+  scene2Selections: {},
+  reputation: 100,
+  hasSpokenWelcome: false
+};
+
+// Telegram Mini-App Integration
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+}
+
+function createParticles(x, y, color) {
+  const isCorrect = color === 'var(--accent-green)' || color === '#10B981';
+  
+  if (isCorrect && typeof confetti === 'function') {
+    // Gold confetti burst for correct answers
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { 
+        x: x / window.innerWidth, 
+        y: y / window.innerHeight 
+      },
+      colors: ['#FFD700', '#FFA500', '#FFED4E', '#FFB800', '#FFC107'],
+      shapes: ['circle'],
+      scalar: 1.5,
+      gravity: 1,
+      ticks: 300,
+      startVelocity: 30
+    });
+  } else {
+    // Red particles for incorrect answers
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 12; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      particle.style.background = color;
+      particle.style.animationDelay = (i * 0.05) + 's';
+      const angle = (Math.PI * 2 * i) / 12;
+      const distance = 50 + Math.random() * 50;
+      particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+      particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+      container.appendChild(particle);
+      setTimeout(() => particle.remove(), 1000);
+    }
+  }
+}
+
+// Create coin particles shooting from robot using Canvas Confetti
+function createCoinShower() {
+  const robotArea = document.querySelector('.intro-animation');
+  const rect = robotArea.getBoundingClientRect();
+  const originX = (rect.left + rect.width / 2) / window.innerWidth;
+  const originY = (rect.top + rect.height / 2) / window.innerHeight;
+
+  // Play coin sound
+  playSound('coins');
+
+  if (typeof confetti === 'function') {
+    // Burst 1
+    confetti({
+      particleCount: 40,
+      spread: 70,
+      origin: { x: originX, y: originY },
+      colors: ['#FFD700', '#FFA500', '#FFED4E', '#FFB800', '#FFC107'],
+      shapes: ['circle'],
+      scalar: 1.5,
+      gravity: 1.2,
+      startVelocity: 35,
+      ticks: 300
+    });
+    
+    // Burst 2 - delayed for wave effect
+    setTimeout(() => {
+      confetti({
+        particleCount: 30,
+        spread: 60,
+        origin: { x: originX, y: originY },
+        colors: ['#FFD700', '#FFA500', '#FFED4E'],
+        shapes: ['circle'],
+        scalar: 1.3,
+        gravity: 1,
+        startVelocity: 30,
+        ticks: 250
+      });
+    }, 150);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const loadingScreen = document.getElementById('loadingScreen');
+  const introScreen = document.getElementById('introScreen');
+  
+  setTimeout(() => {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+      introScreen.classList.add('active');
+      speakWelcome();
+      setTimeout(() => createCoinShower(), 500);
+    }, 500);
+  }, 2000);
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 1: DRAG TASKS TO FOLDER
+  // ═══════════════════════════════════════════════════════════════
+  
+  const dropZone1 = document.getElementById('dropZone1');
+  const droppedItems1 = document.getElementById('droppedItems1');
+  let scene1Dropped = new Set();
+  
+  // Auto-scroll functionality during drag
+  let autoScrollInterval = null;
+  
+  document.addEventListener('drag', function(e) {
+    const scrollSpeed = 10;
+    const scrollZone = 100; // pixels from edge to trigger scroll
+    
+    if (e.clientY < scrollZone) {
+      // Near top - scroll up
+      if (!autoScrollInterval) {
+        autoScrollInterval = setInterval(() => {
+          window.scrollBy(0, -scrollSpeed);
+        }, 16);
+      }
+    } else if (e.clientY > window.innerHeight - scrollZone) {
+      // Near bottom - scroll down
+      if (!autoScrollInterval) {
+        autoScrollInterval = setInterval(() => {
+          window.scrollBy(0, scrollSpeed);
+        }, 16);
+      }
+    } else {
+      // Not in scroll zone - stop scrolling
+      if (autoScrollInterval) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+      }
+    }
+  });
+  
+  document.addEventListener('dragend', function() {
+    if (autoScrollInterval) {
+      clearInterval(autoScrollInterval);
+      autoScrollInterval = null;
+    }
+  });
+  
+  // Drag event handlers for Scene 1 tasks
+  document.querySelectorAll('#scene1 .task-card').forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.dataset.id);
+      e.dataTransfer.setData('type', 'task');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  // Drop zone handlers
+  [dropZone1].forEach(zone => {
+    zone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      this.classList.add('drag-over');
+    });
+    
+    zone.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+    });
+    
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      
+      const taskId = e.dataTransfer.getData('text/plain');
+      const type = e.dataTransfer.getData('type');
+      
+      if (type !== 'task') return;
+      
+      // Only allow 3 tasks
+      if (scene1Dropped.size >= 3 && !scene1Dropped.has(taskId)) {
+        playSound('error');
+        return;
+      }
+      
+      scene1Dropped.add(taskId);
+      gameState.scene1Selections = scene1Dropped;
+      
+      // Just mark the card as selected (don't move it)
+      const cardElement = document.querySelector(`#scene1 .task-card[data-id="${taskId}"]`);
+      if (cardElement) {
+        cardElement.style.opacity = '0.5';
+        cardElement.style.border = '3px solid #4CAF50';
+        cardElement.draggable = false;
+      }
+      
+      // Update counter
+      document.querySelector('#dropZone1 .drop-zone-count').textContent = 
+        `${scene1Dropped.size} / 3 tasks`;
+      
+      playSound('success');
+      
+      // Check if done
+      if (scene1Dropped.size === 3) {
+        const nextBtn = document.getElementById('scene1NextBtn');
+        nextBtn.style.display = 'block';
+        nextBtn.onclick = () => {
+          console.log('Continue button clicked!');
+          handleScene1Submit();
+        };
+      }
+    });
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 2: DRAG CHANNELS TO SCENARIOS
+  // ═══════════════════════════════════════════════════════════════
+  
+  const channelDropZones = document.querySelectorAll('.channel-drop-zone');
+  let scene2Matches = {};
+  
+  // Channel icons drag handlers
+  let autoScrollInterval2 = null;
+  
+  document.querySelectorAll('#scene2 .channel-icon').forEach(icon => {
+    icon.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'copy';
+      e.dataTransfer.setData('channel', this.dataset.channel);
+      e.dataTransfer.setData('type', 'channel');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    icon.addEventListener('drag', function(e) {
+      // Auto-scroll when near top or bottom
+      const scrollZone = 100;
+      const scrollSpeed = 10;
+      
+      if (e.clientY < scrollZone && e.clientY > 0) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, -scrollSpeed);
+          }, 16);
+        }
+      } else if (e.clientY > window.innerHeight - scrollZone) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, scrollSpeed);
+          }, 16);
+        }
+      } else {
+        if (autoScrollInterval2) {
+          clearInterval(autoScrollInterval2);
+          autoScrollInterval2 = null;
+        }
+      }
+    });
+    
+    icon.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+      if (autoScrollInterval2) {
+        clearInterval(autoScrollInterval2);
+        autoScrollInterval2 = null;
+      }
+    });
+  });
+  
+  // Scenario drop zones
+  channelDropZones.forEach(zone => {
+    zone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      this.classList.add('drag-over');
+      
+      // Auto-scroll when dragging over drop zones near edges
+      const scrollZone = 100;
+      const scrollSpeed = 10;
+      
+      if (e.clientY < scrollZone && e.clientY > 0) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, -scrollSpeed);
+          }, 16);
+        }
+      } else if (e.clientY > window.innerHeight - scrollZone) {
+        if (!autoScrollInterval2) {
+          autoScrollInterval2 = setInterval(() => {
+            window.scrollBy(0, scrollSpeed);
+          }, 16);
+        }
+      } else {
+        if (autoScrollInterval2) {
+          clearInterval(autoScrollInterval2);
+          autoScrollInterval2 = null;
+        }
+      }
+    });
+    
+    zone.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+      if (autoScrollInterval2) {
+        clearInterval(autoScrollInterval2);
+        autoScrollInterval2 = null;
+      }
+    });
+    
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      
+      if (autoScrollInterval2) {
+        clearInterval(autoScrollInterval2);
+        autoScrollInterval2 = null;
+      }
+      
+      const channel = e.dataTransfer.getData('channel');
+      const type = e.dataTransfer.getData('type');
+      const scenario = this.dataset.scenario;
+      
+      if (type !== 'channel') return;
+      
+      // Update match
+      scene2Matches[scenario] = channel;
+      gameState.scene2Selections = scene2Matches;
+      
+      // Show matched icon in drop zone
+      const iconMap = {
+        'teams': '📞 Teams',
+        'chat': '💬 Chat',
+        'email': '📧 Email'
+      };
+      
+      this.innerHTML = `<div style="font-size: 24px;">${iconMap[channel]}</div>`;
+      this.style.background = 'rgba(16, 185, 129, 0.2)';
+      this.style.borderColor = 'var(--accent-green)';
+      
+      playSound('success');
+      
+      // Check if all matched
+      if (Object.keys(scene2Matches).length === 3) {
+        const submitBtn = document.getElementById('submitScene2');
+        submitBtn.style.display = 'block';
+        submitBtn.onclick = () => handleScene2Submit();
+      }
+    });
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 3: BUILD SUPPORT STACK
+  // ═══════════════════════════════════════════════════════════════
+  
+  const resourceDropZone = document.getElementById('resourceDropZone');
+  const stackBuilder = document.getElementById('stackBuilder');
+  const stackCount = document.getElementById('stackCount');
+  let scene3Stack = [];
+  
+  document.querySelectorAll('#scene3 .resource-card').forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('resourceId', this.dataset.id);
+      e.dataTransfer.setData('resourceValue', this.dataset.value);
+      e.dataTransfer.setData('resourceEmoji', this.querySelector('.card-emoji').textContent);
+      e.dataTransfer.setData('resourceText', this.querySelector('.card-text').textContent);
+      e.dataTransfer.setData('type', 'resource');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  resourceDropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+  });
+  
+  resourceDropZone.addEventListener('dragleave', function() {
+    this.classList.remove('drag-over');
+  });
+  
+  resourceDropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    
+    const resourceId = e.dataTransfer.getData('resourceId');
+    const resourceEmoji = e.dataTransfer.getData('resourceEmoji');
+    const resourceText = e.dataTransfer.getData('resourceText');
+    const type = e.dataTransfer.getData('type');
+    
+    if (type !== 'resource' || scene3Stack.length >= 3) return;
+    if (scene3Stack.includes(resourceId)) return;
+    
+    scene3Stack.push(resourceId);
+    playSound('success');
+    
+    // Create mini card for stack
+    const miniCard = document.createElement('div');
+    miniCard.className = 'resource-card';
+    miniCard.innerHTML = `
+      <div class="card-emoji">${resourceEmoji}</div>
+      <div class="card-text" style="font-size: 12px;">${resourceText}</div>
+    `;
+    
+    const layer = document.createElement('div');
+    layer.className = 'stack-layer filled';
+    layer.appendChild(miniCard);
+    stackBuilder.appendChild(layer);
+    
+    // Update count
+    stackCount.textContent = `${scene3Stack.length} / 3 Resources`;
+    
+    // Hide the original card
+    document.querySelector(`#scene3 .resource-card[data-id="${resourceId}"]`).style.opacity = '0.3';
+    document.querySelector(`#scene3 .resource-card[data-id="${resourceId}"]`).setAttribute('draggable', 'false');
+    
+    // Show submit button when stack is complete
+    if (scene3Stack.length === 3) {
+      document.getElementById('submitScene3').style.display = 'block';
+    }
+  });
+  
+  document.getElementById('submitScene3').addEventListener('click', function() {
+    handleScene3Submit();
+  });
+  
+  // ═══════════════════════════════════════════════════════════════
+  // SCENE 4: PRIORITY TIMELINE SEQUENCING
+  // ═══════════════════════════════════════════════════════════════
+  
+  let scene4Timeline = { 1: null, 2: null, 3: null };
+  
+  document.querySelectorAll('#scene4 .action-card').forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('actionId', this.dataset.id);
+      e.dataTransfer.setData('actionEmoji', this.querySelector('.card-emoji').textContent);
+      e.dataTransfer.setData('actionText', this.querySelector('.card-text').textContent);
+      e.dataTransfer.setData('type', 'action');
+      this.classList.add('dragging');
+      playSound('click');
+    });
+    
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+    });
+  });
+  
+  document.querySelectorAll('.priority-slot').forEach(slot => {
+    slot.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      this.classList.add('drag-over');
+    });
+    
+    slot.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+    });
+    
+    slot.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      
+      const actionId = e.dataTransfer.getData('actionId');
+      const actionEmoji = e.dataTransfer.getData('actionEmoji');
+      const actionText = e.dataTransfer.getData('actionText');
+      const type = e.dataTransfer.getData('type');
+      const position = parseInt(this.dataset.position);
+      
+      if (type !== 'action') return;
+      if (scene4Timeline[position]) return; // Slot already filled
+      
+      // Check if this action is already placed elsewhere
+      const alreadyPlaced = Object.values(scene4Timeline).includes(actionId);
+      if (alreadyPlaced) return;
+      
+      scene4Timeline[position] = actionId;
+      playSound('success');
+      
+      // Create mini card for slot
+      const miniCard = document.createElement('div');
+      miniCard.className = 'action-card';
+      miniCard.innerHTML = `
+        <div class="card-emoji">${actionEmoji}</div>
+        <div class="card-text" style="font-size: 12px;">${actionText}</div>
+      `;
+      
+      const content = document.getElementById(`priority${position}`);
+      content.appendChild(miniCard);
+      this.classList.add('filled');
+      
+      // Hide the original card
+      document.querySelector(`#scene4 .action-card[data-id="${actionId}"]`).style.opacity = '0.3';
+      document.querySelector(`#scene4 .action-card[data-id="${actionId}"]`).setAttribute('draggable', 'false');
+      
+      // Show submit button when all slots are filled
+      const filledSlots = Object.values(scene4Timeline).filter(v => v !== null).length;
+      if (filledSlots === 3) {
+        document.getElementById('submitScene4').style.display = 'block';
+      }
+    });
+  });
+  
+  document.getElementById('submitScene4').addEventListener('click', function() {
+    handleScene4Submit();
+  });
+  
+  // Start button handler
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) {
+    startBtn.addEventListener('click', function() {
+      playSound('click');
+      document.getElementById('introScreen').classList.remove('active');
+      document.getElementById('scene1').classList.add('active');
+      startGame();
+    });
+  }
+});
+
+function updateReputation(correct) {
+  if (correct) {
+    gameState.reputation = Math.min(100, gameState.reputation + 5);
+    playSound('success');
+  } else {
+    gameState.reputation = Math.max(0, gameState.reputation - 15);
+    playSound('error');
+  }
+  
+  const meterFill = document.getElementById('meterFill');
+  const meterEmoji = document.getElementById('meterEmoji');
+  
+  // Only update if elements exist
+  if (meterFill && meterEmoji) {
+    meterFill.style.width = gameState.reputation + '%';
+    
+    if (gameState.reputation < 40) {
+      meterFill.classList.add('danger');
+      meterEmoji.textContent = '😰';
+    } else if (gameState.reputation < 70) {
+      meterFill.classList.remove('danger');
+      meterEmoji.textContent = '😐';
+    } else {
+      meterFill.classList.remove('danger');
+      meterEmoji.textContent = '😊';
+    }
+  }
+}
+
+function updateStakeholders(sceneNum, correct) {
+  const stakeholders = document.querySelectorAll(`#stakeholders${sceneNum} .stakeholder`);
+  stakeholders.forEach(s => {
+    s.classList.remove('happy', 'unhappy');
+    s.classList.add(correct ? 'happy' : 'unhappy');
+    const emoji = s.querySelector('.stakeholder-emoji');
+    emoji.textContent = correct ? '😊' : '😟';
+  });
+}
+
+function updateProgressJourney() {
+  const nodes = document.querySelectorAll('.journey-node');
+  const connectors = document.querySelectorAll('.journey-connector');
+  
+  nodes.forEach((node, i) => {
+    const sceneNum = i + 1;
+    if (sceneNum < gameState.currentScene) {
+      node.classList.add('complete');
+      node.classList.remove('active');
+    } else if (sceneNum === gameState.currentScene) {
+      node.classList.add('active');
+      node.classList.remove('complete');
+    }
+  });
+  
+  connectors.forEach((conn, i) => {
+    if (i + 1 < gameState.currentScene) {
+      conn.classList.add('complete');
+    }
+  });
+}
+
+function startGame() {
+  gameState.startTime = Date.now();
+  gameState.sceneStartTimes['scene1'] = Date.now();
+  gameState.currentScene = 1;
+  gameState.reputation = 100;
+  
+  document.getElementById('progressJourney').style.display = 'flex';
+  updateProgressJourney();
+  
+  startTimer();
+  logEvent('session.start', { timestamp: new Date().toISOString() });
+}
+
+function startTimer() {
+  let elapsed = 0;
+  gameState.timerInterval = setInterval(() => {
+    elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+    
+    // Update all timers
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`timer${i}`);
+      if (el && el.closest('.screen').classList.contains('active')) {
+        const sceneConfig = window.__CONFIG__.competencies[`scene${i}`];
+        const sceneElapsed = gameState.sceneStartTimes[`scene${i}`] 
+          ? Math.floor((Date.now() - gameState.sceneStartTimes[`scene${i}`]) / 1000)
+          : 0;
+        const remaining = Math.max(0, sceneConfig.time - sceneElapsed);
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        el.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Add warning/danger classes based on time
+        el.classList.remove('warning', 'danger');
+        if (remaining <= 10) {
+          el.classList.add('danger');
+        } else if (remaining <= 20) {
+          el.classList.add('warning');
+        }
+      }
+    }
+  }, 1000);
+}
+
+function handleScene1Submit() {
+  console.log('=== HANDLE SCENE 1 SUBMIT ===');
+  console.log('handleScene1Submit called', gameState.scene1Selections);
+  const goldKey = window.__GOLD_KEY__.scene1;
+  const selected = Array.from(gameState.scene1Selections);
+  
+  // Check correctness
+  const correct = selected.length === goldKey.length && 
+                  selected.every(t => goldKey.includes(t)) &&
+                  goldKey.every(t => selected.includes(t));
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene1']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 1,
+    correct: correct,
+    time: timeSpent,
+    selections: selected
+  });
+  
+  // Update reputation and stakeholders
+  updateReputation(correct);
+  updateStakeholders(1, correct);
+  
+  // Visual feedback with particles for drag-and-drop
+  const droppedItems = document.querySelectorAll('#droppedItems1 .task-card');
+  droppedItems.forEach(card => {
+    const taskId = card.dataset.id;
+    const rect = card.getBoundingClientRect();
+    
+    if (goldKey.includes(taskId)) {
+      card.classList.add('correct');
+      card.style.borderColor = '#4CAF50';
+      card.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))';
+      // Show gold confetti for correct choices
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 30,
+          spread: 50,
+          origin: { 
+            x: (rect.left + rect.width / 2) / window.innerWidth, 
+            y: (rect.top + rect.height / 2) / window.innerHeight 
+          },
+          colors: ['#FFD700', '#FFA500', '#FFED4E'],
+          shapes: ['circle'],
+          scalar: 1.2,
+          gravity: 1,
+          ticks: 200
+        });
+      }
+    } else {
+      card.classList.add('incorrect');
+      card.style.borderColor = '#f44336';
+      card.style.background = 'linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(229, 57, 53, 0.3))';
+    }
+  });
+  
+  const nextBtn = document.getElementById('scene1NextBtn');
+  if (nextBtn) nextBtn.style.display = 'none';
+  
+  logEvent('scene.complete', { scene: 1, correct, time: timeSpent });
+  
+  console.log('Scene 1 complete, scheduling transition in 2 seconds');
+  setTimeout(() => {
+    console.log('=== TIMEOUT FIRED - MOVING TO SCENE 2 ===');
+    moveToNextScene();
+  }, 2000);
+}
+
+function handleScene2Submit() {
+  const goldKey = window.__GOLD_KEY__.scene2;
+  let correctCount = 0;
+  
+  Object.keys(goldKey).forEach(scenario => {
+    const userChoice = gameState.scene2Selections[scenario];
+    const correctChoice = goldKey[scenario];
+    const isCorrect = userChoice === correctChoice;
+    
+    if (isCorrect) correctCount++;
+    
+    // Visual feedback
+    document.querySelectorAll(`#scene2 [data-scenario="${scenario}"]`).forEach(btn => {
+      if (btn.dataset.channel === correctChoice) {
+        btn.classList.add('correct');
+      } else if (btn.dataset.channel === userChoice && !isCorrect) {
+        btn.classList.add('incorrect');
+      }
+      btn.style.pointerEvents = 'none';
+    });
+  });
+  
+  const correct = correctCount === 3;
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene2']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 2,
+    correct: correct,
+    time: timeSpent,
+    selections: gameState.scene2Selections
+  });
+  
+  // Update reputation and stakeholders
+  updateReputation(correct);
+  updateStakeholders(2, correct);
+  
+  document.getElementById('submitScene2').style.display = 'none';
+  
+  logEvent('scene.complete', { scene: 2, correct, time: timeSpent });
+  
+  setTimeout(() => moveToNextScene(), 2000);
+}
+
+function handleScene3Submit() {
+  console.log('=== HANDLE SCENE 3 SUBMIT ===', scene3Stack);
+  const goldKey = window.__GOLD_KEY__.scene3;
+  
+  // Check how many "good" resources were selected
+  const goodResourcesSelected = scene3Stack.filter(id => {
+    const card = document.querySelector(`#scene3 .resource-card[data-id="${id}"]`);
+    return card && card.dataset.value === 'good';
+  }).length;
+  
+  // Correct if at least 2 out of 3 are good resources
+  const isCorrect = goodResourcesSelected >= 2;
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene3']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 3,
+    stack: scene3Stack,
+    correct: isCorrect,
+    time: timeSpent
+  });
+  
+  // Update reputation and stakeholders
+  updateReputation(isCorrect);
+  updateStakeholders(3, isCorrect);
+  
+  // Visual feedback on stacked cards
+  document.querySelectorAll('#stackBuilder .resource-card').forEach((card, index) => {
+    const stackedId = scene3Stack[index];
+    const originalCard = document.querySelector(`#scene3 .resource-card[data-id="${stackedId}"]`);
+    
+    if (originalCard && originalCard.dataset.value === 'good') {
+      card.style.borderColor = '#4CAF50';
+      card.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))';
+    } else {
+      card.style.borderColor = '#f44336';
+      card.style.background = 'linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(229, 57, 53, 0.3))';
+    }
+  });
+  
+  // Show confetti if correct
+  if (isCorrect && typeof confetti === 'function') {
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 },
+      colors: ['#FFD700', '#FFA500', '#FFED4E'],
+      shapes: ['circle'],
+      scalar: 1.3
+    });
+  }
+  
+  document.getElementById('submitScene3').style.display = 'none';
+  
+  logEvent('scene.complete', { scene: 3, stack: scene3Stack, correct: isCorrect, time: timeSpent });
+  
+  setTimeout(() => moveToNextScene(), 2000);
+}
+
+function handleScene4Submit() {
+  console.log('=== HANDLE SCENE 4 SUBMIT ===', scene4Timeline);
+  const goldKey = window.__GOLD_KEY__.scene4;
+  
+  // Check if timeline matches correct order
+  const userOrder = [scene4Timeline[1], scene4Timeline[2], scene4Timeline[3]];
+  const isCorrect = userOrder[0] === goldKey[0] && 
+                     userOrder[1] === goldKey[1] && 
+                     userOrder[2] === goldKey[2];
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes['scene4']) / 1000);
+  
+  gameState.decisions.push({
+    scene: 4,
+    timeline: userOrder,
+    correct: isCorrect,
+    time: timeSpent
+  });
+  
+  // Update reputation and stakeholders
+  updateReputation(isCorrect);
+  updateStakeholders(4, isCorrect);
+  
+  // Visual feedback on each slot
+  [1, 2, 3].forEach(position => {
+    const slot = document.querySelector(`.priority-slot[data-position="${position}"]`);
+    const card = slot.querySelector('.action-card');
+    const userChoice = scene4Timeline[position];
+    const correctChoice = goldKey[position - 1];
+    
+    if (card) {
+      if (userChoice === correctChoice) {
+        card.style.borderColor = '#4CAF50';
+        card.style.background = 'linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.3))';
+      } else {
+        card.style.borderColor = '#f44336';
+        card.style.background = 'linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(229, 57, 53, 0.3))';
+      }
+    }
+  });
+  
+  // Show confetti if correct
+  if (isCorrect && typeof confetti === 'function') {
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { x: 0.5, y: 0.5 },
+      colors: ['#FFD700', '#FFA500', '#FFED4E'],
+      shapes: ['circle'],
+      scalar: 1.3
+    });
+  }
+  
+  document.getElementById('submitScene4').style.display = 'none';
+  
+  logEvent('scene.complete', { scene: 4, timeline: userOrder, correct: isCorrect, time: timeSpent });
+  
+  setTimeout(() => showResults(), 2000);
+}
+
+function handleChoice(button) {
+  console.log('handleChoice called for button:', button.dataset.id);
+  const choiceId = button.dataset.id;
+  const sceneNum = parseInt(button.closest('.screen').id.replace('scene', ''));
+  console.log('Scene number:', sceneNum);
+  
+  // Disable all choices
+  button.closest('.choices').querySelectorAll('.choice').forEach(b => {
+    b.classList.remove('selected');
+    b.style.pointerEvents = 'none';
+  });
+  button.classList.add('selected');
+
+  // Check if correct
+  const goldKey = window.__GOLD_KEY__[`scene${sceneNum}`];
+  console.log('Gold key:', goldKey, 'User choice:', choiceId);
+  const isCorrect = choiceId === goldKey;
+  
+  button.classList.add(isCorrect ? 'correct' : 'incorrect');
+  
+  // Update reputation and stakeholders
+  updateReputation(isCorrect);
+  updateStakeholders(sceneNum, isCorrect);
+  
+  // Particles
+  const rect = button.getBoundingClientRect();
+  if (isCorrect) {
+    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 'var(--accent-green)');
+  } else {
+    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#EF4444');
+  }
+  
+  const timeSpent = Math.floor((Date.now() - gameState.sceneStartTimes[`scene${sceneNum}`]) / 1000);
+  
+  gameState.decisions.push({
+    scene: sceneNum,
+    choice: choiceId,
+    correct: isCorrect,
+    time: timeSpent
+  });
+
+  logEvent('scene.complete', { scene: sceneNum, choice: choiceId, correct: isCorrect, time: timeSpent });
+
+  console.log('Scheduling moveToNextScene in 1500ms');
+  setTimeout(() => {
+    console.log('Timeout fired, calling moveToNextScene');
+    moveToNextScene();
+  }, 1500);
+}
+
+function moveToNextScene() {
+  console.log('moveToNextScene called, current scene:', gameState.currentScene);
+  const currentSceneNum = gameState.currentScene;
+  
+  if (currentSceneNum < 4) {
+    console.log('Moving from scene', currentSceneNum, 'to scene', currentSceneNum + 1);
+    const currentScene = document.getElementById(`scene${currentSceneNum}`);
+    const nextScene = document.getElementById(`scene${currentSceneNum + 1}`);
+    
+    currentScene.classList.remove('active');
+    nextScene.classList.add('active');
+    
+    // Scroll to top of next scene
+    nextScene.scrollTop = 0;
+    
+    gameState.currentScene++;
+    gameState.sceneStartTimes[`scene${gameState.currentScene}`] = Date.now();
+    updateProgressJourney();
+    console.log('Scene transition complete. New current scene:', gameState.currentScene);
+  } else {
+    console.log('No more scenes, finishing game');
+    finishGame();
+  }
+}
+
+function finishGame() {
+  clearInterval(gameState.timerInterval);
+
+  const totalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+  const correctCount = gameState.decisions.filter(d => d.correct).length;
+  const totalDecisions = gameState.decisions.length;
+  const accuracy = totalDecisions > 0 ? correctCount / totalDecisions : 0;
+
+  // Calculate level
+  let level = 1;
+  let totalXP = 0;
+  
+  if (accuracy >= 0.95 && totalTime <= 270) {
+    level = 3;
+    totalXP = window.__CONFIG__.xp.L3 * 4;
+  } else if (accuracy >= 0.90 && totalTime <= 300) {
+    level = 2;
+    totalXP = window.__CONFIG__.xp.L2 * 4;
+  } else {
+    level = 1;
+    totalXP = window.__CONFIG__.xp.L1 * 4;
+  }
+
+  window.__RESULT__ = {
+    accuracy: accuracy,
+    time_s: totalTime,
+    level: level,
+    passed: level >= 2,
+    scene_results: gameState.decisions,
+    xp_earned: totalXP
+  };
+
+  window.__PROOF__ = {
+    proof_id: "demo-" + Date.now().toString(36),
+    template_id: "hr-onboarding-playops-validator",
+    competencies: Object.values(window.__CONFIG__.competencies).map(c => c.name),
+    level: level,
+    metrics: {
+      accuracy: accuracy,
+      time_s: totalTime,
+      xp_earned: totalXP
+    },
+    timestamp: new Date().toISOString()
+  };
+
+  logEvent('session.end', window.__RESULT__);
+  showResults();
+}
+
+function showResults() {
+  const result = window.__RESULT__;
+  
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('resultsScreen').classList.add('active');
+
+  const badge = document.getElementById('levelBadge');
+  
+  // Hide progress journey
+  document.getElementById('progressJourney').style.display = 'none';
+  
+  if (result.level === 3) {
+    badge.textContent = 'LEVEL 3 - 🏆 MASTERY';
+    badge.className = 'badge mastery';
+    playSound('victory');
+    // Victory particles
+    setTimeout(() => {
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          createParticles(
+            window.innerWidth / 2 + (Math.random() - 0.5) * 200,
+            200,
+            ['var(--accent-green)', '#FFD700'][Math.floor(Math.random() * 2)]
+          );
+        }, i * 100);
+      }
+    }, 500);
+  } else if (result.level === 2) {
+    badge.textContent = 'LEVEL 2 - ✅ PROFICIENT';
+    badge.className = 'badge proficient';
+    playSound('success');
+  } else {
+    badge.textContent = 'LEVEL 1 - 📝 NEEDS WORK';
+    badge.className = 'badge needs-work';
+  }
+
+  document.getElementById('accuracyValue').textContent = Math.round(result.accuracy * 100) + '%';
+  document.getElementById('timeValue').textContent = result.time_s + 's';
+  document.getElementById('xpValue').textContent = result.xp_earned + ' XP';
+}
+
+function logEvent(eventType, data) {
+  console.log(`[TELEMETRY] ${eventType}`, data);
+}
+</script>
+
+</body>
+</html>

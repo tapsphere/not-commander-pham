@@ -56,19 +56,22 @@ async function generateBrandedGameHTML(branding: {
   const primaryColor = branding.primaryColor || '#0078D4';
   const secondaryColor = branding.secondaryColor || '#50E6FF';
   
-  console.log('Fetching demo template...');
+  console.log('Fetching demo template from Supabase storage...');
   
-  // Fetch the actual game HTML from the public URL
-  const demoUrl = 'https://188e4cad-de5e-49fb-8008-62d777ec2103.lovableproject.com/demo/demo-crisis-communication.html';
-  const response = await fetch(demoUrl);
+  // Fetch from Supabase storage instead of project URL
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const storageUrl = `${supabaseUrl}/storage/v1/object/public/custom-games/demo-crisis-template.html`;
+  
+  console.log('Fetching from:', storageUrl);
+  const response = await fetch(storageUrl);
   
   if (!response.ok) {
-    console.error('Failed to fetch demo:', response.status, response.statusText);
-    throw new Error(`Failed to fetch demo template: ${response.status}`);
+    console.error('Failed to fetch demo from storage:', response.status, response.statusText);
+    throw new Error(`Failed to fetch demo template from storage: ${response.status}. Please ensure the template is uploaded.`);
   }
   
   const demoHTML = await response.text();
-  console.log('Demo HTML fetched, length:', demoHTML.length);
+  console.log('Demo HTML fetched from storage, length:', demoHTML.length);
   
   // Replace CSS color variables
   let customHTML = demoHTML

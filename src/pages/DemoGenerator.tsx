@@ -47,7 +47,45 @@ export default function DemoGenerator() {
 
   useEffect(() => {
     loadBrandProfile();
+    ensureDemoTemplateUploaded();
   }, []);
+
+  const ensureDemoTemplateUploaded = async () => {
+    try {
+      // Check if demo template exists in storage
+      const { data: files } = await supabase
+        .storage
+        .from('custom-games')
+        .list('', {
+          search: 'demo-crisis-template.html'
+        });
+
+      if (files && files.length === 0) {
+        console.log('Demo template not found in storage, uploading...');
+        
+        // Fetch the demo HTML from the public directory
+        const response = await fetch('/demo/demo-crisis-communication.html');
+        const htmlContent = await response.text();
+        
+        // Upload to Supabase storage
+        const { error: uploadError } = await supabase
+          .storage
+          .from('custom-games')
+          .upload('demo-crisis-template.html', new Blob([htmlContent], { type: 'text/html' }), {
+            contentType: 'text/html',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Failed to upload demo template:', uploadError);
+        } else {
+          console.log('Demo template uploaded successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring demo template:', error);
+    }
+  };
 
   const loadBrandProfile = async () => {
     try {
