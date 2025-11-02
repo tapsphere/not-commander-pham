@@ -105,11 +105,12 @@ export default function DemoGenerator() {
         body: formData,
       });
 
-      // Check for 402 payment/credits error first
-      if (parseError) {
-        console.error('Parse error:', parseError);
-        const errorMessage = parseError.message || String(parseError);
-        if (errorMessage.includes('402') || errorMessage.includes('payment_required') || errorMessage.includes('credits')) {
+      // Check for errors in response data first (402 errors come through here)
+      if (parseData && !parseData.success) {
+        const errorMsg = parseData.error || "Failed to parse document";
+        console.error('Parse error:', errorMsg);
+        
+        if (errorMsg.includes('402') || errorMsg.includes('payment_required') || errorMsg.includes('credits')) {
           toast({
             title: "AI Credits Required",
             description: "You've run out of Lovable AI credits. Please add credits in Settings → Workspace → Usage to continue using AI features.",
@@ -117,13 +118,13 @@ export default function DemoGenerator() {
           });
           return;
         }
-        throw parseError;
-      }
-      
-      // Check if the parsing was successful
-      if (!parseData?.success) {
-        const errorMsg = parseData?.error || "Failed to parse document";
         throw new Error(errorMsg);
+      }
+
+      // Check for other parse errors
+      if (parseError) {
+        console.error('Parse error:', parseError);
+        throw parseError;
       }
 
       if (!parseData?.text) {
@@ -138,7 +139,26 @@ export default function DemoGenerator() {
         },
       });
 
-      if (analyzeError) throw analyzeError;
+      // Check for errors in analyze response
+      if (analyzeData && !analyzeData.success && analyzeData.error) {
+        const errorMsg = analyzeData.error;
+        console.error('Analysis error:', errorMsg);
+        
+        if (errorMsg.includes('402') || errorMsg.includes('payment_required') || errorMsg.includes('credits')) {
+          toast({
+            title: "AI Credits Required",
+            description: "You've run out of Lovable AI credits. Please add credits in Settings → Workspace → Usage to continue using AI features.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(errorMsg);
+      }
+
+      if (analyzeError) {
+        console.error('Analysis error:', analyzeError);
+        throw analyzeError;
+      }
 
       if (!analyzeData || !analyzeData.extractedInfo) {
         throw new Error("No data returned from analysis");
