@@ -54,13 +54,14 @@ async function generateBrandedGameHTML(branding: {
   const primaryColor = branding.primaryColor || '#0078D4';
   const secondaryColor = branding.secondaryColor || '#50E6FF';
   
-  // Fetch the demo HTML file from the deployed public URL
-  const baseUrl = Deno.env.get('SUPABASE_URL')?.replace('/functions/v1', '') || '';
-  const demoUrl = `${baseUrl}/demo/demo-crisis-communication.html`;
+  // Fetch the demo HTML from the Lovable project URL where public files are hosted
+  const projectUrl = 'https://188e4cad-de5e-49fb-8008-62d777ec2103.lovableproject.com';
+  const demoUrl = `${projectUrl}/demo/demo-crisis-communication.html`;
   console.log('Fetching demo from:', demoUrl);
   
   const response = await fetch(demoUrl);
   if (!response.ok) {
+    console.error('Failed to fetch:', response.status, response.statusText);
     throw new Error(`Failed to fetch demo template: ${response.status} ${response.statusText}`);
   }
   const demoHTML = await response.text();
