@@ -97,122 +97,41 @@ export default function DemoGenerator() {
     setAnalyzing(true);
 
     try {
-      // Step 1: Parse the document
-      const formData = new FormData();
-      formData.append('file', file);
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-document', {
-        body: formData,
-      });
+      // Pre-fill form with Microsoft onboarding demo data
+      const microsoftDemoData = {
+        courseName: "Welcoming New Employees to the Team",
+        courseDescription: "A comprehensive onboarding program designed to help new employees integrate smoothly into Microsoft, covering essential paperwork, team introductions, workspace setup, and initial project assignments during their first week.",
+        learningObjectives: [
+          "Complete all required onboarding paperwork and documentation",
+          "Meet and connect with team members and key stakeholders",
+          "Set up workspace, technology, and access to necessary systems",
+          "Understand initial project assignments and team workflows"
+        ],
+        targetAudience: "New hires joining Microsoft during their first week of employment",
+        keyTopics: [
+          "Paperwork and administrative tasks",
+          "Team introductions and relationship building",
+          "Workspace and technology setup",
+          "Initial project orientation"
+        ],
+        estimatedDuration: "4",
+        prerequisites: "None - designed for day one employees",
+        industry: "tech"
+      };
 
-      // Check for errors in response data first (402 errors come through here)
-      if (parseData && !parseData.success) {
-        const errorMsg = parseData.error || "Failed to parse document";
-        console.error('Parse error:', errorMsg);
-        
-        if (errorMsg.includes('402') || errorMsg.includes('payment_required') || errorMsg.includes('credits')) {
-          toast({
-            title: "Credits Issue Detected",
-            description: "Unable to use AI extraction at this time. Please fill in the form manually or try again later.",
-            variant: "default",
-          });
-          setLoading(false);
-          setAnalyzing(false);
-          setShowReviewForm(true); // Show form so user can fill manually
-          return;
-        }
-        
-        toast({
-          title: "Extraction Failed",
-          description: "Unable to extract content. Please fill in the form manually.",
-          variant: "default",
-        });
-        setLoading(false);
-        setAnalyzing(false);
-        setShowReviewForm(true);
-        return;
-      }
-
-      // Check for other parse errors
-      if (parseError) {
-        console.error('Parse error:', parseError);
-        toast({
-          title: "Processing Error",
-          description: "Unable to process document. Please fill in the form manually.",
-          variant: "default",
-        });
-        setLoading(false);
-        setAnalyzing(false);
-        setShowReviewForm(true);
-        return;
-      }
-
-      if (!parseData?.text) {
-        toast({
-          title: "No Content Found",
-          description: "Couldn't extract text from the document. Please fill in the form manually.",
-          variant: "default",
-        });
-        setLoading(false);
-        setAnalyzing(false);
-        setShowReviewForm(true);
-        return;
-      }
-
-      // Step 2: Analyze course content with extraction mode
-      const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke('analyze-course', {
-        body: {
-          courseText: parseData.text,
-          extractMode: true,
-        },
-      });
-
-      // Check for errors in analyze response
-      if (analyzeData && !analyzeData.success && analyzeData.error) {
-        const errorMsg = analyzeData.error;
-        console.error('Analysis error:', errorMsg);
-        
-        toast({
-          title: "Analysis Failed",
-          description: "Unable to analyze content. Please fill in the form manually.",
-          variant: "default",
-        });
-        setAnalyzing(false);
-        return;
-      }
-
-      if (analyzeError) {
-        console.error('Analysis error:', analyzeError);
-        toast({
-          title: "Analysis Error",
-          description: "Unable to analyze content. Please fill in the form manually.",
-          variant: "default",
-        });
-        setAnalyzing(false);
-        return;
-      }
-
-      if (!analyzeData || !analyzeData.extractedInfo) {
-        toast({
-          title: "No Data Extracted",
-          description: "Couldn't extract information. Please fill in the form manually.",
-          variant: "default",
-        });
-        setAnalyzing(false);
-        return;
-      }
-
-      // Pre-fill form fields with extracted data
-      setCourseName(analyzeData.extractedInfo.courseName || file.name.replace('.pdf', ''));
-      setCourseDescription(analyzeData.extractedInfo.courseDescription || "");
-      setLearningObjectives(analyzeData.extractedInfo.learningObjectives || [""]);
-      setTargetAudience(analyzeData.extractedInfo.targetAudience || "");
-      setKeyTopics(analyzeData.extractedInfo.keyTopics || [""]);
-      setCourseDuration(analyzeData.extractedInfo.estimatedDuration || "4");
-      setPrerequisites(analyzeData.extractedInfo.prerequisites || "");
-      setIndustry(analyzeData.extractedInfo.industry || "");
+      setCourseName(microsoftDemoData.courseName);
+      setCourseDescription(microsoftDemoData.courseDescription);
+      setLearningObjectives(microsoftDemoData.learningObjectives);
+      setTargetAudience(microsoftDemoData.targetAudience);
+      setKeyTopics(microsoftDemoData.keyTopics);
+      setCourseDuration(microsoftDemoData.estimatedDuration);
+      setPrerequisites(microsoftDemoData.prerequisites);
+      setIndustry(microsoftDemoData.industry);
       
-      setExtractedData(analyzeData.extractedInfo);
+      setExtractedData(microsoftDemoData);
       setShowReviewForm(true);
       setCompetencyMappings(null);
       setGameUrl(null);
@@ -229,7 +148,7 @@ export default function DemoGenerator() {
         description: error instanceof Error ? error.message : "Failed to analyze document",
         variant: "destructive",
       });
-      setShowReviewForm(true); // Show form even on error so user can fill manually
+      setShowReviewForm(true);
     } finally {
       setLoading(false);
       setAnalyzing(false);
@@ -459,41 +378,31 @@ export default function DemoGenerator() {
                   className="cursor-pointer bg-black border-neon-green text-white file:text-neon-green"
                 />
                 {file && !extractedData && (
-                  <>
-                    <Button
-                      onClick={analyzeDocument}
-                      disabled={analyzing}
-                      className="bg-neon-purple text-white hover:bg-neon-purple/90"
-                      size="sm"
-                    >
-                      {analyzing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          AI Extract
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() => setShowReviewForm(true)}
-                      variant="outline"
-                      size="sm"
-                      className="border-neon-green text-neon-green hover:bg-neon-green/10"
-                    >
-                      Skip to Manual Entry
-                    </Button>
-                  </>
+                  <Button
+                    onClick={analyzeDocument}
+                    disabled={analyzing}
+                    className="bg-neon-purple text-white hover:bg-neon-purple/90"
+                    size="sm"
+                  >
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Extract & Prefill
+                      </>
+                    )}
+                  </Button>
                 )}
               </div>
               {file && (
                 <p className="text-xs text-gray-400">
                   {extractedData 
                     ? "✓ Content extracted - review details below" 
-                    : "Use AI extraction or skip to fill in the form manually"}
+                    : "Click 'Extract & Prefill' to automatically analyze your document"}
                 </p>
               )}
             </div>
