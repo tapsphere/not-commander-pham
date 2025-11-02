@@ -52,20 +52,37 @@ export default function DemoGenerator() {
 
   const ensureDemoTemplateUploaded = async () => {
     try {
+      console.log('Checking for demo template in storage...');
+      
       // Check if demo template exists in storage
-      const { data: files } = await supabase
+      const { data: files, error: listError } = await supabase
         .storage
         .from('custom-games')
         .list('', {
           search: 'demo-crisis-template.html'
         });
 
-      if (files && files.length === 0) {
+      if (listError) {
+        console.error('Error listing files:', listError);
+        toast({
+          title: "Storage Error",
+          description: listError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!files || files.length === 0) {
         console.log('Demo template not found in storage, uploading...');
         
         // Fetch the demo HTML from the public directory
         const response = await fetch('/demo/demo-crisis-communication.html');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch template: ${response.status}`);
+        }
+        
         const htmlContent = await response.text();
+        console.log(`Fetched template, size: ${htmlContent.length} bytes`);
         
         // Upload to Supabase storage
         const { error: uploadError } = await supabase
@@ -78,12 +95,28 @@ export default function DemoGenerator() {
 
         if (uploadError) {
           console.error('Failed to upload demo template:', uploadError);
+          toast({
+            title: "Upload Failed",
+            description: uploadError.message,
+            variant: "destructive",
+          });
         } else {
           console.log('Demo template uploaded successfully');
+          toast({
+            title: "Template Ready",
+            description: "Demo template is now available",
+          });
         }
+      } else {
+        console.log('Demo template already exists in storage');
       }
     } catch (error) {
       console.error('Error ensuring demo template:', error);
+      toast({
+        title: "Template Error",
+        description: error instanceof Error ? error.message : "Failed to prepare template",
+        variant: "destructive",
+      });
     }
   };
 
