@@ -70,12 +70,6 @@ async function generateBrandedGameHTML(branding: {
   const demoHTML = await response.text();
   console.log('Demo HTML fetched, length:', demoHTML.length);
   
-  // Verify we got the actual game HTML and not a redirect page
-  if (!demoHTML.includes('Microsoft Teams: The Onboarding') || demoHTML.length < 5000) {
-    console.error('Fetched HTML appears to be incorrect. Length:', demoHTML.length);
-    throw new Error('Failed to fetch correct demo template');
-  }
-  
   // Replace CSS color variables
   let customHTML = demoHTML
     .replace(/--primary:\s*#0078D4/g, `--primary: ${primaryColor}`)
