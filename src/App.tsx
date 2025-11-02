@@ -71,7 +71,6 @@ const App = () => (
           {/* Validator Demos */}
           <Route path="/validator-demo" element={<ValidatorDemo />} />
           <Route path="/breath-balance" element={<BreathBalance />} />
-          <Route path="/demo-generator" element={<DemoGenerator />} />
           
           {/* Public Play Route */}
           <Route path="/play/:code" element={<Play />} />

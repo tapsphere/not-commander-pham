@@ -85,22 +85,27 @@ export default function DemoGenerator() {
     setAnalyzing(true);
 
     try {
-      // Simulate AI extraction by loading demo data
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
-      
-      const demoData = {
-        company_name: "Microsoft Corporation",
-        course_name: "New Employee Onboarding",
-        course_description: "A comprehensive onboarding guide for new Microsoft employees covering paperwork, training, team integration, and ongoing support.",
-        learning_objectives: [
-          "Complete all necessary paperwork and documentation",
-          "Understand Microsoft's culture, values, and team dynamics",
-          "Successfully integrate with your team and manager",
-          "Navigate training resources and development opportunities"
-        ],
-      };
+      // Step 1: Parse the document
+      const formData = new FormData();
+      formData.append('file', file);
 
-      setExtractedData(demoData);
+      const { data: parseData, error: parseError } = await supabase.functions.invoke('parse-document', {
+        body: formData,
+      });
+
+      if (parseError) throw parseError;
+
+      // Step 2: Analyze course content
+      const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke('analyze-course', {
+        body: {
+          content: parseData.content,
+          fileName: file.name,
+        },
+      });
+
+      if (analyzeError) throw analyzeError;
+
+      setExtractedData(analyzeData);
       setCompetencyMappings(null);
       setGameUrl(null);
       setHasGenerated(true);
@@ -471,7 +476,7 @@ export default function DemoGenerator() {
 
       {/* Extracted Data Preview */}
       {extractedData && hasGenerated && (
-          <Card className="bg-[#1e293b] border-[#334155]">
+          <Card className="bg-[#1e293b] border-[#334155] mb-8">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-green/30 bg-neon-green/10">
@@ -509,13 +514,35 @@ export default function DemoGenerator() {
                   </ul>
                 </div>
               )}
+
+              {/* Competency Analysis Button */}
+              {!competencyMappings && (
+                <Button
+                  onClick={analyzeCompetencies}
+                  disabled={loading}
+                  className="w-full bg-neon-purple text-white hover:bg-neon-purple/90"
+                  size="lg"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Analyzing Competencies...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2 h-5 w-5" />
+                      Analyze Competencies & Validators
+                    </>
+                  )}
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Competency Mappings */}
         {competencyMappings && hasGenerated && (
-          <Card className="bg-[#1e293b] border-[#334155]">
+          <Card className="bg-[#1e293b] border-[#334155] mb-8">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-purple/30 bg-neon-purple/10">
