@@ -12,6 +12,8 @@ serve(async (req) => {
 
   try {
     const { brandName, courseName, courseDescription, learningObjectives, primaryColor, secondaryColor, logoUrl, mascotUrl } = await req.json();
+    
+    console.log('Generating branded game for:', brandName, courseName);
 
     // Generate the HTML game using the demo template with custom branding
     const html = await generateBrandedGameHTML({ 
@@ -32,7 +34,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error generating game:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { 
@@ -54,17 +56,25 @@ async function generateBrandedGameHTML(branding: {
   const primaryColor = branding.primaryColor || '#0078D4';
   const secondaryColor = branding.secondaryColor || '#50E6FF';
   
-  // Fetch the demo HTML from the Lovable project URL where public files are hosted
-  const projectUrl = 'https://188e4cad-de5e-49fb-8008-62d777ec2103.lovableproject.com';
-  const demoUrl = `${projectUrl}/demo/demo-crisis-communication.html`;
-  console.log('Fetching demo from:', demoUrl);
+  console.log('Fetching demo template...');
   
+  // Fetch the actual game HTML from the public URL
+  const demoUrl = 'https://188e4cad-de5e-49fb-8008-62d777ec2103.lovableproject.com/demo/demo-crisis-communication.html';
   const response = await fetch(demoUrl);
+  
   if (!response.ok) {
-    console.error('Failed to fetch:', response.status, response.statusText);
-    throw new Error(`Failed to fetch demo template: ${response.status} ${response.statusText}`);
+    console.error('Failed to fetch demo:', response.status, response.statusText);
+    throw new Error(`Failed to fetch demo template: ${response.status}`);
   }
+  
   const demoHTML = await response.text();
+  console.log('Demo HTML fetched, length:', demoHTML.length);
+  
+  // Verify we got the actual game HTML and not a redirect page
+  if (!demoHTML.includes('Microsoft Teams: The Onboarding') || demoHTML.length < 5000) {
+    console.error('Fetched HTML appears to be incorrect. Length:', demoHTML.length);
+    throw new Error('Failed to fetch correct demo template');
+  }
   
   // Replace CSS color variables
   let customHTML = demoHTML
@@ -76,8 +86,15 @@ async function generateBrandedGameHTML(branding: {
     .replace(/<title>.*?<\/title>/, `<title>${branding.brandName} - ${branding.courseName}</title>`)
     .replace(/Microsoft Teams: The Onboarding/g, `${branding.brandName}: ${branding.courseName}`);
   
-  // Add custom logo if provided
+  // Replace the Microsoft logo in loading screen with custom logo if provided
   if (branding.logoUrl) {
+    // Replace the loading screen logo
+    customHTML = customHTML.replace(
+      /<img src="\.\.\/microsoft-logo\.png"[^>]*>/,
+      `<img src="${branding.logoUrl}" alt="${branding.brandName}" style="width: 120px; height: auto; margin-bottom: 20px; animation: logoFloat 2s ease-in-out infinite;" />`
+    );
+    
+    // Also add a persistent logo in the top left
     const logoHTML = `
     <style>
       .custom-brand-logo {
@@ -99,25 +116,26 @@ async function generateBrandedGameHTML(branding: {
     customHTML = customHTML.replace('<body>', `<body>${logoHTML}`);
   }
   
-  // Add custom mascot if provided - only in the scene-intro (game directions scene)
+  // Add custom mascot if provided - replace the lottie animation in the intro screen
   if (branding.mascotUrl) {
-    // Check if it's a Lottie animation (JSON data URL) or an image
-    const isLottie = branding.mascotUrl.startsWith('data:application/json');
+    // Check if it's a Lottie animation (JSON) or a regular image
+    const isLottie = branding.mascotUrl.includes('.json') || branding.mascotUrl.startsWith('data:application/json');
     
     if (isLottie) {
-      // For Lottie animations, update the existing lottie-player src
+      // Update the lottie-player src
       customHTML = customHTML.replace(
-        /(<div[^>]*id="scene-intro"[^>]*>[\s\S]*?<lottie-player[^>]*src=")([^"]*?)("[\s\S]*?<\/lottie-player>)/,
-        `$1${branding.mascotUrl}$3`
+        /<lottie-player[^>]*src="[^"]*"([^>]*)>/,
+        `<lottie-player class="intro-animation" src="${branding.mascotUrl}" background="transparent" speed="1" loop autoplay$1>`
       );
     } else {
-      // For images, replace the Lottie player with an img tag
+      // Replace with an img tag
       customHTML = customHTML.replace(
-        /(<div[^>]*id="scene-intro"[^>]*>[\s\S]*?)(<lottie-player[\s\S]*?<\/lottie-player>)/,
-        `$1<img src="${branding.mascotUrl}" alt="Game Mascot" style="width: 300px; height: 300px; object-fit: contain; margin: 0 auto 20px;" />`
+        /<lottie-player[\s\S]*?<\/lottie-player>/,
+        `<img src="${branding.mascotUrl}" alt="Game Mascot" class="intro-animation" style="object-fit: contain;" />`
       );
     }
   }
   
+  console.log('Branded HTML generated successfully');
   return customHTML;
 }
