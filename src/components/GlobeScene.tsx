@@ -291,6 +291,7 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length > 0) {
+        e.preventDefault(); // Prevent default touch behaviors
         setIsDragging(true);
         dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       }
@@ -298,6 +299,7 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
 
     const handleTouchMove = (e: TouchEvent) => {
       if (isDragging && e.touches.length > 0) {
+        e.preventDefault(); // Prevent scrolling while dragging
         const deltaX = e.touches[0].clientX - dragStartRef.current.x;
         const deltaY = e.touches[0].clientY - dragStartRef.current.y;
         
@@ -309,16 +311,17 @@ export const Globe = ({ progress, mousePosition, isSpeaking, onEarthClick }: Glo
       }
     };
 
-    const handleTouchEnd = () => {
+    const handleTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
       setIsDragging(false);
     };
 
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchstart', handleTouchStart);
-    window.addEventListener('touchmove', handleTouchMove);
-    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
 
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
