@@ -459,31 +459,41 @@ export default function DemoGenerator() {
                   className="cursor-pointer bg-black border-neon-green text-white file:text-neon-green"
                 />
                 {file && !extractedData && (
-                  <Button
-                    onClick={analyzeDocument}
-                    disabled={analyzing}
-                    className="bg-neon-purple text-white hover:bg-neon-purple/90"
-                    size="sm"
-                  >
-                    {analyzing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        AI Extract & Prefill
-                      </>
-                    )}
-                  </Button>
+                  <>
+                    <Button
+                      onClick={analyzeDocument}
+                      disabled={analyzing}
+                      className="bg-neon-purple text-white hover:bg-neon-purple/90"
+                      size="sm"
+                    >
+                      {analyzing ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          AI Extract
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => setShowReviewForm(true)}
+                      variant="outline"
+                      size="sm"
+                      className="border-neon-green text-neon-green hover:bg-neon-green/10"
+                    >
+                      Skip to Manual Entry
+                    </Button>
+                  </>
                 )}
               </div>
               {file && (
                 <p className="text-xs text-gray-400">
                   {extractedData 
                     ? "✓ Content extracted - review details below" 
-                    : "Click 'AI Extract & Prefill' to automatically analyze your document"}
+                    : "Use AI extraction or skip to fill in the form manually"}
                 </p>
               )}
             </div>
