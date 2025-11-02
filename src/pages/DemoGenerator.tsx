@@ -105,13 +105,11 @@ export default function DemoGenerator() {
         body: formData,
       });
 
-      if (parseError) throw parseError;
-      
-      // Check if the parsing was successful
-      if (!parseData?.success) {
-        const errorMsg = parseData?.error || "Failed to parse document";
-        // Check for 402 payment/credits error
-        if (errorMsg.includes('402')) {
+      // Check for 402 payment/credits error first
+      if (parseError) {
+        console.error('Parse error:', parseError);
+        const errorMessage = parseError.message || String(parseError);
+        if (errorMessage.includes('402') || errorMessage.includes('payment_required') || errorMessage.includes('credits')) {
           toast({
             title: "AI Credits Required",
             description: "You've run out of Lovable AI credits. Please add credits in Settings → Workspace → Usage to continue using AI features.",
@@ -119,6 +117,12 @@ export default function DemoGenerator() {
           });
           return;
         }
+        throw parseError;
+      }
+      
+      // Check if the parsing was successful
+      if (!parseData?.success) {
+        const errorMsg = parseData?.error || "Failed to parse document";
         throw new Error(errorMsg);
       }
 
