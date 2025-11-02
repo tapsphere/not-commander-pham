@@ -94,16 +94,39 @@ export default function DemoGenerator() {
       });
 
       if (parseError) throw parseError;
+      
+      // Check if the parsing was successful
+      if (!parseData?.success) {
+        const errorMsg = parseData?.error || "Failed to parse document";
+        // Check for 402 payment/credits error
+        if (errorMsg.includes('402')) {
+          toast({
+            title: "AI Credits Required",
+            description: "You've run out of Lovable AI credits. Please add credits in Settings → Workspace → Usage to continue using AI features.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(errorMsg);
+      }
 
-      // Step 2: Analyze course content
+      if (!parseData?.text) {
+        throw new Error("No content extracted from document");
+      }
+
+      // Step 2: Analyze course content with extraction mode
       const { data: analyzeData, error: analyzeError } = await supabase.functions.invoke('analyze-course', {
         body: {
-          content: parseData.content,
-          fileName: file.name,
+          courseText: parseData.text,
+          extractMode: true,
         },
       });
 
       if (analyzeError) throw analyzeError;
+
+      if (!analyzeData) {
+        throw new Error("No data returned from analysis");
+      }
 
       setExtractedData(analyzeData);
       setCompetencyMappings(null);
@@ -111,8 +134,8 @@ export default function DemoGenerator() {
       setHasGenerated(true);
       
       toast({
-        title: "Analysis Complete",
-        description: "Your content has been analyzed successfully",
+        title: "Content Extracted",
+        description: "Course information has been extracted. Click 'Analyze Competencies & Validators' to continue.",
       });
     } catch (error) {
       console.error("Analysis error:", error);
