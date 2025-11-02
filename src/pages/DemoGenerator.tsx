@@ -112,23 +112,51 @@ export default function DemoGenerator() {
         
         if (errorMsg.includes('402') || errorMsg.includes('payment_required') || errorMsg.includes('credits')) {
           toast({
-            title: "AI Credits Required",
-            description: "You've run out of Lovable AI credits. Please add credits in Settings → Workspace → Usage to continue using AI features.",
-            variant: "destructive",
+            title: "Credits Issue Detected",
+            description: "Unable to use AI extraction at this time. Please fill in the form manually or try again later.",
+            variant: "default",
           });
+          setLoading(false);
+          setAnalyzing(false);
+          setShowReviewForm(true); // Show form so user can fill manually
           return;
         }
-        throw new Error(errorMsg);
+        
+        toast({
+          title: "Extraction Failed",
+          description: "Unable to extract content. Please fill in the form manually.",
+          variant: "default",
+        });
+        setLoading(false);
+        setAnalyzing(false);
+        setShowReviewForm(true);
+        return;
       }
 
       // Check for other parse errors
       if (parseError) {
         console.error('Parse error:', parseError);
-        throw parseError;
+        toast({
+          title: "Processing Error",
+          description: "Unable to process document. Please fill in the form manually.",
+          variant: "default",
+        });
+        setLoading(false);
+        setAnalyzing(false);
+        setShowReviewForm(true);
+        return;
       }
 
       if (!parseData?.text) {
-        throw new Error("No content extracted from document");
+        toast({
+          title: "No Content Found",
+          description: "Couldn't extract text from the document. Please fill in the form manually.",
+          variant: "default",
+        });
+        setLoading(false);
+        setAnalyzing(false);
+        setShowReviewForm(true);
+        return;
       }
 
       // Step 2: Analyze course content with extraction mode
@@ -144,24 +172,34 @@ export default function DemoGenerator() {
         const errorMsg = analyzeData.error;
         console.error('Analysis error:', errorMsg);
         
-        if (errorMsg.includes('402') || errorMsg.includes('payment_required') || errorMsg.includes('credits')) {
-          toast({
-            title: "AI Credits Required",
-            description: "You've run out of Lovable AI credits. Please add credits in Settings → Workspace → Usage to continue using AI features.",
-            variant: "destructive",
-          });
-          return;
-        }
-        throw new Error(errorMsg);
+        toast({
+          title: "Analysis Failed",
+          description: "Unable to analyze content. Please fill in the form manually.",
+          variant: "default",
+        });
+        setAnalyzing(false);
+        return;
       }
 
       if (analyzeError) {
         console.error('Analysis error:', analyzeError);
-        throw analyzeError;
+        toast({
+          title: "Analysis Error",
+          description: "Unable to analyze content. Please fill in the form manually.",
+          variant: "default",
+        });
+        setAnalyzing(false);
+        return;
       }
 
       if (!analyzeData || !analyzeData.extractedInfo) {
-        throw new Error("No data returned from analysis");
+        toast({
+          title: "No Data Extracted",
+          description: "Couldn't extract information. Please fill in the form manually.",
+          variant: "default",
+        });
+        setAnalyzing(false);
+        return;
       }
 
       // Pre-fill form fields with extracted data
