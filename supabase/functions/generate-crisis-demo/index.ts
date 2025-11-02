@@ -54,9 +54,16 @@ async function generateBrandedGameHTML(branding: {
   const primaryColor = branding.primaryColor || '#0078D4';
   const secondaryColor = branding.secondaryColor || '#50E6FF';
   
-  // Read the demo HTML file
-  const demoPath = new URL('../../../public/demo/demo-crisis-communication.html', import.meta.url);
-  const demoHTML = await Deno.readTextFile(demoPath);
+  // Fetch the demo HTML file from the deployed public URL
+  const baseUrl = Deno.env.get('SUPABASE_URL')?.replace('/functions/v1', '') || '';
+  const demoUrl = `${baseUrl}/demo/demo-crisis-communication.html`;
+  console.log('Fetching demo from:', demoUrl);
+  
+  const response = await fetch(demoUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch demo template: ${response.status} ${response.statusText}`);
+  }
+  const demoHTML = await response.text();
   
   // Replace CSS color variables
   let customHTML = demoHTML
