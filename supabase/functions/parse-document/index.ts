@@ -71,7 +71,6 @@ serve(async (req) => {
             ]
           }
         ],
-        temperature: 0.0, // Zero temperature = same extraction every time
       }),
     });
 
@@ -109,7 +108,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        content: finalText,
+        text: finalText,
         filename: file.name,
         length: finalText.length
       }),
