@@ -209,6 +209,18 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Crisis Game Quick Access */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={() => window.open('/demo/demo-crisis-communication.html', '_blank')}
+          className="bg-black/80 backdrop-blur-sm border-primary/50 text-primary hover:bg-primary/20"
+        >
+          Crisis Game Demo
+        </Button>
+      </div>
+
       <style>{`
         @keyframes twinkle {
           0%, 100% { opacity: 0.6; }
