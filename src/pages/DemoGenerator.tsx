@@ -20,6 +20,17 @@ export default function DemoGenerator() {
   const [gameUrl, setGameUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  
+  // Form fields
+  const [courseName, setCourseName] = useState("");
+  const [courseDescription, setCourseDescription] = useState("");
+  const [learningObjectives, setLearningObjectives] = useState<string[]>([""]);
+  const [targetAudience, setTargetAudience] = useState("");
+  const [keyTopics, setKeyTopics] = useState<string[]>([""]);
+  const [courseDuration, setCourseDuration] = useState("4");
+  const [prerequisites, setPrerequisites] = useState("");
+  const [industry, setIndustry] = useState("");
   
   // Brand profile data loaded from database
   const [brandProfile, setBrandProfile] = useState<{
@@ -124,18 +135,29 @@ export default function DemoGenerator() {
 
       if (analyzeError) throw analyzeError;
 
-      if (!analyzeData) {
+      if (!analyzeData || !analyzeData.extractedInfo) {
         throw new Error("No data returned from analysis");
       }
 
-      setExtractedData(analyzeData);
+      // Pre-fill form fields with extracted data
+      setCourseName(analyzeData.extractedInfo.courseName || file.name.replace('.pdf', ''));
+      setCourseDescription(analyzeData.extractedInfo.courseDescription || "");
+      setLearningObjectives(analyzeData.extractedInfo.learningObjectives || [""]);
+      setTargetAudience(analyzeData.extractedInfo.targetAudience || "");
+      setKeyTopics(analyzeData.extractedInfo.keyTopics || [""]);
+      setCourseDuration(analyzeData.extractedInfo.estimatedDuration || "4");
+      setPrerequisites(analyzeData.extractedInfo.prerequisites || "");
+      setIndustry(analyzeData.extractedInfo.industry || "");
+      
+      setExtractedData(analyzeData.extractedInfo);
+      setShowReviewForm(true);
       setCompetencyMappings(null);
       setGameUrl(null);
       setHasGenerated(true);
       
       toast({
-        title: "Content Extracted",
-        description: "Course information has been extracted. Click 'Analyze Competencies & Validators' to continue.",
+        title: "PDF extracted!",
+        description: "Review the extracted information below and make any adjustments.",
       });
     } catch (error) {
       console.error("Analysis error:", error);
@@ -144,10 +166,23 @@ export default function DemoGenerator() {
         description: error instanceof Error ? error.message : "Failed to analyze document",
         variant: "destructive",
       });
+      setShowReviewForm(true); // Show form even on error so user can fill manually
     } finally {
       setLoading(false);
       setAnalyzing(false);
     }
+  };
+
+  const addArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+    setter(prev => [...prev, ""]);
+  };
+
+  const updateArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
+    setter(prev => prev.map((item, i) => i === index ? value : item));
+  };
+
+  const removeArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
+    setter(prev => prev.filter((_, i) => i !== index));
   };
 
   const analyzeCompetencies = async () => {
@@ -342,8 +377,8 @@ export default function DemoGenerator() {
               <Input
                 id="courseName"
                 placeholder="e.g., Power of Words®"
-                value={extractedData?.course_name || file?.name.replace('.pdf', '') || ''}
-                onChange={(e) => setExtractedData(prev => prev ? { ...prev, course_name: e.target.value } : { course_name: e.target.value })}
+                value={courseName || file?.name.replace('.pdf', '') || ''}
+                onChange={(e) => setCourseName(e.target.value)}
                 disabled={loading}
                 className="bg-black border-neon-green text-white placeholder:text-gray-500"
               />
@@ -395,12 +430,133 @@ export default function DemoGenerator() {
               <Textarea
                 id="courseDescription"
                 placeholder="Additional course details or context..."
-                value={extractedData?.course_description || ''}
-                onChange={(e) => setExtractedData(prev => prev ? { ...prev, course_description: e.target.value } : { course_description: e.target.value })}
+                value={courseDescription}
+                onChange={(e) => setCourseDescription(e.target.value)}
                 disabled={loading}
                 className="bg-black border-neon-green text-white placeholder:text-gray-500 min-h-[100px]"
               />
             </div>
+            
+            {/* Review Form - shows after extraction */}
+            {showReviewForm && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-white">Learning Objectives *</Label>
+                  {learningObjectives.map((obj, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder={`Learning objective ${index + 1}`}
+                        value={obj}
+                        onChange={(e) => updateArrayItem(setLearningObjectives, index, e.target.value)}
+                        className="bg-black border-neon-green text-white placeholder:text-gray-500"
+                      />
+                      {learningObjectives.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeArrayItem(setLearningObjectives, index)}
+                          className="border-gray-700 text-gray-400 hover:text-white"
+                        >
+                          ×
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addArrayItem(setLearningObjectives)}
+                    className="border-neon-green text-neon-green hover:bg-neon-green/10"
+                  >
+                    + Add Objective
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="targetAudience" className="text-white">Target Audience *</Label>
+                  <Input
+                    id="targetAudience"
+                    placeholder="e.g., New employees, Managers, All staff"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    className="bg-black border-neon-green text-white placeholder:text-gray-500"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Key Topics</Label>
+                  {keyTopics.map((topic, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        placeholder={`Key topic ${index + 1}`}
+                        value={topic}
+                        onChange={(e) => updateArrayItem(setKeyTopics, index, e.target.value)}
+                        className="bg-black border-neon-green text-white placeholder:text-gray-500"
+                      />
+                      {keyTopics.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeArrayItem(setKeyTopics, index)}
+                          className="border-gray-700 text-gray-400 hover:text-white"
+                        >
+                          ×
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addArrayItem(setKeyTopics)}
+                    className="border-neon-green text-neon-green hover:bg-neon-green/10"
+                  >
+                    + Add Topic
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="duration" className="text-white">Estimated Duration (minutes)</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      min="3"
+                      max="6"
+                      value={courseDuration}
+                      onChange={(e) => setCourseDuration(e.target.value)}
+                      className="bg-black border-neon-green text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="industry" className="text-white">Industry/Context *</Label>
+                    <Input
+                      id="industry"
+                      placeholder="e.g., Healthcare, Tech, Finance"
+                      value={industry}
+                      onChange={(e) => setIndustry(e.target.value)}
+                      className="bg-black border-neon-green text-white placeholder:text-gray-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="prerequisites" className="text-white">Prerequisites</Label>
+                  <Textarea
+                    id="prerequisites"
+                    placeholder="Any prerequisites or prior knowledge required..."
+                    value={prerequisites}
+                    onChange={(e) => setPrerequisites(e.target.value)}
+                    className="bg-black border-neon-green text-white placeholder:text-gray-500"
+                  />
+                </div>
+              </>
+            )}
         </CardContent>
       </Card>
 
@@ -497,71 +653,51 @@ export default function DemoGenerator() {
         </div>
       )}
 
-      {/* Extracted Data Preview */}
-      {extractedData && hasGenerated && (
-          <Card className="bg-[#1e293b] border-[#334155] mb-8">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-green/30 bg-neon-green/10">
-                  <Sparkles className="h-5 w-5 text-neon-green" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl text-neon-green">
-                    Content Extracted
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    AI has extracted key information from your document
-                  </CardDescription>
-                </div>
+      {/* Review and Analyze Button */}
+      {showReviewForm && !competencyMappings && (
+        <Card className="bg-[#1e293b] border-[#334155] mb-8">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full flex items-center justify-center border border-neon-purple/30 bg-neon-purple/10">
+                <Brain className="h-5 w-5 text-neon-purple" />
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400">Company</p>
-                  <p className="text-lg text-white">{extractedData.company_name || "Not detected"}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400">Course Name</p>
-                  <p className="text-lg text-white">{extractedData.course_name || "Not detected"}</p>
-                </div>
+              <div>
+                <CardTitle className="text-xl text-white">
+                  Ready to Analyze
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Review the extracted information above and click below to analyze competencies
+                </CardDescription>
               </div>
-
-              {extractedData.learning_objectives && extractedData.learning_objectives.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400">Learning Objectives</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    {extractedData.learning_objectives.map((obj: string, idx: number) => (
-                      <li key={idx} className="text-sm text-gray-300">{obj}</li>
-                    ))}
-                  </ul>
-                </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={analyzeCompetencies}
+              disabled={loading || !courseName || learningObjectives.filter(o => o.trim()).length === 0 || !targetAudience || !industry}
+              className="w-full bg-neon-purple text-white hover:bg-neon-purple/90"
+              size="lg"
+            >
+              {analyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Analyzing Competencies...
+                </>
+              ) : (
+                <>
+                  <Brain className="mr-2 h-5 w-5" />
+                  Analyze Competencies & Validators
+                </>
               )}
-
-              {/* Competency Analysis Button */}
-              {!competencyMappings && (
-                <Button
-                  onClick={analyzeCompetencies}
-                  disabled={loading}
-                  className="w-full bg-neon-purple text-white hover:bg-neon-purple/90"
-                  size="lg"
-                >
-                  {analyzing ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Analyzing Competencies...
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="mr-2 h-5 w-5" />
-                      Analyze Competencies & Validators
-                    </>
-                  )}
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+            </Button>
+            {(!courseName || learningObjectives.filter(o => o.trim()).length === 0 || !targetAudience || !industry) && (
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Please fill in all required fields (marked with *)
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
         {/* Competency Mappings */}
         {competencyMappings && hasGenerated && (
