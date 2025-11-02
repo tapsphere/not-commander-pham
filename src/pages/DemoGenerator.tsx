@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Sparkles, Brain, PlayCircle, Store, Play, FileText, Zap } from "lucide-react";
@@ -519,30 +520,49 @@ export default function DemoGenerator() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="duration" className="text-white">Estimated Duration (minutes)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="3"
-                      max="6"
-                      value={courseDuration}
-                      onChange={(e) => setCourseDuration(e.target.value)}
-                      className="bg-black border-neon-green text-white"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="industry" className="text-white">Industry / Context *</Label>
+                  <Select value={industry} onValueChange={setIndustry}>
+                    <SelectTrigger id="industry" className="bg-black border-neon-green text-white">
+                      <SelectValue placeholder="Select industry or context..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1e293b] border-neon-green text-white">
+                      <SelectItem value="education">Education</SelectItem>
+                      <SelectItem value="marketing">Marketing</SelectItem>
+                      <SelectItem value="operations">Operations</SelectItem>
+                      <SelectItem value="sales">Sales</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="hr">Human Resources</SelectItem>
+                      <SelectItem value="communications">Communications</SelectItem>
+                      <SelectItem value="customer-service">Customer Service</SelectItem>
+                      <SelectItem value="tech">Technology / IT</SelectItem>
+                      <SelectItem value="healthcare">Healthcare</SelectItem>
+                      <SelectItem value="school">School / K-12 Education</SelectItem>
+                      <SelectItem value="higher-ed">Higher Education / University</SelectItem>
+                      <SelectItem value="corporate">Corporate Training</SelectItem>
+                      <SelectItem value="retail">Retail</SelectItem>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="legal">Legal</SelectItem>
+                      <SelectItem value="supply-chain">Supply Chain</SelectItem>
+                      <SelectItem value="nonprofit">Non-Profit / NGO</SelectItem>
+                      <SelectItem value="government">Government</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="industry" className="text-white">Industry/Context *</Label>
-                    <Input
-                      id="industry"
-                      placeholder="e.g., Healthcare, Tech, Finance"
-                      value={industry}
-                      onChange={(e) => setIndustry(e.target.value)}
-                      className="bg-black border-neon-green text-white placeholder:text-gray-500"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration" className="text-white">Estimated Duration (minutes)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min="3"
+                    max="6"
+                    value={courseDuration}
+                    onChange={(e) => setCourseDuration(e.target.value)}
+                    className="bg-black border-neon-green text-white"
+                  />
+                  <p className="text-xs text-gray-400">Duration must be between 3-6 minutes</p>
                 </div>
 
                 <div className="space-y-2">
