@@ -84,7 +84,7 @@ const Index = () => {
         <Canvas
           camera={{ position: [0, 0, 4], fov: 50 }}
           className="w-full h-full"
-          style={{ background: 'transparent' }}
+          style={{ background: 'transparent', touchAction: 'none' }}
           gl={{ 
             antialias: true,
             powerPreference: 'high-performance'
