@@ -1535,6 +1535,9 @@ let gameState = {
   hasSpokenWelcome: false
 };
 
+let scene3Stack = [];
+let scene4Timeline = { 1: null, 2: null, 3: null };
+
 // Telegram Mini-App Integration
 if (window.Telegram && window.Telegram.WebApp) {
   const tg = window.Telegram.WebApp;
@@ -1892,7 +1895,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const resourceDropZone = document.getElementById('resourceDropZone');
   const stackBuilder = document.getElementById('stackBuilder');
   const stackCount = document.getElementById('stackCount');
-  let scene3Stack = [];
   
   document.querySelectorAll('#scene3 .resource-card').forEach(card => {
     card.addEventListener('dragstart', function(e) {
@@ -1972,8 +1974,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // ═══════════════════════════════════════════════════════════════
   // SCENE 4: PRIORITY TIMELINE SEQUENCING
   // ═══════════════════════════════════════════════════════════════
-  
-  let scene4Timeline = { 1: null, 2: null, 3: null };
   
   document.querySelectorAll('#scene4 .action-card').forEach(card => {
     card.addEventListener('dragstart', function(e) {
