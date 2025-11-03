@@ -90,27 +90,6 @@ async function generateBrandedGameHTML(branding: {
       /<img src="\.\.\/microsoft-logo\.png"[^>]*>/,
       `<img src="${branding.logoUrl}" alt="${branding.brandName}" style="width: 120px; height: auto; margin-bottom: 20px; animation: logoFloat 2s ease-in-out infinite;" />`
     );
-    
-    // Also add a persistent logo in the top left
-    const logoHTML = `
-    <style>
-      .custom-brand-logo {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        max-height: 60px;
-        max-width: 180px;
-        object-fit: contain;
-        z-index: 10000;
-        background: rgba(10, 10, 10, 0.8);
-        padding: 10px;
-        border-radius: 12px;
-        border: 2px solid ${primaryColor};
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-      }
-    </style>
-    <img src="${branding.logoUrl}" alt="${branding.brandName}" class="custom-brand-logo" />`;
-    customHTML = customHTML.replace('<body>', `<body>${logoHTML}`);
   }
   
   // Add custom mascot if provided - replace the lottie animation in the intro screen
