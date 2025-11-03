@@ -662,7 +662,7 @@
     /* Task Cards (Scene 1) */
     .card-pile {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
       gap: 16px;
       max-width: 900px;
       margin: 0 auto;
@@ -683,6 +683,8 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
                   inset 0 1px 0 rgba(255, 255, 255, 0.8);
       transform-origin: center;
+      max-width: 100%;
+      width: 100%;
     }
 
     .task-card:active {
