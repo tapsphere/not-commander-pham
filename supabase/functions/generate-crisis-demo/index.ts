@@ -78,6 +78,76 @@ async function generateBrandedGameHTML(branding: {
     .replace(/--primary:\s*#0078D4/g, `--primary: ${primaryColor}`)
     .replace(/--secondary:\s*#50E6FF/g, `--secondary: ${secondaryColor}`);
   
+  // Inject mobile-optimized card styles
+  const mobileStyles = `
+    <style>
+      /* Mobile-optimized card styles */
+      .card-pile {
+        grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)) !important;
+        gap: 8px !important;
+      }
+      
+      .task-card {
+        padding: 10px !important;
+      }
+      
+      .card-emoji {
+        font-size: 24px !important;
+        margin-bottom: 6px !important;
+      }
+      
+      .card-text {
+        font-size: 11px !important;
+        line-height: 1.3 !important;
+      }
+      
+      .resource-cards,
+      .action-cards {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+        gap: 8px !important;
+      }
+      
+      .resource-card,
+      .action-card {
+        padding: 10px !important;
+        gap: 6px !important;
+      }
+      
+      .resource-card .card-emoji,
+      .action-card .card-emoji {
+        font-size: 20px !important;
+      }
+      
+      .resource-card .card-text,
+      .action-card .card-text {
+        font-size: 11px !important;
+      }
+      
+      .priority-slot {
+        min-width: 120px !important;
+        min-height: 120px !important;
+        padding: 8px !important;
+      }
+      
+      @media (max-width: 768px) {
+        .drop-zone,
+        .resource-drop-zone,
+        .feedback-drop-zone {
+          padding: 16px !important;
+          min-height: 120px !important;
+        }
+        
+        .folder-icon,
+        .resource-icon,
+        .feedback-icon {
+          font-size: 40px !important;
+        }
+      }
+    </style>
+  `;
+  
+  customHTML = customHTML.replace('</head>', `${mobileStyles}</head>`);
+  
   // Replace title with custom brand and course names
   customHTML = customHTML
     .replace(/<title>.*?<\/title>/, `<title>${branding.brandName} - ${branding.courseName}</title>`)
