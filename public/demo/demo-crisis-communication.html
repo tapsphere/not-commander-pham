@@ -1957,13 +1957,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show submit button when stack is complete
     if (scene3Stack.length === 3) {
-      document.getElementById('submitScene3').style.display = 'block';
+      const submitBtn = document.getElementById('submitScene3');
+      submitBtn.style.display = 'block';
+      submitBtn.style.position = 'fixed';
+      submitBtn.style.bottom = '20px';
+      submitBtn.style.left = '20px';
+      submitBtn.style.right = '20px';
+      submitBtn.style.width = 'calc(100% - 40px)';
+      submitBtn.style.maxWidth = '600px';
+      submitBtn.style.margin = '0 auto';
+      submitBtn.style.zIndex = '200';
+      console.log('Submit button for Scene 3 is now visible and positioned');
     }
   });
   
-  document.getElementById('submitScene3').addEventListener('click', function() {
-    handleScene3Submit();
-  });
+  const submitScene3Btn = document.getElementById('submitScene3');
+  if (submitScene3Btn) {
+    submitScene3Btn.addEventListener('click', function(e) {
+      console.log('Scene 3 submit button clicked!');
+      e.preventDefault();
+      e.stopPropagation();
+      handleScene3Submit();
+    });
+    console.log('Scene 3 submit button event listener attached');
+  } else {
+    console.error('submitScene3 button not found!');
+  }
   
   // ═══════════════════════════════════════════════════════════════
   // SCENE 4: PRIORITY TIMELINE SEQUENCING
@@ -2037,14 +2056,33 @@ document.addEventListener('DOMContentLoaded', function() {
       // Show submit button when all slots are filled
       const filledSlots = Object.values(scene4Timeline).filter(v => v !== null).length;
       if (filledSlots === 3) {
-        document.getElementById('submitScene4').style.display = 'block';
+        const submitBtn = document.getElementById('submitScene4');
+        submitBtn.style.display = 'block';
+        submitBtn.style.position = 'fixed';
+        submitBtn.style.bottom = '20px';
+        submitBtn.style.left = '20px';
+        submitBtn.style.right = '20px';
+        submitBtn.style.width = 'calc(100% - 40px)';
+        submitBtn.style.maxWidth = '600px';
+        submitBtn.style.margin = '0 auto';
+        submitBtn.style.zIndex = '200';
+        console.log('Submit button for Scene 4 is now visible and positioned');
       }
     });
   });
   
-  document.getElementById('submitScene4').addEventListener('click', function() {
-    handleScene4Submit();
-  });
+  const submitScene4Btn = document.getElementById('submitScene4');
+  if (submitScene4Btn) {
+    submitScene4Btn.addEventListener('click', function(e) {
+      console.log('Scene 4 submit button clicked!');
+      e.preventDefault();
+      e.stopPropagation();
+      handleScene4Submit();
+    });
+    console.log('Scene 4 submit button event listener attached');
+  } else {
+    console.error('submitScene4 button not found!');
+  }
   
   // Start button handler
   const startBtn = document.getElementById('startBtn');
@@ -2275,7 +2313,15 @@ function handleScene2Submit() {
 }
 
 function handleScene3Submit() {
-  console.log('=== HANDLE SCENE 3 SUBMIT ===', scene3Stack);
+  console.log('=== HANDLE SCENE 3 SUBMIT CALLED ===');
+  console.log('Scene 3 stack:', scene3Stack);
+  
+  // Disable the button to prevent double-clicks
+  const submitBtn = document.getElementById('submitScene3');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+  }
   const goldKey = window.__GOLD_KEY__.scene3;
   
   // Check how many "good" resources were selected
