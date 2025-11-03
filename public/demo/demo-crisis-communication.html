@@ -1925,8 +1925,6 @@ document.addEventListener('DOMContentLoaded', function() {
     this.classList.remove('drag-over');
     
     const resourceId = e.dataTransfer.getData('resourceId');
-    const resourceEmoji = e.dataTransfer.getData('resourceEmoji');
-    const resourceText = e.dataTransfer.getData('resourceText');
     const type = e.dataTransfer.getData('type');
     
     if (type !== 'resource' || scene3Stack.length >= 3) return;
@@ -1935,25 +1933,16 @@ document.addEventListener('DOMContentLoaded', function() {
     scene3Stack.push(resourceId);
     playSound('success');
     
-    // Create mini card for stack
-    const miniCard = document.createElement('div');
-    miniCard.className = 'resource-card';
-    miniCard.innerHTML = `
-      <div class="card-emoji">${resourceEmoji}</div>
-      <div class="card-text" style="font-size: 12px;">${resourceText}</div>
-    `;
-    
-    const layer = document.createElement('div');
-    layer.className = 'stack-layer filled';
-    layer.appendChild(miniCard);
-    stackBuilder.appendChild(layer);
-    
-    // Update count
+    // Update count (just show tally, don't display cards)
     stackCount.textContent = `${scene3Stack.length} / 3 Resources`;
     
-    // Hide the original card
-    document.querySelector(`#scene3 .resource-card[data-id="${resourceId}"]`).style.opacity = '0.3';
-    document.querySelector(`#scene3 .resource-card[data-id="${resourceId}"]`).setAttribute('draggable', 'false');
+    // Mark the original card as selected
+    const cardElement = document.querySelector(`#scene3 .resource-card[data-id="${resourceId}"]`);
+    if (cardElement) {
+      cardElement.style.opacity = '0.5';
+      cardElement.style.border = '3px solid #4CAF50';
+      cardElement.draggable = false;
+    }
     
     // Show submit button when stack is complete
     if (scene3Stack.length === 3) {
