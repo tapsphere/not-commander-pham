@@ -162,7 +162,14 @@ export default function DemoGenerator() {
   };
 
   const analyzeDocument = async () => {
-    if (!file) return;
+    if (!file) {
+      toast({
+        title: "No File Selected",
+        description: "Please upload a PDF file first",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     setAnalyzing(true);
