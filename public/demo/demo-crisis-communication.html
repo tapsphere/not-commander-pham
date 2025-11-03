@@ -1250,9 +1250,10 @@
       <div class="drop-zone-label">Support Stack Builder</div>
       <div class="drop-zone-count" id="stackCount">0 / 3 Resources</div>
       <div class="stack-builder" id="stackBuilder"></div>
+      <button id="submitScene3" class="choice-btn" style="display: none; margin-top: 16px; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; font-weight: bold; padding: 14px 28px; font-size: 1.1em; animation: pulse 1s infinite; cursor: pointer; z-index: 100; position: relative; border: none;">
+        Continue ✓
+      </button>
     </div>
-    
-    <button class="btn" id="submitScene3" style="display: none;">Submit Stack</button>
 
     <!-- Resource Cards -->
     <div class="resource-cards">
@@ -1948,15 +1949,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (scene3Stack.length === 3) {
       const submitBtn = document.getElementById('submitScene3');
       submitBtn.style.display = 'block';
-      submitBtn.style.position = 'fixed';
-      submitBtn.style.bottom = '20px';
-      submitBtn.style.left = '20px';
-      submitBtn.style.right = '20px';
-      submitBtn.style.width = 'calc(100% - 40px)';
-      submitBtn.style.maxWidth = '600px';
-      submitBtn.style.margin = '0 auto';
-      submitBtn.style.zIndex = '200';
-      console.log('Submit button for Scene 3 is now visible and positioned');
+      submitBtn.onclick = () => {
+        console.log('Continue button clicked!');
+        handleScene3Submit();
+      };
     }
   });
   
