@@ -138,6 +138,14 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
   const [selectedCompetency, setSelectedCompetency] = useState<string>('');
   const [selectedSubCompetencies, setSelectedSubCompetencies] = useState<string[]>([]);
   
+  // Scene-to-sub mapping for multi-sub templates
+  const [sceneSubMapping, setSceneSubMapping] = useState<{[key: number]: string}>({
+    1: '',
+    2: '',
+    3: '',
+    4: ''
+  });
+  
   // Get selected sub-competency data
   const selectedSub = subCompetencies.find(sub => selectedSubCompetencies.includes(sub.id));
   
@@ -645,6 +653,68 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     toast.success('Prompt copied to clipboard!');
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      // Import the PDF generator
+      const { generateSpecPDF } = await import('@/utils/generateSpecPDF');
+      
+      // Get selected competency and subs
+      const selectedComp = competencies.find(c => c.id === selectedCompetency);
+      const selectedSubs = subCompetencies.filter(sc => selectedSubCompetencies.includes(sc.id));
+      
+      if (!selectedComp || selectedSubs.length === 0) {
+        toast.error('Please select competencies first');
+        return;
+      }
+      
+      // Build sub-competency specs with scene mapping
+      const subSpecs = selectedSubs.map((sub, idx) => ({
+        statement: sub.statement,
+        sceneNumber: idx + 1,
+        actionCue: sub.action_cue,
+        gameMechanic: sub.game_mechanic,
+        validatorType: sub.validator_type,
+        scoringFormula: `Level 1: ${sub.scoring_formula_level_1 || 'Not specified'}\nLevel 2: ${sub.scoring_formula_level_2 || 'Not specified'}\nLevel 3: ${sub.scoring_formula_level_3 || 'Not specified'}`
+      }));
+      
+      const spec = {
+        templateName: formData.name || 'Custom Game Template',
+        competency: `${selectedComp.name} (${selectedComp.cbe_category})`,
+        subCompetencies: subSpecs,
+        scenario: formData.scenario || '',
+        playerActions: formData.playerActions || '',
+        scenes: {
+          scene1: formData.scene1,
+          scene2: formData.scene2,
+          scene3: formData.scene3,
+          scene4: formData.scene4
+        },
+        edgeCase: formData.edgeCase || '',
+        edgeCaseTiming: formData.edgeCaseTiming,
+        uiAesthetic: formData.uiAesthetic || 'Modern, mobile-optimized design',
+        brandCustomizations: {
+          description: 'Brands will be able to customize these elements when deploying your game:',
+          elements: [
+            'Logo (URL parameter: ?logo=...)',
+            'Primary Color (URL parameter: ?primary=...)',
+            'Secondary Color (URL parameter: ?secondary=...)',
+            'Accent Color (URL parameter: ?accent=...)',
+            'Background Color (URL parameter: ?background=...)',
+            'Company Name',
+            'Custom messaging in intro screen'
+          ]
+        }
+      };
+      
+      generateSpecPDF(spec);
+      toast.success('Specification PDF downloaded!');
+      
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
+    }
+  };
+
   const handleTestPreview = async () => {
     if (!generatedPrompt) {
       toast.error('Please fill in the template details first');
@@ -974,17 +1044,23 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
           {/* Custom Upload Section */}
           {templateType === 'custom_upload' && (
-            <CustomGameUpload
-              onFileSelect={setCustomGameFile}
-              selectedFile={customGameFile}
-            />
+            <>
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-300 mb-2">📋 Specification Form Required</h3>
+                <p className="text-sm text-gray-300">
+                  Complete the form below to define requirements for your custom game. 
+                  This ensures consistency with the PlayOps Framework and brand customization capabilities.
+                  You'll be able to download a PDF specification document to guide your development.
+                </p>
+              </div>
+              <CustomGameUpload
+                onFileSelect={setCustomGameFile}
+                selectedFile={customGameFile}
+              />
+            </>
           )}
 
-          {/* AI Generated Template Form */}
-          {templateType === 'ai_generated' && (
-            <>
-
-          {/* Competency Selection */}
+          {/* Competency Selection - Shared for both AI and Custom Upload */}
           <div className="border-t border-gray-700 pt-4 space-y-4">
             <h3 className="font-semibold" style={{ color: 'hsl(var(--neon-green))' }}>
               CBE Competency Framework
@@ -1012,7 +1088,13 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
             {selectedCompetency && subCompetencies.length > 0 && (
               <div>
-                <Label>Select 1 Sub-Competency *</Label>
+                <Label>Select Sub-Competencies (1-4) *</Label>
+                <p className="text-xs text-gray-400 mb-2">
+                  {templateType === 'ai_generated' 
+                    ? 'Each sub-competency will be tested in one scene. Select up to 4 for multi-scene games.'
+                    : 'Define which sub-competencies your custom game will test. Each should map to one scene.'
+                  }
+                </p>
                 <div className="space-y-2 mt-2 max-h-60 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md p-3">
                   {subCompetencies.map((sub) => (
                     <div key={sub.id} className="flex items-start space-x-2">
@@ -1021,10 +1103,31 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                         checked={selectedSubCompetencies.includes(sub.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            // Replace with new selection (only 1 allowed)
-                            setSelectedSubCompetencies([sub.id]);
+                            if (selectedSubCompetencies.length < 4) {
+                              const newSubs = [...selectedSubCompetencies, sub.id];
+                              setSelectedSubCompetencies(newSubs);
+                              // Auto-map to next available scene
+                              const sceneNum = newSubs.length;
+                              setSceneSubMapping(prev => ({
+                                ...prev,
+                                [sceneNum]: sub.id
+                              }));
+                              // Set active scenes to match sub count
+                              setActiveScenes(newSubs.length);
+                            } else {
+                              toast.error('Maximum 4 sub-competencies allowed');
+                            }
                           } else {
-                            setSelectedSubCompetencies([]);
+                            const newSubs = selectedSubCompetencies.filter(id => id !== sub.id);
+                            setSelectedSubCompetencies(newSubs);
+                            // Rebuild scene mapping
+                            const newMapping: {[key: number]: string} = { 1: '', 2: '', 3: '', 4: '' };
+                            newSubs.forEach((subId, idx) => {
+                              newMapping[idx + 1] = subId;
+                            });
+                            setSceneSubMapping(newMapping);
+                            // Update active scenes
+                            setActiveScenes(Math.max(1, newSubs.length));
                           }
                         }}
                       />
@@ -1033,12 +1136,17 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                         className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                       >
                         {sub.statement}
+                        {selectedSubCompetencies.includes(sub.id) && (
+                          <span className="ml-2 text-xs text-neon-green">
+                            → Scene {selectedSubCompetencies.indexOf(sub.id) + 1}
+                          </span>
+                        )}
                       </label>
                     </div>
                   ))}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  Select 1 behavior this validator will test
+                  Selected: {selectedSubCompetencies.length}/4 • Each sub = 1 scene
                 </p>
               </div>
             )}
@@ -1268,71 +1376,40 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
 
             <div className="space-y-3">
               <div>
-                <Label>Action Scenes / Rounds (optional)</Label>
+                <Label>Action Scenes / Rounds</Label>
                 <p className="text-xs text-gray-400 mt-1">
-                  Use this section only if your validator has multiple short scenes (2–4).<br />
-                  Each scene is one screen of play (~30–60s).<br />
-                  Example:<br />
-                  • Scene 1 = Baseline decision<br />
-                  • Scene 2 = New variable introduced<br />
-                  • Scene 3 = Edge-case twist<br />
-                  • Scene 4 = Recover & submit final plan<br />
-                  (Leave blank if the validator plays in one continuous round.)
+                  {selectedSubCompetencies.length > 1 
+                    ? `You have ${selectedSubCompetencies.length} sub-competencies selected. Each will be tested in its own scene (${selectedSubCompetencies.length} scenes total).`
+                    : 'Use this section only if your validator has multiple short scenes (2–4). Each scene is one screen of play (~30–60s).'
+                  }
                 </p>
               </div>
 
-              <div>
-                <Label htmlFor="scene1" className="text-sm">Scene 1</Label>
-                <Input
-                  id="scene1"
-                  value={formData.scene1}
-                  onChange={(e) => setFormData({ ...formData, scene1: e.target.value })}
-                  className="bg-gray-800 border-gray-700"
-                  placeholder="e.g., Baseline decision or initial challenge"
-                />
-              </div>
-
-              {activeScenes >= 2 && (
-                <div>
-                  <Label htmlFor="scene2" className="text-sm">Scene 2</Label>
-                  <Input
-                    id="scene2"
-                    value={formData.scene2}
-                    onChange={(e) => setFormData({ ...formData, scene2: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                    placeholder="e.g., New variable introduced"
-                  />
-                </div>
-              )}
-
-              {activeScenes >= 3 && (
-                <div>
-                  <Label htmlFor="scene3" className="text-sm">Scene 3</Label>
-                  <Input
-                    id="scene3"
-                    value={formData.scene3}
-                    onChange={(e) => setFormData({ ...formData, scene3: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                    placeholder="e.g., Edge-case rule flip"
-                  />
-                </div>
-              )}
-
-              {activeScenes >= 4 && (
-                <div>
-                  <Label htmlFor="scene4" className="text-sm">Scene 4</Label>
-                  <Input
-                    id="scene4"
-                    value={formData.scene4}
-                    onChange={(e) => setFormData({ ...formData, scene4: e.target.value })}
-                    className="bg-gray-800 border-gray-700"
-                    placeholder="e.g., Recover and submit final plan"
-                  />
-                </div>
-              )}
+              {[1, 2, 3, 4].slice(0, Math.max(activeScenes, selectedSubCompetencies.length)).map((sceneNum) => {
+                const subForScene = subCompetencies.find(sub => sceneSubMapping[sceneNum] === sub.id);
+                return (
+                  <div key={sceneNum}>
+                    <Label htmlFor={`scene${sceneNum}`} className="text-sm flex items-center gap-2">
+                      Scene {sceneNum}
+                      {subForScene && (
+                        <span className="text-xs text-neon-green font-normal">
+                          → Tests: {subForScene.statement.substring(0, 50)}...
+                        </span>
+                      )}
+                    </Label>
+                    <Input
+                      id={`scene${sceneNum}`}
+                      value={formData[`scene${sceneNum}` as keyof typeof formData] as string}
+                      onChange={(e) => setFormData({ ...formData, [`scene${sceneNum}`]: e.target.value })}
+                      className="bg-gray-800 border-gray-700"
+                      placeholder={`e.g., ${subForScene?.action_cue || 'Describe what happens in this scene'}`}
+                    />
+                  </div>
+                );
+              })}
 
               <div className="flex gap-2">
-                {activeScenes < 4 && (
+                {selectedSubCompetencies.length <= 1 && activeScenes < 4 && (
                   <Button
                     type="button"
                     variant="outline"
@@ -1343,7 +1420,7 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                     + Add Scene {activeScenes + 1}
                   </Button>
                 )}
-                {activeScenes > 1 && (
+                {selectedSubCompetencies.length <= 1 && activeScenes > 1 && (
                   <Button
                     type="button"
                     variant="outline"
@@ -1359,6 +1436,11 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                   >
                     Remove Scene {activeScenes}
                   </Button>
+                )}
+                {selectedSubCompetencies.length > 1 && (
+                  <p className="text-xs text-gray-400">
+                    Scenes locked to sub-competency count ({selectedSubCompetencies.length} scenes)
+                  </p>
                 )}
               </div>
             </div>
@@ -1497,7 +1579,21 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
               </>
             )}
           </div>
-          </>
+
+          {/* PDF Download for Custom Upload */}
+          {templateType === 'custom_upload' && selectedSubCompetencies.length > 0 && formData.scenario && (
+            <div className="border-t border-gray-700 pt-4">
+              <Button
+                type="button"
+                onClick={handleDownloadPDF}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                📄 Download Specification PDF
+              </Button>
+              <p className="text-xs text-gray-400 mt-2 text-center">
+                Use this PDF to build your custom game offline, then upload the HTML file above
+              </p>
+            </div>
           )}
 
           <div className="flex gap-3 justify-end border-t border-gray-700 pt-4">
