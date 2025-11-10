@@ -12,6 +12,7 @@ import { Copy, Eye } from 'lucide-react';
 import { TemplateTypeSelector } from './TemplateTypeSelector';
 import { CustomGameUpload } from './CustomGameUpload';
 import { DesignPaletteEditor } from './DesignPaletteEditor';
+import { ValidatorTestWizard } from './ValidatorTestWizard';
 
 interface TemplateDialogProps {
   open: boolean;
@@ -93,6 +94,11 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
   const [templateType, setTemplateType] = useState<'ai_generated' | 'custom_upload'>('ai_generated');
   const [customGameFile, setCustomGameFile] = useState<File | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  
+  // Custom upload validation state
+  const [validationStatus, setValidationStatus] = useState<'not_tested' | 'testing' | 'passed' | 'failed'>('not_tested');
+  const [draftTemplateId, setDraftTemplateId] = useState<string | null>(null);
+  const [showTestWizard, setShowTestWizard] = useState(false);
   const [formData, setFormData] = useState({
     name: template?.name || '',
     description: template?.description || '',
@@ -648,6 +654,29 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     toast.success(`Sample loaded using ${subCompData.statement} framework!`);
   };
 
+  // Reset validation when file changes
+  useEffect(() => {
+    if (customGameFile) {
+      setValidationStatus('not_tested');
+      setDraftTemplateId(null);
+    }
+  }, [customGameFile]);
+  
+  // Reset validation when template type changes
+  useEffect(() => {
+    setValidationStatus('not_tested');
+    setDraftTemplateId(null);
+  }, [templateType]);
+
+  // Reset state when dialog opens/closes
+  useEffect(() => {
+    if (!open) {
+      setValidationStatus('not_tested');
+      setDraftTemplateId(null);
+      setShowTestWizard(false);
+    }
+  }, [open]);
+
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(generatedPrompt);
     toast.success('Prompt copied to clipboard!');
@@ -715,6 +744,66 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     }
   };
 
+  const handleValidateCustomGame = async () => {
+    if (!customGameFile) {
+      toast.error('Please upload a game file first');
+      return;
+    }
+    
+    if (!selectedCompetency || selectedSubCompetencies.length === 0) {
+      toast.error('Please select competency and sub-competency');
+      return;
+    }
+    
+    setValidationStatus('testing');
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Upload file to storage
+      const fileExt = customGameFile.name.split('.').pop();
+      const fileName = `${user.id}/draft-${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError} = await supabase.storage
+        .from('custom-games')
+        .upload(fileName, customGameFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('custom-games')
+        .getPublicUrl(fileName);
+      
+      // Create draft template for testing
+      const { data: draftTemplate, error: draftError } = await supabase
+        .from('game_templates')
+        .insert({
+          creator_id: user.id,
+          name: formData.name || 'Draft Template',
+          description: formData.description,
+          template_type: 'custom_upload',
+          custom_game_url: publicUrl,
+          competency_id: selectedCompetency,
+          selected_sub_competencies: selectedSubCompetencies,
+          is_published: false,
+          game_config: { draft: true }
+        })
+        .select()
+        .single();
+      
+      if (draftError) throw draftError;
+      
+      setDraftTemplateId(draftTemplate.id);
+      setShowTestWizard(true);
+      
+    } catch (error: any) {
+      console.error('Validation setup error:', error);
+      toast.error('Failed to prepare validation: ' + error.message);
+      setValidationStatus('failed');
+    }
+  };
+
   const handleTestPreview = async () => {
     if (!generatedPrompt) {
       toast.error('Please fill in the template details first');
@@ -774,6 +863,13 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+      
+      // For custom uploads, require validation before submission
+      if (templateType === 'custom_upload' && validationStatus !== 'passed' && !saveAsDraft) {
+        toast.error('Please validate your custom game before submitting for review');
+        setLoading(false);
+        return;
+      }
 
       // Validate scene requirements if any scene is filled
       const filledScenes = [formData.scene1, formData.scene2, formData.scene3, formData.scene4].filter(s => s.trim()).length;
@@ -785,8 +881,26 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
       let customGameUrl = null;
 
-      // Handle custom game upload
-      if (templateType === 'custom_upload' && customGameFile) {
+      // Handle custom game upload - if already validated, use draft template
+      if (templateType === 'custom_upload' && draftTemplateId && validationStatus === 'passed') {
+        // Update the validated draft template instead of creating new
+        const { error } = await supabase
+          .from('game_templates')
+          .update({
+            name: formData.name,
+            description: formData.description,
+            game_config: { draft: false, validated: true }
+          })
+          .eq('id', draftTemplateId);
+        
+        if (error) throw error;
+        
+        toast.success('Validated template submitted for review!');
+        onSuccess();
+        onOpenChange(false);
+        setLoading(false);
+        return;
+      } else if (templateType === 'custom_upload' && customGameFile) {
         const fileExt = customGameFile.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         
@@ -1595,6 +1709,66 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
               </p>
             </div>
           )}
+          
+          {/* Validation for Custom Upload */}
+          {templateType === 'custom_upload' && customGameFile && selectedSubCompetencies.length > 0 && (
+            <div className="border-t border-gray-700 pt-4">
+              {validationStatus === 'not_tested' && (
+                <div className="space-y-3">
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                    <p className="text-yellow-400 font-semibold mb-1">⚠️ Validation Required</p>
+                    <p className="text-sm text-gray-300">
+                      Before submitting for review, your custom game must pass all automated tests to ensure it meets PlayOps Framework standards.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleValidateCustomGame}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                    disabled={!formData.name}
+                  >
+                    🔍 Run Validation Tests
+                  </Button>
+                </div>
+              )}
+              
+              {validationStatus === 'testing' && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <p className="text-blue-400 font-semibold mb-1">⏳ Validation In Progress</p>
+                  <p className="text-sm text-gray-300">
+                    Running automated tests on your game...
+                  </p>
+                </div>
+              )}
+              
+              {validationStatus === 'passed' && (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <p className="text-green-400 font-semibold mb-1">✅ Validation Passed!</p>
+                  <p className="text-sm text-gray-300">
+                    Your game meets all requirements and is ready for submission.
+                  </p>
+                </div>
+              )}
+              
+              {validationStatus === 'failed' && (
+                <div className="space-y-3">
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                    <p className="text-red-400 font-semibold mb-1">❌ Validation Failed</p>
+                    <p className="text-sm text-gray-300">
+                      Your game did not pass all required tests. Please review the test results and upload a corrected version.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleValidateCustomGame}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    🔍 Re-run Validation Tests
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-3 justify-end border-t border-gray-700 pt-4">
             <Button
@@ -1625,10 +1799,10 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+                  disabled={loading || (templateType === 'custom_upload' && (!customGameFile || validationStatus !== 'passed'))}
                   className="bg-neon-green text-black hover:bg-neon-green/80"
                 >
-                  {loading ? 'Creating...' : 'Create & Test'}
+                  {loading ? 'Creating...' : templateType === 'custom_upload' ? 'Submit for Review' : 'Create & Test'}
                 </Button>
               </>
             )}
@@ -1668,6 +1842,41 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Validation Test Wizard */}
+      {draftTemplateId && selectedSubCompetencies[0] && (
+        <ValidatorTestWizard
+          open={showTestWizard}
+          onOpenChange={setShowTestWizard}
+          template={{
+            id: draftTemplateId,
+            name: formData.name || 'Custom Game',
+            template_type: 'custom_upload',
+            custom_game_url: '' // Will be fetched from database
+          }}
+          subCompetency={subCompetencies.find(sc => sc.id === selectedSubCompetencies[0]) || null}
+          onComplete={() => {
+            setShowTestWizard(false);
+            // Check test results and update validation status
+            supabase
+              .from('validator_test_results')
+              .select('overall_status')
+              .eq('template_id', draftTemplateId)
+              .order('tested_at', { ascending: false })
+              .limit(1)
+              .single()
+              .then(({ data }) => {
+                if (data?.overall_status === 'passed') {
+                  setValidationStatus('passed');
+                  toast.success('All tests passed! Ready to submit.');
+                } else {
+                  setValidationStatus('failed');
+                  toast.error('Some tests failed. Please review and fix issues.');
+                }
+              });
+          }}
+        />
+      )}
     </Dialog>
   );
 };
