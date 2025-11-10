@@ -883,19 +883,24 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
       // Handle custom game upload - if already validated, use draft template
       if (templateType === 'custom_upload' && draftTemplateId && validationStatus === 'passed') {
-        // Update the validated draft template instead of creating new
+        // Update the validated draft template - keep unpublished for manual review
         const { error } = await supabase
           .from('game_templates')
           .update({
             name: formData.name,
             description: formData.description,
-            game_config: { draft: false, validated: true }
+            is_published: false, // Stays unpublished until manual approval
+            game_config: { 
+              draft: false, 
+              validated: true,
+              review_status: 'pending_review' // Awaiting manual backend approval
+            }
           })
           .eq('id', draftTemplateId);
         
         if (error) throw error;
         
-        toast.success('Validated template submitted for review!');
+        toast.success('✅ Custom game validated and submitted for review! Our team will approve it shortly.');
         onSuccess();
         onOpenChange(false);
         setLoading(false);
@@ -1000,6 +1005,8 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
             design_settings: useCustomDesign ? designSettings : null,
+            is_published: false, // All templates start unpublished
+            game_config: templateType === 'ai_generated' ? {} : { draft: !saveAsDraft }
           })
           .select()
           .single();
@@ -1009,7 +1016,11 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         if (saveAsDraft) {
           toast.success('Template saved as draft! Test it when ready.');
         } else {
-          toast.success('Template created! Opening test wizard...');
+          if (templateType === 'ai_generated') {
+            toast.success('AI template created! Opening test wizard...');
+          } else {
+            toast.success('Custom template created! Test it when ready.');
+          }
           // Trigger test wizard if not saving as draft and callback exists
           if (onTemplateCreated && newTemplate && selectedSubCompetencies[0]) {
             onTemplateCreated(newTemplate.id, formData.name, selectedSubCompetencies[0]);
@@ -1745,7 +1756,7 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                 <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                   <p className="text-green-400 font-semibold mb-1">✅ Validation Passed!</p>
                   <p className="text-sm text-gray-300">
-                    Your game meets all requirements and is ready for submission.
+                    Your game meets all requirements and is ready for review submission. Our team will manually verify and publish it.
                   </p>
                 </div>
               )}
