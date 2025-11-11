@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Flow Comparison - Original vs Updated</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a1a1a;
+            border-bottom: 3px solid #3B82F6;
+            padding-bottom: 10px;
+        }
+        .legend {
+            background: #f0f9ff;
+            border-left: 4px solid #3B82F6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .legend strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .original {
+            color: #000000;
+        }
+        .new {
+            color: #3B82F6;
+            font-weight: 500;
+        }
+        h2 {
+            color: #1a1a1a;
+            margin-top: 30px;
+            border-bottom: 2px solid #e5e5e5;
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 20px;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #1a1a1a;
+            color: #10B981;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+        .highlight-box {
+            background: #eff6ff;
+            border: 1px solid #3B82F6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .summary {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CREATOR FLOW — Complete Journey (Updated)</h1>
+        
+        <div class="legend">
+            <strong>Legend:</strong>
+            <p><span class="original">● Black text</span> = Original flow (unchanged)</p>
+            <p><span class="new">● Blue text</span> = New additions and changes</p>
+        </div>
+
+        <div class="section">
+            <h2>Access & Dashboard</h2>
+            
+            <h3 class="original">1. Authentication</h3>
+            <p class="original">Creator signs in with email and password.</p>
+            <p class="original">Role: "creator" assigned in database.</p>
+            <p class="original">Redirected to Creator Dashboard.</p>
+
+            <h3 class="original">2. Creator Dashboard</h3>
+            <p class="original">View all created templates.</p>
+            <p class="original">See template statistics:</p>
+            <ul class="original">
+                <li>Times customized by brands</li>
+                <li>Player completion count</li>
+                <li>Average scores</li>
+                <li>Test status for each template</li>
+            </ul>
+            <p class="original">Filter: Published vs. Draft templates.</p>
+            <p class="original">Access "Test Validators" dashboard from header.</p>
+            <p class="original">Edit Profile: Set default design preferences for all future games.</p>
+
+            <div class="highlight-box">
+                <p class="new"><strong>NEW: Tabbed Interface</strong></p>
+                <ul class="new">
+                    <li>Tab 1: "My Games" - All game templates and validators</li>
+                    <li>Tab 2: "Design Elements" - Upload and manage individual design assets</li>
+                </ul>
+                
+                <p class="new"><strong>Design Elements Tab Features:</strong></p>
+                <ul class="new">
+                    <li>Upload Portal for design assets (mascots, backgrounds, UI components, animations, audio, effects)</li>
+                    <li>Element Library showing all uploaded elements with status badges</li>
+                    <li>Usage tracking and statistics per element</li>
+                    <li>Filter by status: All, Published, Pending Review, Approved, Rejected</li>
+                    <li>Review status indicators and rejection reasons</li>
+                </ul>
+            </div>
+
+            <h3 class="original">3. Profile Settings (Default Customization)</h3>
+            <p class="original">Design Palette (inherited by all games):</p>
+            <ul class="original">
+                <li>Primary color</li>
+                <li>Secondary color</li>
+                <li>Accent color</li>
+                <li>Background color</li>
+                <li>Text color</li>
+                <li>Highlight color</li>
+            </ul>
+            <p class="original">Font Family: Default typography (e.g., Inter, Roboto)</p>
+            <p class="original">Game Avatar: Default mascot or character image</p>
+            <p class="original">Mascot Animation Type: Static, bounce, pulse, or float</p>
+            <p class="original">Particle Effect: Sparkles, confetti, stars, or none</p>
+            <p class="original"><em>Note: These become the default for every new game created but can be overridden per game.</em></p>
+        </div>
+
+        <div class="section">
+            <h2>Template Creation</h2>
+            
+            <h3 class="original">4. Choose Template Type</h3>
+            <p class="original">Click "New Template" on Creator Dashboard. Select type:</p>
+            <ul class="original">
+                <li>AI-Generated Template — build from scratch using AI</li>
+                <li>Custom Upload — upload pre-built HTML game</li>
+            </ul>
+
+            <h3 class="original">5. AI-Generated Template Path</h3>
+            <p class="original">Select C-BEN competency from master list (e.g., Analytical Thinking, AI & Big Data Skills, Creative Thinking, Leadership & Social Influence, Crisis Management, Budget Allocation, etc.). Choose 1 sub-competency to test.</p>
+            
+            <p class="new"><strong>CHANGED: Now supports selecting 1-4 sub-competencies (multi-scene games)</strong></p>
+
+            <p class="original">Provide template details:</p>
+            <ul class="original">
+                <li>Template name</li>
+                <li>Description</li>
+                <li>Base prompt (scenario setup)</li>
+                <li>Game mechanics instructions</li>
+                <li>Edge cases to test</li>
+                <li>Duration (typically 3–5 minutes)</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p class="new"><strong>NEW: PlayOps Framework Structure Guide</strong></p>
+                <p class="new">When sub-competencies are selected, a visual guide displays:</p>
+                <ul class="new">
+                    <li><strong>Scene 0: Intro Screen</strong> (required elements: logo, START button, no auto-start)</li>
+                    <li><strong>Scene 1-4: Gameplay scenes</strong> (one per sub-competency selected)</li>
+                    <li><strong>Results Screen:</strong> Required fields (proficiency level, score, feedback, time, metrics, REPLAY/CONTINUE buttons)</li>
+                    <li><strong>State Management:</strong> JavaScript scene tracking with currentScene variable</li>
+                    <li><strong>Brand Customization Zones documentation</strong></li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <p class="new"><strong>NEW: Brand Customization Zones (What Brands Can Edit)</strong></p>
+                
+                <p class="new"><strong>EDITABLE by brands:</strong></p>
+                <ul class="new">
+                    <li>Brand Logo (Scene 0, top-left or center)</li>
+                    <li><strong>Mascot/Avatar</strong> (character image throughout game)</li>
+                    <li><strong>Particle Effects</strong> (sparkles, confetti, glitter, stars, bubbles, fire)</li>
+                    <li>Primary Color (buttons, headers, progress bars)</li>
+                    <li>Secondary Color (secondary buttons, backgrounds)</li>
+                    <li>Accent Color (highlights, success states, borders)</li>
+                    <li>Background Color (main game background)</li>
+                    <li>Font Family (all text, web-safe fonts)</li>
+                </ul>
+
+                <p class="new"><strong>LOCKED (cannot be edited by brands):</strong></p>
+                <ul class="new">
+                    <li>Scene Structure (Scene 0 → Scene 1-4 → Results)</li>
+                    <li>Action Cues (from sub-competency)</li>
+                    <li>Game Mechanics (drag-drop, click, type, etc.)</li>
+                    <li>Scoring Logic (formulas locked to sub-competency)</li>
+                    <li>Timer Logic (duration set by designer)</li>
+                    <li>Edge Case Timing (when disruption occurs)</li>
+                </ul>
+
+                <p class="new"><strong>URL Parameters for Customization:</strong></p>
+                <ul class="new">
+                    <li><code>?logo=URL</code> - Brand logo image</li>
+                    <li><code>?avatar=URL</code> - Mascot/character image</li>
+                    <li><code>?particles=TYPE</code> - Particle effect (sparkles, confetti, etc.)</li>
+                    <li><code>?primary=HEX</code> - Primary color</li>
+                    <li><code>?secondary=HEX</code> - Secondary color</li>
+                    <li><code>?accent=HEX</code> - Accent color</li>
+                    <li><code>?background=HEX</code> - Background color</li>
+                    <li><code>?font=NAME</code> - Font family</li>
+                </ul>
+
+                <p class="new"><strong>Example Implementation Code:</strong></p>
+                <pre>// Get URL parameters
+const params = new URLSearchParams(window.location.search);
+const brandLogo = params.get('logo') || 'default-logo.png';
+const mascotAvatar = params.get('avatar') || 'default-mascot.png';
+const particleEffect = params.get('particles') || 'sparkles';
+const primaryColor = params.get('primary') || '#0078D4';
+
+// Apply to elements
+document.getElementById('brand-logo').src = brandLogo;
+document.getElementById('mascot-avatar').src = mascotAvatar;
+document.documentElement.style.setProperty('--primary-color', primaryColor);
+
+// Initialize particle effect
+initParticleEffect(particleEffect);</pre>
+            </div>
+
+            <h3 class="original">Action Scenes / Rounds (optional):</h3>
+            <p class="original">Use for validators with multiple short scenes (2–4). Each scene is one screen of play (1–30–60 s).</p>
+            
+            <p class="new"><strong>CHANGED: Now automatically maps to sub-competencies when multiple are selected</strong></p>
+
+            <p class="original">Example:</p>
+            <ul class="original">
+                <li>Scene 1 = Baseline decision</li>
+                <li>Scene 2 = New variable introduced</li>
+                <li>Scene 3 = Edge-case twist</li>
+                <li>Scene 4 = Recover & submit final plan</li>
+            </ul>
+            <p class="original">Leave blank if game plays in one continuous round.</p>
+
+            <h3 class="original">Edge-Case Timing:</h3>
+            <p class="original">Choose when the rule-flip or disruption occurs: Beginning, Early, Mid, or Late.</p>
+
+            <h3 class="original">Edge-Case Moment:</h3>
+            <p class="original">Describe how the disruption appears (e.g., "Timer cuts in half," "Key data field vanishes mid-game").</p>
+
+            <h3 class="original">UI Aesthetic:</h3>
+            <p class="original">Describe the visual style (e.g., "Greyscale minimalist," "Neon cyberpunk with Deloitte branding").</p>
+
+            <h3 class="original">Customize Colors & Font (optional):</h3>
+            <p class="original">Leave unchecked → uses profile default design.</p>
+            <p class="original">Check to override for this specific game:</p>
+            <ul class="original">
+                <li>Highlight color</li>
+                <li>Text color</li>
+                <li>Font family</li>
+            </ul>
+            <p class="original">Avatar and particle effect also customizable per game.</p>
+
+            <h3 class="original">Decision point:</h3>
+            <ul class="original">
+                <li>Click "Create & Test" → opens test wizard immediately.</li>
+                <li>Click "Save as Draft" → test later from dashboard.</li>
+            </ul>
+
+            <h3 class="original">6. Custom Upload Path</h3>
+            <p class="original">Upload HTML file (game built externally).</p>
+
+            <div class="highlight-box">
+                <p class="new"><strong>CHANGED: Form field order restructured</strong></p>
+                <p class="new"><strong>New Flow Order:</strong></p>
+                <ol class="new">
+                    <li>Template Name & Description</li>
+                    <li>Template Type Selection (AI/Custom)</li>
+                    <li>Competency & Sub-Competency Selection</li>
+                    <li>PlayOps Framework Structure Guide Display</li>
+                    <li>Scenario Customization Fields (industry, role, key elements, edge case details, visual theme, interaction method)</li>
+                    <li>Designer-Controlled Elements (scenario, player actions, action scenes, edge-case timing/moment, UI aesthetic)</li>
+                    <li>Design Customization (optional color/font overrides)</li>
+                    <li><strong>File Uploads Section (moved to end):</strong>
+                        <ul>
+                            <li>Cover Image Upload</li>
+                            <li>Custom Game HTML Upload</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <p class="original">Specify C-BEN competencies tested.</p>
+            <p class="original">Add metadata (name, description, preview image).</p>
+            <p class="original">Upload to cloud storage.</p>
+            <p class="original">Same customization fields apply (action scenes, edge-case timing/moment, UI aesthetic, optional overrides).</p>
+
+            <h3 class="original">Decision point:</h3>
+            <ul class="original">
+                <li>Click "Create & Test" → open test wizard immediately.</li>
+                <li>Click "Save as Draft" → test later from dashboard.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2 class="new">Design Element Upload (NEW)</h2>
+            
+            <div class="highlight-box">
+                <p class="new"><strong>NEW FEATURE: Individual Design Asset Management</strong></p>
+                <p class="new">Upload Portal allows creators to upload individual design elements:</p>
+
+                <p class="new"><strong>Element Types:</strong></p>
+                <ol class="new">
+                    <li>Mascot/Character (static, animated, 3d, rigged)</li>
+                    <li>Background (static, parallax, particle)</li>
+                    <li>UI Component (button, input, progress_bar, card)</li>
+                    <li>Feedback Effect (success, failure, transition)</li>
+                    <li>Audio (music, sfx, voiceover)</li>
+                    <li>Decorative (icon, border, frame)</li>
+                    <li><strong>Animation (lottie, sprite_sheet, css, gif) - NEW TYPE</strong></li>
+                </ol>
+
+                <p class="new"><strong>For Each Element Type:</strong></p>
+                <ul class="new">
+                    <li>Specific Format Requirements (e.g., PNG transparent for mascots, MP3 for audio)</li>
+                    <li>Maximum File Size Limits (varies by type: 300KB-2MB)</li>
+                    <li><strong>Telegram Mini-Game Optimization Guidelines</strong></li>
+                    <li>Mobile performance requirements (60fps, low-end device testing)</li>
+                </ul>
+
+                <p class="new"><strong>Upload Process:</strong></p>
+                <ol class="new">
+                    <li>Select Element Type and Subtype</li>
+                    <li>View specific requirements for selected type</li>
+                    <li>Enter Element Name and Description</li>
+                    <li>Upload File (drag-and-drop or browse)</li>
+                    <li>Select Allowed Placement Zones (intro_screen_mascot, gameplay_background, ui_buttons, etc.)</li>
+                    <li>Submit for Review</li>
+                </ol>
+
+                <p class="new"><strong>Review Process:</strong></p>
+                <ul class="new">
+                    <li>All elements go through manual review before approval</li>
+                    <li>Status: Pending Review → Approved/Rejected</li>
+                    <li>Approved elements appear in marketplace for brands</li>
+                    <li>Usage tracking for future royalty payouts (beta)</li>
+                </ul>
+
+                <p class="new"><strong>Element Library:</strong></p>
+                <ul class="new">
+                    <li>View all uploaded elements with preview images</li>
+                    <li>Status badges (Published, Approved, Pending, Rejected)</li>
+                    <li>Usage statistics per element</li>
+                    <li>Filter and sort by status</li>
+                    <li>Delete unpublished elements</li>
+                    <li>View rejection reasons (if rejected)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Validator Testing (3 Phases – Required)</h2>
+            
+            <h3 class="original">6. Phase 1 – UX/UI Flow Test</h3>
+            <p class="original">Checks:</p>
+            <ul class="original">
+                <li>Game loads without errors</li>
+                <li>UI renders correctly</li>
+            </ul>
+
+            <h3 class="original">7. Phase 2 – Action Cue Validation</h3>
+            <p class="original">Checks:</p>
+            <ul class="original">
+                <li>Game captures sub-competency accurately</li>
+                <li>Player actions align with action cue statement</li>
+                <li>Mechanics demonstrate skill properly</li>
+                <li>Backend data capture matches behavior</li>
+            </ul>
+            <p class="original">How to test:</p>
+            <ul class="original">
+                <li>Review sub-competency statement + action cue</li>
+                <li>Play naturally</li>
+                <li>Verify alignment</li>
+                <li>Confirm mechanic logic</li>
+                <li>Check API data (custom uploads)</li>
+            </ul>
+            <p class="original">Mark status: Passed / Failed / Needs Review.</p>
+            <p class="original">Add notes for alignment issues.</p>
+
+            <h3 class="original">8. Phase 3 – Scoring Formula Test</h3>
+            <p class="original">Checks:</p>
+            <ul class="original">
+                <li>Scoring reflects true performance</li>
+                <li>XP/levels calculate correctly</li>
+                <li>Pass/fail thresholds fit expectations</li>
+                <li>Proficiency tiers match demonstrated skill</li>
+            </ul>
+            <p class="original">How to test:</p>
+            <ul class="original">
+                <li>Play poorly → average → excellent → verify:
+                    <ul>
+                        <li>Level 1 (Needs Work): basic completion</li>
+                        <li>Level 2 (Intermediate): quality + efficiency</li>
+                        <li>Level 3 (Expert): advanced mastery</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="original">Review backend metrics.</p>
+            <p class="original">Mark status: Passed / Failed / Needs Review. Add notes for inconsistencies.</p>
+
+            <h3 class="original">9. Complete Testing</h3>
+            <p class="original">Click "Save & Finish" once all phases complete. System calculates overall status:</p>
+            <ul class="original">
+                <li>✅ Passed – all phases cleared</li>
+                <li>❌ Failed – one or more failed</li>
+                <li>⚠️ Needs Review – manual review required</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Review & Fix</h2>
+            
+            <h3 class="original">10. Test Results Dashboard</h3>
+            <p class="original">View overall status per template. Access detailed phase breakdowns. Review notes and test history.</p>
+            <p class="original">If Passed → "Approve for Publish" unlocks. If Failed → fix issues, click "Re-test." If Needs Review → address and re-test.</p>
+        </div>
+
+        <div class="section">
+            <h2>Approval & Publishing</h2>
+            
+            <h3 class="original">11. Approve for Publishing</h3>
+            <p class="original">Requirement: status = Passed. Click "Approve for Publish." Validator becomes marketplace-eligible.</p>
+
+            <h3 class="original">12. Publish to Marketplace</h3>
+            <p class="original">Toggle "Publish" switch on approved validator. Validator appears in Brand Hub marketplace. Brands can browse, customize, deploy. Can unpublish anytime.</p>
+
+            <p class="original"><strong>Note: Automatic Mode Generation (System Action)</strong></p>
+            <p class="original">When a validator is published, the system automatically compiles two runtime versions:</p>
+            <ul class="original">
+                <li><strong>Training Mode (Practice)</strong><br>
+                    Randomized data each session, unlimited retries, no proof receipts or XP. Designed for players to practice skills with immediate feedback.</li>
+                <li><strong>Testing Mode (Proof)</strong><br>
+                    Fixed seed data, time enforced, single attempt, proof receipt generated. XP and proof logs stored on-chain.</li>
+            </ul>
+            <p class="original">Creators don't have to configure or test these separately — the system handles both using the same template and scoring logic.</p>
+        </div>
+
+        <div class="section">
+            <h2>Key Rules</h2>
+            <ul class="original">
+                <li>Templates must pass all 3 testing phases before publishing.</li>
+                <li>Drafts can be saved and tested later.</li>
+                <li>Failed tests block publishing until fixed.</li>
+                <li>Re-testing is always available.</li>
+                <li>Usage & performance tracking coming soon.</li>
+            </ul>
+
+            <div class="highlight-box">
+                <p class="new"><strong>NEW RULES:</strong></p>
+                <ul class="new">
+                    <li>Design elements must pass review before appearing in marketplace</li>
+                    <li>Custom HTML games must implement all required URL parameters for brand customization</li>
+                    <li>All games must follow PlayOps Framework scene structure (Scene 0 → Gameplay → Results)</li>
+                    <li>Mascot zones must be reserved in game layout (recommended: bottom-right corner)</li>
+                    <li>Particle effects must be integrated via URL parameter system</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h2>Summary of Major Changes</h2>
+            
+            <p class="new"><strong>1. Design Element Upload System</strong></p>
+            <ul class="new">
+                <li>New tab on Creator Dashboard for managing individual design assets</li>
+                <li>7 element types supported (including new Animation type)</li>
+                <li>Telegram Mini-Game optimization requirements</li>
+                <li>Review and approval workflow</li>
+            </ul>
+
+            <p class="new"><strong>2. PlayOps Framework Structure Guide</strong></p>
+            <ul class="new">
+                <li>Visual guide showing required scene structure</li>
+                <li>Brand Customization Zones documentation</li>
+                <li>Clear EDITABLE vs LOCKED elements</li>
+                <li>URL parameter implementation guide</li>
+                <li>Code examples for custom HTML games</li>
+            </ul>
+
+            <p class="new"><strong>3. Enhanced Form Structure</strong></p>
+            <ul class="new">
+                <li>Multi-sub-competency support (1-4 selections)</li>
+                <li>New contextual fields (industry, role, key elements)</li>
+                <li>Reordered flow: configuration first, file uploads at end</li>
+                <li>Auto-generated player actions based on interaction method</li>
+            </ul>
+
+            <p class="new"><strong>4. Brand Customization Enhancements</strong></p>
+            <ul class="new">
+                <li>Mascot/Avatar upload support</li>
+                <li>Particle effects selection system</li>
+                <li>Extended URL parameter system</li>
+                <li>Visual zone placement guidelines</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
