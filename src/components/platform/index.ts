@@ -18,3 +18,4 @@ export { TemplateTypeSelector } from './TemplateTypeSelector';
 export { ValidatorTemplateCard } from './ValidatorTemplateCard';
 export { ValidatorTestWizard } from './ValidatorTestWizard';
 export { V3ComplianceChecker } from './V3ComplianceChecker';
+export { PlayOpsStructureGuide } from './PlayOpsStructureGuide';

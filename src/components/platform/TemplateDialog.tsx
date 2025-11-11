@@ -13,6 +13,7 @@ import { TemplateTypeSelector } from './TemplateTypeSelector';
 import { CustomGameUpload } from './CustomGameUpload';
 import { DesignPaletteEditor } from './DesignPaletteEditor';
 import { ValidatorTestWizard } from './ValidatorTestWizard';
+import { PlayOpsStructureGuide } from './PlayOpsStructureGuide';
 
 interface TemplateDialogProps {
   open: boolean;
@@ -1279,6 +1280,14 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                   🔒 These mechanics are LOCKED per C-BEN standards and will be used in the AI generation.
                 </p>
               </div>
+            )}
+
+            {/* PlayOps Structure Guide - Show when subs selected */}
+            {selectedSubCompetencies.length > 0 && (
+              <PlayOpsStructureGuide 
+                subCompetencies={subCompetencies}
+                selectedSubIds={selectedSubCompetencies}
+              />
             )}
             
             {/* Customize Your Scenario - Dynamic Fields */}
