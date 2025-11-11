@@ -189,56 +189,29 @@ if (window.Telegram && window.Telegram.WebApp) {
 }
 \`\`\`
 
-# SCENE 0 (INTRO, SCROLLABLE)
+# SCENE 0 (LOADING SCREEN)
 
-Must explain who/what/how/success/time in ≤ 5 bullets.
+Show brand/creator logo with loading animation, auto-transitions to instructions after 2.5 seconds.
 
-**START GAME button requirements:**
-- Fixed/sticky bottom position
-- Minimum 60px height
-- Full-width on mobile
-- Calls \`startGame()\` which hides Intro and shows Scene 1
-- Allow \`body { overflow: auto }\` on Intro only
-
-HTML Structure:
 \`\`\`html
-<div id="introScreen" style="overflow-y: auto; height: 100vh; padding-bottom: 100px;">
-  ${logoUrl ? `
-  <div id="loading-screen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.8s ease-out;">
-    <img 
-      id="brand-logo" 
-      src="${logoUrl}" 
-      alt="Loading..." 
-      crossorigin="anonymous"
-      style="max-width: 250px; max-height: 250px; width: auto; height: auto; object-fit: contain; animation: pulse 1.5s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" 
-      onerror="console.error('Logo failed to load'); this.style.display='none';"
-    />
-    <div style="color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; letter-spacing: 1px;">LOADING...</div>
+<div id="loadingScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.8s ease-out;">
+  ${logoUrl || avatarUrl ? `
+  <img 
+    id="brand-logo" 
+    src="${logoUrl || avatarUrl}" 
+    alt="Loading..." 
+    crossorigin="anonymous"
+    style="max-width: 250px; max-height: 250px; width: auto; height: auto; object-fit: contain; animation: pulse 1.5s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" 
+    onerror="console.error('Logo failed to load'); this.style.display='none';"
+  />
+  ` : `
+  <div style="width: 250px; height: 250px; border: 3px dashed ${primaryColor}; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: ${primaryColor}; font-size: 48px; font-weight: bold; opacity: 0.6;">
+    ?
   </div>
-  ` : ''}
-  
-  ${avatarUrl ? `
-  <div class="game-avatar" style="margin: 20px auto; text-align: center;">
-    <img src="${avatarUrl}" alt="Mascot" style="width: 250px; height: 250px; object-fit: contain; background: transparent; mix-blend-mode: normal;" />
-  </div>
-  ` : ''}
-  
-  <h1>Game Title</h1>
-  <ul>
-    <li>Who: Your role in this scenario</li>
-    <li>What: The challenge you face</li>
-    <li>How: The actions you'll take</li>
-    <li>Success: What determines mastery</li>
-    <li>Time: ${subCompetencies?.[0]?.duration || 180} seconds</li>
-  </ul>
-  
-  <button id="startBtn" style="position: fixed; bottom: 20px; left: 20px; right: 20px; height: 60px; background: ${primaryColor}; color: ${textColor || '#ffffff'}; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer;">
-    START GAME
-  </button>
+  `}
+  <div style="color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; letter-spacing: 1px;">LOADING...</div>
 </div>
-\`\`\`
 
-${logoUrl ? `
 <style>
 @keyframes pulse {
   0%, 100% { transform: scale(0.95); opacity: 0.9; }
@@ -247,18 +220,71 @@ ${logoUrl ? `
 </style>
 
 <script>
-// CRITICAL: Hide loading screen after 2.5 seconds with correct setTimeout syntax
+// Auto-hide loading screen after 2.5 seconds
 setTimeout(function() {
-  const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen) {
+  const loadingScreen = document.getElementById('loadingScreen');
+  const instructionsScreen = document.getElementById('instructionsScreen');
+  if (loadingScreen && instructionsScreen) {
     loadingScreen.style.opacity = '0';
     setTimeout(function() {
       loadingScreen.style.display = 'none';
+      instructionsScreen.style.display = 'block';
     }, 800);
   }
 }, 2500);
 </script>
-` : ''}
+\`\`\`
+
+# INSTRUCTIONS SCREEN (WITH MASCOT)
+
+Scrollable screen explaining the game with mascot/avatar. If no mascot, show negative space placeholder.
+
+\`\`\`html
+<div id="instructionsScreen" style="display: none; overflow-y: auto; height: 100vh; padding: 20px; padding-bottom: 100px; background: ${backgroundColor || '#F5EDD3'}; font-family: ${fontFamily || 'Inter, sans-serif'}; color: ${textColor || '#2D5556'};">
+  ${avatarUrl ? `
+  <div class="mascot-container" style="margin: 20px auto; text-align: center;">
+    <img src="${avatarUrl}" alt="Mascot" style="width: 200px; height: 200px; object-fit: contain; background: transparent; animation: float 3s ease-in-out infinite;" />
+  </div>
+  ` : `
+  <div class="mascot-placeholder" style="margin: 20px auto; width: 200px; height: 200px; border: 3px dashed ${primaryColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: transparent;">
+    <div style="color: ${primaryColor}; font-size: 72px; font-weight: bold; opacity: 0.3;">?</div>
+  </div>
+  `}
+  
+  <h1 style="color: ${primaryColor}; text-align: center; font-size: 28px; margin: 20px 0;">Welcome to the Challenge</h1>
+  
+  <div style="max-width: 500px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <h2 style="color: ${primaryColor}; font-size: 20px; margin-bottom: 15px;">📋 Instructions</h2>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+      <li style="padding: 12px 0; border-bottom: 1px solid #eee;">👤 <strong>Who:</strong> Your role in this scenario</li>
+      <li style="padding: 12px 0; border-bottom: 1px solid #eee;">🎯 <strong>What:</strong> The challenge you face</li>
+      <li style="padding: 12px 0; border-bottom: 1px solid #eee;">⚙️ <strong>How:</strong> The actions you'll take</li>
+      <li style="padding: 12px 0; border-bottom: 1px solid #eee;">✨ <strong>Success:</strong> What determines mastery</li>
+      <li style="padding: 12px 0;">⏱️ <strong>Time:</strong> ${subCompetencies?.[0]?.duration || 180} seconds</li>
+    </ul>
+  </div>
+  
+  <button id="startBtn" style="position: fixed; bottom: 20px; left: 20px; right: 20px; max-width: 500px; margin: 0 auto; height: 60px; background: ${primaryColor}; color: #FFFFFF; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s;">
+    START GAME
+  </button>
+</div>
+
+<style>
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+#startBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+#startBtn:active {
+  transform: translateY(0);
+}
+</style>
+\`\`\`
 
 # SCENE 1+ (GAMEPLAY, NO-SCROLL)
 
@@ -389,14 +415,15 @@ Every button must have an event listener wrapped in DOMContentLoaded:
 \`\`\`javascript
 document.addEventListener('DOMContentLoaded', function() {
   const startBtn = document.getElementById('startBtn');
-  const introScreen = document.getElementById('introScreen');
+  const instructionsScreen = document.getElementById('instructionsScreen');
   const gameScreen = document.getElementById('gameScreen');
   
-  if (startBtn && introScreen && gameScreen) {
+  if (startBtn && instructionsScreen && gameScreen) {
     startBtn.addEventListener('click', function() {
       console.log('START clicked - transitioning to game');
-      introScreen.style.display = 'none';
+      instructionsScreen.style.display = 'none';
       gameScreen.style.display = 'flex';
+      document.body.style.overflow = 'hidden'; // Lock scroll for gameplay
       startTimer();
     });
   }
@@ -410,7 +437,7 @@ Before returning HTML, verify:
 - ✅ No free-text or contentEditable present
 - ✅ \`__GOLD_KEY__\` exists for every decision node
 - ✅ \`__CONFIG__\` embedded with correct values
-- ✅ Intro scrollable; Gameplay no-scroll; Results visible at all breakpoints
+- ✅ Loading screen → Instructions screen (scrollable) → Gameplay (no-scroll) → Results
 - ✅ Telegram hooks present
 - ✅ \`__RESULT__\` and Results screen exist
 - ✅ All buttons have DOMContentLoaded event listeners
