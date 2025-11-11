@@ -138,6 +138,8 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
                 <p className="font-semibold text-orange-400 text-sm">✏️ EDITABLE: Visual Elements</p>
                 <ul className="list-disc list-inside text-xs text-gray-300 space-y-1 ml-2">
                   <li><strong>Brand Logo</strong> - Scene 0 intro screen (top-left or center)</li>
+                  <li><strong>Mascot/Avatar</strong> - Character image throughout game (intro, gameplay, results)</li>
+                  <li><strong>Particle Effects</strong> - sparkles, confetti, glitter, stars, bubbles, fire</li>
                   <li><strong>Primary Color</strong> - Main buttons, headers, progress bars</li>
                   <li><strong>Secondary Color</strong> - Secondary buttons, backgrounds</li>
                   <li><strong>Accent Color</strong> - Highlights, success states, borders</li>
@@ -146,6 +148,9 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
                 </ul>
                 <p className="text-xs text-yellow-300 mt-2">
                   💡 Use CSS variables for colors: <code className="bg-gray-800 px-1 rounded">var(--primary-color)</code>
+                </p>
+                <p className="text-xs text-yellow-300 mt-1">
+                  💡 Reserve mascot zone (e.g., bottom-right corner) and particle container
                 </p>
               </div>
 
@@ -173,22 +178,32 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
 {`// Get URL parameters
 const params = new URLSearchParams(window.location.search);
 const brandLogo = params.get('logo') || 'default-logo.png';
+const mascotAvatar = params.get('avatar') || 'default-mascot.png';
+const particleEffect = params.get('particles') || 'sparkles';
 const primaryColor = params.get('primary') || '#0078D4';
 const secondaryColor = params.get('secondary') || '#50E6FF';
 const accentColor = params.get('accent') || '#FF5722';
+const bgColor = params.get('background') || '#1A1A1A';
+const fontFamily = params.get('font') || 'Inter, sans-serif';
 
 // Apply to elements
 document.getElementById('brand-logo').src = brandLogo;
+document.getElementById('mascot-avatar').src = mascotAvatar;
 document.documentElement.style.setProperty('--primary-color', primaryColor);
 document.documentElement.style.setProperty('--secondary-color', secondaryColor);
-document.documentElement.style.setProperty('--accent-color', accentColor);`}
+document.documentElement.style.setProperty('--accent-color', accentColor);
+document.documentElement.style.setProperty('--bg-color', bgColor);
+document.documentElement.style.setProperty('--font-family', fontFamily);
+
+// Initialize particle effect system
+initParticleEffect(particleEffect); // sparkles, confetti, glitter, etc.`}
               </pre>
             </div>
 
             {/* Example Zones Visual */}
             <div className="border-t border-gray-700 pt-3 mt-3">
               <p className="font-semibold text-xs text-orange-300 mb-2">Visual Example of Zones:</p>
-              <div className="bg-gray-950 rounded-lg p-4 space-y-2 border border-orange-500/30">
+              <div className="bg-gray-950 rounded-lg p-4 space-y-2 border border-orange-500/30 relative">
                 <div className="flex items-center gap-2">
                   <div className="w-12 h-12 bg-orange-500/20 border-2 border-orange-500 rounded flex items-center justify-center text-[10px] font-bold">LOGO</div>
                   <span className="text-xs text-orange-300">← EDITABLE by brand</span>
@@ -197,12 +212,19 @@ document.documentElement.style.setProperty('--accent-color', accentColor);`}
                   Primary Color Button
                   <span className="ml-2 text-[10px] text-purple-300">← EDITABLE</span>
                 </div>
-                <div className="bg-gray-800 rounded p-3 border-2 border-red-500">
+                <div className="bg-gray-800 rounded p-3 border-2 border-red-500 relative">
                   <p className="text-xs font-semibold text-red-400">Drag these items to prioritize ← LOCKED mechanic</p>
                   <div className="mt-2 space-y-1">
                     <div className="bg-gray-700 rounded px-2 py-1 text-xs">Item A</div>
                     <div className="bg-gray-700 rounded px-2 py-1 text-xs">Item B</div>
                   </div>
+                  <div className="absolute bottom-2 right-2 w-10 h-10 bg-orange-500/20 border-2 border-orange-500 rounded-full flex items-center justify-center text-[9px] font-bold">
+                    🤖
+                  </div>
+                  <span className="absolute bottom-1 right-14 text-[10px] text-orange-300">← Mascot zone EDITABLE</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-orange-300">
+                  <span>✨ Particle effects: EDITABLE (sparkles, confetti, stars, etc.)</span>
                 </div>
               </div>
             </div>
