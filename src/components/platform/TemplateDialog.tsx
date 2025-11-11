@@ -1131,58 +1131,18 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                 placeholder="Brief overview of what this validator tests..."
               />
             </div>
-
-            {/* Cover Image Upload */}
-            <div>
-              <Label htmlFor="cover-image">Cover Image (Optional)</Label>
-              <div className="mt-2 space-y-2">
-                <input
-                  type="file"
-                  id="cover-image"
-                  accept="image/*"
-                  onChange={(e) => setCoverImageFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                />
-                <label htmlFor="cover-image">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full cursor-pointer"
-                    asChild
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {coverImageFile ? coverImageFile.name : 'Upload Cover Image'}
-                    </span>
-                  </Button>
-                </label>
-                {!coverImageFile && (
-                  <p className="text-xs text-gray-400">
-                    If not provided, a default cover will be generated with your profile info
-                  </p>
-                )}
-              </div>
-            </div>
           </div>
 
-          {/* Custom Upload Section */}
+          {/* Custom Upload Info Banner */}
           {templateType === 'custom_upload' && (
-            <>
-              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-300 mb-2">📋 Specification Form Required</h3>
-                <p className="text-sm text-gray-300">
-                  Complete the form below to define requirements for your custom game. 
-                  This ensures consistency with the PlayOps Framework and brand customization capabilities.
-                  You'll be able to download a PDF specification document to guide your development.
-                </p>
-              </div>
-              <CustomGameUpload
-                onFileSelect={setCustomGameFile}
-                selectedFile={customGameFile}
-              />
-            </>
+            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-300 mb-2">📋 Specification Form Required</h3>
+              <p className="text-sm text-gray-300">
+                Complete the form below to define requirements for your custom game. 
+                This ensures consistency with the PlayOps Framework and brand customization capabilities.
+                You'll upload your game file after completing all configuration fields.
+              </p>
+            </div>
           )}
 
           {/* Competency Selection - Shared for both AI and Custom Upload */}
@@ -1645,6 +1605,55 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                 />
               )}
             </div>
+          </div>
+
+          {/* File Uploads Section - Cover Image & Game File */}
+          <div className="border-t border-gray-700 pt-4 space-y-4">
+            <h3 className="font-semibold text-neon-purple">
+              Upload Files
+            </h3>
+            
+            {/* Cover Image Upload */}
+            <div>
+              <Label htmlFor="cover-image">Cover Image (Optional)</Label>
+              <div className="mt-2 space-y-2">
+                <input
+                  type="file"
+                  id="cover-image"
+                  accept="image/*"
+                  onChange={(e) => setCoverImageFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                <label htmlFor="cover-image">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full cursor-pointer"
+                    asChild
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {coverImageFile ? coverImageFile.name : 'Upload Cover Image'}
+                    </span>
+                  </Button>
+                </label>
+                {!coverImageFile && (
+                  <p className="text-xs text-gray-400">
+                    If not provided, a default cover will be generated with your profile info
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Custom Game File Upload */}
+            {templateType === 'custom_upload' && (
+              <CustomGameUpload
+                onFileSelect={setCustomGameFile}
+                selectedFile={customGameFile}
+              />
+            )}
           </div>
 
           {/* Generated Prompt Preview */}
