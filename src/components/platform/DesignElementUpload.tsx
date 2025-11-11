@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ELEMENT_TYPES = [
@@ -17,7 +17,46 @@ const ELEMENT_TYPES = [
   { value: 'feedback_effect', label: 'Feedback Effect', subtypes: ['success', 'failure', 'transition'] },
   { value: 'audio', label: 'Audio', subtypes: ['music', 'sfx', 'voiceover'] },
   { value: 'decorative', label: 'Decorative', subtypes: ['icon', 'border', 'frame'] },
+  { value: 'animation', label: 'Animation', subtypes: ['lottie', 'sprite_sheet', 'css', 'gif'] },
 ];
+
+const ELEMENT_REQUIREMENTS: Record<string, { formats: string; maxSize: string; guidelines: string }> = {
+  mascot: {
+    formats: 'PNG (transparent), SVG, or JSON (Lottie)',
+    maxSize: '2MB',
+    guidelines: 'Mobile-optimized (max 512x512px), transparent background, works on light/dark themes, touch-friendly for Telegram mini-games'
+  },
+  background: {
+    formats: 'PNG, JPG, WebP, SVG',
+    maxSize: '1MB',
+    guidelines: 'Optimized for mobile (max 1920x1080px), compressed for Telegram data limits, doesn\'t distract from gameplay'
+  },
+  ui_component: {
+    formats: 'PNG (transparent), SVG preferred',
+    maxSize: '500KB',
+    guidelines: 'Touch-friendly sizing (min 44x44px), clear visual states, accessible contrast (WCAG AA), scalable for different devices'
+  },
+  feedback_effect: {
+    formats: 'PNG sequence, Lottie JSON, or optimized GIF',
+    maxSize: '1MB',
+    guidelines: 'Short duration (1-3s), optimized frames, transparent BG, 60fps on mobile, performant on low-end devices'
+  },
+  audio: {
+    formats: 'MP3 (preferred), OGG, WAV',
+    maxSize: '500KB',
+    guidelines: 'Web-compressed, normalized volume, seamless loops for BG music, under 10s for SFX, Telegram-friendly file size'
+  },
+  decorative: {
+    formats: 'PNG (transparent), SVG',
+    maxSize: '300KB',
+    guidelines: 'Lightweight, enhances not overwhelms, scalable, works across screen sizes in Telegram WebApp'
+  },
+  animation: {
+    formats: 'Lottie JSON (preferred), PNG sprite sheet, CSS, GIF',
+    maxSize: '1MB',
+    guidelines: '60fps mobile-optimized, Lottie preferred for scalability, all assets embedded, tested on low-end devices, under 5s duration'
+  }
+};
 
 const PLACEMENT_ZONES = [
   'intro_screen_mascot',
@@ -225,6 +264,21 @@ export const DesignElementUpload = () => {
             </div>
           )}
         </div>
+
+        {/* Requirements Display */}
+        {elementType && ELEMENT_REQUIREMENTS[elementType] && (
+          <div className="rounded-lg border border-blue-500/30 bg-blue-900/10 p-4 space-y-2">
+            <h4 className="font-semibold text-sm flex items-center gap-2 text-blue-300">
+              <Info className="h-4 w-4" />
+              Requirements for {ELEMENT_TYPES.find(t => t.value === elementType)?.label}
+            </h4>
+            <div className="text-sm space-y-1.5 text-gray-300">
+              <p><strong className="text-white">Accepted Formats:</strong> {ELEMENT_REQUIREMENTS[elementType].formats}</p>
+              <p><strong className="text-white">Max File Size:</strong> {ELEMENT_REQUIREMENTS[elementType].maxSize}</p>
+              <p><strong className="text-white">Telegram Mini-Game Guidelines:</strong> {ELEMENT_REQUIREMENTS[elementType].guidelines}</p>
+            </div>
+          </div>
+        )}
 
         {/* Name */}
         <div className="space-y-2">
