@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Copy, Eye } from 'lucide-react';
-import { TemplateTypeSelector } from './TemplateTypeSelector';
 import { CustomGameUpload } from './CustomGameUpload';
 import { DesignPaletteEditor } from './DesignPaletteEditor';
 import { ValidatorTestWizard } from './ValidatorTestWizard';
@@ -92,7 +91,6 @@ UI aesthetic: Modern dashboard with a ticking clock, incoming message notificati
 
 export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemplateCreated }: TemplateDialogProps) => {
   const [loading, setLoading] = useState(false);
-  const [templateType, setTemplateType] = useState<'ai_generated' | 'custom_upload'>('ai_generated');
   const [customGameFile, setCustomGameFile] = useState<File | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   
@@ -667,7 +665,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
   useEffect(() => {
     setValidationStatus('not_tested');
     setDraftTemplateId(null);
-  }, [templateType]);
+  }, []); // Reset validation when component mounts
 
   // Reset state when dialog opens/closes
   useEffect(() => {
@@ -864,13 +862,6 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-      
-      // For custom uploads, require validation before submission
-      if (templateType === 'custom_upload' && validationStatus !== 'passed' && !saveAsDraft) {
-        toast.error('Please validate your custom game before submitting for review');
-        setLoading(false);
-        return;
-      }
 
       // Validate scene requirements if any scene is filled
       const filledScenes = [formData.scene1, formData.scene2, formData.scene3, formData.scene4].filter(s => s.trim()).length;
@@ -880,33 +871,13 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         return;
       }
 
+      // Use generated prompt
+      const finalPrompt = generatedPrompt;
+      
       let customGameUrl = null;
 
-      // Handle custom game upload - if already validated, use draft template
-      if (templateType === 'custom_upload' && draftTemplateId && validationStatus === 'passed') {
-        // Update the validated draft template - keep unpublished for manual review
-        const { error } = await supabase
-          .from('game_templates')
-          .update({
-            name: formData.name,
-            description: formData.description,
-            is_published: false, // Stays unpublished until manual approval
-            game_config: { 
-              draft: false, 
-              validated: true,
-              review_status: 'pending_review' // Awaiting manual backend approval
-            }
-          })
-          .eq('id', draftTemplateId);
-        
-        if (error) throw error;
-        
-        toast.success('✅ Custom game validated and submitted for review! Our team will approve it shortly.');
-        onSuccess();
-        onOpenChange(false);
-        setLoading(false);
-        return;
-      } else if (templateType === 'custom_upload' && customGameFile) {
+      // Handle optional custom game file upload
+      if (customGameFile) {
         const fileExt = customGameFile.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         
@@ -979,8 +950,8 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
           .update({
             name: formData.name,
             description: formData.description,
-            base_prompt: templateType === 'ai_generated' ? generatedPrompt : null,
-            template_type: templateType,
+            base_prompt: generatedPrompt,
+            template_type: 'ai_generated',
             custom_game_url: customGameUrl,
             preview_image: coverImageUrl,
             competency_id: selectedCompetency || null,
@@ -999,15 +970,15 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             creator_id: user.id,
             name: formData.name,
             description: formData.description,
-            base_prompt: templateType === 'ai_generated' ? generatedPrompt : null,
-            template_type: templateType,
+            base_prompt: finalPrompt,
+            template_type: 'ai_generated',
             custom_game_url: customGameUrl,
             preview_image: coverImageUrl,
             competency_id: selectedCompetency || null,
             selected_sub_competencies: selectedSubCompetencies,
             design_settings: useCustomDesign ? designSettings : null,
             is_published: false, // All templates start unpublished
-            game_config: templateType === 'ai_generated' ? {} : { draft: !saveAsDraft }
+            game_config: {}
           })
           .select()
           .single();
@@ -1017,11 +988,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         if (saveAsDraft) {
           toast.success('Template saved as draft! Test it when ready.');
         } else {
-          if (templateType === 'ai_generated') {
-            toast.success('AI template created! Opening test wizard...');
-          } else {
-            toast.success('Custom template created! Test it when ready.');
-          }
+          toast.success('Template created! Opening test wizard...');
           // Trigger test wizard if not saving as draft and callback exists
           if (onTemplateCreated && newTemplate && selectedSubCompetencies[0]) {
             onTemplateCreated(newTemplate.id, formData.name, selectedSubCompetencies[0]);
@@ -1070,26 +1037,18 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
           </DialogTitle>
         </DialogHeader>
 
-        {/* Template Type Selector */}
-        <TemplateTypeSelector
-          selectedType={templateType}
-          onTypeChange={setTemplateType}
-        />
-
-        {/* Load Sample Button - Only for AI Generated */}
-        {templateType === 'ai_generated' && (
-          <div className="flex justify-end -mt-2 mb-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleLoadSample}
-              className="gap-2"
-            >
-              Load Sample Template
-            </Button>
-          </div>
-        )}
+        {/* Load Sample Button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleLoadSample}
+            className="gap-2"
+          >
+            Load Sample Template
+          </Button>
+        </div>
 
         {/* Quick Reference */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
@@ -1134,19 +1093,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             </div>
           </div>
 
-          {/* Custom Upload Info Banner */}
-          {templateType === 'custom_upload' && (
-            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-300 mb-2">📋 Specification Form Required</h3>
-              <p className="text-sm text-gray-300">
-                Complete the form below to define requirements for your custom game. 
-                This ensures consistency with the PlayOps Framework and brand customization capabilities.
-                You'll upload your game file after completing all configuration fields.
-              </p>
-            </div>
-          )}
-
-          {/* Competency Selection - Shared for both AI and Custom Upload */}
+          {/* Competency Selection */}
           <div className="border-t border-gray-700 pt-4 space-y-4">
             <h3 className="font-semibold" style={{ color: 'hsl(var(--neon-green))' }}>
               CBE Competency Framework
@@ -1176,10 +1123,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
               <div>
                 <Label>Select Sub-Competencies (1-4) *</Label>
                 <p className="text-xs text-gray-400 mb-2">
-                  {templateType === 'ai_generated' 
-                    ? 'Each sub-competency will be tested in one scene. Select up to 4 for multi-scene games.'
-                    : 'Define which sub-competencies your custom game will test. Each should map to one scene.'
-                  }
+                  Each sub-competency will be tested in one scene. Select up to 4 for multi-scene games.
                 </p>
                 <div className="space-y-2 mt-2 max-h-60 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md p-3">
                   {subCompetencies.map((sub) => (
@@ -1656,13 +1600,17 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
               </div>
             </div>
 
-            {/* Custom Game File Upload */}
-            {templateType === 'custom_upload' && (
+            {/* Custom Game File Upload - Optional for Customization */}
+            <div>
+              <Label>Custom Game File (Optional)</Label>
+              <p className="text-xs text-gray-400 mb-2">
+                Upload after download if you choose to customize the generated game
+              </p>
               <CustomGameUpload
                 onFileSelect={setCustomGameFile}
                 selectedFile={customGameFile}
               />
-            )}
+            </div>
           </div>
 
           {/* Generated Prompt Preview */}
@@ -1723,24 +1671,8 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             )}
           </div>
 
-          {/* PDF Download for Custom Upload */}
-          {templateType === 'custom_upload' && selectedSubCompetencies.length > 0 && formData.scenario && (
-            <div className="border-t border-gray-700 pt-4">
-              <Button
-                type="button"
-                onClick={handleDownloadPDF}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                📄 Download Specification PDF
-              </Button>
-              <p className="text-xs text-gray-400 mt-2 text-center">
-                Use this PDF to build your custom game offline, then upload the HTML file above
-              </p>
-            </div>
-          )}
-          
-          {/* Validation for Custom Upload */}
-          {templateType === 'custom_upload' && customGameFile && selectedSubCompetencies.length > 0 && (
+          {/* File Uploads Section - Cover Image & Game File */}
+          {selectedSubCompetencies.length > 0 && (
             <div className="border-t border-gray-700 pt-4">
               {validationStatus === 'not_tested' && (
                 <div className="space-y-3">
@@ -1799,6 +1731,23 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             </div>
           )}
 
+          {/* PDF Download Button */}
+          {selectedSubCompetencies.length > 0 && formData.scenario && (
+            <div className="border-t border-gray-700 pt-4">
+              <Button
+                type="button"
+                onClick={handleDownloadPDF}
+                variant="outline"
+                className="w-full"
+              >
+                📄 Download Specification PDF
+              </Button>
+              <p className="text-xs text-gray-400 mt-2 text-center">
+                Download the full framework specification as PDF for reference
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-3 justify-end border-t border-gray-700 pt-4">
             <Button
               type="button"
@@ -1811,7 +1760,7 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             {template ? (
               <Button 
                 type="submit" 
-                disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+                disabled={loading}
               >
                 {loading ? 'Updating...' : 'Update Template'}
               </Button>
@@ -1821,17 +1770,17 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                   type="button" 
                   variant="outline"
                   onClick={(e) => handleSubmit(e, true)}
-                  disabled={loading || (templateType === 'custom_upload' && !customGameFile)}
+                  disabled={loading}
                   className="border-gray-600 text-gray-300"
                 >
                   {loading ? 'Saving...' : 'Save as Draft'}
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={loading || (templateType === 'custom_upload' && (!customGameFile || validationStatus !== 'passed'))}
+                  disabled={loading}
                   className="bg-neon-green text-black hover:bg-neon-green/80"
                 >
-                  {loading ? 'Creating...' : templateType === 'custom_upload' ? 'Submit for Review' : 'Create & Test'}
+                  {loading ? 'Creating...' : 'Create & Test'}
                 </Button>
               </>
             )}
