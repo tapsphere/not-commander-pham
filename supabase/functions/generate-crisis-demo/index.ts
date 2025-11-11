@@ -153,7 +153,7 @@ async function generateBrandedGameHTML(branding: {
     .replace(/<title>.*?<\/title>/, `<title>${branding.brandName} - ${branding.courseName}</title>`)
     .replace(/Microsoft Teams: The Onboarding/g, `${branding.brandName}: ${branding.courseName}`);
   
-  // Replace the Microsoft logo in loading screen with custom logo if provided
+  // ALWAYS replace the loading screen logo with custom logo
   if (branding.logoUrl) {
     // Replace the loading screen logo
     customHTML = customHTML.replace(
@@ -162,24 +162,56 @@ async function generateBrandedGameHTML(branding: {
     );
   }
   
-  // Add custom mascot if provided - replace the lottie animation in the intro screen
+  // Add mascot space ABOVE direction page instructions
   if (branding.mascotUrl) {
     // Check if it's a Lottie animation (JSON) or a regular image
     const isLottie = branding.mascotUrl.includes('.json') || branding.mascotUrl.startsWith('data:application/json');
     
+    // Inject mascot container styles
+    const mascotStyles = `
+      <style>
+        .mascot-container {
+          width: 100%;
+          max-width: 300px;
+          height: 200px;
+          margin: 0 auto 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .mascot-container img,
+        .mascot-container lottie-player {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+        
+        @media (max-width: 768px) {
+          .mascot-container {
+            max-width: 200px;
+            height: 150px;
+          }
+        }
+      </style>
+    `;
+    
+    customHTML = customHTML.replace('</head>', `${mascotStyles}</head>`);
+    
+    // Create mascot HTML
+    let mascotHTML = '';
     if (isLottie) {
-      // Update the lottie-player src
-      customHTML = customHTML.replace(
-        /<lottie-player[^>]*src="[^"]*"([^>]*)>/,
-        `<lottie-player class="intro-animation" src="${branding.mascotUrl}" background="transparent" speed="1" loop autoplay$1>`
-      );
+      mascotHTML = `<div class="mascot-container"><lottie-player src="${branding.mascotUrl}" background="transparent" speed="1" loop autoplay style="width: 100%; height: 100%;"></lottie-player></div>`;
     } else {
-      // Replace with an img tag
-      customHTML = customHTML.replace(
-        /<lottie-player[\s\S]*?<\/lottie-player>/,
-        `<img src="${branding.mascotUrl}" alt="Game Mascot" class="intro-animation" style="object-fit: contain;" />`
-      );
+      mascotHTML = `<div class="mascot-container"><img src="${branding.mascotUrl}" alt="${branding.brandName} Mascot" /></div>`;
     }
+    
+    // Inject mascot ABOVE the intro content (directions/instructions)
+    // Look for common intro patterns and inject before them
+    customHTML = customHTML.replace(
+      /(<div[^>]*class="[^"]*intro[^"]*"[^>]*>[\s\S]*?)(<h[12][^>]*>|<p[^>]*class="[^"]*(?:instructions|directions|intro-text)[^"]*")/i,
+      `$1${mascotHTML}$2`
+    );
   }
   
   console.log('Branded HTML generated successfully');
