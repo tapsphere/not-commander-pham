@@ -37,6 +37,7 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
                   <p><strong className="text-green-400">Required Elements:</strong></p>
                   <ul className="list-disc list-inside text-xs space-y-1 ml-2">
                     <li>Brand logo display (from <code className="bg-gray-900 px-1 rounded">?logo=URL</code> param)</li>
+                    <li>Mascot/Avatar display (if uploaded) - appears on Scene 0 only</li>
                     <li>Game title and brief instructions</li>
                     <li><strong>START button</strong> - NO auto-start allowed</li>
                     <li>Loading states for assets (if needed)</li>
@@ -138,7 +139,7 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
                 <p className="font-semibold text-orange-400 text-sm">✏️ EDITABLE: Visual Elements</p>
                 <ul className="list-disc list-inside text-xs text-gray-300 space-y-1 ml-2">
                   <li><strong>Brand Logo</strong> - Scene 0 intro screen (top-left or center)</li>
-                  <li><strong>Mascot/Avatar</strong> - Character image throughout game (intro, gameplay, results)</li>
+                  <li><strong>Mascot/Avatar</strong> - Scene 0 only (if uploaded by creator)</li>
                   <li><strong>Particle Effects</strong> - sparkles, confetti, glitter, stars, bubbles, fire</li>
                   <li><strong>Primary Color</strong> - Main buttons, headers, progress bars</li>
                   <li><strong>Secondary Color</strong> - Secondary buttons, backgrounds</li>

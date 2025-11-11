@@ -192,18 +192,20 @@ if (window.Telegram && window.Telegram.WebApp) {
 # SCENE 0 (LOADING SCREEN)
 
 Show brand/creator logo with loading animation, auto-transitions to instructions after 2.5 seconds.
-If no logo provided, uses default platform mascot.
+Only show logo/mascot if provided - no placeholders.
 
 \`\`\`html
 <div id="loadingScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: ${backgroundColor || '#1A1A1A'}; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px; transition: opacity 0.8s ease-out;">
+  ${logoUrl || avatarUrl ? `
   <img 
     id="brand-logo" 
-    src="${logoUrl || avatarUrl || '/default-mascot.png'}" 
+    src="${logoUrl || avatarUrl}" 
     alt="Loading..." 
     crossorigin="anonymous"
     style="max-width: 250px; max-height: 250px; width: auto; height: auto; object-fit: contain; animation: pulse 1.5s ease-in-out infinite; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));" 
     onerror="console.error('Logo failed to load'); this.style.display='none';"
   />
+  ` : ''}
   <div style="color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; letter-spacing: 1px;">LOADING...</div>
 </div>
 
@@ -236,14 +238,16 @@ Scrollable screen explaining the game with mascot/avatar. If no mascot, show neg
 
 \`\`\`html
 <div id="instructionsScreen" style="display: none; overflow-y: auto; height: 100vh; padding: 20px; padding-bottom: 100px; background: ${backgroundColor || '#F5EDD3'}; font-family: ${fontFamily || 'Inter, sans-serif'}; color: ${textColor || '#2D5556'};">
+  ${avatarUrl ? `
   <div class="mascot-container" style="margin: 20px auto; text-align: center;">
     <img 
-      src="${avatarUrl || '/default-mascot.png'}" 
+      src="${avatarUrl}" 
       alt="Mascot" 
       style="width: 200px; height: 200px; object-fit: contain; background: transparent; animation: float 3s ease-in-out infinite;" 
       onerror="console.error('Mascot failed to load'); this.style.display='none';"
     />
   </div>
+  ` : ''}
   
   <h1 style="color: ${primaryColor}; text-align: center; font-size: 28px; margin: 20px 0;">Welcome to the Challenge</h1>
   
