@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
 import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
+import { DesignElementUpload } from '@/components/platform/DesignElementUpload';
+import { DesignElementLibrary } from '@/components/platform/DesignElementLibrary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -444,9 +447,9 @@ export default function CreatorDashboard() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-            My Templates
+            Creator Studio
           </h2>
-          <p className="text-gray-400 mt-2">Create game templates with CBE competencies built in</p>
+          <p className="text-gray-400 mt-2">Manage your game templates and design elements</p>
         </div>
         <div className="flex gap-3">
           <Button 
@@ -465,148 +468,172 @@ export default function CreatorDashboard() {
             <TestTube className="w-4 h-4" />
             Test Validators
           </Button>
-          <Button 
-            onClick={() => {
-              setSelectedTemplate(null);
-              setDialogOpen(true);
-            }} 
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            New Template
-          </Button>
         </div>
       </div>
 
-      {templates.length === 0 ? (
-        <Card className="p-12 text-center bg-gray-900 border-gray-800">
-          <p className="text-gray-400 mb-4">No templates yet</p>
-          <Button 
-            onClick={() => {
-              setSelectedTemplate(null);
-              setDialogOpen(true);
-            }} 
-            variant="outline"
-          >
-            Create Your First Template
-          </Button>
-        </Card>
-      ) : (
-        <TooltipProvider>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.map((template) => {
-              const isPublishable = canPublish(template.id);
-              const testResult = testResults.get(template.id);
-              
-              return (
-                <Card 
-                  key={template.id} 
-                  className="bg-gray-900 border-gray-800 overflow-hidden hover:border-neon-green/50 transition-colors cursor-pointer"
-                  onClick={() => handlePreviewGame(template)}
-                >
-                  <div className="aspect-video bg-gray-800 flex items-center justify-center">
-                    {template.preview_image ? (
-                      <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <Eye className="w-12 h-12 text-gray-600" />
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold text-lg text-white">{template.name}</h3>
-                        {template.creator_name && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-                              {template.creator_avatar ? (
-                                <img
-                                  src={template.creator_avatar}
-                                  alt={template.creator_name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <User className="w-3 h-3 text-gray-500" />
-                              )}
-                            </div>
-                            <p className="text-xs text-neon-purple">
-                              by {template.creator_name}
+      <Tabs defaultValue="games" className="space-y-6">
+        <TabsList className="bg-gray-900 border border-gray-800">
+          <TabsTrigger value="games" className="gap-2">
+            <Layers className="w-4 h-4" />
+            My Games
+          </TabsTrigger>
+          <TabsTrigger value="elements" className="gap-2">
+            <Package className="w-4 h-4" />
+            Design Elements
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="games" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <p className="text-gray-400">Create game templates with CBE competencies built in</p>
+            <Button 
+              onClick={() => {
+                setSelectedTemplate(null);
+                setDialogOpen(true);
+              }} 
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New Template
+            </Button>
+          </div>
+
+          {templates.length === 0 ? (
+            <Card className="p-12 text-center bg-gray-900 border-gray-800">
+              <p className="text-gray-400 mb-4">No templates yet</p>
+              <Button 
+                onClick={() => {
+                  setSelectedTemplate(null);
+                  setDialogOpen(true);
+                }} 
+                variant="outline"
+              >
+                Create Your First Template
+              </Button>
+            </Card>
+          ) : (
+            <TooltipProvider>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {templates.map((template) => {
+                  const isPublishable = canPublish(template.id);
+                  const testResult = testResults.get(template.id);
+                  
+                  return (
+                    <Card 
+                      key={template.id} 
+                      className="bg-gray-900 border-gray-800 overflow-hidden hover:border-neon-green/50 transition-colors cursor-pointer"
+                      onClick={() => handlePreviewGame(template)}
+                    >
+                      <div className="aspect-video bg-gray-800 flex items-center justify-center">
+                        {template.preview_image ? (
+                          <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Eye className="w-12 h-12 text-gray-600" />
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="font-semibold text-lg text-white">{template.name}</h3>
+                            {template.creator_name && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
+                                  {template.creator_avatar ? (
+                                    <img
+                                      src={template.creator_avatar}
+                                      alt={template.creator_name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <User className="w-3 h-3 text-gray-500" />
+                                  )}
+                                </div>
+                                <p className="text-xs text-neon-purple">
+                                  by {template.creator_name}
+                                </p>
+                              </div>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              Edited {formatDistanceToNow(new Date(template.updated_at), { addSuffix: true })}
                             </p>
                           </div>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1">
-                          Edited {formatDistanceToNow(new Date(template.updated_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          template.is_published
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-gray-700 text-gray-400'
-                        }`}
-                      >
-                        {template.is_published ? 'Published' : 'Draft'}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">{template.description}</p>
-                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(template)}
-                        title="Edit Template"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleManageCompetencies(template)}
-                        title="Manage Competencies"
-                      >
-                        <Layers className="w-4 h-4" />
-                      </Button>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleTogglePublish(template.id, template.is_published)}
-                              disabled={!template.is_published && !isPublishable}
-                              title={template.is_published ? 'Unpublish' : 'Publish'}
-                            >
-                              {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </Button>
+                          <span
+                            className={`text-xs px-2 py-1 rounded ${
+                              template.is_published
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-gray-700 text-gray-400'
+                            }`}
+                          >
+                            {template.is_published ? 'Published' : 'Draft'}
                           </span>
-                        </TooltipTrigger>
-                        {!template.is_published && !isPublishable && (
-                          <TooltipContent>
-                            <p className="text-xs">
-                              {!testResult 
-                                ? 'Must complete testing before publishing' 
-                                : testResult.overall_status !== 'passed'
-                                ? 'All test phases must pass before publishing'
-                                : 'Must be approved for publish after passing tests'}
-                            </p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(template.id)}
-                        title="Delete Template"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-400" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </TooltipProvider>
-      )}
+                        </div>
+                        <p className="text-gray-400 text-sm mb-4 line-clamp-2">{template.description}</p>
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEdit(template)}
+                            title="Edit Template"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleManageCompetencies(template)}
+                            title="Manage Competencies"
+                          >
+                            <Layers className="w-4 h-4" />
+                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleTogglePublish(template.id, template.is_published)}
+                                  disabled={!template.is_published && !isPublishable}
+                                  title={template.is_published ? 'Unpublish' : 'Publish'}
+                                >
+                                  {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            {!template.is_published && !isPublishable && (
+                              <TooltipContent>
+                                <p className="text-xs">
+                                  {!testResult 
+                                    ? 'Must complete testing before publishing' 
+                                    : testResult.overall_status !== 'passed'
+                                    ? 'All test phases must pass before publishing'
+                                    : 'Must be approved for publish after passing tests'}
+                                </p>
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(template.id)}
+                            title="Delete Template"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </TooltipProvider>
+          )}
+        </TabsContent>
+
+        <TabsContent value="elements" className="space-y-6">
+          <DesignElementUpload />
+          <DesignElementLibrary />
+        </TabsContent>
+      </Tabs>
 
       <TemplateDialog
         open={dialogOpen}

@@ -6,6 +6,8 @@ export { ColorRemixPanel } from './ColorRemixPanel';
 export { CompetenciesDialog } from './CompetenciesDialog';
 export { CourseGamifier } from './CourseGamifier';
 export { CustomGameUpload } from './CustomGameUpload';
+export { DesignElementLibrary } from './DesignElementLibrary';
+export { DesignElementUpload } from './DesignElementUpload';
 export { DesignPaletteEditor } from './DesignPaletteEditor';
 export { GameCoverPhoto } from './GameCoverPhoto';
 export { GamePlayer } from './GamePlayer';
