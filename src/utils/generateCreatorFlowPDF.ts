@@ -82,93 +82,113 @@ export const generateCreatorFlowPDF = () => {
   addSpacing(10);
 
   // Section 2
-  addText('2. TEMPLATE CREATION', 14, true, false, true);
+  addText('2. TEMPLATE CREATION (UNIFIED FLOW)', 14, true, true, true);
   addSpacing(5);
 
-  addText('2.1 AI-Generated Templates', 12, true, false, false);
-  addText('Path: Dashboard → "Create New Template" → Choose "AI-Generated"', 11, false, false, false);
+  addText('MAJOR CHANGE: Unified Form for All Templates', 12, true, true, false);
+  addText('Path: Dashboard → "Create New Template"', 11, false, true, false);
+  addText('AI-Generated and Custom Upload templates now use the SAME form.', 11, false, true, false);
+  addText('No more separate type selection at the start.', 11, false, true, false);
+  addSpacing(5);
+
+  addText('2.1 Template Form (All Creators Fill This)', 12, true, true, false);
   addSpacing(3);
   addText('Step 1: PlayOps Framework Structure Guide', 11, true, true, false);
-  addText('Before AI generation, creators see a guide outlining:', 11, false, true, false);
-  addText('• REQUIRED 3-scene structure: Intro → Gameplay → Results', 11, false, true, false);
-  addText('• Brand Customization Zones', 11, false, true, false);
+  addText('Before creation, creators see a guide outlining:', 11, false, true, false);
+  addText('• REQUIRED scene structure:', 11, false, true, false);
+  addText('  - Scene 0: Loading Screen (2.5s) with brand/creator logo', 11, false, true, false);
+  addText('  - Instructions Screen with mascot (if uploaded) - Scene 0 only', 11, false, true, false);
+  addText('  - Scene 1-4: Gameplay (one per sub-competency)', 11, false, true, false);
+  addText('  - Results Screen', 11, false, true, false);
   addSpacing(2);
   addText('What Brands Can EDIT:', 11, false, true, false);
-  addText('  - Logo URL', 11, false, true, false);
-  addText('  - Mascot/Avatar (URL parameter)', 11, false, true, false);
+  addText('  - Brand Logo (Scene 0 loading screen)', 11, false, true, false);
+  addText('  - Mascot/Avatar (Scene 0 only, if uploaded by creator)', 11, false, true, false);
   addText('  - Particle effects (URL parameter)', 11, false, true, false);
-  addText('  - Colors (via embedded config object)', 11, false, true, false);
+  addText('  - Colors (primary, secondary, accent, background, text)', 11, false, true, false);
+  addText('  - Font family', 11, false, true, false);
   addSpacing(2);
   addText('What is LOCKED:', 11, false, true, false);
-  addText('  - Scene structure', 11, false, true, false);
+  addText('  - Scene structure (Scene 0 → Instructions → Gameplay → Results)', 11, false, true, false);
   addText('  - Core game mechanics', 11, false, true, false);
   addText('  - Scoring logic', 11, false, true, false);
+  addText('  - Mascot placement (Scene 0 instructions only)', 11, false, true, false);
   addSpacing(5);
 
-  addText('Step 2: Core Info (Expanded)', 11, true, false, false);
-  addText('• Template Name', 11, false, false, false);
-  addText('• Description', 11, false, false, false);
-  addText('• Industry & Context (expanded options)', 11, false, true, false);
+  addText('Step 2: Template Name & Description', 11, true, false, false);
+  addText('• Template Name (required)', 11, false, false, false);
+  addText('• Description (optional)', 11, false, false, false);
   addSpacing(3);
 
-  addText('Step 3: Competency Framework (Expanded)', 11, true, true, false);
+  addText('Step 3: Competency Framework', 11, true, true, false);
   addText('• Primary Competency (required)', 11, false, false, false);
-  addText('• Sub-Competencies: Now supports 1-4 sub-competencies (previously 1-3)', 11, false, true, false);
+  addText('• Sub-Competencies: Select 1-4 (each maps to one scene)', 11, false, true, false);
+  addText('• PlayOps structure guide displays once subs are selected', 11, false, true, false);
   addSpacing(3);
 
-  addText('Step 4: Scenario & Scene Breakdown', 11, true, false, false);
-  addText('• Brief description of scenario', 11, false, false, false);
-  addText('• Intro scene description', 11, false, false, false);
-  addText('• Gameplay scene description', 11, false, false, false);
-  addText('• Results scene description', 11, false, false, false);
+  addText('Step 4: Customize Your Scenario', 11, true, true, false);
+  addText('• Industry/Context (Marketing, Operations, Finance, etc.)', 11, false, true, false);
+  addText('• Your Role/Scenario (max 150 chars)', 11, false, true, false);
+  addText('• Key Element (what player works with, max 100 chars)', 11, false, true, false);
+  addText('• Edge Case Details (max 80 chars)', 11, false, true, false);
+  addText('• Visual Theme (Modern, Executive, Casual, Urgent, Minimal)', 11, false, true, false);
+  addText('• Interaction Method (contextual to sub-competency)', 11, false, true, false);
   addSpacing(3);
 
-  addText('Step 5: Edge Case Handling', 11, true, false, false);
-  addText('• Define what happens if user makes unexpected choices', 11, false, false, false);
+  addText('Step 5: Scene Descriptions', 11, true, false, false);
+  addText('• Scenario context', 11, false, false, false);
+  addText('• Player actions', 11, false, false, false);
+  addText('• Scene progression (1-4 scenes based on sub-competencies)', 11, false, true, false);
   addSpacing(3);
 
-  addText('Step 6: UI Aesthetic', 11, true, false, false);
-  addText('• Visual style preferences', 11, false, false, false);
+  addText('Step 6: Edge Case Configuration', 11, true, false, false);
+  addText('• Edge-case timing (early, mid, late)', 11, false, false, false);
+  addText('• Edge-case moment description', 11, false, false, false);
   addSpacing(3);
 
-  addText('Step 7: Brand Customization Options', 11, true, false, false);
-  addText('• Choose what brands can customize (logo, colors, etc.)', 11, false, false, false);
+  addText('Step 7: UI Aesthetic', 11, true, false, false);
+  addText('• Visual style description', 11, false, false, false);
   addSpacing(3);
 
-  addText('Step 8: Technical Requirements', 11, true, false, false);
-  addText('• Platform compatibility', 11, false, false, false);
-  addText('• Performance constraints', 11, false, false, false);
+  addText('Step 8: Design Customization (Optional)', 11, true, false, false);
+  addText('• Check "Customize colors & font for this game" to override defaults', 11, false, false, false);
+  addText('• Per-game color palette, font, avatar, particles', 11, false, false, false);
+  addSpacing(3);
+
+  addText('Step 9: File Uploads', 11, true, true, false);
+  addText('• Cover Image (optional - generated if not provided)', 11, false, true, false);
+  addText('• Custom Game HTML (optional - for customization after download)', 11, false, true, false);
   addSpacing(5);
 
   checkPageBreak(40);
-  addText('After form submission:', 11, true, false, false);
-  addText('→ AI generates a complete game template (HTML/CSS/JS)', 11, false, false, false);
-  addText('→ System embeds a config object for brand customization', 11, false, true, false);
-  addText('→ System adds URL parameter support for ?avatar=URL&particles=TYPE', 11, false, true, false);
-  addText('→ Creator can preview the generated game immediately', 11, false, false, false);
+  addText('After form submission:', 11, true, true, false);
+  addText('→ Template saved (all creators fill the same form)', 11, false, true, false);
+  addText('→ Validation Test Wizard opens automatically', 11, false, true, false);
+  addText('→ Creator runs required tests', 11, false, false, false);
   addSpacing(10);
 
-  // Section 2.2
-  addText('2.2 Custom Upload Templates', 12, true, false, false);
-  addText('Path: Dashboard → "Create New Template" → Choose "Custom Upload"', 11, false, false, false);
+  // Section 2.2 - Post-Test Flow
+  addText('2.2 Post-Test Options (NEW FLOW)', 12, true, true, false);
+  addText('After passing all validation tests, creators have 2 choices:', 11, false, true, false);
   addSpacing(3);
 
-  addText('Requirements:', 11, true, false, false);
-  addText('• Must follow PlayOps Framework structure (3 scenes)', 11, false, true, false);
-  addText('• Must include embedded config object for brand customization', 11, false, true, false);
-  addText('• Must support URL parameters: ?avatar=URL&particles=TYPE', 11, false, true, false);
-  addText('• Must emit proof object on game completion', 11, false, false, false);
+  addText('Option 1: Publish Now', 11, true, true, false);
+  addText('• Template goes live in marketplace immediately', 11, false, true, false);
+  addText('• Brands can discover and customize', 11, false, true, false);
   addSpacing(3);
 
-  addText('Updated Form Flow:', 11, true, true, false);
-  addText('1. Template Name & Description', 11, false, false, false);
-  addText('2. Industry & Context (expanded)', 11, false, true, false);
-  addText('3. Competency Framework (1-4 sub-competencies)', 11, false, true, false);
-  addText('4. Scoring Formula', 11, false, false, false);
-  addText('5. Brand Customization Options', 11, false, false, false);
-  addText('6. File Uploads (moved to end)', 11, false, true, false);
-  addText('   • Upload HTML file', 11, false, true, false);
-  addText('   • Upload cover image', 11, false, true, false);
+  addText('Option 2: Download to Customize', 11, true, true, false);
+  addText('• Download generated game HTML/code', 11, false, true, false);
+  addText('• Download spec PDF with framework requirements (optional)', 11, false, true, false);
+  addText('• Make custom modifications offline', 11, false, true, false);
+  addText('• Re-upload customized version', 11, false, true, false);
+  addText('• MUST re-run validation tests on re-upload', 11, false, true, false);
+  addText('• Once tests pass again → can publish', 11, false, true, false);
+  addSpacing(5);
+
+  addText('Important Note:', 11, true, true, false);
+  addText('Custom HTML uploads still possible via file upload field in form.', 11, false, true, false);
+  addText('These follow the same test → publish/download flow.', 11, false, true, false);
   addSpacing(10);
 
   // Section 3 - Design Element Upload
