@@ -175,6 +175,123 @@ export type Database = {
         }
         Relationships: []
       }
+      design_elements: {
+        Row: {
+          allowed_zones: string[]
+          created_at: string
+          creator_id: string
+          description: string | null
+          element_subtype: string | null
+          element_type: string
+          file_size_bytes: number | null
+          file_url: string
+          id: string
+          is_published: boolean | null
+          name: string
+          preview_url: string | null
+          rejection_reason: string | null
+          review_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specs: Json | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          allowed_zones?: string[]
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          element_subtype?: string | null
+          element_type: string
+          file_size_bytes?: number | null
+          file_url: string
+          id?: string
+          is_published?: boolean | null
+          name: string
+          preview_url?: string | null
+          rejection_reason?: string | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specs?: Json | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          allowed_zones?: string[]
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          element_subtype?: string | null
+          element_type?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          id?: string
+          is_published?: boolean | null
+          name?: string
+          preview_url?: string | null
+          rejection_reason?: string | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specs?: Json | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      element_usage_tracking: {
+        Row: {
+          brand_id: string
+          custom_config: Json | null
+          customization_id: string | null
+          element_id: string
+          id: string
+          placement_zone: string
+          used_at: string
+        }
+        Insert: {
+          brand_id: string
+          custom_config?: Json | null
+          customization_id?: string | null
+          element_id: string
+          id?: string
+          placement_zone: string
+          used_at?: string
+        }
+        Update: {
+          brand_id?: string
+          custom_config?: Json | null
+          customization_id?: string | null
+          element_id?: string
+          id?: string
+          placement_zone?: string
+          used_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "element_usage_tracking_customization_id_fkey"
+            columns: ["customization_id"]
+            isOneToOne: false
+            referencedRelation: "brand_customizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "element_usage_tracking_element_id_fkey"
+            columns: ["element_id"]
+            isOneToOne: false
+            referencedRelation: "design_elements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_results: {
         Row: {
           competency_id: string | null
