@@ -125,6 +125,90 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
           </div>
         </div>
 
+        {/* Brand Customization Zones */}
+        <div className="border-t border-gray-700 pt-4 space-y-3">
+          <h4 className="font-semibold text-sm text-orange-300">🎨 Brand Customization Zones</h4>
+          <p className="text-xs text-gray-300">
+            Designers: these are the <strong>EDITABLE ZONES</strong> brands can customize. Everything else is LOCKED.
+          </p>
+          <div className="bg-gray-900/50 rounded-lg p-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Visual Elements */}
+              <div className="space-y-2">
+                <p className="font-semibold text-orange-400 text-sm">✏️ EDITABLE: Visual Elements</p>
+                <ul className="list-disc list-inside text-xs text-gray-300 space-y-1 ml-2">
+                  <li><strong>Brand Logo</strong> - Scene 0 intro screen (top-left or center)</li>
+                  <li><strong>Primary Color</strong> - Main buttons, headers, progress bars</li>
+                  <li><strong>Secondary Color</strong> - Secondary buttons, backgrounds</li>
+                  <li><strong>Accent Color</strong> - Highlights, success states, borders</li>
+                  <li><strong>Background Color</strong> - Main game background</li>
+                  <li><strong>Font Family</strong> - All text (must support web-safe fonts)</li>
+                </ul>
+                <p className="text-xs text-yellow-300 mt-2">
+                  💡 Use CSS variables for colors: <code className="bg-gray-800 px-1 rounded">var(--primary-color)</code>
+                </p>
+              </div>
+
+              {/* Locked Elements */}
+              <div className="space-y-2">
+                <p className="font-semibold text-red-400 text-sm">🔒 LOCKED: Game Mechanics</p>
+                <ul className="list-disc list-inside text-xs text-gray-300 space-y-1 ml-2">
+                  <li><strong>Scene Structure</strong> - Scene 0 → Scene 1-4 → Results</li>
+                  <li><strong>Action Cues</strong> - What player does (from sub-competency)</li>
+                  <li><strong>Game Mechanics</strong> - Drag-drop, click, type, etc.</li>
+                  <li><strong>Scoring Logic</strong> - Formulas are locked to sub-competency</li>
+                  <li><strong>Timer Logic</strong> - Duration set by designer, not brand</li>
+                  <li><strong>Edge Case Timing</strong> - When disruption occurs</li>
+                </ul>
+                <p className="text-xs text-red-300 mt-2">
+                  ⚠️ Brands cannot change gameplay flow or scoring
+                </p>
+              </div>
+            </div>
+
+            {/* URL Parameter Implementation */}
+            <div className="border-t border-gray-700 pt-3 mt-3">
+              <p className="font-semibold text-xs text-orange-300 mb-2">How to Implement in Custom HTML:</p>
+              <pre className="bg-gray-950 rounded p-3 text-xs text-green-300 overflow-x-auto">
+{`// Get URL parameters
+const params = new URLSearchParams(window.location.search);
+const brandLogo = params.get('logo') || 'default-logo.png';
+const primaryColor = params.get('primary') || '#0078D4';
+const secondaryColor = params.get('secondary') || '#50E6FF';
+const accentColor = params.get('accent') || '#FF5722';
+
+// Apply to elements
+document.getElementById('brand-logo').src = brandLogo;
+document.documentElement.style.setProperty('--primary-color', primaryColor);
+document.documentElement.style.setProperty('--secondary-color', secondaryColor);
+document.documentElement.style.setProperty('--accent-color', accentColor);`}
+              </pre>
+            </div>
+
+            {/* Example Zones Visual */}
+            <div className="border-t border-gray-700 pt-3 mt-3">
+              <p className="font-semibold text-xs text-orange-300 mb-2">Visual Example of Zones:</p>
+              <div className="bg-gray-950 rounded-lg p-4 space-y-2 border border-orange-500/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-12 h-12 bg-orange-500/20 border-2 border-orange-500 rounded flex items-center justify-center text-[10px] font-bold">LOGO</div>
+                  <span className="text-xs text-orange-300">← EDITABLE by brand</span>
+                </div>
+                <div className="h-8 bg-purple-500/20 border-2 border-purple-500 rounded flex items-center justify-center text-xs font-semibold">
+                  Primary Color Button
+                  <span className="ml-2 text-[10px] text-purple-300">← EDITABLE</span>
+                </div>
+                <div className="bg-gray-800 rounded p-3 border-2 border-red-500">
+                  <p className="text-xs font-semibold text-red-400">Drag these items to prioritize ← LOCKED mechanic</p>
+                  <div className="mt-2 space-y-1">
+                    <div className="bg-gray-700 rounded px-2 py-1 text-xs">Item A</div>
+                    <div className="bg-gray-700 rounded px-2 py-1 text-xs">Item B</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* State Management & Navigation */}
         <div className="border-t border-gray-700 pt-4 space-y-3">
           <h4 className="font-semibold text-sm text-blue-300">🔄 State Management & Navigation</h4>
@@ -135,14 +219,6 @@ export const PlayOpsStructureGuide = ({ subCompetencies, selectedSubIds }: PlayO
               <li>Each button click increments: <code className="bg-gray-800 px-1 rounded">currentScene++</code></li>
               <li>Render/show only the current scene's HTML elements</li>
               <li>Hide all other scenes with <code className="bg-gray-800 px-1 rounded">display: none</code></li>
-            </ul>
-            
-            <p className="mt-3"><strong>URL Parameters (Brand Customization):</strong></p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li><code className="bg-gray-800 px-1 rounded">?logo=URL</code> - Brand logo image</li>
-              <li><code className="bg-gray-800 px-1 rounded">?primary=HEX</code> - Primary color</li>
-              <li><code className="bg-gray-800 px-1 rounded">?secondary=HEX</code> - Secondary color</li>
-              <li><code className="bg-gray-800 px-1 rounded">?accent=HEX</code> - Accent color</li>
             </ul>
             
             <p className="mt-3"><strong>Data Capture (Backend Integration):</strong></p>
