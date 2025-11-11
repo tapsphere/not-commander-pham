@@ -13,6 +13,7 @@ export { GameCoverPhoto } from './GameCoverPhoto';
 export { GamePlayer } from './GamePlayer';
 export { ModeChooser } from './ModeChooser';
 export { PlatformLayout } from './PlatformLayout';
+export { PostTestActions } from './PostTestActions';
 export { TemplateDialog } from './TemplateDialog';
 export { TemplateTypeSelector } from './TemplateTypeSelector';
 export { ValidatorTemplateCard } from './ValidatorTemplateCard';

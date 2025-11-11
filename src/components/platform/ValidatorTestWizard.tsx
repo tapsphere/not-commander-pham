@@ -263,6 +263,18 @@ export function ValidatorTestWizard({
           >
             {testComplete ? 'Close' : 'Cancel'}
           </Button>
+          {testComplete && overallStatus === 'passed' && (
+            <Button
+              onClick={() => {
+                onOpenChange(false);
+                onComplete();
+              }}
+              className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Continue to Publish Options
+            </Button>
+          )}
           {testComplete && overallStatus !== 'passed' && (
             <Button
               onClick={handleRunAutomatedTests}

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
 import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
+import { PostTestActions } from '@/components/platform/PostTestActions';
 import { DesignElementUpload } from '@/components/platform/DesignElementUpload';
 import { DesignElementLibrary } from '@/components/platform/DesignElementLibrary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -45,12 +46,14 @@ export default function CreatorDashboard() {
   const [competenciesDialogOpen, setCompetenciesDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [testWizardOpen, setTestWizardOpen] = useState(false);
+  const [postTestActionsOpen, setPostTestActionsOpen] = useState(false);
   const [testingTemplate, setTestingTemplate] = useState<{ 
     id: string; 
     name: string; 
     template_type: string;
     selected_sub_competencies: string[];
     custom_game_url?: string;
+    game_config?: any;
   } | null>(null);
   const [subCompetencies, setSubCompetencies] = useState<Map<string, any>>(new Map());
 
@@ -418,10 +421,10 @@ export default function CreatorDashboard() {
   };
 
   const handleTemplateCreated = (templateId: string, templateName: string, subCompetencyId: string) => {
-    // Fetch the full template to get template_type
+    // Fetch the full template to get template_type and game_config
     supabase
       .from('game_templates')
-      .select('id, name, template_type, custom_game_url, selected_sub_competencies')
+      .select('id, name, template_type, custom_game_url, selected_sub_competencies, game_config')
       .eq('id', templateId)
       .single()
       .then(({ data, error }) => {
@@ -436,6 +439,50 @@ export default function CreatorDashboard() {
           setTestWizardOpen(true);
         }
       });
+  };
+
+  const handleTestComplete = () => {
+    setTestWizardOpen(false);
+    setPostTestActionsOpen(true);
+  };
+
+  const handlePublish = async () => {
+    if (!testingTemplate) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('publish-template', {
+        body: { template_id: testingTemplate.id }
+      });
+
+      if (error) throw error;
+      
+      toast.success(`Published! Created ${data?.runtimes?.length || 2} game modes (Training + Testing)`);
+      setPostTestActionsOpen(false);
+      setTestingTemplate(null);
+      loadTemplates();
+    } catch (error: any) {
+      console.error('Publish error:', error);
+      toast.error('Failed to publish: ' + error.message);
+    }
+  };
+
+  const handleReTest = () => {
+    setPostTestActionsOpen(false);
+    loadTemplates(); // Reload to get updated template
+    // Re-open test wizard with updated data
+    if (testingTemplate) {
+      supabase
+        .from('game_templates')
+        .select('id, name, template_type, custom_game_url, selected_sub_competencies, game_config')
+        .eq('id', testingTemplate.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setTestingTemplate(data);
+            setTestWizardOpen(true);
+          }
+        });
+    }
   };
 
   if (loading) {
@@ -651,17 +698,27 @@ export default function CreatorDashboard() {
       />
 
       {testingTemplate && (
-        <ValidatorTestWizard
-          open={testWizardOpen}
-          onOpenChange={setTestWizardOpen}
-          template={testingTemplate}
-          subCompetency={
-            testingTemplate.selected_sub_competencies[0]
-              ? subCompetencies.get(testingTemplate.selected_sub_competencies[0]) || null
-              : null
-          }
-          onComplete={loadTemplates}
-        />
+        <>
+          <ValidatorTestWizard
+            open={testWizardOpen}
+            onOpenChange={setTestWizardOpen}
+            template={testingTemplate}
+            subCompetency={
+              testingTemplate.selected_sub_competencies[0]
+                ? subCompetencies.get(testingTemplate.selected_sub_competencies[0]) || null
+                : null
+            }
+            onComplete={handleTestComplete}
+          />
+          
+          <PostTestActions
+            open={postTestActionsOpen}
+            onOpenChange={setPostTestActionsOpen}
+            template={testingTemplate}
+            onPublish={handlePublish}
+            onReTest={handleReTest}
+          />
+        </>
       )}
     </div>
   );
