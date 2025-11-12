@@ -1212,23 +1212,23 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
         {/* Main Tabs: Generate vs Test Custom */}
         <Tabs value={creationMethod} onValueChange={(val) => setCreationMethod(val as 'ai' | 'custom')} className="mb-6">
-          <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
-            <TabsTrigger value="ai" className="data-[state=active]:bg-neon-cyan/20">
-              <div className="flex flex-col items-center">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800/50 h-auto p-2">
+            <TabsTrigger value="ai" className="data-[state=active]:bg-neon-cyan/20 h-auto py-3 px-4">
+              <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center">
                   <Sparkles className="h-4 w-4 mr-2" />
                   Generate New Game
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Start here - AI creates your validator from scratch</p>
+                <p className="text-xs text-muted-foreground mt-1 text-center">Start here - AI creates your validator from scratch</p>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="custom" className="data-[state=active]:bg-neon-purple/20">
-              <div className="flex flex-col items-center">
+            <TabsTrigger value="custom" className="data-[state=active]:bg-neon-purple/20 h-auto py-3 px-4">
+              <div className="flex flex-col items-center gap-1">
                 <div className="flex items-center">
                   <Upload className="h-4 w-4 mr-2" />
                   Test Custom Game
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Upload and validate your customized HTML file</p>
+                <p className="text-xs text-muted-foreground mt-1 text-center">Upload and validate your customized HTML file</p>
               </div>
             </TabsTrigger>
           </TabsList>
