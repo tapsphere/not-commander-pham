@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Eye } from 'lucide-react';
+import { Eye, Sparkles, Upload, X, CheckCircle } from 'lucide-react';
 import { DesignPaletteEditor } from './DesignPaletteEditor';
 import { ValidatorTestWizard } from './ValidatorTestWizard';
 import { PlayOpsStructureGuide } from './PlayOpsStructureGuide';
@@ -1171,7 +1173,14 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         </DialogHeader>
 
         {/* Load Sample Button */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            {demoMode && customGameFile && (
+              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                🎬 Demo: Custom Upload Mode
+              </Badge>
+            )}
+          </div>
           <Button
             type="button"
             variant="outline"
@@ -1182,6 +1191,103 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             Load Sample Template
           </Button>
         </div>
+
+        {/* Template Type Selector (AI vs Custom) */}
+        {!template && (
+          <div className="mb-6">
+            <Label className="text-white mb-3 block">Creation Method</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <Card
+                className={`p-4 cursor-pointer transition-all ${
+                  !customGameFile
+                    ? 'bg-neon-green/10 border-neon-green'
+                    : 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                }`}
+                onClick={() => {
+                  setCustomGameFile(null);
+                  setValidationStatus('not_tested');
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <Sparkles className={`h-5 w-5 ${!customGameFile ? 'text-neon-green' : 'text-gray-400'}`} />
+                  <div>
+                    <h4 className={`font-semibold text-sm ${!customGameFile ? 'text-neon-green' : 'text-white'}`}>
+                      AI-Generated
+                    </h4>
+                    <p className="text-xs text-gray-400">Use prompts to create</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                className={`p-4 cursor-pointer transition-all ${
+                  customGameFile
+                    ? 'bg-neon-purple/10 border-neon-purple'
+                    : 'bg-gray-800 border-gray-700 hover:border-gray-600'
+                }`}
+                onClick={() => {
+                  if (demoMode) {
+                    // In demo mode, create a mock file
+                    const mockFile = new File(['<html>demo</html>'], 'customized-game.html', { type: 'text/html' });
+                    setCustomGameFile(mockFile);
+                    setValidationStatus('not_tested');
+                    toast.success('🎬 Demo: Custom file loaded');
+                  } else {
+                    document.getElementById('custom-game-upload')?.click();
+                  }
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <Upload className={`h-5 w-5 ${customGameFile ? 'text-neon-purple' : 'text-gray-400'}`} />
+                  <div>
+                    <h4 className={`font-semibold text-sm ${customGameFile ? 'text-neon-purple' : 'text-white'}`}>
+                      Custom Upload
+                    </h4>
+                    <p className="text-xs text-gray-400">Upload HTML/JS</p>
+                  </div>
+                </div>
+              </Card>
+
+              <input
+                id="custom-game-upload"
+                type="file"
+                accept=".html,.htm"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setCustomGameFile(file);
+                    setValidationStatus('not_tested');
+                    toast.success('File selected: ' + file.name);
+                  }
+                }}
+                className="hidden"
+              />
+            </div>
+
+            {customGameFile && (
+              <div className="mt-3 p-3 bg-gray-800 border border-gray-700 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm text-white">{customGameFile.name}</span>
+                  <span className="text-xs text-gray-400">
+                    ({(customGameFile.size / 1024).toFixed(1)} KB)
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setCustomGameFile(null);
+                    setValidationStatus('not_tested');
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Quick Reference */}
         <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
@@ -1840,7 +1946,65 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                       variant="outline"
                       className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black h-auto py-4 flex-col items-start"
                       onClick={() => {
-                        toast.success('🎬 Demo: Would download HTML/JS code package');
+                        // Create dummy HTML file for demo
+                        const dummyHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crisis Communication Manager - Customizable</title>
+  <style>
+    /* CUSTOMIZE THESE STYLES */
+    :root {
+      --primary-color: #00ff00;
+      --secondary-color: #9945ff;
+      --background: #1a1a2e;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, sans-serif; 
+      background: linear-gradient(135deg, var(--background), #16213e);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    /* ADD YOUR CUSTOM STYLES HERE */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Crisis Communication Manager</h1>
+    <p>You can customize this HTML/CSS/JS code!</p>
+    <!-- CUSTOMIZE THE GAME CONTENT HERE -->
+  </div>
+  <script>
+    // ADD YOUR CUSTOM JAVASCRIPT HERE
+    console.log('Customizable game code');
+  </script>
+</body>
+</html>`;
+                        
+                        // Create and download file
+                        const blob = new Blob([dummyHtml], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'crisis-communication-game.html';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        toast.success('📥 Downloaded! Now you can customize and re-upload', {
+                          description: 'Edit the HTML/CSS/JS, then upload as Custom Game'
+                        });
+                        
+                        // Show next step hint
+                        setTimeout(() => {
+                          toast.info('💡 Next: Upload your customized version', {
+                            description: 'Switch to Custom Upload tab to test your changes'
+                          });
+                        }, 2000);
                       }}
                     >
                       <span className="font-bold text-lg mb-1">💾 Download Code</span>
