@@ -25,6 +25,7 @@ import TemplateDetail from "./pages/platform/TemplateDetail";
 import ValidatorDemo from "./pages/ValidatorDemo";
 import BreathBalance from "./pages/BreathBalance";
 import ValidatorTest from "./pages/platform/ValidatorTest";
+import GeneratePDF from "./pages/GeneratePDF";
 import TestingGuide from "./pages/platform/TestingGuide";
 import PlayValidator from "./pages/platform/PlayValidator";
 import DemoRedirect from "./components/DemoRedirect";
@@ -73,6 +74,9 @@ const App = () => (
           {/* Validator Demos */}
           <Route path="/validator-demo" element={<ValidatorDemo />} />
           <Route path="/breath-balance" element={<BreathBalance />} />
+          
+          {/* PDF Generation */}
+          <Route path="/generate-pdf" element={<GeneratePDF />} />
           
           {/* Public Play Route */}
           <Route path="/play/:code" element={<Play />} />
