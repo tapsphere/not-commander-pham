@@ -1210,21 +1210,6 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
           </Button>
         </div>
 
-        {/* Quick Reference */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
-          <h3 className="font-semibold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
-            ⚙️ Quick Reference (Read Before Designing)
-          </h3>
-          <div className="space-y-2 text-sm text-gray-300">
-            <p><strong>Validator:</strong> a short interactive mini-game (3–6 min) that tests one sub-competency.</p>
-            <p><strong>Sub-Competency:</strong> the specific behavior the validator surfaces through gameplay.</p>
-            <p><strong>Edge Case:</strong> a single twist mid-game that forces adaptation — used to test mastery.</p>
-            <p className="text-xs text-gray-400 mt-2">
-              All validators automatically handle scoring, timers, and ledger receipts. Designers focus only on player experience, actions, and flow.
-            </p>
-          </div>
-        </div>
-
         {/* Main Tabs: Generate vs Test Custom */}
         <Tabs value={creationMethod} onValueChange={(val) => setCreationMethod(val as 'ai' | 'custom')} className="mb-6">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
@@ -1248,6 +1233,21 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {/* Quick Reference */}
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-4">
+          <h3 className="font-semibold mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
+            ⚙️ Quick Reference (Read Before Designing)
+          </h3>
+          <div className="space-y-2 text-sm text-gray-300">
+            <p><strong>Validator:</strong> a short interactive mini-game (3–6 min) that tests one sub-competency.</p>
+            <p><strong>Sub-Competency:</strong> the specific behavior the validator surfaces through gameplay.</p>
+            <p><strong>Edge Case:</strong> a single twist mid-game that forces adaptation — used to test mastery.</p>
+            <p className="text-xs text-gray-400 mt-2">
+              All validators automatically handle scoring, timers, and ledger receipts. Designers focus only on player experience, actions, and flow.
+            </p>
+          </div>
+        </div>
 
         {creationMethod === 'ai' && (
           <form onSubmit={handleSubmit} className="space-y-6">
