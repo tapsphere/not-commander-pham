@@ -83,10 +83,10 @@ if (window.Telegram && window.Telegram.WebApp) {
 
 ## 🧠 TRAINING vs TESTING MODE
 
-| Mode     | Behavior                                    | Proof | XP              |
-|----------|---------------------------------------------|-------|-----------------|
-| Training | Randomized inputs, feedback after each step | ❌     | 0               |
-| Testing  | Fixed seed, one attempt only                | ✅     | 100 / 250 / 500 |
+| Mode     | Behavior                                    | Proof | XP            |
+|----------|---------------------------------------------|-------|---------------|
+| Training | Randomized inputs, feedback after each step | ❌     | 0             |
+| Testing  | Fixed seed, one attempt only                | ✅     | 20 / 60 / 100 |
 
 Only testing mode emits `window.__PROOF__`.
 
@@ -378,7 +378,7 @@ button {
 ---
 
 ✅ **This prompt is synchronized with:**
-- BASE LAYER 1 (v3.0)
+- BASE LAYER 1 (v3.1)
 - Platform Flows (v3.1)
 - C-BEN PlayOps Framework
 - Telegram Mini-App Guidelines

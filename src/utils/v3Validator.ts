@@ -270,28 +270,26 @@ export function extractWindowObjects(iframeWindow: Window): {
  * Calculate v3.1 proficiency level based on score
  */
 export function calculateV31Level(
-  score: number,
-  threshold: number = 0.8
+  score: number
 ): 'Mastery' | 'Proficient' | 'Needs Work' {
   if (score >= 90) return 'Mastery';
-  if (score >= threshold * 100) return 'Proficient';
+  if (score >= 60) return 'Proficient';
   return 'Needs Work';
 }
 
 /**
- * Calculate XP based on PlayOps Framework (CBEN_PlayOps_Framework_Lian.xlsx)
- * Source: Tab 4 - XP Award column
+ * Calculate XP based on BASE LAYER 1 v3.1
+ * Source: BASE_LAYER_1_BAKED_LOCKED_v3.1.md
  */
 export function calculateV31XP(
-  level: 'Mastery' | 'Proficient' | 'Needs Work',
-  score: number
+  level: 'Mastery' | 'Proficient' | 'Needs Work'
 ): number {
-  // From PlayOps spreadsheet Tab 4 - DO NOT MODIFY without updating source
+  // From BASE LAYER 1 v3.1 - DO NOT MODIFY without updating source
   const baseXP = {
-    Mastery: 15,         // L3: 15 XP
-    Proficient: 10,      // L2: 10 XP
-    'Needs Work': 5,     // L1: 5 XP
+    Mastery: 100,         // L3: 100 XP (90%+)
+    Proficient: 60,       // L2: 60 XP (60-89%)
+    'Needs Work': 20,     // L1: 20 XP (<60%)
   };
 
-  return Math.floor(baseXP[level] * (score / 100));
+  return baseXP[level];
 }

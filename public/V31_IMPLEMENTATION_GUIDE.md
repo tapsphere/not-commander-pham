@@ -113,24 +113,25 @@ The platform now enforces these exact scoring levels:
 
 | Level | Score Range | XP Base | Color | Description |
 |-------|-------------|---------|-------|-------------|
-| **Mastery** | 90-100% | 1000 XP | Green | Expert understanding, exceeds expectations |
-| **Proficient** | 80-89% | 500 XP | Blue | Competent performance, meets standards |
-| **Needs Work** | <80% | 100 XP | Yellow | Requires improvement, below threshold |
+| **Mastery** | 90-100% | 100 XP | Green | Expert understanding, exceeds expectations |
+| **Proficient** | 60-89% | 60 XP | Yellow | Competent performance, meets standards |
+| **Needs Work** | <60% | 20 XP | Red | Requires improvement, below threshold |
 
 **Formula:**
 ```typescript
 // Level determination
 if (score >= 90) level = 'Mastery'
-else if (score >= threshold * 100) level = 'Proficient'
+else if (score >= 60) level = 'Proficient'
 else level = 'Needs Work'
 
 // XP calculation
-xp = baseXP[level] * (score / 100)
+xp = baseXP[level]
 ```
 
 **Example:**
-- Score: 87% → Level: Proficient → XP: 435 (500 * 0.87)
-- Score: 95% → Level: Mastery → XP: 950 (1000 * 0.95)
+- Score: 87% → Level: Proficient → XP: 60
+- Score: 95% → Level: Mastery → XP: 100
+- Score: 45% → Level: Needs Work → XP: 20
 
 ---
 
@@ -155,9 +156,9 @@ All v3.1 games **must** expose these objects:
   subCompetency: string;
   correctAnswers: any[];
   scoringRubric: {
-    mastery: { threshold: 0.9, xp: 1000 };
-    proficient: { threshold: 0.8, xp: 500 };
-    needsWork: { threshold: 0, xp: 100 };
+    mastery: { threshold: 0.9, xp: 100 };
+    proficient: { threshold: 0.6, xp: 60 };
+    needsWork: { threshold: 0, xp: 20 };
   };
 }
 ```

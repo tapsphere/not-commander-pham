@@ -189,8 +189,8 @@ export function GamePlayer({
           </p>
           <Button onClick={() => {
             setScore(85);
-            setV31Level(calculateV31Level(85, runtime.accuracy_threshold));
-            setXp(calculateV31XP(calculateV31Level(85, runtime.accuracy_threshold), 85));
+            setV31Level(calculateV31Level(85));
+            setXp(calculateV31XP(calculateV31Level(85)));
             setTimeSpent(120);
             setGameState('finished');
           }}>
