@@ -1748,6 +1748,14 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             </div>
           )}
 
+          {/* Info note for AI-generated templates */}
+          {!customGameFile && (
+            <div className="flex items-center gap-2 text-sm text-blue-300 bg-blue-500/10 px-3 py-2 rounded-lg border border-blue-500/30 mb-4">
+              <span>ℹ️</span>
+              <span>No upload needed - game auto-generates before testing</span>
+            </div>
+          )}
+
           <div className="flex gap-3 justify-end border-t border-gray-700 pt-4">
             <Button
               type="button"
