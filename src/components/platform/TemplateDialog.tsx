@@ -1229,12 +1229,22 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         <Tabs value={creationMethod} onValueChange={(val) => setCreationMethod(val as 'ai' | 'custom')} className="mb-6">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
             <TabsTrigger value="ai" className="data-[state=active]:bg-neon-cyan/20">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate New Game
+              <div className="flex flex-col items-center">
+                <div className="flex items-center">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Generate New Game
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Start here - AI creates your validator from scratch</p>
+              </div>
             </TabsTrigger>
             <TabsTrigger value="custom" className="data-[state=active]:bg-neon-purple/20">
-              <Upload className="h-4 w-4 mr-2" />
-              Test Custom Game
+              <div className="flex flex-col items-center">
+                <div className="flex items-center">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Test Custom Game
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Upload and validate your customized HTML file</p>
+              </div>
             </TabsTrigger>
           </TabsList>
         </Tabs>
