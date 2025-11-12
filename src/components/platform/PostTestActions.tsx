@@ -3,10 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Download, Upload, FileCode, FileText } from 'lucide-react';
+import { CheckCircle, Download, Upload, FileCode } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { generateSpecPDF } from '@/utils/generateSpecPDF';
 
 interface PostTestActionsProps {
   open: boolean;
@@ -67,15 +66,6 @@ export function PostTestActions({
     }
   };
 
-  const handleDownloadSpec = async () => {
-    try {
-      await generateSpecPDF(template.game_config);
-      toast.success('Specification PDF downloaded!');
-    } catch (error: any) {
-      console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF: ' + error.message);
-    }
-  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -204,25 +194,15 @@ export function PostTestActions({
                 <Download className="w-5 h-5 text-cyan-400" />
                 Step 1: Download Files
               </h3>
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleDownloadCode}
-                  className="flex-1 bg-cyan-400 text-black hover:bg-cyan-500"
-                >
-                  <FileCode className="w-4 h-4 mr-2" />
-                  Download Game Code
-                </Button>
-                <Button 
-                  onClick={handleDownloadSpec}
-                  variant="outline"
-                  className="flex-1 border-gray-600"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Download Spec PDF
-                </Button>
-              </div>
+              <Button 
+                onClick={handleDownloadCode}
+                className="w-full bg-cyan-400 text-black hover:bg-cyan-500"
+              >
+                <FileCode className="w-4 h-4 mr-2" />
+                Download Game Code
+              </Button>
               <p className="text-xs text-gray-400">
-                Download the game code to customize locally. The spec PDF contains the framework requirements.
+                Download the game code to customize locally.
               </p>
             </div>
 
