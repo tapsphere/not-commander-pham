@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package, PlayCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
@@ -499,6 +499,14 @@ export default function CreatorDashboard() {
           <p className="text-gray-400 mt-2">Manage your game templates and design elements</p>
         </div>
         <div className="flex gap-3">
+          <Button
+            onClick={() => navigate('/platform/creator-demo')}
+            variant="outline"
+            className="gap-2 border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Demo Flow
+          </Button>
           <Button
             onClick={() => navigate('/platform/creator/profile-edit')}
             variant="outline"

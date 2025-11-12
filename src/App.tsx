@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import Play from "./pages/Play";
 import { PlatformLayout } from "./components/platform/PlatformLayout";
 import CreatorDashboard from "./pages/platform/CreatorDashboard";
+import CreatorDemo from "./pages/platform/CreatorDemo";
 import BrandDashboard from "./pages/platform/BrandDashboard";
 import BrandProfileEdit from "./pages/platform/BrandProfileEdit";
 import BrandProfile from "./pages/BrandProfile";
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/platform" element={<PlatformLayout />}>
             <Route index element={<Navigate to="/platform/marketplace" replace />} />
             <Route path="creator" element={<CreatorDashboard />} />
+            <Route path="creator-demo" element={<CreatorDemo />} />
             <Route path="creator/profile-edit" element={<BrandProfileEdit />} />
             <Route path="brand" element={<BrandDashboard />} />
             <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
