@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Eye, Sparkles, Upload, X, CheckCircle } from 'lucide-react';
 import { DesignPaletteEditor } from './DesignPaletteEditor';
@@ -95,6 +96,7 @@ export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemp
   const [loading, setLoading] = useState(false);
   const [customGameFile, setCustomGameFile] = useState<File | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [creationMethod, setCreationMethod] = useState<'ai' | 'custom'>('ai');
   
   // Custom upload validation state
   const [validationStatus, setValidationStatus] = useState<'not_tested' | 'testing' | 'passed' | 'failed'>('not_tested');
@@ -1223,7 +1225,22 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Main Tabs: Generate vs Test Custom */}
+        <Tabs value={creationMethod} onValueChange={(val) => setCreationMethod(val as 'ai' | 'custom')} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-800/50">
+            <TabsTrigger value="ai" className="data-[state=active]:bg-neon-cyan/20">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate New Game
+            </TabsTrigger>
+            <TabsTrigger value="custom" className="data-[state=active]:bg-neon-purple/20">
+              <Upload className="h-4 w-4 mr-2" />
+              Test Custom Game
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {creationMethod === 'ai' && (
+          <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
           <div className="space-y-4">
             <div>
@@ -2058,6 +2075,173 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             )}
           </div>
         </form>
+        )}
+
+        {/* Custom Upload Section */}
+        {creationMethod === 'custom' && (
+          <div className="space-y-6">
+            {/* Template Name (required for validation) */}
+            <div>
+              <Label htmlFor="custom-name">Template Name *</Label>
+              <Input
+                id="custom-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                className="bg-gray-800 border-gray-700"
+                placeholder="e.g., My Custom Trade-Off Game"
+              />
+              <p className="text-xs text-gray-400 mt-1">Required for validation testing</p>
+            </div>
+
+            {/* Upload Custom HTML */}
+            <div className="border border-gray-700 rounded-lg p-6 bg-gray-800/50">
+              <h3 className="font-semibold text-neon-purple mb-4">Upload Your Custom Game</h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Upload your customized HTML file to run validation tests and ensure it meets PlayOps Framework standards.
+              </p>
+              
+              <input
+                id="custom-file-input"
+                type="file"
+                accept=".html,.htm"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setCustomGameFile(file);
+                    setValidationStatus('not_tested');
+                    toast.success('✅ Custom file uploaded: ' + file.name);
+                  }
+                }}
+                className="hidden"
+              />
+              
+              <Button
+                type="button"
+                onClick={() => document.getElementById('custom-file-input')?.click()}
+                variant="outline"
+                className="w-full border-neon-purple text-neon-purple hover:bg-neon-purple/10 h-auto py-6"
+              >
+                <Upload className="mr-2 h-5 w-5" />
+                {customGameFile ? 'Change File' : 'Upload HTML File'}
+              </Button>
+
+              {customGameFile && (
+                <div className="mt-4 p-4 bg-gray-900 border border-neon-purple rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-neon-purple" />
+                    <div>
+                      <p className="text-sm text-white font-medium">{customGameFile.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {(customGameFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setCustomGameFile(null);
+                      setValidationStatus('not_tested');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Validation Section */}
+            {customGameFile && (
+              <div className="space-y-4">
+                {validationStatus === 'not_tested' && (
+                  <div className="space-y-3">
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                      <p className="text-yellow-400 font-semibold mb-1">⚠️ Validation Required</p>
+                      <p className="text-sm text-gray-300">
+                        Your custom game must pass all automated tests to ensure it meets PlayOps Framework standards.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleValidateCustomGame}
+                      className="w-full bg-purple-600 hover:bg-purple-700 h-auto py-4"
+                      disabled={!formData.name}
+                    >
+                      <span className="font-bold text-lg">🔍 Run Validation Tests</span>
+                    </Button>
+                  </div>
+                )}
+                
+                {validationStatus === 'testing' && (
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 animate-pulse">
+                    <p className="text-blue-400 font-semibold mb-1">⏳ Validation In Progress</p>
+                    <p className="text-sm text-gray-300">
+                      Running automated tests on your game...
+                    </p>
+                  </div>
+                )}
+                
+                {validationStatus === 'passed' && (
+                  <div className="space-y-4">
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <p className="text-green-400 font-semibold mb-1">✅ Validation Passed!</p>
+                      <p className="text-sm text-gray-300">
+                        Your game meets all requirements. You can now publish to the marketplace.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full bg-neon-green text-black hover:bg-neon-green/90 h-auto py-4"
+                      onClick={() => {
+                        if (demoMode) {
+                          toast.success('🎬 Demo: Would publish to marketplace');
+                          onOpenChange(false);
+                        } else {
+                          toast.success('Publishing to marketplace...');
+                        }
+                      }}
+                    >
+                      <span className="font-bold text-lg">📤 Publish to Marketplace</span>
+                    </Button>
+                  </div>
+                )}
+                
+                {validationStatus === 'failed' && (
+                  <div className="space-y-3">
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                      <p className="text-red-400 font-semibold mb-1">❌ Validation Failed</p>
+                      <p className="text-sm text-gray-300">
+                        Your game did not pass all required tests. Please review the test results, fix the issues, and upload a corrected version.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => document.getElementById('custom-file-input')?.click()}
+                      variant="outline"
+                      className="w-full border-red-500 text-red-400 hover:bg-red-500/10"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Corrected Version
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Cancel Button */}
+            <div className="flex justify-end border-t border-gray-700 pt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
         </div>
       </DialogContent>
 
