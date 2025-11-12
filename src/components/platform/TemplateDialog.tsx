@@ -1815,11 +1815,38 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
               )}
               
               {validationStatus === 'passed' && (
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                  <p className="text-green-400 font-semibold mb-1">✅ Validation Passed!</p>
-                  <p className="text-sm text-gray-300">
-                    Your game meets all requirements and is ready for review submission. Our team will manually verify and publish it.
-                  </p>
+                <div className="space-y-4">
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                    <p className="text-green-400 font-semibold mb-1">✅ Validation Passed!</p>
+                    <p className="text-sm text-gray-300">
+                      Your game meets all requirements. Choose how to proceed:
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      className="bg-neon-green text-black hover:bg-neon-green/90 h-auto py-4 flex-col items-start"
+                      onClick={() => {
+                        toast.success('🎬 Demo: Would publish to marketplace');
+                      }}
+                    >
+                      <span className="font-bold text-lg mb-1">📤 Publish to Marketplace</span>
+                      <span className="text-xs opacity-80 text-left">Submit for review & make available to brands</span>
+                    </Button>
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black h-auto py-4 flex-col items-start"
+                      onClick={() => {
+                        toast.success('🎬 Demo: Would download HTML/JS code package');
+                      }}
+                    >
+                      <span className="font-bold text-lg mb-1">💾 Download Code</span>
+                      <span className="text-xs opacity-80 text-left">Get HTML/JS to customize further</span>
+                    </Button>
+                  </div>
                 </div>
               )}
               
@@ -1937,8 +1964,17 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             custom_game_url: '' // Will be fetched from database
           }}
           subCompetency={subCompetencies.find(sc => sc.id === selectedSubCompetencies[0]) || null}
+          demoMode={demoMode}
           onComplete={() => {
             setShowTestWizard(false);
+            
+            // In demo mode, just set validation to passed immediately
+            if (demoMode) {
+              setValidationStatus('passed');
+              toast.success('🎬 Demo: All tests passed! Ready for publish options.');
+              return;
+            }
+            
             // Check test results and update validation status
             supabase
               .from('validator_test_results')

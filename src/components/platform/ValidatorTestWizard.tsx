@@ -22,6 +22,7 @@ interface ValidatorTestWizardProps {
     action_cue: string;
   } | null;
   onComplete: () => void;
+  demoMode?: boolean;
 }
 
 interface CheckResult {
@@ -37,7 +38,8 @@ export function ValidatorTestWizard({
   onOpenChange, 
   template, 
   subCompetency,
-  onComplete 
+  onComplete,
+  demoMode = false
 }: ValidatorTestWizardProps) {
   const [testing, setTesting] = useState(false);
   const [testComplete, setTestComplete] = useState(false);
@@ -62,6 +64,81 @@ export function ValidatorTestWizard({
 
     try {
       setTesting(true);
+      
+      // Demo mode: return mock passing results
+      if (demoMode) {
+        toast.info('🎬 Demo Mode: Simulating test execution');
+        
+        // Simulate loading time
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Mock all 8 tests passing
+        const mockResults: CheckResult[] = [
+          {
+            checkNumber: 1,
+            name: 'PlayOps Compliance',
+            status: 'passed',
+            notes: 'Template follows PlayOps structure',
+            details: { framework: 'v3.1', aligned: true }
+          },
+          {
+            checkNumber: 2,
+            name: 'Locked Elements',
+            status: 'passed',
+            notes: 'All C-BEN elements properly locked',
+            details: { locked_count: 5 }
+          },
+          {
+            checkNumber: 3,
+            name: 'Scoring Logic',
+            status: 'passed',
+            notes: 'Proficiency levels correctly defined',
+            details: { levels: 3, formulas_valid: true }
+          },
+          {
+            checkNumber: 4,
+            name: 'Edge Case Implementation',
+            status: 'passed',
+            notes: 'Mastery-level disruption present',
+            details: { edge_case_found: true }
+          },
+          {
+            checkNumber: 5,
+            name: 'UI/UX Standards',
+            status: 'passed',
+            notes: 'Mobile-optimized and accessible',
+            details: { responsive: true, wcag_compliant: true }
+          },
+          {
+            checkNumber: 6,
+            name: 'Data Capture',
+            status: 'passed',
+            notes: 'Backend tracking implemented',
+            details: { capture_points: 8 }
+          },
+          {
+            checkNumber: 7,
+            name: 'Result Screens',
+            status: 'passed',
+            notes: 'All 3 proficiency endings present',
+            details: { screens: 3 }
+          },
+          {
+            checkNumber: 8,
+            name: 'Telegram Integration',
+            status: 'passed',
+            notes: 'Mini-game optimized',
+            details: { telegram_ready: true }
+          }
+        ];
+        
+        setResults(mockResults);
+        setOverallStatus('passed');
+        setTestComplete(true);
+        toast.success('🎉 All 8 tests passed! (Demo)');
+        setTesting(false);
+        return;
+      }
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
