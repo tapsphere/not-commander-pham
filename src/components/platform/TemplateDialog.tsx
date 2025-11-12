@@ -8,8 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Copy, Eye } from 'lucide-react';
-import { CustomGameUpload } from './CustomGameUpload';
+import { Eye } from 'lucide-react';
 import { DesignPaletteEditor } from './DesignPaletteEditor';
 import { ValidatorTestWizard } from './ValidatorTestWizard';
 import { PlayOpsStructureGuide } from './PlayOpsStructureGuide';
@@ -676,72 +675,6 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     }
   }, [open]);
 
-  const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(generatedPrompt);
-    toast.success('Prompt copied to clipboard!');
-  };
-
-  const handleDownloadPDF = async () => {
-    try {
-      // Import the PDF generator
-      const { generateSpecPDF } = await import('@/utils/generateSpecPDF');
-      
-      // Get selected competency and subs
-      const selectedComp = competencies.find(c => c.id === selectedCompetency);
-      const selectedSubs = subCompetencies.filter(sc => selectedSubCompetencies.includes(sc.id));
-      
-      if (!selectedComp || selectedSubs.length === 0) {
-        toast.error('Please select competencies first');
-        return;
-      }
-      
-      // Build sub-competency specs with scene mapping
-      const subSpecs = selectedSubs.map((sub, idx) => ({
-        statement: sub.statement,
-        sceneNumber: idx + 1,
-        actionCue: sub.action_cue,
-        gameMechanic: sub.game_mechanic,
-        validatorType: sub.validator_type,
-        scoringFormula: `Level 1: ${sub.scoring_formula_level_1 || 'Not specified'}\nLevel 2: ${sub.scoring_formula_level_2 || 'Not specified'}\nLevel 3: ${sub.scoring_formula_level_3 || 'Not specified'}`
-      }));
-      
-      const spec = {
-        templateName: formData.name || 'Custom Game Template',
-        competency: `${selectedComp.name} (${selectedComp.cbe_category})`,
-        subCompetencies: subSpecs,
-        scenario: formData.scenario || '',
-        playerActions: formData.playerActions || '',
-        scenes: {
-          scene1: formData.scene1,
-          scene2: formData.scene2,
-          scene3: formData.scene3,
-          scene4: formData.scene4
-        },
-        edgeCase: formData.edgeCase || '',
-        edgeCaseTiming: formData.edgeCaseTiming,
-        uiAesthetic: formData.uiAesthetic || 'Modern, mobile-optimized design',
-        brandCustomizations: {
-          description: 'Brands will be able to customize these elements when deploying your game:',
-          elements: [
-            'Logo (URL parameter: ?logo=...)',
-            'Primary Color (URL parameter: ?primary=...)',
-            'Secondary Color (URL parameter: ?secondary=...)',
-            'Accent Color (URL parameter: ?accent=...)',
-            'Background Color (URL parameter: ?background=...)',
-            'Company Name',
-            'Custom messaging in intro screen'
-          ]
-        }
-      };
-      
-      generateSpecPDF(spec);
-      toast.success('Specification PDF downloaded!');
-      
-    } catch (error) {
-      console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF');
-    }
-  };
 
   const handleValidateCustomGame = async () => {
     if (!customGameFile) {
@@ -1600,17 +1533,6 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
               </div>
             </div>
 
-            {/* Custom Game File Upload - Optional for Customization */}
-            <div>
-              <Label>Custom Game File (Optional)</Label>
-              <p className="text-xs text-gray-400 mb-2">
-                Upload after download if you choose to customize the generated game
-              </p>
-              <CustomGameUpload
-                onFileSelect={setCustomGameFile}
-                selectedFile={customGameFile}
-              />
-            </div>
           </div>
 
           {/* Generated Prompt Preview */}
@@ -1645,16 +1567,6 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                     >
                       <Eye className="h-4 w-4" />
                       {generating ? 'Generating...' : 'Test Preview 🎮'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyPrompt}
-                      className="gap-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy to Use in Lovable
                     </Button>
                   </div>
                 </div>
@@ -1731,22 +1643,6 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
             </div>
           )}
 
-          {/* PDF Download Button */}
-          {selectedSubCompetencies.length > 0 && formData.scenario && (
-            <div className="border-t border-gray-700 pt-4">
-              <Button
-                type="button"
-                onClick={handleDownloadPDF}
-                variant="outline"
-                className="w-full"
-              >
-                📄 Download Specification PDF
-              </Button>
-              <p className="text-xs text-gray-400 mt-2 text-center">
-                Download the full framework specification as PDF for reference
-              </p>
-            </div>
-          )}
 
           {/* Info note for AI-generated templates */}
           {!customGameFile && (
