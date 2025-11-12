@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Flow V3.1 - Original vs Updated Comparison</title>
+    <style>
+        @page {
+            margin: 1in;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #000;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        h1 {
+            color: #000;
+            font-size: 28px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #000;
+            font-size: 22px;
+            margin-top: 25px;
+            margin-bottom: 8px;
+        }
+        
+        h3 {
+            color: #000;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 6px;
+        }
+        
+        h4 {
+            color: #000;
+            font-size: 16px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .new {
+            color: #0066CC;
+        }
+        
+        .legend {
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .legend p {
+            margin: 5px 0;
+            font-weight: 600;
+        }
+        
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 5px 0;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .highlight-box {
+            background: #e6f3ff;
+            border-left: 4px solid #0066CC;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .arrow {
+            color: #0066CC;
+            font-weight: bold;
+        }
+        
+        strong {
+            font-weight: 600;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>CREATOR FLOW — Complete Journey (Updated)</h1>
+    <h2>Original → V3.1 Comparison</h2>
+    
+    <div class="legend">
+        <p><strong>Black Text</strong> = Original • <strong class="new">Blue Text</strong> = New or Changed</p>
+    </div>
+
+    <div class="section">
+        <h1>1. ACCESS & DASHBOARD</h1>
+        
+        <h2>1.1 Authentication</h2>
+        <ul>
+            <li>Creators log in via email/password or OAuth</li>
+        </ul>
+        
+        <h2>1.2 Creator Dashboard</h2>
+        <p>The landing page after login. Shows:</p>
+        <ul>
+            <li>My Templates (list of published + draft games)</li>
+            <li>Template statistics (plays, avg score, completions)</li>
+            <li>Profile settings</li>
+        </ul>
+        
+        <p class="new"><strong>NEW: Tabbed Interface</strong></p>
+        <ul class="new">
+            <li>My Games tab — Templates + stats</li>
+            <li>Design Elements tab — Upload portal + Element Library</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h1>2. TEMPLATE CREATION (UNIFIED FLOW)</h1>
+        
+        <div class="highlight-box">
+            <p class="new"><strong>MAJOR CHANGE: Unified Form for All Templates</strong></p>
+            <p class="new">Path: Dashboard <span class="arrow">→</span> "Create New Template"</p>
+            <p class="new">AI-Generated and Custom Upload templates now use the SAME form. No more separate type selection at the start.</p>
+        </div>
+        
+        <h2>2.1 Template Form (All Creators Fill This)</h2>
+        
+        <h3 class="new">Step 1: PlayOps Framework Structure Guide</h3>
+        <p class="new">Before creation, creators see a guide outlining:</p>
+        
+        <p class="new"><strong>REQUIRED scene structure:</strong></p>
+        <ul class="new">
+            <li>Scene 0: Loading Screen (2.5s) with brand/creator logo</li>
+            <li>Instructions Screen with mascot (if uploaded) - Scene 0 only</li>
+            <li>Scene 1-4: Gameplay (one per sub-competency)</li>
+            <li>Results Screen</li>
+        </ul>
+        
+        <p class="new"><strong>What Brands Can EDIT:</strong></p>
+        <ul class="new">
+            <li>Brand Logo (Scene 0 loading screen)</li>
+            <li>Mascot/Avatar (Scene 0 only, if uploaded by creator)</li>
+            <li>Particle effects (URL parameter)</li>
+            <li>Colors (primary, secondary, accent, background, text)</li>
+            <li>Font family</li>
+        </ul>
+        
+        <p class="new"><strong>What is LOCKED:</strong></p>
+        <ul class="new">
+            <li>Scene structure (Scene 0 <span class="arrow">→</span> Instructions <span class="arrow">→</span> Gameplay <span class="arrow">→</span> Results)</li>
+            <li>Core game mechanics</li>
+            <li>Scoring logic</li>
+            <li>Mascot placement (Scene 0 instructions only)</li>
+        </ul>
+        
+        <h3>Step 2: Template Name & Description</h3>
+        <ul>
+            <li>Template Name (required)</li>
+            <li>Description (optional)</li>
+        </ul>
+        
+        <h3>Step 3: Competency Framework</h3>
+        <ul>
+            <li>Primary Competency (required)</li>
+            <li class="new">Sub-Competencies: Select 1-4 (each maps to one scene)</li>
+            <li class="new">PlayOps structure guide displays once subs are selected</li>
+        </ul>
+        
+        <h3 class="new">Step 4: Customize Your Scenario</h3>
+        <ul class="new">
+            <li>Industry/Context (Marketing, Operations, Finance, etc.)</li>
+            <li>Your Role/Scenario (max 150 chars)</li>
+            <li>Key Element (what player works with, max 100 chars)</li>
+            <li>Edge Case Details (max 80 chars)</li>
+            <li>Visual Theme (Modern, Executive, Casual, Urgent, Minimal)</li>
+            <li>Interaction Method (contextual to sub-competency)</li>
+        </ul>
+        
+        <h3 class="new">Step 5: Scene Descriptions</h3>
+        <ul class="new">
+            <li>Scenario context</li>
+            <li>Player actions</li>
+            <li>Scene progression (1-4 scenes based on sub-competencies)</li>
+        </ul>
+        
+        <h3>Step 6: Edge Case Configuration</h3>
+        <ul>
+            <li>Edge-case timing (early, mid, late)</li>
+            <li>Edge-case moment description</li>
+        </ul>
+        
+        <h3>Step 7: UI Aesthetic</h3>
+        <ul>
+            <li>Visual style description</li>
+        </ul>
+        
+        <h3>Step 8: Design Customization (Optional)</h3>
+        <ul>
+            <li>Check "Customize colors & font for this game" to override defaults</li>
+            <li>Per-game color palette, font, avatar, particles</li>
+        </ul>
+        
+        <h3 class="new">Step 9: File Uploads</h3>
+        <ul class="new">
+            <li>Cover Image (optional - generated if not provided)</li>
+            <li>Custom Game HTML (optional - for customization after download)</li>
+        </ul>
+        
+        <p class="new"><strong>After form submission:</strong></p>
+        <ul class="new">
+            <li>Template saved (all creators fill the same form)</li>
+            <li>Validation Test Wizard opens automatically</li>
+            <li>Creator runs required tests</li>
+        </ul>
+        
+        <h2 class="new">2.2 Post-Test Options (NEW FLOW)</h2>
+        <p class="new">After passing all validation tests, creators have 2 choices:</p>
+        
+        <h3 class="new">Option 1: Publish Now</h3>
+        <ul class="new">
+            <li>Template goes live in marketplace immediately</li>
+            <li>Brands can discover and customize</li>
+        </ul>
+        
+        <h3 class="new">Option 2: Download to Customize</h3>
+        <ul class="new">
+            <li>Download generated game HTML/code</li>
+            <li>Download spec PDF with framework requirements (optional)</li>
+            <li>Make custom modifications offline</li>
+            <li>Re-upload customized version</li>
+            <li>MUST re-run validation tests on re-upload</li>
+            <li>Once tests pass again <span class="arrow">→</span> can publish</li>
+        </ul>
+        
+        <p><strong>Important Note:</strong></p>
+        <p class="new">Custom HTML uploads still possible via file upload field in form. These follow the same test <span class="arrow">→</span> publish/download flow.</p>
+    </div>
+
+    <div class="section">
+        <h1 class="new">3. DESIGN ELEMENT UPLOAD (NEW FEATURE)</h1>
+        <p class="new">Path: Creator Dashboard <span class="arrow">→</span> Design Elements tab <span class="arrow">→</span> "Upload New Element"</p>
+        
+        <h2 class="new">3.1 Element Types Supported:</h2>
+        <ol class="new">
+            <li>Mascot/Avatar (PNG, SVG, GIF)</li>
+            <li>Background (JPG, PNG, SVG)</li>
+            <li>UI Component (SVG, PNG)</li>
+            <li>Particle Effect (JSON, PNG sprite sheet)</li>
+            <li>Sound Effect (MP3, WAV, OGG)</li>
+            <li>Font File (TTF, WOFF, WOFF2)</li>
+            <li><strong>Animation (NEW)</strong>
+                <ul>
+                    <li>Sub-types: lottie, sprite_sheet, css, gif</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <h2 class="new">3.2 Upload Process:</h2>
+        <p class="new"><strong>Step 1:</strong> Select element type</p>
+        <p class="new"><strong>Step 2:</strong> Upload file(s)</p>
+        <p class="new"><strong>Step 3:</strong> Add metadata:</p>
+        <ul class="new">
+            <li>Element name</li>
+            <li>Description</li>
+            <li>Tags (searchable)</li>
+            <li>License type (free, premium, custom)</li>
+        </ul>
+        <p class="new"><strong>Step 4:</strong> Preview & optimization check</p>
+        <ul class="new">
+            <li>File size validation</li>
+            <li>Format compatibility check</li>
+            <li>Telegram Mini-Game optimization tips</li>
+        </ul>
+        <p class="new"><strong>Step 5:</strong> Submit for review</p>
+        
+        <h2 class="new">3.3 Format & Size Requirements:</h2>
+        <ul class="new">
+            <li>Mascots/Avatars: Max 500KB, recommended 256×256 to 512×512px</li>
+            <li>Backgrounds: Max 1MB, recommended 1920×1080px or smaller</li>
+            <li>UI Components: Max 200KB, vector formats preferred</li>
+            <li>Particle Effects: Max 300KB for JSON, 400KB for sprite sheets</li>
+            <li>Sound Effects: Max 500KB, MP3 recommended</li>
+            <li>Fonts: Max 200KB per weight</li>
+            <li>Animations: Max 500KB</li>
+        </ul>
+        
+        <h2 class="new">3.4 Telegram Mini-Game Optimization:</h2>
+        <ul class="new">
+            <li>Total asset bundle should stay under 5MB</li>
+            <li>Use WebP for raster images when possible</li>
+            <li>Compress audio to lower bitrates (64-128kbps)</li>
+            <li>Prefer vector graphics for scalable elements</li>
+        </ul>
+        
+        <h2 class="new">3.5 Review & Approval:</h2>
+        <ul class="new">
+            <li>Elements enter "Pending Review" status</li>
+            <li>Platform reviews for:
+                <ul>
+                    <li>Technical compliance</li>
+                    <li>Quality standards</li>
+                    <li>Appropriate content</li>
+                </ul>
+            </li>
+            <li>Once approved <span class="arrow">→</span> visible in Element Library</li>
+            <li>Creators and brands can browse/use in templates</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h1 class="new">4. VALIDATOR TESTING (V3.1 — 8 AUTOMATED CHECKS)</h1>
+        <p class="new">Path: Creator Dashboard <span class="arrow">→</span> Select Template <span class="arrow">→</span> "Run Validator Test"</p>
+        
+        <div class="highlight-box">
+            <p class="new"><strong>Overview:</strong></p>
+            <p class="new">V3.1 introduces 8 automated programmatic checks that validate templates against the PlayOps Framework. Each check returns:</p>
+            <ul class="new">
+                <li>✅ <strong>PASSED</strong> — No issues detected</li>
+                <li>⚠️ <strong>NEEDS REVIEW</strong> — Minor issues or warnings</li>
+                <li>❌ <strong>FAILED</strong> — Critical issues that must be fixed</li>
+            </ul>
+        </div>
+        
+        <h2 class="new">4.1 The 8 Automated Checks:</h2>
+        
+        <h3 class="new">Check 1: Scene Structure Validation</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Presence of all 3 required scenes (Intro, Gameplay, Results)</li>
+            <li>Correct scene identifiers in HTML/JS</li>
+            <li>Proper scene transition logic</li>
+        </ul>
+        
+        <h3 class="new">Check 2: UX/UI Integrity</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Responsive design across viewport sizes</li>
+            <li>Touch targets meet minimum size (44×44px)</li>
+            <li>Text readability (contrast ratios)</li>
+            <li>Loading states and error handling</li>
+        </ul>
+        
+        <h3 class="new">Check 3: Telegram Mini-App Compliance</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Total bundle size under 5MB</li>
+            <li>No external CDN dependencies (all assets bundled)</li>
+            <li>WebApp API integration if applicable</li>
+            <li>Proper viewport meta tags</li>
+        </ul>
+        
+        <h3 class="new">Check 4: Embedded Configuration Objects</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>brandConfig object exists in JavaScript</li>
+            <li>Contains required fields: logoUrl, primaryColor, secondaryColor</li>
+            <li>Object is properly accessible and modifiable</li>
+        </ul>
+        
+        <h3 class="new">Check 5: Action Cue & Mechanic Alignment</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Game actions map correctly to competency being tested</li>
+            <li>Action cues are clear and contextually appropriate</li>
+            <li>Mechanics align with learning objectives</li>
+        </ul>
+        
+        <h3 class="new">Check 6: Scoring Formula Verification</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Scoring logic is mathematically sound</li>
+            <li>Score calculation includes all sub-competencies</li>
+            <li>Min/max score boundaries are enforced</li>
+            <li>Proof object emits correctly on completion</li>
+        </ul>
+        
+        <h3 class="new">Check 7: Accessibility & Mobile Readiness</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Keyboard navigation support</li>
+            <li>ARIA labels for interactive elements</li>
+            <li>Mobile gesture support (tap, swipe)</li>
+            <li>Performance on mid-range mobile devices</li>
+        </ul>
+        
+        <h3 class="new">Check 8: Proof Emission & Telemetry</h3>
+        <p class="new">Verifies:</p>
+        <ul class="new">
+            <li>Proof object structure matches specification</li>
+            <li>Timestamp and session ID included</li>
+            <li>Sub-competency scores properly formatted</li>
+            <li>Telemetry events fire at key moments (start, complete, error)</li>
+        </ul>
+        
+        <h2 class="new">4.2 Result Classification:</h2>
+        
+        <h3 class="new">PASSED:</h3>
+        <ul class="new">
+            <li>All 8 checks return green status</li>
+            <li>Template is ready for publishing</li>
+        </ul>
+        
+        <h3 class="new">NEEDS REVIEW:</h3>
+        <ul class="new">
+            <li>1-2 checks return warnings</li>
+            <li>Creator can choose to fix or proceed with explanation</li>
+        </ul>
+        
+        <h3 class="new">FAILED:</h3>
+        <ul class="new">
+            <li>3+ checks fail OR any critical check fails</li>
+            <li>Template cannot be published until issues are resolved</li>
+        </ul>
+        
+        <p class="new"><strong>Deprecated:</strong></p>
+        <p class="new">The old 3-phase manual testing (UX/UI Flow, Action Cue Validation, Scoring Formula Test) has been replaced by these 8 automated checks.</p>
+    </div>
+
+    <div class="section">
+        <h1>5. REVIEW & FIX</h1>
+        <ul>
+            <li>If validator test finds issues <span class="arrow">→</span> creator receives detailed report</li>
+            <li class="new">Report now includes specific check results (Check 1-8)</li>
+            <li>Creator can edit template code or metadata</li>
+            <li>Re-run validator test after fixes</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h1>6. APPROVAL & PUBLISHING</h1>
+        
+        <h2>6.1 Final Review</h2>
+        <ul>
+            <li>Creator reviews all test results</li>
+            <li>Confirms template metadata is accurate</li>
+        </ul>
+        
+        <h2>6.2 Publish to Marketplace</h2>
+        <ul>
+            <li>Click "Publish Template"</li>
+            <li>System generates two game modes:
+                <ul>
+                    <li>Training Mode (practice, no scoring)</li>
+                    <li>Testing Mode (scored, proof emission)</li>
+                </ul>
+            </li>
+            <li>Template becomes discoverable in marketplace</li>
+            <li>Brands can now customize and deploy</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h1>7. KEY RULES</h1>
+        
+        <h2>Publishing Requirements:</h2>
+        <ul>
+            <li class="new">Must pass all 8 automated validator checks</li>
+            <li>Must include cover image</li>
+            <li>Must define scoring formula</li>
+            <li class="new">Must follow PlayOps Framework structure</li>
+        </ul>
+        
+        <h2 class="new">Design Elements:</h2>
+        <ul class="new">
+            <li>Must pass technical review before appearing in library</li>
+            <li>Must meet size/format requirements</li>
+            <li>Can be used across multiple templates</li>
+        </ul>
+        
+        <h2 class="new">Custom HTML Games:</h2>
+        <ul class="new">
+            <li>Must support URL parameters: ?avatar=URL&particles=TYPE</li>
+            <li>Must embed brandConfig object for color/logo customization</li>
+            <li>Must follow 3-scene structure (Intro <span class="arrow">→</span> Gameplay <span class="arrow">→</span> Results)</li>
+        </ul>
+        
+        <h2 class="new">Brand Customization:</h2>
+        <ul class="new">
+            <li>Templates define what brands can customize</li>
+            <li>Locked elements (mechanics, scoring) cannot be changed by brands</li>
+            <li>Editable elements include: logo, mascot/avatar, particles, colors</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h1 class="new">SUMMARY OF V3.1 CHANGES</h1>
+        
+        <h2 class="new">1. Unified Template Creation</h2>
+        <ul class="new">
+            <li>Single form for both AI-generated and custom upload templates</li>
+            <li>Streamlined workflow with 9 structured steps</li>
+            <li>PlayOps Framework guide displayed during creation</li>
+        </ul>
+        
+        <h2 class="new">2. Design Element Upload System</h2>
+        <ul class="new">
+            <li>New dedicated tab for managing individual design assets</li>
+            <li>7 element types supported (including new Animation type)</li>
+            <li>Telegram Mini-Game optimization requirements built-in</li>
+            <li>Review and approval workflow for quality control</li>
+        </ul>
+        
+        <h2 class="new">3. 8 Automated Validator Checks</h2>
+        <ul class="new">
+            <li>Replaces old 3-phase manual testing</li>
+            <li>Programmatic validation of scene structure, UX/UI, compliance</li>
+            <li>Clear PASSED/NEEDS REVIEW/FAILED statuses</li>
+            <li>Detailed check-by-check reporting</li>
+        </ul>
+        
+        <h2 class="new">4. Post-Test Download & Customize Flow</h2>
+        <ul class="new">
+            <li>Option to download game code and spec PDF after passing tests</li>
+            <li>Ability to customize locally and re-upload</li>
+            <li>Must re-test after customization before publishing</li>
+        </ul>
+        
+        <h2 class="new">5. Enhanced Brand Customization</h2>
+        <ul class="new">
+            <li>Clear documentation of EDITABLE vs LOCKED elements</li>
+            <li>Mascot/Avatar placement guidelines (Scene 0 only)</li>
+            <li>URL parameter system for runtime customization</li>
+            <li>brandConfig object for color/logo integration</li>
+        </ul>
+    </div>
+
+</body>
+</html>
