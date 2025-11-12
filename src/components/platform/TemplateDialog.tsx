@@ -759,7 +759,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         }
       }
       
-      const { data, error } = await supabase.functions.invoke('generate-game', {
+      const response = await supabase.functions.invoke('generate-game', {
         body: {
           templatePrompt: generatedPrompt,
           primaryColor: '#00FF00',
@@ -771,14 +771,14 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         }
       });
 
-      if (error) {
-        // Extract error message from response body if available
-        const errorMsg = data?.error || error.message;
+      // Check for errors - when there's an HTTP error, the actual error message is in data.error
+      if (response.error) {
+        const errorMsg = response.data?.error || response.error.message;
         throw new Error(errorMsg);
       }
 
-      if (data?.generatedHtml || data?.html) {
-        setPreviewHtml(data.generatedHtml || data.html);
+      if (response.data?.generatedHtml || response.data?.html) {
+        setPreviewHtml(response.data.generatedHtml || response.data.html);
         setPreviewOpen(true);
         toast.success('Preview generated! 🎮');
       } else {
