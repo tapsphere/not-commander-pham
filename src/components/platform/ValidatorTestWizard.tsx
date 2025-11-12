@@ -117,7 +117,7 @@ export function ValidatorTestWizard({
           .in('id', subCompIds);
 
         // Generate the game
-        const { data: gameResponse, error: generateError } = await supabase.functions.invoke('generate-game', {
+        const response = await supabase.functions.invoke('generate-game', {
           body: {
             templatePrompt: templateData.base_prompt,
             primaryColor: designPalette.primary,
@@ -135,13 +135,31 @@ export function ValidatorTestWizard({
           }
         });
 
-        if (generateError) throw new Error('Failed to generate game: ' + generateError.message);
-        if (!gameResponse?.html) throw new Error('No HTML received from game generator');
+        // Check for errors and extract error message properly
+        if (response.error) {
+          const errorMsg = response.data?.error || response.error.message;
+          
+          // Check for specific error types
+          if (errorMsg.includes('credits depleted') || errorMsg.includes('AI credits')) {
+            throw new Error('AI credits depleted. Go to Settings → Workspace → Usage → Cloud & AI balance to add credits.');
+          } else if (errorMsg.includes('402') || errorMsg.includes('Payment Required')) {
+            throw new Error('Payment required. Add AI credits in Settings → Workspace → Usage → Cloud & AI balance.');
+          } else if (errorMsg.includes('429') || errorMsg.includes('Rate limit')) {
+            throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+          }
+          
+          throw new Error('Failed to generate game: ' + errorMsg);
+        }
+        
+        if (!response.data?.generatedHtml && !response.data?.html) {
+          throw new Error('No HTML received from game generator');
+        }
 
         // Save the generated HTML to the template
+        const generatedHtml = response.data.generatedHtml || response.data.html;
         const updatedGameConfig = {
           ...(typeof gameConfig === 'object' ? gameConfig : {}),
-          generated_html: gameResponse.html
+          generated_html: generatedHtml
         };
         
         const { error: updateError } = await supabase
