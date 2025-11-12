@@ -54,6 +54,9 @@ export default function CreatorDashboard() {
     selected_sub_competencies: string[];
     custom_game_url?: string;
     game_config?: any;
+    description?: string;
+    base_prompt?: string;
+    design_settings?: any;
   } | null>(null);
   const [subCompetencies, setSubCompetencies] = useState<Map<string, any>>(new Map());
 
@@ -420,25 +423,20 @@ export default function CreatorDashboard() {
     return testResult?.overall_status === 'passed' && testResult?.approved_for_publish;
   };
 
-  const handleTemplateCreated = (templateId: string, templateName: string, subCompetencyId: string) => {
-    // Fetch the full template to get template_type and game_config
-    supabase
-      .from('game_templates')
-      .select('id, name, template_type, custom_game_url, selected_sub_competencies, game_config')
-      .eq('id', templateId)
-      .single()
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Failed to fetch template:', error);
-          toast.error('Failed to open test wizard');
-          return;
-        }
-        
-        if (data) {
-          setTestingTemplate(data);
-          setTestWizardOpen(true);
-        }
-      });
+  const handleTemplateCreated = (templateData: {
+    id: string;
+    name: string;
+    template_type: string;
+    selected_sub_competencies: string[];
+    custom_game_url?: string;
+    game_config?: any;
+    description?: string;
+    base_prompt?: string;
+    design_settings?: any;
+  }) => {
+    setTestingTemplate(templateData);
+    setDialogOpen(false);
+    setTestWizardOpen(true);
   };
 
   const handleTestComplete = () => {
@@ -473,12 +471,12 @@ export default function CreatorDashboard() {
     if (testingTemplate) {
       supabase
         .from('game_templates')
-        .select('id, name, template_type, custom_game_url, selected_sub_competencies, game_config')
+        .select('id, name, template_type, custom_game_url, selected_sub_competencies, game_config, description, base_prompt, design_settings')
         .eq('id', testingTemplate.id)
         .single()
         .then(({ data }) => {
           if (data) {
-            setTestingTemplate(data);
+            setTestingTemplate(data as any);
             setTestWizardOpen(true);
           }
         });

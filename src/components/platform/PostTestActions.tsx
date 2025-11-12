@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, Download, Upload, FileCode } from 'lucide-react';
+import { CheckCircle, Download, Upload, FileCode, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { generateSpecPDF } from '@/utils/generateSpecPDF';
 
 interface PostTestActionsProps {
   open: boolean;
@@ -16,6 +17,10 @@ interface PostTestActionsProps {
     template_type: string;
     custom_game_url?: string;
     game_config?: any;
+    selected_sub_competencies?: string[];
+    description?: string;
+    base_prompt?: string;
+    design_settings?: any;
   };
   onPublish: () => void;
   onReTest: () => void;
@@ -59,11 +64,54 @@ export function PostTestActions({
       URL.revokeObjectURL(url);
 
       toast.success('Game code downloaded!');
-      setMode('customize');
     } catch (error: any) {
       console.error('Download error:', error);
       toast.error('Failed to download code: ' + error.message);
     }
+  };
+
+  const handleDownloadSpec = async () => {
+    try {
+      // Fetch sub-competency details if available
+      let subCompetencies: any[] = [];
+      if (template.selected_sub_competencies && template.selected_sub_competencies.length > 0) {
+        const { data } = await supabase
+          .from('sub_competencies')
+          .select('*')
+          .in('id', template.selected_sub_competencies);
+        
+        // Transform to expected format
+        subCompetencies = (data || []).map((sub: any, idx: number) => ({
+          statement: sub.statement || '',
+          sceneNumber: idx + 1,
+          actionCue: sub.action_cue || '',
+          gameMechanic: sub.game_mechanic || '',
+          validatorType: sub.validator_type || '',
+          scoringFormula: sub.scoring_formula || ''
+        }));
+      }
+
+      // Generate the spec PDF
+      await generateSpecPDF({
+        templateName: template.name,
+        description: template.description || '',
+        basePrompt: template.base_prompt || '',
+        subCompetencies,
+        designSettings: template.design_settings,
+        templateType: template.template_type
+      });
+
+      toast.success('Specification PDF downloaded!');
+    } catch (error: any) {
+      console.error('Spec download error:', error);
+      toast.error('Failed to download spec: ' + error.message);
+    }
+  };
+
+  const handleDownloadBoth = async () => {
+    await handleDownloadCode();
+    await handleDownloadSpec();
+    setMode('customize');
   };
 
 
@@ -194,15 +242,33 @@ export function PostTestActions({
                 <Download className="w-5 h-5 text-cyan-400" />
                 Step 1: Download Files
               </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Button 
+                  onClick={handleDownloadCode}
+                  variant="outline"
+                  className="w-full border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
+                >
+                  <FileCode className="w-4 h-4 mr-2" />
+                  Game Code (HTML)
+                </Button>
+                <Button 
+                  onClick={handleDownloadSpec}
+                  variant="outline"
+                  className="w-full border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Spec PDF
+                </Button>
+              </div>
               <Button 
-                onClick={handleDownloadCode}
-                className="w-full bg-cyan-400 text-black hover:bg-cyan-500"
+                onClick={handleDownloadBoth}
+                className="w-full bg-gradient-to-r from-cyan-400 to-purple-400 text-black hover:from-cyan-500 hover:to-purple-500"
               >
-                <FileCode className="w-4 h-4 mr-2" />
-                Download Game Code
+                <Download className="w-4 h-4 mr-2" />
+                Download Both Files
               </Button>
               <p className="text-xs text-gray-400">
-                Download the game code to customize locally.
+                Download the game code and specification document to customize locally.
               </p>
             </div>
 

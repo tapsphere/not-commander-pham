@@ -26,7 +26,17 @@ interface TemplateDialogProps {
     base_prompt: string | null;
   } | null;
   onSuccess: () => void;
-  onTemplateCreated?: (templateId: string, templateName: string, subCompetencyId: string) => void;
+  onTemplateCreated?: (templateData: {
+    id: string;
+    name: string;
+    template_type: string;
+    selected_sub_competencies: string[];
+    custom_game_url?: string;
+    game_config?: any;
+    description?: string;
+    base_prompt?: string;
+    design_settings?: any;
+  }) => void;
   demoMode?: boolean;
 }
 
@@ -1003,7 +1013,17 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         
         if (!saveAsDraft && onTemplateCreated) {
           const mockTemplateId = `demo-template-${Date.now()}`;
-          onTemplateCreated(mockTemplateId, formData.name, selectedSubCompetencies[0] || '');
+          onTemplateCreated({
+            id: mockTemplateId,
+            name: formData.name,
+            template_type: creationMethod === 'ai' ? 'ai_generated' : 'custom_upload',
+            selected_sub_competencies: selectedSubCompetencies,
+            custom_game_url: customGameFile ? `demo-${customGameFile.name}` : undefined,
+            game_config: creationMethod === 'ai' ? { prompt: generatedPrompt } : undefined,
+            description: formData.description,
+            base_prompt: generatedPrompt,
+            design_settings: useCustomDesign ? designSettings : null
+          });
         }
         
         toast.success(saveAsDraft ? 'Template saved as draft!' : 'Template created! Ready to test.');
@@ -1143,8 +1163,18 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         } else {
           toast.success('Template created! Opening test wizard...');
           // Trigger test wizard if not saving as draft and callback exists
-          if (onTemplateCreated && newTemplate && selectedSubCompetencies[0]) {
-            onTemplateCreated(newTemplate.id, formData.name, selectedSubCompetencies[0]);
+          if (onTemplateCreated && newTemplate) {
+            onTemplateCreated({
+              id: newTemplate.id,
+              name: formData.name,
+              template_type: creationMethod === 'ai' ? 'ai_generated' : 'custom_upload',
+              selected_sub_competencies: selectedSubCompetencies,
+              custom_game_url: customGameUrl,
+              game_config: newTemplate.game_config,
+              description: formData.description,
+              base_prompt: generatedPrompt,
+              design_settings: useCustomDesign ? designSettings : null
+            });
           }
         }
       }
@@ -1876,7 +1906,7 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                     <Button
+                      <Button
                       type="button"
                       className="bg-neon-green text-black hover:bg-neon-green/90 h-auto py-4 flex-col items-start"
                       onClick={() => {
@@ -1885,7 +1915,15 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                           // In demo mode, also add to created templates list
                           if (onTemplateCreated) {
                             const mockTemplateId = `published-${Date.now()}`;
-                            onTemplateCreated(mockTemplateId, formData.name, selectedSubCompetencies[0] || '');
+                            onTemplateCreated({
+                              id: mockTemplateId,
+                              name: formData.name,
+                              template_type: creationMethod === 'ai' ? 'ai_generated' : 'custom_upload',
+                              selected_sub_competencies: selectedSubCompetencies,
+                              description: formData.description,
+                              base_prompt: generatedPrompt,
+                              design_settings: useCustomDesign ? designSettings : null
+                            });
                           }
                           onOpenChange(false);
                         } else {

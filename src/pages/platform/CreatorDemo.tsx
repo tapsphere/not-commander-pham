@@ -540,11 +540,11 @@ export default function CreatorDemo() {
           setDialogOpen(false);
           setSelectedTemplate(null);
         }}
-        onTemplateCreated={(templateId: string, templateName: string) => {
+        onTemplateCreated={(templateData) => {
           const newTemplate = {
-            id: templateId,
-            name: templateName,
-            description: 'Newly created validator template',
+            id: templateData.id,
+            name: templateData.name,
+            description: templateData.description || 'Newly created validator template',
             version: 'v3.1',
             status: 'draft',
             validation_status: 'passed',
@@ -552,7 +552,7 @@ export default function CreatorDemo() {
             updated_at: new Date().toISOString(),
           };
           setCreatedTemplates(prev => [newTemplate, ...prev]);
-          toast.success(`✅ ${templateName} created successfully!`);
+          toast.success(`✅ ${templateData.name} created successfully!`);
         }}
         demoMode={true}
       />

@@ -11,23 +11,27 @@ interface SubCompetencySpec {
 
 interface GameSpecification {
   templateName: string;
-  competency: string;
-  subCompetencies: SubCompetencySpec[];
-  scenario: string;
-  playerActions: string;
-  scenes: {
+  competency?: string;
+  subCompetencies?: SubCompetencySpec[];
+  scenario?: string;
+  playerActions?: string;
+  scenes?: {
     scene1?: string;
     scene2?: string;
     scene3?: string;
     scene4?: string;
   };
-  edgeCase: string;
-  edgeCaseTiming: string;
-  uiAesthetic: string;
-  brandCustomizations: {
+  edgeCase?: string;
+  edgeCaseTiming?: string;
+  uiAesthetic?: string;
+  brandCustomizations?: {
     description: string;
     elements: string[];
   };
+  description?: string;
+  basePrompt?: string;
+  designSettings?: any;
+  templateType?: string;
 }
 
 export const generateSpecPDF = (spec: GameSpecification): void => {
@@ -79,51 +83,94 @@ export const generateSpecPDF = (spec: GameSpecification): void => {
   
   yPos = 40;
 
+  // Template Info
+  if (spec.description) {
+    addSection('Description', spec.description);
+  }
+
+  if (spec.templateType) {
+    addText(`Template Type: ${spec.templateType === 'ai_generated' ? 'AI Generated' : 'Custom Upload'}`, 11, true);
+    yPos += 3;
+  }
+
   // Competency Framework
-  addSection('Competency Framework', spec.competency);
+  if (spec.competency) {
+    addSection('Competency Framework', spec.competency);
+  }
   
   // Sub-Competencies & Scene Mapping
-  addText('Sub-Competencies (Scene Mapping):', 13, true);
-  yPos += 2;
-  
-  spec.subCompetencies.forEach((sub, idx) => {
-    addText(`Scene ${sub.sceneNumber}: ${sub.statement}`, 11, true);
-    if (sub.actionCue) addText(`  Action Cue: ${sub.actionCue}`);
-    if (sub.gameMechanic) addText(`  Game Mechanic: ${sub.gameMechanic}`);
-    if (sub.validatorType) addText(`  Validator Type: ${sub.validatorType}`);
-    yPos += 3;
-  });
+  if (spec.subCompetencies && spec.subCompetencies.length > 0) {
+    addText('Sub-Competencies (Scene Mapping):', 13, true);
+    yPos += 2;
+    
+    spec.subCompetencies.forEach((sub, idx) => {
+      addText(`Scene ${sub.sceneNumber}: ${sub.statement}`, 11, true);
+      if (sub.actionCue) addText(`  Action Cue: ${sub.actionCue}`);
+      if (sub.gameMechanic) addText(`  Game Mechanic: ${sub.gameMechanic}`);
+      if (sub.validatorType) addText(`  Validator Type: ${sub.validatorType}`);
+      yPos += 3;
+    });
+  }
+
+  // Base Prompt
+  if (spec.basePrompt) {
+    addSection('Base Prompt / Instructions', spec.basePrompt);
+  }
 
   // Scenario Design
-  addSection('Scenario', spec.scenario);
+  if (spec.scenario) {
+    addSection('Scenario', spec.scenario);
+  }
   
-  addSection('Player Actions', spec.playerActions);
+  if (spec.playerActions) {
+    addSection('Player Actions', spec.playerActions);
+  }
   
   // Scene Breakdown
-  addText('Scene Breakdown:', 13, true);
-  yPos += 2;
-  if (spec.scenes.scene1) addText(`Scene 1: ${spec.scenes.scene1}`);
-  if (spec.scenes.scene2) addText(`Scene 2: ${spec.scenes.scene2}`);
-  if (spec.scenes.scene3) addText(`Scene 3: ${spec.scenes.scene3}`);
-  if (spec.scenes.scene4) addText(`Scene 4: ${spec.scenes.scene4}`);
-  yPos += 3;
+  if (spec.scenes) {
+    addText('Scene Breakdown:', 13, true);
+    yPos += 2;
+    if (spec.scenes.scene1) addText(`Scene 1: ${spec.scenes.scene1}`);
+    if (spec.scenes.scene2) addText(`Scene 2: ${spec.scenes.scene2}`);
+    if (spec.scenes.scene3) addText(`Scene 3: ${spec.scenes.scene3}`);
+    if (spec.scenes.scene4) addText(`Scene 4: ${spec.scenes.scene4}`);
+    yPos += 3;
+  }
 
   // Edge Case
-  addSection('Edge Case Configuration', `Timing: ${spec.edgeCaseTiming}\n\n${spec.edgeCase}`);
+  if (spec.edgeCase) {
+    addSection('Edge Case Configuration', `Timing: ${spec.edgeCaseTiming || 'Not specified'}\n\n${spec.edgeCase}`);
+  }
   
   // UI/UX
-  addSection('UI Aesthetic', spec.uiAesthetic);
+  if (spec.uiAesthetic) {
+    addSection('UI Aesthetic', spec.uiAesthetic);
+  }
+
+  // Design Settings
+  if (spec.designSettings) {
+    yPos += 5;
+    addText('Design Settings:', 13, true);
+    yPos += 2;
+    if (spec.designSettings.primary) addText(`Primary Color: ${spec.designSettings.primary}`);
+    if (spec.designSettings.secondary) addText(`Secondary Color: ${spec.designSettings.secondary}`);
+    if (spec.designSettings.accent) addText(`Accent Color: ${spec.designSettings.accent}`);
+    if (spec.designSettings.particleEffect) addText(`Particle Effect: ${spec.designSettings.particleEffect}`);
+    yPos += 3;
+  }
 
   // Brand Customization Requirements
-  yPos += 5;
-  addText('Brand Customization Elements:', 14, true);
-  yPos += 2;
-  addText(spec.brandCustomizations.description);
-  yPos += 3;
-  addText('Customizable Elements:', 12, true);
-  spec.brandCustomizations.elements.forEach(element => {
-    addText(`  • ${element}`);
-  });
+  if (spec.brandCustomizations) {
+    yPos += 5;
+    addText('Brand Customization Elements:', 14, true);
+    yPos += 2;
+    addText(spec.brandCustomizations.description);
+    yPos += 3;
+    addText('Customizable Elements:', 12, true);
+    spec.brandCustomizations.elements.forEach(element => {
+      addText(`  • ${element}`);
+    });
+  }
 
   // Technical Requirements
   checkPageBreak();
