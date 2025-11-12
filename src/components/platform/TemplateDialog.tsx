@@ -24,6 +24,7 @@ interface TemplateDialogProps {
   } | null;
   onSuccess: () => void;
   onTemplateCreated?: (templateId: string, templateName: string, subCompetencyId: string) => void;
+  demoMode?: boolean;
 }
 
 // Global sample prompt with full scoring and proficiency details
@@ -88,7 +89,7 @@ End result screens:
 
 UI aesthetic: Modern dashboard with a ticking clock, incoming message notifications, and a statement composer with real-time sentiment analysis of your draft.`;
 
-export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemplateCreated }: TemplateDialogProps) => {
+export const TemplateDialog = ({ open, onOpenChange, template, onSuccess, onTemplateCreated, demoMode = false }: TemplateDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [customGameFile, setCustomGameFile] = useState<File | null>(null);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -773,6 +774,156 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
     setGenerating(true);
     try {
+      // Demo mode: show mock preview without API call
+      if (demoMode) {
+        toast.info('🎬 Demo Mode: Showing sample preview');
+        
+        // Simulate loading time
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Mock HTML preview
+        const mockHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crisis Communication Manager - Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container { max-width: 900px; width: 100%; }
+    .header { 
+      text-align: center; 
+      margin-bottom: 40px;
+      padding: 30px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .header h1 { 
+      font-size: 2.5em; 
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #00ff00, #9945ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .timer { 
+      font-size: 3em; 
+      color: #ff6b6b;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .scenario { 
+      background: rgba(255,255,255,0.08);
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      border-left: 4px solid #00ff00;
+    }
+    .scenario h2 { 
+      color: #00ff00;
+      margin-bottom: 15px;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .action-btn {
+      background: linear-gradient(135deg, #9945ff, #7b2ff7);
+      border: none;
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(153, 69, 255, 0.4);
+    }
+    .action-btn strong { 
+      display: block;
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+    .demo-badge {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ff6b6b;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-badge">🎬 DEMO PREVIEW</div>
+  <div class="container">
+    <div class="header">
+      <h1>Crisis Communication Manager</h1>
+      <p style="font-size: 1.2em; opacity: 0.9;">Navigate ethical dilemmas in high-pressure crisis scenarios</p>
+      <div class="timer">⏱️ 1:45:23</div>
+      <p style="color: #ff6b6b;">Time until public expects a statement</p>
+    </div>
+
+    <div class="scenario">
+      <h2>📢 URGENT: Data Breach Alert</h2>
+      <p style="line-height: 1.6; margin-bottom: 15px;">
+        A data breach just occurred at TechFlow Inc. affecting 50,000 user accounts. 
+        Engineering is investigating the scope, legal is reviewing disclosure requirements, 
+        and the CEO wants transparency without causing panic.
+      </p>
+      <p style="color: #00ff00; font-weight: bold;">
+        Your task: Draft an initial public statement and response strategy within 2 hours.
+      </p>
+    </div>
+
+    <div class="actions">
+      <button class="action-btn">
+        <strong>📝 Draft Statement</strong>
+        <span style="opacity: 0.8;">Compose your public response</span>
+      </button>
+      <button class="action-btn">
+        <strong>📞 Contact Stakeholders</strong>
+        <span style="opacity: 0.8;">Prioritize key groups</span>
+      </button>
+      <button class="action-btn">
+        <strong>📱 Choose Channels</strong>
+        <span style="opacity: 0.8;">Select communication methods</span>
+      </button>
+      <button class="action-btn">
+        <strong>⏰ Set Timeline</strong>
+        <span style="opacity: 0.8;">Plan follow-up communications</span>
+      </button>
+    </div>
+  </div>
+</body>
+</html>
+        `;
+        
+        setPreviewHtml(mockHtml);
+        setPreviewOpen(true);
+        toast.success('Demo preview ready! 🎮');
+        return;
+      }
+      
+      // Production mode: actual API call
       toast.info('Generating game preview... This may take 30-60 seconds');
       
       // Fetch full sub-competency data including scoring logic

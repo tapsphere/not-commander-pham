@@ -344,6 +344,7 @@ export default function CreatorDemo() {
         onOpenChange={setDialogOpen}
         template={selectedTemplate}
         onSuccess={() => setDialogOpen(false)}
+        demoMode={true}
       />
     </div>
   );
