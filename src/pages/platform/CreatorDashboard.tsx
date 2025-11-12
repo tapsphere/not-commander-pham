@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package, FileText } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
@@ -14,7 +14,6 @@ import { DesignElementUpload } from '@/components/platform/DesignElementUpload';
 import { DesignElementLibrary } from '@/components/platform/DesignElementLibrary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
-import { generateCreatorFlowPDF } from '@/utils/generateCreatorFlowPDF';
 
 type Template = {
   id: string;
@@ -500,15 +499,7 @@ export default function CreatorDashboard() {
           <p className="text-gray-400 mt-2">Manage your game templates and design elements</p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            onClick={() => generateCreatorFlowPDF()}
-            variant="outline"
-            className="gap-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-black"
-          >
-            <FileText className="w-4 h-4" />
-            Updated Flow PDF
-          </Button>
-          <Button 
+          <Button
             onClick={() => navigate('/platform/creator/profile-edit')}
             variant="outline"
             className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-black"
