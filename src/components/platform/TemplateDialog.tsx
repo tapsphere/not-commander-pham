@@ -677,7 +677,10 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
 
   const handleValidateCustomGame = async () => {
-    if (!customGameFile) {
+    // Check if this is a custom upload or AI-generated template
+    const isCustomUpload = customGameFile !== null;
+    
+    if (isCustomUpload && !customGameFile) {
       toast.error('Please upload a game file first');
       return;
     }
@@ -693,40 +696,66 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
-      // Upload file to storage
-      const fileExt = customGameFile.name.split('.').pop();
-      const fileName = `${user.id}/draft-${Date.now()}.${fileExt}`;
+      let draftTemplateId = '';
       
-      const { error: uploadError} = await supabase.storage
-        .from('custom-games')
-        .upload(fileName, customGameFile);
+      // Handle custom upload
+      if (isCustomUpload && customGameFile) {
+        // Upload file to storage
+        const fileExt = customGameFile.name.split('.').pop();
+        const fileName = `${user.id}/draft-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError} = await supabase.storage
+          .from('custom-games')
+          .upload(fileName, customGameFile);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('custom-games')
-        .getPublicUrl(fileName);
+        const { data: { publicUrl } } = supabase.storage
+          .from('custom-games')
+          .getPublicUrl(fileName);
+        
+        // Create draft template for testing
+        const { data: draftTemplate, error: draftError } = await supabase
+          .from('game_templates')
+          .insert({
+            creator_id: user.id,
+            name: formData.name || 'Draft Template',
+            description: formData.description,
+            template_type: 'custom_upload',
+            custom_game_url: publicUrl,
+            competency_id: selectedCompetency,
+            selected_sub_competencies: selectedSubCompetencies,
+            is_published: false,
+            game_config: { draft: true }
+          })
+          .select()
+          .single();
+        
+        if (draftError) throw draftError;
+        draftTemplateId = draftTemplate.id;
+      } else {
+        // Handle AI-generated template - save the prompt and settings
+        const { data: draftTemplate, error: draftError } = await supabase
+          .from('game_templates')
+          .insert({
+            creator_id: user.id,
+            name: formData.name || 'Draft AI Template',
+            description: formData.description,
+            template_type: 'ai_generated',
+            base_prompt: generatedPrompt,
+            competency_id: selectedCompetency,
+            selected_sub_competencies: selectedSubCompetencies,
+            is_published: false,
+            game_config: { draft: true }
+          })
+          .select()
+          .single();
+        
+        if (draftError) throw draftError;
+        draftTemplateId = draftTemplate.id;
+      }
       
-      // Create draft template for testing
-      const { data: draftTemplate, error: draftError } = await supabase
-        .from('game_templates')
-        .insert({
-          creator_id: user.id,
-          name: formData.name || 'Draft Template',
-          description: formData.description,
-          template_type: 'custom_upload',
-          custom_game_url: publicUrl,
-          competency_id: selectedCompetency,
-          selected_sub_competencies: selectedSubCompetencies,
-          is_published: false,
-          game_config: { draft: true }
-        })
-        .select()
-        .single();
-      
-      if (draftError) throw draftError;
-      
-      setDraftTemplateId(draftTemplate.id);
+      setDraftTemplateId(draftTemplateId);
       setShowTestWizard(true);
       
     } catch (error: any) {
