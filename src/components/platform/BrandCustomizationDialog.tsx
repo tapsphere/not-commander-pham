@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Upload, Copy, Palette } from 'lucide-react';
+import { Upload, Palette } from 'lucide-react';
 
 interface BrandCustomizationDialogProps {
   open: boolean;
@@ -243,10 +243,6 @@ UI Styling Instructions:
     reader.readAsDataURL(file);
   };
 
-  const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(generatedPrompt);
-    toast.success('Branded prompt copied! Paste it into Lovable to build your custom validator.');
-  };
 
   const handleSaveCustomization = async () => {
     setLoading(true);
@@ -763,14 +759,6 @@ UI Styling Instructions:
           <div className="space-y-4 border-t border-gray-700 pt-6">
             <div className="flex items-center justify-between">
               <Label className="text-base font-semibold">Final Branded Prompt</Label>
-              <Button
-                type="button"
-                onClick={handleCopyPrompt}
-                className="gap-2 bg-neon-green text-white hover:bg-neon-green/90"
-              >
-                <Copy className="h-4 w-4" />
-                Copy to Build in Lovable
-              </Button>
             </div>
             <div className="bg-black border border-neon-green/30 rounded-lg p-4 max-h-64 overflow-y-auto">
               <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
@@ -778,7 +766,7 @@ UI Styling Instructions:
               </pre>
             </div>
             <p className="text-xs text-gray-400">
-              This is your complete branded validator prompt. Copy it and paste into Lovable to generate the validator with your brand identity.
+              This is your complete branded validator prompt that will be used to generate the game.
             </p>
           </div>
 
