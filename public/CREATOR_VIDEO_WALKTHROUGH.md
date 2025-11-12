@@ -317,22 +317,169 @@
 
 ---
 
-## 📝 TALKING POINTS SCRIPT
+## 📝 COMPLETE SCRIPTS BY SECTION
 
-### Introduction
-"Welcome to the Creator Studio walkthrough. I'm going to show you the complete process of creating a game template from scratch, running validation tests, and publishing it to the marketplace. By the end of this video, you'll know how to create professional CBE games that brands can customize and deploy."
+### Opening Script (0:00 - 0:30)
+"Welcome to the Creator Studio! I'm going to walk you through the complete end-to-end process of creating, testing, and publishing a game template. By the time we're done, you'll know exactly how to build professional competency-based games that brands can customize and deploy to their teams. Let's dive in."
 
-### During Form Filling
-"The template form guides the AI in generating your game. Be specific about your scenario, industry, and edge cases. The more detail you provide, the better the generated game will match your vision."
+---
 
-### During Testing
-"V3.1 introduces 8 automated validation checks. These ensure your game meets the PlayOps Framework standards, works on mobile devices, includes proper scoring, and emits telemetry correctly. Every template must pass all 8 checks before publishing."
+### Section 1.1 Script: Login & Dashboard Access (0:30 - 1:00)
+"First, let me log in with my creator credentials. Once I'm authenticated, the system automatically redirects me to the Creator Dashboard. This is your central hub where you'll manage all your templates and design assets. Notice how clean and organized everything is - all your games are right here."
 
-### During Publishing
-"Publishing creates two game modes automatically. Training mode lets players practice without pressure. Testing mode includes scoring, proficiency levels, and proof emission for tracking progress. Brands get both modes when they customize your template."
+---
 
-### Closing
-"That's the complete creator flow. You can build as many templates as you want, upload reusable design assets, and track performance in real-time. The marketplace connects you with brands looking for quality CBE games. Start creating today!"
+### Section 1.2 Script: Dashboard Tour (1:00 - 2:00)
+"Let me show you what's on the dashboard. We have two main tabs here.
+
+First, the My Games tab. This is where all your templates live. You can see each template card shows important information - there's the status badge showing whether it's published or still in draft, test status indicators that tell you if validation has passed, and statistics showing how many times the game has been played and completed.
+
+Second tab is Design Elements. This is where you upload reusable assets like mascots, backgrounds, particle effects, sounds, and fonts. Build up your library here, and you can use these assets across all your templates.
+
+Alright, let's create our first template."
+
+---
+
+### Section 2.1 Script: Starting a New Template (2:00 - 2:30)
+"To create a new template, I'll click the Create New Template button right here. This opens up our unified template form. What's great about this form is it handles everything - whether you're using AI generation or uploading your own custom HTML game. It's all in one place."
+
+---
+
+### Section 2.2 Script: PlayOps Framework Guide (2:30 - 3:15)
+"Before we fill out the form, let me show you the PlayOps Framework Guide on the right side here. This is really important.
+
+Every game follows a specific structure. You need three required scenes: Scene Zero is your loading screen for two-and-a-half seconds, followed by instructions with a mascot. Then you have Scenes One through Four - these are your gameplay scenes. Each scene tests one sub-competency. And finally, you have a results screen at the end.
+
+Here's the key: brands can customize colors, logos, and mascots to match their brand identity, but the core game mechanics stay locked. This ensures consistency while still giving brands flexibility."
+
+---
+
+### Section 2.3 Script: Filling Out the Template Form (3:15 - 5:30)
+
+**Basic Info (3:15 - 3:45)**
+"Let's fill this out. For Template Name, I'll call this 'Crisis Communication Challenge.' Description: 'Test decision-making under pressure in high-stakes communication scenarios.' Keep it clear and descriptive."
+
+**Competency Selection (3:45 - 4:15)**
+"Now for competencies. I'll select Communication as the primary competency. For sub-competencies, I'm choosing two: Crisis Communication and Stakeholder Management. 
+
+Notice how the number of sub-competencies you select determines how many gameplay scenes you'll have. Two subs means two gameplay scenes."
+
+**Scenario Customization (4:15 - 5:00)**
+"Let's customize the scenario. Industry: Communications. Role or Scenario: PR Director handling a product recall. Key Element: Press statements and social media responses. 
+
+For Edge Case - this is important - I'll add: Viral misinformation spreads mid-crisis. This adds unpredictability to the game.
+
+Visual Theme: High-Stakes slash Urgent. And Interaction Method: Multiple choice with timer to add pressure."
+
+**Scene Descriptions (5:00 - 5:15)**
+"Now I'll describe each gameplay scene. Scene One: Initial crisis alert - choose first response. Scene Two: Stakeholder calls flooding in - prioritize responses.
+
+I'll set the edge case to trigger mid-game for maximum impact."
+
+**UI & Customization (5:15 - 5:30)**
+"Visual Style: Modern dashboard with urgent red accents. 
+
+I can optionally customize the design. Let me check this box and set a red highlight color for urgency. I'll upload a mascot here - this game avatar will guide players through the experience. And I'll add a sparkles particle effect for visual polish.
+
+For the cover image, I'll let it auto-generate. And since we're using AI generation, I'll leave the Custom Game HTML field blank."
+
+---
+
+### Section 2.4 Script: Create & Test (5:30 - 6:00)
+"Everything's filled out. Now I'll click Create and Test. The system is saving the template and immediately triggering validation. You'll see the Validator Test Wizard open automatically - no extra steps needed. Let's see what happens."
+
+---
+
+### Section 3.1 Script: Test Wizard Overview (6:00 - 6:30)
+"Here's the Validator Test Wizard. You can see all the template information we just entered displayed here. The status shows Ready to Run. 
+
+Version three-point-one runs eight automated checks to validate your template against the PlayOps Framework. These checks ensure everything is compliant, mobile-ready, and properly configured. Let's run them."
+
+---
+
+### Section 3.2 Script: Running Tests (6:30 - 7:30)
+"I'll click Run Automated Tests. Watch the progress bar - each check runs in sequence.
+
+Check One: Scene Structure Validation. Making sure we have Scene Zero, gameplay scenes, and a results screen. Passed.
+
+Check Two: UX/UI Integrity. Verifying responsive design and accessibility. Passed.
+
+Check Three: Telegram Mini-App Compliance. Ensuring it works within Telegram's constraints. Passed.
+
+Check Four: Embedded Configuration Objects. Confirming the game has all required config data. Passed.
+
+Check Five: Action Cue and Mechanic Alignment. Making sure gameplay matches the defined mechanics. Passed.
+
+Check Six: Scoring Formula Verification. Checking that the scoring logic is correct. Passed.
+
+Check Seven: Accessibility and Mobile Readiness. Final mobile and accessibility checks. Passed.
+
+Check Eight: Proof Emission and Telemetry. Verifying that test results are properly tracked. Passed.
+
+All green! Every check passed."
+
+---
+
+### Section 3.3 Script: Test Results (7:30 - 8:00)
+"Perfect! The overall status shows PASSED with a green checkmark. All eight checks are green. The Continue to Publish Options button is now enabled. 
+
+We have two choices here: publish immediately, or download the game to customize it further. Let's look at both options."
+
+---
+
+### Section 4.1 Script: Two Paths Forward (8:00 - 9:00)
+"Here are your post-test options.
+
+Option One: Publish Now. If you're happy with the AI-generated game, click this and your template goes live in the marketplace immediately. Brands can discover it and start customizing right away.
+
+Option Two: Download to Customize. Click this to download the game HTML and code. You can also download a spec PDF if you need documentation. Make whatever custom modifications you want, then re-upload the game. Just remember - any re-uploaded game must pass validation again before you can publish.
+
+For this demo, I'm confident in the AI generation, so I'll publish now."
+
+---
+
+### Section 4.2 Script: Publishing (9:00 - 10:00)
+"I'll click Publish Now. There's the success message: Published! Created two game modes - Training and Testing.
+
+Let me explain what just happened. Publishing automatically creates two versions of your game. Training Mode lets players practice without any scoring or pressure. Testing Mode includes full scoring, proficiency levels, and proof emission for tracking progress. Brands get both modes when they customize your template.
+
+Let's go back to the dashboard and see our published template."
+
+---
+
+### Section 5.1 Script: Uploading Design Assets (10:00 - 11:00)
+"Let me quickly show you the Design Elements feature. I'll switch to the Design Elements tab and click Upload New Element.
+
+You can upload seven types of assets: Mascots or Avatars, Backgrounds, UI Components, Particle Effects, Sounds, Fonts, and Animations.
+
+Let's say I'm uploading a mascot. I'd select the file, give it a name and description, add some tags for searchability, and specify the license type. These elements become part of your reusable library. You can use them across multiple templates, which saves a ton of time."
+
+---
+
+### Section 5.2 Script: Element Library (11:00 - 11:30)
+"Here's my element library. Each element shows its status - Published, Pending Review, or Approved. All elements go through a review process before they appear in the main library.
+
+You can also see usage stats. This tells you which assets are most popular across templates. 
+
+One important tip: optimize everything for Telegram Mini-Apps. Keep your total bundle size under five megabytes for the best performance."
+
+---
+
+### Section 6.1 Script: Managing Published Templates (11:30 - 12:00)
+"Back on the My Games tab, here's our published template. Look at all this information - we've got the green Published badge, real-time statistics showing plays and completions, and the number of brands that have customized it.
+
+There are action buttons here too. I can click Preview to open the game in a new tab and play it myself. I can Edit the template details if I need to make changes. I can run Test again to re-validate. And if I need to take it offline, I can Unpublish it.
+
+This dashboard gives you complete control and real-time insights into your template performance."
+
+---
+
+### Closing Script (12:00 - 12:30)
+"And that's it! You've now seen the complete creator flow from start to finish. We logged in, created a template, ran eight automated validation checks, published it to the marketplace, and explored design elements and template management.
+
+Your next steps: start building templates for different competencies, upload design elements to your library, and monitor your templates' performance. The marketplace connects you directly with brands looking for quality competency-based games.
+
+Check out the documentation for advanced customization techniques, and happy creating! See you next time."
 
 ---
 
