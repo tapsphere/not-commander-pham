@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 // Design element constants
 const ELEMENT_TYPES = [
@@ -78,6 +79,8 @@ const PLACEMENT_ZONES = [
 export default function CreatorDemo() {
   const [dialogOpen, setDialogOpen] = useState(true); // Open by default for demo
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'games' | 'elements'>('games');
+  const [createdTemplates, setCreatedTemplates] = useState<any[]>([]);
   
   // Design element upload state
   const [elementType, setElementType] = useState('');
@@ -102,6 +105,9 @@ export default function CreatorDemo() {
     }
   ];
 
+  // Combine mock templates with newly created ones
+  const allTemplates = [...mockTemplates, ...createdTemplates];
+  
   // Mock design elements for demo
   const mockDesignElements = [
     {
@@ -138,6 +144,22 @@ export default function CreatorDemo() {
       allowed_zones: ['background', 'section'],
     }
   ];
+  
+  // Handle template creation success
+  const handleTemplateCreated = (templateId: string, templateName: string) => {
+    const newTemplate = {
+      id: templateId,
+      name: templateName,
+      description: 'Newly created validator template',
+      version: 'v3.1',
+      status: 'draft',
+      validation_status: 'passed',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setCreatedTemplates(prev => [newTemplate, ...prev]);
+    toast.success(`✅ ${templateName} created successfully!`);
+  };
 
   const currentType = ELEMENT_TYPES.find(t => t.value === elementType);
 
@@ -241,8 +263,8 @@ export default function CreatorDemo() {
           </div>
 
           {/* Template Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockTemplates.map((template) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allTemplates.map((template) => (
               <Card key={template.id} className="bg-gray-900 border-gray-800 hover:border-neon-purple transition-colors">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -514,7 +536,24 @@ export default function CreatorDemo() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         template={selectedTemplate}
-        onSuccess={() => setDialogOpen(false)}
+        onSuccess={() => {
+          setDialogOpen(false);
+          setSelectedTemplate(null);
+        }}
+        onTemplateCreated={(templateId: string, templateName: string) => {
+          const newTemplate = {
+            id: templateId,
+            name: templateName,
+            description: 'Newly created validator template',
+            version: 'v3.1',
+            status: 'draft',
+            validation_status: 'passed',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setCreatedTemplates(prev => [newTemplate, ...prev]);
+          toast.success(`✅ ${templateName} created successfully!`);
+        }}
         demoMode={true}
       />
     </div>

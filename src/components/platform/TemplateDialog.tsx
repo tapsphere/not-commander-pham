@@ -995,6 +995,22 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
     setLoading(true);
 
     try {
+      // In demo mode, skip database operations and just call callbacks
+      if (demoMode) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+        
+        if (!saveAsDraft && onTemplateCreated) {
+          const mockTemplateId = `demo-template-${Date.now()}`;
+          onTemplateCreated(mockTemplateId, formData.name, selectedSubCompetencies[0] || '');
+        }
+        
+        toast.success(saveAsDraft ? 'Template saved as draft!' : 'Template created! Ready to test.');
+        onSuccess();
+        onOpenChange(false);
+        setLoading(false);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -1930,11 +1946,22 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Button
+                     <Button
                       type="button"
                       className="bg-neon-green text-black hover:bg-neon-green/90 h-auto py-4 flex-col items-start"
                       onClick={() => {
-                        toast.success('🎬 Demo: Would publish to marketplace');
+                        if (demoMode) {
+                          toast.success('🎬 Demo: Would publish to marketplace');
+                          // In demo mode, also add to created templates list
+                          if (onTemplateCreated) {
+                            const mockTemplateId = `published-${Date.now()}`;
+                            onTemplateCreated(mockTemplateId, formData.name, selectedSubCompetencies[0] || '');
+                          }
+                          onOpenChange(false);
+                        } else {
+                          // Real publish logic would go here
+                          toast.success('Publishing to marketplace...');
+                        }
                       }}
                     >
                       <span className="font-bold text-lg mb-1">📤 Publish to Marketplace</span>
