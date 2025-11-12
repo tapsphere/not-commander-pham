@@ -569,13 +569,24 @@ Generate a complete, playable HTML5 game that matches this description and uses 
 
   } catch (error) {
     console.error('Error in generate-game function:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    let statusCode = 500;
+    
+    // Set appropriate status codes based on error type
+    if (errorMessage.includes('credits depleted') || errorMessage.includes('Payment Required')) {
+      statusCode = 402;
+    } else if (errorMessage.includes('Rate limit')) {
+      statusCode = 429;
+    }
+    
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
         details: error instanceof Error ? error.stack : undefined
       }),
       { 
-        status: 500,
+        status: statusCode,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

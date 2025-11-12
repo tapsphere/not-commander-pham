@@ -771,10 +771,14 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Extract error message from response body if available
+        const errorMsg = data?.error || error.message;
+        throw new Error(errorMsg);
+      }
 
-      if (data?.html) {
-        setPreviewHtml(data.html);
+      if (data?.generatedHtml || data?.html) {
+        setPreviewHtml(data.generatedHtml || data.html);
         setPreviewOpen(true);
         toast.success('Preview generated! 🎮');
       } else {
