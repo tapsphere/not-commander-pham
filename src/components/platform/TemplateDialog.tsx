@@ -1782,7 +1782,7 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
           template={{
             id: draftTemplateId,
             name: formData.name || 'Custom Game',
-            template_type: 'custom_upload',
+            template_type: customGameFile ? 'custom_upload' : 'ai_generated',
             custom_game_url: '' // Will be fetched from database
           }}
           subCompetency={subCompetencies.find(sc => sc.id === selectedSubCompetencies[0]) || null}
