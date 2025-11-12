@@ -782,7 +782,23 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
       }
     } catch (error: any) {
       console.error('Preview generation error:', error);
-      toast.error('Failed to generate preview: ' + error.message);
+      
+      // Check for specific error types
+      if (error.message?.includes('credits depleted') || error.message?.includes('AI credits')) {
+        toast.error('AI credits depleted. Go to Settings → Workspace → Usage to add credits.', {
+          duration: 6000
+        });
+      } else if (error.message?.includes('402') || error.message?.includes('Payment Required')) {
+        toast.error('Payment required. Please add credits in Settings → Workspace → Usage.', {
+          duration: 6000
+        });
+      } else if (error.message?.includes('429') || error.message?.includes('Rate limit')) {
+        toast.error('Rate limit exceeded. Please wait a moment and try again.', {
+          duration: 6000
+        });
+      } else {
+        toast.error('Failed to generate preview: ' + error.message);
+      }
     } finally {
       setGenerating(false);
     }
