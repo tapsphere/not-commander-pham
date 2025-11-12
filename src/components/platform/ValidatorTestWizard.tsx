@@ -62,14 +62,105 @@ export function ValidatorTestWizard({
 
     try {
       setTesting(true);
-      toast.info('🤖 Running automated v3.1 stress tests...', {
-        description: 'Testing all 8 validation checks'
-      });
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Call the stress-test-validator edge function
+      // Step 1: Check if we need to generate the game first
+      const { data: templateData } = await supabase
+        .from('game_templates')
+        .select('template_type, game_config, selected_sub_competencies, base_prompt, design_settings')
+        .eq('id', template.id)
+        .single();
+
+      const isAiGenerated = templateData?.template_type === 'ai_generated';
+      const gameConfig = templateData?.game_config as any;
+      const hasGeneratedHtml = gameConfig?.generated_html;
+
+      // If AI-generated and no HTML exists, generate it first
+      if (isAiGenerated && !hasGeneratedHtml) {
+        toast.info('🎮 Generating game first...', {
+          description: 'This is required before testing'
+        });
+
+        // Get design settings (per-game or creator default)
+        let designPalette: any = null;
+        let particleEffect = 'sparkles';
+        
+        if (templateData.design_settings) {
+          designPalette = templateData.design_settings;
+          particleEffect = designPalette.particleEffect || 'sparkles';
+        } else {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('design_palette, default_particle_effect')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          designPalette = profile?.design_palette || {
+            primary: '#C8DBDB',
+            secondary: '#6C8FA4',
+            accent: '#2D5556',
+            background: '#F5EDD3',
+            highlight: '#F0C7A0',
+            text: '#2D5556',
+            font: 'Inter, sans-serif'
+          };
+          particleEffect = profile?.default_particle_effect || 'sparkles';
+        }
+
+        // Fetch sub-competency data
+        const subCompIds = templateData.selected_sub_competencies || [];
+        const { data: subComps } = await supabase
+          .from('sub_competencies')
+          .select('*')
+          .in('id', subCompIds);
+
+        // Generate the game
+        const { data: gameResponse, error: generateError } = await supabase.functions.invoke('generate-game', {
+          body: {
+            templatePrompt: templateData.base_prompt,
+            primaryColor: designPalette.primary,
+            secondaryColor: designPalette.secondary,
+            accentColor: designPalette.accent,
+            backgroundColor: designPalette.background,
+            highlightColor: designPalette.highlight,
+            textColor: designPalette.text,
+            fontFamily: designPalette.font,
+            particleEffect: particleEffect,
+            logoUrl: null,
+            customizationId: null,
+            previewMode: false,
+            subCompetencies: subComps || []
+          }
+        });
+
+        if (generateError) throw new Error('Failed to generate game: ' + generateError.message);
+        if (!gameResponse?.html) throw new Error('No HTML received from game generator');
+
+        // Save the generated HTML to the template
+        const updatedGameConfig = {
+          ...(typeof gameConfig === 'object' ? gameConfig : {}),
+          generated_html: gameResponse.html
+        };
+        
+        const { error: updateError } = await supabase
+          .from('game_templates')
+          .update({
+            game_config: updatedGameConfig as any
+          })
+          .eq('id', template.id);
+
+        if (updateError) throw new Error('Failed to save generated game: ' + updateError.message);
+
+        toast.success('✅ Game generated successfully!');
+      }
+
+      // Step 2: Now run the automated tests
+      toast.info('🤖 Running automated v3.1 stress tests...', {
+        description: 'Testing all 8 validation checks'
+      });
+
       const { data, error } = await supabase.functions.invoke('stress-test-validator', {
         body: {
           templateId: template.id,
