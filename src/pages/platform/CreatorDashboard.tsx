@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateDialog } from '@/components/platform/TemplateDialog';
@@ -14,6 +14,7 @@ import { DesignElementUpload } from '@/components/platform/DesignElementUpload';
 import { DesignElementLibrary } from '@/components/platform/DesignElementLibrary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
+import { generateDocUsagePDF } from '@/utils/generateDocUsagePDF';
 
 type Template = {
   id: string;
@@ -506,6 +507,14 @@ export default function CreatorDashboard() {
           >
             <Edit className="w-4 h-4" />
             Edit Profile
+          </Button>
+          <Button 
+            onClick={() => generateDocUsagePDF()}
+            variant="outline"
+            className="gap-2 border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-black"
+          >
+            <FileText className="w-4 h-4" />
+            Doc Usage PDF
           </Button>
           <Button 
             onClick={() => navigate('/platform/validator-test')}
