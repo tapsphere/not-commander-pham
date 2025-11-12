@@ -1,486 +1,449 @@
-# CREATOR FLOW — Complete Journey (Updated)
-
-**FORMATTING KEY:**
-- Regular text = Original flow (unchanged)
-- **BOLD TEXT = New additions and changes**
+# CREATOR FLOW — Complete Journey (V3.1)
 
 ---
 
-# Access & Dashboard
+## 1. ACCESS & DASHBOARD
 
-## 1. Authentication
+### 1.1 Authentication
 
-Creator signs in with email and password.
+Creators log in via email/password or OAuth.
 
 Role: "creator" assigned in database.
 
 Redirected to Creator Dashboard.
 
-## 2. Creator Dashboard
+### 1.2 Creator Dashboard
 
-View all created templates.
+The landing page after login shows:
 
-See template statistics:
+**Tabbed Interface:**
+- **My Games tab** — Templates + statistics
+- **Design Elements tab** — Upload portal + Element Library
 
+**My Games Tab Features:**
+- All created templates (published + draft)
+- Template statistics (plays, avg score, completions)
 - Times customized by brands
 - Player completion count
-- Average scores
 - Test status for each template
-
-Filter: Published vs. Draft templates.
-
-Access "Test Validators" dashboard from header.
-
-Edit Profile: Set default design preferences for all future games.
-
-**NEW: Tabbed Interface**
-
-**- Tab 1: "My Games" - All game templates and validators**
-**- Tab 2: "Design Elements" - Upload and manage individual design assets**
+- Filter by Published vs. Draft templates
 
 **Design Elements Tab Features:**
-**- Upload Portal for design assets (mascots, backgrounds, UI components, animations, audio, effects)**
-**- Element Library showing all uploaded elements with status badges**
-**- Usage tracking and statistics per element**
-**- Filter by status: All, Published, Pending Review, Approved, Rejected**
-**- Review status indicators and rejection reasons**
+- Upload Portal for design assets (mascots, backgrounds, UI components, animations, audio, effects)
+- Element Library showing all uploaded elements with status badges
+- Usage tracking and statistics per element
+- Filter by status: All, Published, Pending Review, Approved, Rejected
+- Review status indicators and rejection reasons
 
-## 3. Profile Settings (Default Customization)
-
-Design Palette (inherited by all games):
-
-- Primary color
-- Secondary color
-- Accent color
-- Background color
-- Text color
-- Highlight color
-
-Font Family: Default typography (e.g., Inter, Roboto)
-
-Game Avatar: Default mascot or character image
-
-Mascot Animation Type: Static, bounce, pulse, or float
-
-Particle Effect: Sparkles, confetti, stars, or none
-
-Note: These become the default for every new game created but can be overridden per game.
+**Header Actions:**
+- Access "Test Validators" dashboard
+- Edit Profile to set default design preferences
 
 ---
 
-# Template Creation
+## 2. TEMPLATE CREATION (UNIFIED FLOW)
 
-## 4. Choose Template Type
+**Path:** Dashboard → "Create New Template"
 
-Click "New Template" on Creator Dashboard. Select type:
+**Important:** AI-Generated and Custom Upload templates now use the **SAME UNIFIED FORM**. No separate type selection at the start.
 
-- AI-Generated Template — build from scratch using AI
-- Custom Upload — upload pre-built HTML game
+### 2.1 Template Form (All Creators Fill This)
 
-## 5. AI-Generated Template Path
+#### Step 1: PlayOps Framework Structure Guide
 
-Select C-BEN competency from master list (e.g., Analytical Thinking, AI & Big Data Skills, Creative Thinking, Leadership & Social Influence, Crisis Management, Budget Allocation, etc.). Choose 1 sub-competency to test.
+Before creation, creators see a guide outlining:
 
-**CHANGED: Now supports selecting 1-4 sub-competencies (multi-scene games)**
+**REQUIRED Scene Structure:**
+- **Scene 0: Loading Screen (2.5s)** with brand/creator logo
+- **Instructions Screen** with mascot (if uploaded) - Scene 0 only
+- **Scene 1-4: Gameplay** (one per sub-competency, 1-4 scenes supported)
+- **Results Screen**
 
-Provide template details:
-
-- Template name
-- Description
-- Base prompt (scenario setup)
-- Game mechanics instructions
-- Edge cases to test
-- Duration (typically 3–5 minutes)
-
-**NEW: PlayOps Framework Structure Guide**
-
-**When sub-competencies are selected, a visual guide displays:**
-
-**- Scene 0: Intro Screen (required elements: logo, START button, no auto-start)**
-**- Scene 1-4: Gameplay scenes (one per sub-competency selected)**
-**- Results Screen: Required fields (proficiency level, score, feedback, time, metrics, REPLAY/CONTINUE buttons)**
-**- State Management: JavaScript scene tracking with currentScene variable**
-**- Brand Customization Zones documentation**
-
-**NEW: Brand Customization Zones (What Brands Can Edit)**
-
-**EDITABLE by brands:**
-**- Brand Logo (Scene 0, top-left or center)**
-**- Mascot/Avatar (character image throughout game)**
-**- Particle Effects (sparkles, confetti, glitter, stars, bubbles, fire)**
-**- Primary Color (buttons, headers, progress bars)**
-**- Secondary Color (secondary buttons, backgrounds)**
-**- Accent Color (highlights, success states, borders)**
-**- Background Color (main game background)**
-**- Font Family (all text, web-safe fonts)**
-
-**LOCKED (cannot be edited by brands):**
-**- Scene Structure (Scene 0 → Scene 1-4 → Results)**
-**- Action Cues (from sub-competency)**
-**- Game Mechanics (drag-drop, click, type, etc.)**
-**- Scoring Logic (formulas locked to sub-competency)**
-**- Timer Logic (duration set by designer)**
-**- Edge Case Timing (when disruption occurs)**
-
-**URL Parameters for Customization:**
-**- ?logo=URL - Brand logo image**
-**- ?avatar=URL - Mascot/character image**
-**- ?particles=TYPE - Particle effect (sparkles, confetti, etc.)**
-**- ?primary=HEX - Primary color**
-**- ?secondary=HEX - Secondary color**
-**- ?accent=HEX - Accent color**
-**- ?background=HEX - Background color**
-**- ?font=NAME - Font family**
-
-**Example Implementation Code:**
-```javascript
-// Get URL parameters
-const params = new URLSearchParams(window.location.search);
-const brandLogo = params.get('logo') || 'default-logo.png';
-const mascotAvatar = params.get('avatar') || 'default-mascot.png';
-const particleEffect = params.get('particles') || 'sparkles';
-const primaryColor = params.get('primary') || '#0078D4';
-
-// Apply to elements
-document.getElementById('brand-logo').src = brandLogo;
-document.getElementById('mascot-avatar').src = mascotAvatar;
-document.documentElement.style.setProperty('--primary-color', primaryColor);
-
-// Initialize particle effect
-initParticleEffect(particleEffect);
-```
-
-### Action Scenes / Rounds (optional):
-
-Use for validators with multiple short scenes (2–4). Each scene is one screen of play (1–30–60 s).
-
-**CHANGED: Now automatically maps to sub-competencies when multiple are selected**
-
-Example:
-
-- Scene 1 = Baseline decision
-- Scene 2 = New variable introduced
-- Scene 3 = Edge-case twist
-- Scene 4 = Recover & submit final plan
-
-Leave blank if game plays in one continuous round.
-
-### Edge-Case Timing:
-
-Choose when the rule-flip or disruption occurs: Beginning, Early, Mid, or Late.
-
-### Edge-Case Moment:
-
-Describe how the disruption appears (e.g., "Timer cuts in half," "Key data field vanishes mid-game").
-
-### UI Aesthetic:
-
-Describe the visual style (e.g., "Greyscale minimalist," "Neon cyberpunk with Deloitte branding").
-
-### Customize Colors & Font (optional):
-
-Leave unchecked → uses profile default design.
-
-Check to override for this specific game:
-
-- Highlight color
-- Text color
+**What Brands Can EDIT:**
+- Brand Logo (Scene 0 loading screen)
+- Mascot/Avatar (Scene 0 instructions only, if uploaded by creator)
+- Particle effects (URL parameter)
+- Colors (primary, secondary, accent, background, text)
 - Font family
 
-Avatar and particle effect also customizable per game.
+**What is LOCKED:**
+- Scene structure (Scene 0 → Instructions → Gameplay → Results)
+- Core game mechanics
+- Scoring logic
+- Mascot placement (Scene 0 instructions only)
 
-### Decision point:
+#### Step 2: Template Name & Description
 
-- Click "Create & Test" → opens test wizard immediately.
-- Click "Save as Draft" → test later from dashboard.
+- Template Name (required)
+- Description (optional)
 
-## 6. Custom Upload Path
+#### Step 3: Competency Framework
 
-Upload HTML file (game built externally).
+- Primary Competency (required)
+- Sub-Competencies: Select 1-4 (each maps to one gameplay scene)
+- PlayOps structure guide displays once subs are selected
 
-**CHANGED: Form field order restructured**
+#### Step 4: Customize Your Scenario
 
-**New Flow Order:**
-**1. Template Name & Description**
-**2. Template Type Selection (AI/Custom)**
-**3. Competency & Sub-Competency Selection**
-**4. PlayOps Framework Structure Guide Display**
-**5. Scenario Customization Fields (industry, role, key elements, edge case details, visual theme, interaction method)**
-**6. Designer-Controlled Elements (scenario, player actions, action scenes, edge-case timing/moment, UI aesthetic)**
-**7. Design Customization (optional color/font overrides)**
-**8. File Uploads Section (moved to end):**
-**   - Cover Image Upload**
-**   - Custom Game HTML Upload**
+- **Industry/Context:** Marketing, Operations, Sales, Finance, HR, Communications, Customer Service, Technology, Healthcare, Education, Retail, Manufacturing, Legal, Supply Chain, Nonprofit, Government
+- **Your Role/Scenario:** max 150 characters
+- **Key Element:** What player works with, max 100 characters
+- **Edge Case Details:** max 80 characters
+- **Visual Theme:** Modern/Clean, Executive Dashboard, Casual/Friendly, High-Stakes/Urgent, Minimal/Focus Mode
+- **Interaction Method:** Contextual to sub-competency
 
-Specify C-BEN competencies tested.
+#### Step 5: Scene Descriptions
 
-Add metadata (name, description, preview image).
+- Scenario context
+- Player actions
+- Scene progression (1-4 scenes based on sub-competencies)
 
-Upload to cloud storage.
+#### Step 6: Edge Case Configuration
 
-Same customization fields apply (action scenes, edge-case timing/moment, UI aesthetic, optional overrides).
+- Edge-case timing (Beginning, Early, Mid, Late)
+- Edge-case moment description
 
-### Decision point:
+#### Step 7: UI Aesthetic
 
-- Click "Create & Test" → open test wizard immediately.
-- Click "Save as Draft" → test later from dashboard.
+- Visual style description (e.g., "Greyscale minimalist," "Neon cyberpunk")
 
----
+#### Step 8: Design Customization (Optional)
 
-# **Design Element Upload (NEW FEATURE)**
+- Check "Customize colors & font for this game" to override defaults
+- Per-game color palette, font, avatar, particles
 
-**NEW FEATURE: Individual Design Asset Management**
+#### Step 9: File Uploads
 
-**Upload Portal allows creators to upload individual design elements:**
+- **Cover Image** (optional - generated if not provided)
+- **Custom Game HTML** (optional - for customization after download)
 
-**Element Types:**
-**1. Mascot/Character (static, animated, 3d, rigged)**
-**2. Background (static, parallax, particle)**
-**3. UI Component (button, input, progress_bar, card)**
-**4. Feedback Effect (success, failure, transition)**
-**5. Audio (music, sfx, voiceover)**
-**6. Decorative (icon, border, frame)**
-**7. Animation (lottie, sprite_sheet, css, gif) - NEW TYPE**
+**After form submission:**
+- Template saved (all creators fill the same form)
+- Validation Test Wizard opens automatically
+- Creator runs required tests
 
-**For Each Element Type:**
-**- Specific Format Requirements (e.g., PNG transparent for mascots, MP3 for audio)**
-**- Maximum File Size Limits (varies by type: 300KB-2MB)**
-**- Telegram Mini-Game Optimization Guidelines**
-**- Mobile performance requirements (60fps, low-end device testing)**
+### 2.2 Post-Test Options (NEW FLOW)
 
-**Upload Process:**
-**1. Select Element Type and Subtype**
-**2. View specific requirements for selected type**
-**3. Enter Element Name and Description**
-**4. Upload File (drag-and-drop or browse)**
-**5. Select Allowed Placement Zones (intro_screen_mascot, gameplay_background, ui_buttons, etc.)**
-**6. Submit for Review**
+After passing all validation tests, creators have 2 choices:
 
-**Review Process:**
-**- All elements go through manual review before approval**
-**- Status: Pending Review → Approved/Rejected**
-**- Approved elements appear in marketplace for brands**
-**- Usage tracking for future royalty payouts (beta)**
+**Option 1: Publish Now**
+- Template goes live in marketplace immediately
+- Brands can discover and customize
 
-**Element Library:**
-**- View all uploaded elements with preview images**
-**- Status badges (Published, Approved, Pending, Rejected)**
-**- Usage statistics per element**
-**- Filter and sort by status**
-**- Delete unpublished elements**
-**- View rejection reasons (if rejected)**
+**Option 2: Download to Customize**
+- Download generated game HTML/code
+- Download spec PDF with framework requirements (optional)
+- Make custom modifications offline
+- Re-upload customized version
+- **MUST re-run validation tests on re-upload**
+- Once tests pass again → can publish
+
+**Important Note:**
+Custom HTML uploads still possible via file upload field in form. These follow the same test → publish/download flow.
 
 ---
 
-# Validator Testing (3 Phases – Required)
+## 3. DESIGN ELEMENT UPLOAD (NEW FEATURE)
 
-## 6. Phase 1 – UX/UI Flow Test
+**Path:** Creator Dashboard → Design Elements tab → "Upload New Element"
 
-Checks:
+### 3.1 Element Types Supported
 
-- Game loads without errors
-- UI renders correctly
+1. **Mascot/Avatar** (PNG, SVG, GIF)
+2. **Background** (JPG, PNG, SVG)
+3. **UI Component** (SVG, PNG)
+4. **Particle Effect** (JSON, PNG sprite sheet)
+5. **Sound Effect** (MP3, WAV, OGG)
+6. **Font File** (TTF, WOFF, WOFF2)
+7. **Animation** (NEW)
+   - Sub-types: lottie, sprite_sheet, css, gif
 
-## 7. Phase 2 – Action Cue Validation
+### 3.2 Upload Process
 
-Checks:
+**Step 1:** Select element type
 
-- Game captures sub-competency accurately
-- Player actions align with action cue statement
-- Mechanics demonstrate skill properly
-- Backend data capture matches behavior
+**Step 2:** Upload file(s)
 
-How to test:
+**Step 3:** Add metadata:
+- Element name
+- Description
+- Tags (searchable)
+- License type (free, premium, custom)
 
-- Review sub-competency statement + action cue
-- Play naturally
-- Verify alignment
-- Confirm mechanic logic
-- Check API data (custom uploads)
+**Step 4:** Preview & optimization check
+- File size validation
+- Format compatibility check
+- Telegram Mini-Game optimization tips
 
-Mark status: Passed / Failed / Needs Review.
+**Step 5:** Submit for review
 
-Add notes for alignment issues.
+### 3.3 Format & Size Requirements
 
-## 8. Phase 3 – Scoring Formula Test
+- **Mascots/Avatars:** Max 500KB, recommended 256×256 to 512×512px
+- **Backgrounds:** Max 1MB, recommended 1920×1080px or smaller
+- **UI Components:** Max 200KB, vector formats preferred
+- **Particle Effects:** Max 300KB for JSON, 400KB for sprite sheets
+- **Sound Effects:** Max 500KB, MP3 recommended
+- **Fonts:** Max 200KB per weight
+- **Animations:** Max 500KB
 
-Checks:
+### 3.4 Telegram Mini-Game Optimization
 
-- Scoring reflects true performance
-- XP/levels calculate correctly
-- Pass/fail thresholds fit expectations
-- Proficiency tiers match demonstrated skill
+- Total asset bundle should stay under 5MB
+- Use WebP for raster images when possible
+- Compress audio to lower bitrates (64-128kbps)
+- Prefer vector graphics for scalable elements
 
-How to test:
+### 3.5 Review & Approval
 
-- Play poorly → average → excellent → verify:
-  - Level 1 (Needs Work): basic completion
-  - Level 2 (Intermediate): quality + efficiency
-  - Level 3 (Expert): advanced mastery
-
-Review backend metrics.
-
-Mark status: Passed / Failed / Needs Review. Add notes for inconsistencies.
-
-## 9. Complete Testing
-
-Click "Save & Finish" once all phases complete. System calculates overall status:
-
-- ✅ Passed – all phases cleared
-- ❌ Failed – one or more failed
-- ⚠️ Needs Review – manual review required
-
----
-
-# Review & Fix
-
-## 10. Test Results Dashboard
-
-View overall status per template. Access detailed phase breakdowns. Review notes and test history.
-
-If Passed → "Approve for Publish" unlocks. If Failed → fix issues, click "Re-test." If Needs Review → address and re-test.
+- Elements enter "Pending Review" status
+- Platform reviews for:
+  - Technical compliance
+  - Quality standards
+  - Appropriate content
+- Once approved → visible in Element Library
+- Creators and brands can browse/use in templates
 
 ---
 
-# Approval & Publishing
+## 4. VALIDATOR TESTING (V3.1 — 8 AUTOMATED CHECKS)
 
-## 11. Approve for Publishing
+**Path:** Creator Dashboard → Select Template → "Run Validator Test"
 
-Requirement: status = Passed. Click "Approve for Publish." Validator becomes marketplace-eligible.
+### Overview
 
-## 12. Publish to Marketplace
+V3.1 introduces **8 automated programmatic checks** that validate templates against the PlayOps Framework. Each check returns:
+- **PASSED** — No issues detected
+- **NEEDS REVIEW** — Minor issues or warnings
+- **FAILED** — Critical issues that must be fixed
 
-Toggle "Publish" switch on approved validator. Validator appears in Brand Hub marketplace. Brands can browse, customize, deploy. Can unpublish anytime.
+### 4.1 The 8 Automated Checks
 
-**Note: Automatic Mode Generation (System Action)**
+#### Check 1: Scene Structure Validation
 
-When a validator is published, the system automatically compiles two runtime versions:
+Verifies:
+- Presence of all 3 required scenes (Intro, Gameplay, Results)
+- Correct scene identifiers in HTML/JS
+- Proper scene transition logic
 
-- **Training Mode (Practice)**
-  
-  Randomized data each session, unlimited retries, no proof receipts or XP. Designed for players to practice skills with immediate feedback.
+#### Check 2: UX/UI Integrity
 
-- **Testing Mode (Proof)**
-  
-  Fixed seed data, time enforced, single attempt, proof receipt generated. XP and proof logs stored on-chain.
+Verifies:
+- Responsive design across viewport sizes
+- Touch targets meet minimum size (44×44px)
+- Text readability (contrast ratios)
+- Loading states and error handling
 
-Creators don't have to configure or test these separately — the system handles both using the same template and scoring logic.
+#### Check 3: Telegram Mini-App Compliance
 
----
+Verifies:
+- Total bundle size under 5MB
+- No external CDN dependencies (all assets bundled)
+- WebApp API integration if applicable
+- Proper viewport meta tags
 
-# Key Rules
+#### Check 4: Embedded Configuration Objects
 
-- Templates must pass all 3 testing phases before publishing.
-- Drafts can be saved and tested later.
-- Failed tests block publishing until fixed.
-- Re-testing is always available.
-- Usage & performance tracking coming soon.
+Verifies:
+- brandConfig object exists in JavaScript
+- Contains required fields: logoUrl, primaryColor, secondaryColor
+- Object is properly accessible and modifiable
 
-**NEW RULES:**
-**- Design elements must pass review before appearing in marketplace**
-**- Custom HTML games must implement all required URL parameters for brand customization**
-**- All games must follow PlayOps Framework scene structure (Scene 0 → Gameplay → Results)**
-**- Mascot zones must be reserved in game layout (recommended: bottom-right corner)**
-**- Particle effects must be integrated via URL parameter system**
+#### Check 5: Action Cue & Mechanic Alignment
 
----
+Verifies:
+- Game actions map correctly to competency being tested
+- Action cues are clear and contextually appropriate
+- Mechanics align with learning objectives
 
-# Template Creation Form (Complete Field List)
+#### Check 6: Scoring Formula Verification
 
-## 1. Template Type Selection
+Verifies:
+- Scoring logic is mathematically sound
+- Score calculation includes all sub-competencies
+- Min/max score boundaries are enforced
+- Proof object emits correctly on completion
 
-- AI-Generated Template OR Custom Upload
+#### Check 7: Accessibility & Mobile Readiness
 
-## 2. Core Template Info
+Verifies:
+- Keyboard navigation support
+- ARIA labels for interactive elements
+- Mobile gesture support (tap, swipe)
+- Performance on mid-range mobile devices
 
-- Template Name
-- C-BEN Competency (from master list)
-- Sub-Competency **[1-4 selections supported]**
-- Scenario Context/Description
-- Duration (typically 3-5 minutes)
+#### Check 8: Proof Emission & Telemetry
 
-**NEW: Industry & Context Fields**
-**- Industry/Context (Marketing, Operations, Sales, Finance, HR, Communications, Customer Service, Technology, Healthcare, Education, Retail, Manufacturing, Legal, Supply Chain, Nonprofit, Government)**
-**- Your Role/Scenario (max 150 chars)**
-**- Key Element (max 100 chars) - what player works with**
-**- Edge Case Specific Details (max 80 chars)**
-**- Visual Theme (Modern/Clean, Executive Dashboard, Casual/Friendly, High-Stakes/Urgent, Minimal/Focus Mode)**
-**- Interaction Method (contextual dropdown based on sub-competency)**
+Verifies:
+- Proof object structure matches specification
+- Timestamp and session ID included
+- Sub-competency scores properly formatted
+- Telemetry events fire at key moments (start, complete, error)
 
-## 3. Game Structure
+### 4.2 Result Classification
 
-- Action Scenes/Rounds (optional)
-- Number of scenes (2-4)
-- Description of each scene
-- Leave blank for continuous single-round play
+**PASSED:**
+- All 8 checks return green status
+- Template is ready for publishing
 
-**CHANGED: Automatically maps to sub-competencies when multiple selected**
+**NEEDS REVIEW:**
+- 1-2 checks return warnings
+- Creator can choose to fix or proceed with explanation
 
-## 4. Edge-Case Configuration
+**FAILED:**
+- 3+ checks fail OR any critical check fails
+- Template cannot be published until issues are resolved
 
-- Edge-Case Timing: When disruption occurs
-  - Beginning / Early / Mid / Late
-- Edge-Case Moment: How disruption appears
-  - Text description (e.g., "Timer cuts in half")
-
-## 5. Visual Design
-
-- UI Aesthetic: Visual style description
-  - Example: "Greyscale minimalist" or "Neon cyberpunk"
-
-## 6. Customize Colors & Font (Optional Checkbox)
-
-- If unchecked → Uses profile defaults
-- If checked → Override for this game:
-  - Highlight color
-  - Text color
-  - Font family
-  - Game Avatar (mascot image)
-  - Particle Effect (sparkles/confetti/stars/none)
-
-## **7. File Uploads Section (Moved to End of Form)**
-
-**- Cover Image Upload (optional, generated if not provided)**
-**- Custom Game HTML Upload (for custom upload type only)**
-
-## 8. Custom Upload Specific
-
-- Upload HTML file
-- Preview image
-- Cloud storage upload
-
-**CHANGED: This section now appears after all form fields are completed**
-
-## 9. Save Options
-
-- "Create & Test" → Opens test wizard immediately
-- "Save as Draft" → Test later from dashboard
+**Note:** The old 3-phase manual testing (UX/UI Flow, Action Cue Validation, Scoring Formula Test) has been replaced by these 8 automated checks.
 
 ---
 
-# SUMMARY OF MAJOR CHANGES
+## 5. REVIEW & FIX
 
-## **1. Design Element Upload System**
-**- New tab on Creator Dashboard for managing individual design assets**
-**- 7 element types supported (including new Animation type)**
-**- Telegram Mini-Game optimization requirements**
-**- Review and approval workflow**
+### Test Results Dashboard
 
-## **2. PlayOps Framework Structure Guide**
-**- Visual guide showing required scene structure**
-**- Brand Customization Zones documentation**
-**- Clear EDITABLE vs LOCKED elements**
-**- URL parameter implementation guide**
-**- Code examples for custom HTML games**
+- View overall status per template
+- Access detailed check results (Check 1-8)
+- Review notes and test history
 
-## **3. Enhanced Form Structure**
-**- Multi-sub-competency support (1-4 selections)**
-**- New contextual fields (industry, role, key elements)**
-**- Reordered flow: configuration first, file uploads at end**
-**- Auto-generated player actions based on interaction method**
+**If Passed:**
+- "Approve for Publish" unlocks
 
-## **4. Brand Customization Enhancements**
-**- Mascot/Avatar upload support**
-**- Particle effects selection system**
-**- Extended URL parameter system**
-**- Visual zone placement guidelines**
+**If Failed:**
+- Fix issues and click "Re-test"
+
+**If Needs Review:**
+- Address warnings and re-test
+
+---
+
+## 6. APPROVAL & PUBLISHING
+
+### 6.1 Final Review
+
+- Creator reviews all test results
+- Confirms template metadata is accurate
+
+### 6.2 Publish to Marketplace
+
+- Click "Publish Template"
+- System generates two game modes:
+  - **Training Mode** (practice, no scoring)
+  - **Testing Mode** (scored, proof emission)
+- Template becomes discoverable in marketplace
+- Brands can now customize and deploy
+
+---
+
+## 7. KEY RULES
+
+### Publishing Requirements
+
+- Must pass all 8 automated validator checks
+- Must include cover image
+- Must define scoring formula
+- Must follow PlayOps Framework structure
+
+### Design Elements
+
+- Must pass technical review before appearing in library
+- Must meet size/format requirements
+- Can be used across multiple templates
+
+### Custom HTML Games
+
+- Must support URL parameters: ?avatar=URL&particles=TYPE
+- Must embed brandConfig object for color/logo customization
+- Must follow 3-scene structure (Intro → Gameplay → Results)
+
+### Brand Customization
+
+- Templates define what brands can customize
+- Locked elements (mechanics, scoring) cannot be changed by brands
+- Editable elements include: logo, mascot/avatar, particles, colors
+
+---
+
+## TEMPLATE CREATION FORM — Complete Field Reference
+
+### 1. Template Name & Description
+- Template Name (required)
+- Description (optional)
+
+### 2. Competency Framework
+- Primary Competency (dropdown from master list)
+- Sub-Competencies (select 1-4)
+
+### 3. Scenario Customization
+- Industry/Context (dropdown)
+- Your Role/Scenario (text, max 150 chars)
+- Key Element (text, max 100 chars)
+- Edge Case Specific Details (text, max 80 chars)
+- Visual Theme (dropdown)
+- Interaction Method (contextual dropdown)
+
+### 4. Scene Descriptions
+- Scene context descriptions
+- Player action descriptions
+- Scene progression notes
+
+### 5. Edge Case Configuration
+- Edge-case timing (dropdown: Beginning/Early/Mid/Late)
+- Edge-case moment description (text)
+
+### 6. UI Aesthetic
+- Visual style description (text)
+
+### 7. Design Customization (Optional)
+- Checkbox: "Customize colors & font for this game"
+- If checked:
+  - Highlight color (color picker)
+  - Text color (color picker)
+  - Font family (dropdown)
+  - Game Avatar (image upload)
+  - Particle Effect (dropdown)
+
+### 8. File Uploads
+- Cover Image (optional image upload)
+- Custom Game HTML (optional file upload)
+
+### 9. Save Options
+- "Create & Test" button → Opens test wizard immediately
+- "Save as Draft" button → Test later from dashboard
+
+---
+
+## SUMMARY OF V3.1 CHANGES
+
+### 1. Unified Template Form
+- Single form for both AI-Generated and Custom Upload templates
+- Streamlined creator experience
+- Consistent validation workflow
+
+### 2. Scene 0 Enhancements
+- Loading Screen (2.5s) with brand/creator logo
+- Separate Instructions Screen with mascot
+- Mascot placement restricted to Scene 0 instructions only
+
+### 3. 8 Automated Validation Checks
+- Replaces old 3-phase manual testing
+- Programmatic validation against PlayOps Framework
+- Clear pass/fail criteria for each check
+
+### 4. Post-Test Download/Customize Flow
+- Download game code after passing tests
+- Download spec PDF with requirements
+- Re-upload customized version
+- Must re-test before publishing
+
+### 5. Design Element Upload System
+- New tab on Creator Dashboard
+- 7 element types supported (including Animation)
+- Telegram Mini-Game optimization requirements
+- Review and approval workflow
+
+### 6. Enhanced Brand Customization
+- URL parameter system for all customizable elements
+- Embedded brandConfig object requirement
+- Clear documentation of editable vs. locked zones
+- Mascot/Avatar support with placement guidelines
