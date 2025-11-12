@@ -264,6 +264,13 @@ export function ValidatorTestWizard({
         {!testComplete && !testing && (
           <div className="bg-gray-800 border-2 border-neon-green rounded-lg p-6 text-center space-y-4">
             <h3 className="text-xl font-bold text-white">Ready to Run Automated Tests</h3>
+            {template.template_type === 'ai_generated' && (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-2">
+                <p className="text-blue-300 text-sm">
+                  ℹ️ No upload needed! Your game will be auto-generated from your prompt before testing.
+                </p>
+              </div>
+            )}
             <p className="text-gray-400">
               This will run 8 comprehensive checks including scene structure, UX/UI integrity, 
               Telegram compliance, configuration validation, and more.
