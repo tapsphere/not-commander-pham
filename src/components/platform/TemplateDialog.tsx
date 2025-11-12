@@ -1925,21 +1925,68 @@ The system tracks your actions throughout the ${selectedSub?.game_loop || 'gamep
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        toast.success('📥 Downloaded! Now you can customize and re-upload', {
-                          description: 'Edit the HTML/CSS/JS, then upload as Custom Game'
+                        toast.success('📥 Downloaded! Customize and upload below', {
+                          description: 'Edit the HTML/CSS/JS, then upload your customized version'
                         });
-                        
-                        // Show next step hint
-                        setTimeout(() => {
-                          toast.info('💡 Next: Upload your customized version', {
-                            description: 'Switch to Custom Upload tab to test your changes'
-                          });
-                        }, 2000);
                       }}
                     >
                       <span className="font-bold text-lg mb-1">💾 Download Code</span>
                       <span className="text-xs opacity-80 text-left">Get HTML/JS to customize further</span>
                     </Button>
+                  </div>
+                  
+                  {/* Upload Customized Version Section */}
+                  <div className="mt-4 pt-4 border-t border-gray-700">
+                    <div className="text-sm text-gray-400 mb-3 text-center">
+                      After customizing the downloaded code:
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => document.getElementById('custom-game-upload')?.click()}
+                      variant="outline"
+                      className="w-full border-neon-purple text-neon-purple hover:bg-neon-purple/10"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Customized Version
+                    </Button>
+
+                    <input
+                      id="custom-game-upload"
+                      type="file"
+                      accept=".html,.htm"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setCustomGameFile(file);
+                          setValidationStatus('not_tested');
+                          toast.success('✅ Custom file uploaded: ' + file.name);
+                        }
+                      }}
+                      className="hidden"
+                    />
+
+                    {customGameFile && (
+                      <div className="mt-3 p-3 bg-gray-800 border border-neon-purple rounded-lg flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-neon-purple" />
+                          <span className="text-sm text-white">{customGameFile.name}</span>
+                          <span className="text-xs text-gray-400">
+                            ({(customGameFile.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setCustomGameFile(null);
+                            setValidationStatus('not_tested');
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
