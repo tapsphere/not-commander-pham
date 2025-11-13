@@ -1,6 +1,6 @@
 # Creator Flow Video Walkthrough Guide
 
-**Duration:** ~8-12 minutes  
+**Duration:** ~10-13 minutes  
 **Target Audience:** New creators building game templates  
 **Goal:** Show the complete end-to-end process from login to published template
 
@@ -29,7 +29,7 @@
 - "This is your central hub for managing templates and design assets"
 
 ### Section 1.2: Dashboard Tour
-**Timing:** 1:00 - 2:00
+**Timing:** 1:00 - 1:30
 
 **Show on Screen:**
 1. **My Games Tab**
@@ -45,14 +45,55 @@
 **Talking Points:**
 - "The My Games tab shows all your templates with real-time stats"
 - "Design Elements tab lets you upload reusable assets like mascots, backgrounds, and effects"
-- "Let's create our first template"
+- "But before we create a template, let's set up your profile first"
+
+---
+
+### Section 1.3: Setting Up Your Creator Profile
+**Timing:** 1:30 - 2:45
+
+**Show on Screen:**
+1. Click Profile button in header
+2. Profile Edit page with all fields:
+   - Full Name field
+   - Bio textarea
+   - Company Name field
+   - Website URL field
+   - Profile picture upload with cropping interface
+   - Design preferences: color palette picker
+   - Mascot/avatar upload section
+   - Particle effects selector
+3. Save Profile button
+
+**Actions:**
+1. Click "Profile" in header
+2. Fill in Full Name: "Alex Thompson"
+3. Write Bio: "Game designer specializing in corporate training simulations"
+4. Add Company Name: "SkillCraft Studios"
+5. Add Website: "www.skillcraftstudios.com"
+6. Upload profile picture and crop it
+7. Set brand colors (show color picker)
+8. Upload mascot/avatar (optional)
+9. Select particle effect preference
+10. Click "Save Profile"
+
+**Talking Points:**
+- "First things first—let's set up your creator profile by clicking Profile in the header"
+- "Your profile is what brands and other creators see, so make it professional and authentic"
+- "Add your full name and write a short bio that describes what kind of templates you create"
+- "If you're creating for a company, add your company name and website—this builds credibility"
+- "Now upload a profile picture. You can crop it right here to get the perfect framing. Animated GIFs and Lottie files work too!"
+- "Set your brand colors here—these become your defaults when creating templates"
+- "You can even upload a mascot or avatar that represents your brand identity"
+- "Choose a particle effect if you want some visual flair"
+- "Hit Save Profile when you're done. Perfect! Now we're ready to create templates"
 
 ---
 
 ## 📋 PART 2: CREATING A TEMPLATE (5 min)
 
 ### Section 2.1: Starting a New Template
-**Timing:** 2:00 - 2:30
+**Timing:** 2:45 - 3:15
 
 **Actions:**
 1. Click "Create New Template" button
@@ -63,7 +104,7 @@
 - "This single form handles both AI-generated and custom uploaded games"
 
 ### Section 2.2: PlayOps Framework Guide
-**Timing:** 2:30 - 3:15
+**Timing:** 3:15 - 4:00
 
 **Show on Screen:**
 - PlayOps structure guide panel
@@ -77,7 +118,7 @@
 - "Brands can customize colors, logos, and mascots, but the core mechanics stay locked"
 
 ### Section 2.3: Filling Out the Template Form
-**Timing:** 3:15 - 5:30
+**Timing:** 4:00 - 6:15
 
 **Step 1: Basic Info (30 sec)**
 - Template Name: "Crisis Communication Challenge"
@@ -138,7 +179,7 @@
 ## 📋 PART 3: VALIDATOR TESTING (3 min)
 
 ### Section 3.1: Test Wizard Overview
-**Timing:** 6:00 - 6:30
+**Timing:** 6:30 - 7:00
 
 **Show on Screen:**
 - Test wizard dialog
@@ -150,7 +191,7 @@
 - "These checks ensure compliance with the PlayOps Framework"
 
 ### Section 3.2: Running Tests
-**Timing:** 6:30 - 7:30
+**Timing:** 7:00 - 8:00
 
 **Actions:**
 1. Click "Run Automated Tests"
@@ -173,7 +214,7 @@
 - "All 8 must pass before you can publish"
 
 ### Section 3.3: Test Results
-**Timing:** 7:30 - 8:00
+**Timing:** 8:00 - 8:30
 
 **Show on Screen:**
 - Overall status: "PASSED ✓"
@@ -189,7 +230,7 @@
 ## 📋 PART 4: POST-TEST OPTIONS (2 min)
 
 ### Section 4.1: Two Paths Forward
-**Timing:** 8:00 - 9:00
+**Timing:** 8:30 - 9:30
 
 **Show on Screen:**
 - Post-Test Actions dialog with two options
@@ -210,7 +251,7 @@
 - "Any re-uploaded game must pass validation again"
 
 ### Section 4.2: Publishing
-**Timing:** 9:00 - 10:00
+**Timing:** 9:30 - 10:30
 
 **Actions:**
 1. Click "Publish Now"
@@ -229,7 +270,7 @@
 ## 📋 PART 5: BONUS - DESIGN ELEMENTS (2 min)
 
 ### Section 5.1: Uploading Design Assets
-**Timing:** 10:00 - 11:00
+**Timing:** 10:30 - 11:30
 
 **Actions:**
 1. Switch to "Design Elements" tab
@@ -247,7 +288,7 @@
 - "These can be used across all your templates"
 
 ### Section 5.2: Element Library
-**Timing:** 11:00 - 11:30
+**Timing:** 11:30 - 12:00
 
 **Show on Screen:**
 - Grid of uploaded elements
@@ -264,7 +305,7 @@
 ## 📋 PART 6: MANAGING PUBLISHED TEMPLATES (1 min)
 
 ### Section 6.1: Dashboard Management
-**Timing:** 11:30 - 12:00
+**Timing:** 12:00 - 12:30
 
 **Show on Screen:**
 - Published template card
@@ -286,7 +327,7 @@
 ## 📋 CLOSING (30 seconds)
 
 ### Recap & Next Steps
-**Timing:** 12:00 - 12:30
+**Timing:** 12:30 - 13:00
 
 **Script:**
 - "You've now created, tested, and published your first game template"
@@ -329,23 +370,40 @@
 
 ---
 
-### Section 1.2 Script: Dashboard Tour (1:00 - 2:00)
+### Section 1.2 Script: Dashboard Tour (1:00 - 1:30)
 "Let me show you what's on the dashboard. We have two main tabs here.
 
 First, the My Games tab. This is where all your templates live. You can see each template card shows important information - there's the status badge showing whether it's published or still in draft, test status indicators that tell you if validation has passed, and statistics showing how many times the game has been played and completed.
 
 Second tab is Design Elements. This is where you upload reusable assets like mascots, backgrounds, particle effects, sounds, and fonts. Build up your library here, and you can use these assets across all your templates.
 
-Alright, let's create our first template."
+But before we create a template, let's set up your creator profile first."
 
 ---
 
-### Section 2.1 Script: Starting a New Template (2:00 - 2:30)
+### Section 1.3 Script: Setting Up Your Creator Profile (1:30 - 2:45)
+"Click on the Profile button up here in the header. This is really important - your profile is what brands and other creators will see, so let's make it professional.
+
+Start with your full name. I'm entering Alex Thompson. Now write a short bio that describes what you do. I'll say: 'Game designer specializing in corporate training simulations.' Keep it authentic and clear.
+
+If you're creating templates for a company, add your company name and website. This builds trust and credibility. I'll add SkillCraft Studios and www.skillcraftstudios.com.
+
+Now let's upload a profile picture. Click to upload, select your image, and you can crop it right here to get the perfect framing. The system supports regular images, but you can also use animated GIFs or Lottie files if you want something dynamic.
+
+Scroll down to design preferences. Set your brand colors here - these become your defaults when you're creating templates. Pick colors that represent your brand identity.
+
+You can even upload a mascot or avatar that represents your brand. This could be used across your templates. And if you want some visual flair, select a particle effect preference.
+
+Once you're happy with everything, hit Save Profile. Perfect! Your creator identity is now set up. Let's create our first template."
+
+---
+
+### Section 2.1 Script: Starting a New Template (2:45 - 3:15)
 "To create a new template, I'll click the Create New Template button right here. This opens up our unified template form. What's great about this form is it handles everything - whether you're using AI generation or uploading your own custom HTML game. It's all in one place."
 
 ---
 
-### Section 2.2 Script: PlayOps Framework Guide (2:30 - 3:15)
+### Section 2.2 Script: PlayOps Framework Guide (3:15 - 4:00)
 "Before we fill out the form, let me show you the PlayOps Framework Guide on the right side here. This is really important.
 
 Every game follows a specific structure. You need three required scenes: Scene Zero is your loading screen for two-and-a-half seconds, followed by instructions with a mascot. Then you have Scenes One through Four - these are your gameplay scenes. Each scene tests one sub-competency. And finally, you have a results screen at the end.
@@ -354,29 +412,29 @@ Here's the key: brands can customize colors, logos, and mascots to match their b
 
 ---
 
-### Section 2.3 Script: Filling Out the Template Form (3:15 - 5:30)
+### Section 2.3 Script: Filling Out the Template Form (4:00 - 6:15)
 
-**Basic Info (3:15 - 3:45)**
+**Basic Info (4:00 - 4:30)**
 "Let's fill this out. For Template Name, I'll call this 'Crisis Communication Challenge.' Description: 'Test decision-making under pressure in high-stakes communication scenarios.' Keep it clear and descriptive."
 
-**Competency Selection (3:45 - 4:15)**
+**Competency Selection (4:30 - 5:00)**
 "Now for competencies. I'll select Communication as the primary competency. For sub-competencies, I'm choosing two: Crisis Communication and Stakeholder Management. 
 
 Notice how the number of sub-competencies you select determines how many gameplay scenes you'll have. Two subs means two gameplay scenes."
 
-**Scenario Customization (4:15 - 5:00)**
+**Scenario Customization (5:00 - 5:45)**
 "Let's customize the scenario. Industry: Communications. Role or Scenario: PR Director handling a product recall. Key Element: Press statements and social media responses. 
 
 For Edge Case - this is important - I'll add: Viral misinformation spreads mid-crisis. This adds unpredictability to the game.
 
 Visual Theme: High-Stakes slash Urgent. And Interaction Method: Multiple choice with timer to add pressure."
 
-**Scene Descriptions (5:00 - 5:15)**
+**Scene Descriptions (5:45 - 6:00)**
 "Now I'll describe each gameplay scene. Scene One: Initial crisis alert - choose first response. Scene Two: Stakeholder calls flooding in - prioritize responses.
 
 I'll set the edge case to trigger mid-game for maximum impact."
 
-**UI & Customization (5:15 - 5:30)**
+**UI & Customization (6:00 - 6:15)**
 "Visual Style: Modern dashboard with urgent red accents. 
 
 I can optionally customize the design. Let me check this box and set a red highlight color for urgency. I'll upload a mascot here - this game avatar will guide players through the experience. And I'll add a sparkles particle effect for visual polish.
@@ -385,19 +443,19 @@ For the cover image, I'll let it auto-generate. And since we're using AI generat
 
 ---
 
-### Section 2.4 Script: Create & Test (5:30 - 6:00)
+### Section 2.4 Script: Create & Test (6:15 - 6:30)
 "Everything's filled out. Now I'll click Create and Test. The system is saving the template and immediately triggering validation. You'll see the Validator Test Wizard open automatically - no extra steps needed. Let's see what happens."
 
 ---
 
-### Section 3.1 Script: Test Wizard Overview (6:00 - 6:30)
+### Section 3.1 Script: Test Wizard Overview (6:30 - 7:00)
 "Here's the Validator Test Wizard. You can see all the template information we just entered displayed here. The status shows Ready to Run. 
 
 Version three-point-one runs eight automated checks to validate your template against the PlayOps Framework. These checks ensure everything is compliant, mobile-ready, and properly configured. Let's run them."
 
 ---
 
-### Section 3.2 Script: Running Tests (6:30 - 7:30)
+### Section 3.2 Script: Running Tests (7:00 - 8:00)
 "I'll click Run Automated Tests. Watch the progress bar - each check runs in sequence.
 
 Check One: Scene Structure Validation. Making sure we have Scene Zero, gameplay scenes, and a results screen. Passed.
@@ -420,14 +478,14 @@ All green! Every check passed."
 
 ---
 
-### Section 3.3 Script: Test Results (7:30 - 8:00)
+### Section 3.3 Script: Test Results (8:00 - 8:30)
 "Perfect! The overall status shows PASSED with a green checkmark. All eight checks are green. The Continue to Publish Options button is now enabled. 
 
 We have two choices here: publish immediately, or download the game to customize it further. Let's look at both options."
 
 ---
 
-### Section 4.1 Script: Two Paths Forward (8:00 - 9:00)
+### Section 4.1 Script: Two Paths Forward (8:30 - 9:30)
 "Here are your post-test options.
 
 Option One: Publish Now. If you're happy with the AI-generated game, click this and your template goes live in the marketplace immediately. Brands can discover it and start customizing right away.
@@ -438,7 +496,7 @@ For this demo, I'm confident in the AI generation, so I'll publish now."
 
 ---
 
-### Section 4.2 Script: Publishing (9:00 - 10:00)
+### Section 4.2 Script: Publishing (9:30 - 10:30)
 "I'll click Publish Now. There's the success message: Published! Created two game modes - Training and Testing.
 
 Let me explain what just happened. Publishing automatically creates two versions of your game. Training Mode lets players practice without any scoring or pressure. Testing Mode includes full scoring, proficiency levels, and proof emission for tracking progress. Brands get both modes when they customize your template.
@@ -447,7 +505,7 @@ Let's go back to the dashboard and see our published template."
 
 ---
 
-### Section 5.1 Script: Uploading Design Assets (10:00 - 11:00)
+### Section 5.1 Script: Uploading Design Assets (10:30 - 11:30)
 "Let me quickly show you the Design Elements feature. I'll switch to the Design Elements tab and click Upload New Element.
 
 You can upload seven types of assets: Mascots or Avatars, Backgrounds, UI Components, Particle Effects, Sounds, Fonts, and Animations.
@@ -456,7 +514,7 @@ Let's say I'm uploading a mascot. I'd select the file, give it a name and descri
 
 ---
 
-### Section 5.2 Script: Element Library (11:00 - 11:30)
+### Section 5.2 Script: Element Library (11:30 - 12:00)
 "Here's my element library. Each element shows its status - Published, Pending Review, or Approved. All elements go through a review process before they appear in the main library.
 
 You can also see usage stats. This tells you which assets are most popular across templates. 
@@ -465,7 +523,7 @@ One important tip: optimize everything for Telegram Mini-Apps. Keep your total b
 
 ---
 
-### Section 6.1 Script: Managing Published Templates (11:30 - 12:00)
+### Section 6.1 Script: Managing Published Templates (12:00 - 12:30)
 "Back on the My Games tab, here's our published template. Look at all this information - we've got the green Published badge, real-time statistics showing plays and completions, and the number of brands that have customized it.
 
 There are action buttons here too. I can click Preview to open the game in a new tab and play it myself. I can Edit the template details if I need to make changes. I can run Test again to re-validate. And if I need to take it offline, I can Unpublish it.
@@ -474,7 +532,7 @@ This dashboard gives you complete control and real-time insights into your templ
 
 ---
 
-### Closing Script (12:00 - 12:30)
+### Closing Script (12:30 - 13:00)
 "And that's it! You've now seen the complete creator flow from start to finish. We logged in, created a template, ran eight automated validation checks, published it to the marketplace, and explored design elements and template management.
 
 Your next steps: start building templates for different competencies, upload design elements to your library, and monitor your templates' performance. The marketplace connects you directly with brands looking for quality competency-based games.
@@ -533,14 +591,15 @@ Check out the documentation for advanced customization techniques, and happy cre
 ```
 0:00 - Introduction
 0:30 - Login & Dashboard Tour
-2:00 - Creating a New Template
-3:15 - Filling the Template Form
-6:00 - Running Validator Tests
-8:00 - Post-Test Options
-9:00 - Publishing to Marketplace
-10:00 - Bonus: Design Elements
-11:30 - Managing Templates
-12:00 - Closing & Next Steps
+1:30 - Setting Up Your Creator Profile
+2:45 - Creating a New Template
+4:00 - Filling the Template Form
+6:30 - Running Validator Tests
+8:30 - Post-Test Options
+9:30 - Publishing to Marketplace
+10:30 - Bonus: Design Elements
+12:00 - Managing Templates
+12:30 - Closing & Next Steps
 ```
 
 ---
