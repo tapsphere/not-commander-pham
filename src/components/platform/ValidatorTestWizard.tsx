@@ -214,15 +214,21 @@ export function ValidatorTestWizard({
 
         // Check for errors and extract error message properly
         if (response.error) {
-          const errorMsg = response.data?.error || response.error.message;
+          // Try multiple ways to extract the error message
+          const errorMsg = 
+            response.data?.error || 
+            (typeof response.error === 'string' ? response.error : response.error?.message) ||
+            'Unknown error';
+          
+          console.error('Game generation error:', { error: response.error, data: response.data, errorMsg });
           
           // Check for specific error types
-          if (errorMsg.includes('credits depleted') || errorMsg.includes('AI credits')) {
-            throw new Error('AI credits depleted. Go to Settings → Workspace → Usage → Cloud & AI balance to add credits.');
-          } else if (errorMsg.includes('402') || errorMsg.includes('Payment Required')) {
-            throw new Error('Payment required. Add AI credits in Settings → Workspace → Usage → Cloud & AI balance.');
+          if (errorMsg.includes('credits depleted') || errorMsg.includes('AI credits') || errorMsg.includes('402')) {
+            throw new Error('❌ AI credits depleted. Please add credits to continue.\n\nGo to Settings → Usage to add more credits.');
+          } else if (errorMsg.includes('Payment Required') || errorMsg.includes('payment_required')) {
+            throw new Error('❌ Payment required. Add AI credits in Settings → Usage → Cloud & AI balance.');
           } else if (errorMsg.includes('429') || errorMsg.includes('Rate limit')) {
-            throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            throw new Error('⏳ Rate limit exceeded. Please wait a moment and try again.');
           }
           
           throw new Error('Failed to generate game: ' + errorMsg);
