@@ -646,6 +646,166 @@
       color: #666;
       margin-bottom: 8px;
     }
+
+    /* Truth Scanner Styles */
+    .truth-scanner {
+      width: 100%;
+    }
+
+    .scanner-instruction {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6C3483;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .scanner-slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: rgba(108, 52, 131, 0.1);
+      border-radius: 12px;
+    }
+
+    .scanner-slider-container span {
+      font-size: 1.5rem;
+    }
+
+    .scanner-slider {
+      flex: 1;
+      height: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: linear-gradient(90deg, #e0e0e0 0%, #D7BDE2 50%, #6C3483 100%);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .scanner-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 32px;
+      height: 32px;
+      background: #6C3483;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(108, 52, 131, 0.4);
+    }
+
+    .interpretations {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 400px) {
+      .interpretations {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .interpretation-card {
+      background: white;
+      border: 3px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .interpretation-card:hover {
+      border-color: #D7BDE2;
+      transform: translateY(-2px);
+    }
+
+    .interpretation-card.selected {
+      border-color: #6C3483;
+      background: #F5EEF8;
+    }
+
+    .interpretation-card.correct {
+      border-color: #38ef7d !important;
+      background: #d1fae5 !important;
+    }
+
+    .interpretation-card.wrong {
+      border-color: #ef4444 !important;
+      background: #fee2e2 !important;
+    }
+
+    .card-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .speech-bubble {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .hidden-cues {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .hidden-cues.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .cue-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      padding: 6px 8px;
+      background: rgba(108, 52, 131, 0.08);
+      border-radius: 6px;
+    }
+
+    .cue-item.positive { background: rgba(56, 239, 125, 0.15); }
+    .cue-item.negative { background: rgba(239, 68, 68, 0.15); }
+
+    .credibility-meter {
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .credibility-meter.revealed {
+      opacity: 1;
+    }
+
+    .credibility-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .credibility-fill.high { background: #38ef7d; }
+    .credibility-fill.low { background: #ef4444; }
   </style>
 </head>
 <body class="bg-intro">
@@ -758,17 +918,36 @@
         badgeClass: 'badge-insight',
         bgClass: 'bg-owl',
         borderColor: '#6C3483',
-        scenario: 'Someone says: "She\'s angry at me." But you observe: calm tone, relaxed posture, and a thoughtful pause before responding.',
-        task: 'Which interpretation is more credible?',
-        choices: [
-          { text: 'The verbal statement ("She\'s angry")', correct: false },
-          { text: 'The observed cues → she\'s not angry', correct: true },
-          { text: 'Both are equally valid', correct: false },
-          { text: 'Neither provides enough information', correct: false }
+        scenario: 'Someone claims: "She\'s angry at me." Use the scanner to investigate both interpretations.',
+        task: 'Slide to reveal hidden cues, then choose the more credible interpretation:',
+        gameType: 'truthScanner',
+        interpretations: [
+          {
+            label: 'Interpretation A',
+            statement: '"She\'s angry at me"',
+            hiddenCues: [
+              { icon: '❌', text: 'No eye contact avoidance', type: 'negative' },
+              { icon: '❌', text: 'No raised voice detected', type: 'negative' },
+              { icon: '⚠️', text: 'Based on assumption only', type: 'negative' }
+            ],
+            credibility: 20,
+            correct: false
+          },
+          {
+            label: 'Interpretation B',
+            statement: '"She\'s calm and thoughtful"',
+            hiddenCues: [
+              { icon: '✅', text: 'Relaxed body posture', type: 'positive' },
+              { icon: '✅', text: 'Calm, steady tone', type: 'positive' },
+              { icon: '✅', text: 'Thoughtful pause observed', type: 'positive' }
+            ],
+            credibility: 85,
+            correct: true
+          }
         ],
         feedback: {
-          correct: 'Wise choice! Non-verbal cues often reveal more truth than words alone.',
-          wrong: 'The observed cues (calm tone, relaxed posture) contradict the verbal claim and are more credible.'
+          correct: 'Excellent insight! You correctly identified that observed non-verbal cues (posture, tone, pauses) are more reliable than verbal assumptions.',
+          wrong: 'The observed cues (calm tone, relaxed posture, thoughtful pause) contradict the assumption of anger. Non-verbal signals often reveal more truth.'
         }
       },
       {
@@ -905,6 +1084,9 @@
       } else if (scene.gameType === 'patternPath') {
         loadPatternPath(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
+      } else if (scene.gameType === 'truthScanner') {
+        loadTruthScanner(scene, choicesContainer);
+        document.getElementById('submitBtn').disabled = true;
       } else {
         loadMultipleChoice(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
@@ -1003,6 +1185,66 @@
       
       // Enable submit when correct number selected
       document.getElementById('submitBtn').disabled = selectedCount !== window.patternPathRequired;
+    }
+
+    function loadTruthScanner(scene, container) {
+      container.innerHTML = `
+        <div class="truth-scanner">
+          <div class="scanner-instruction">🔍 Slide to reveal hidden emotional cues</div>
+          <div class="scanner-slider-container">
+            <span>🔦</span>
+            <input type="range" class="scanner-slider" id="scannerSlider" min="0" max="100" value="0" oninput="updateScanner(this.value)">
+            <span>🔍</span>
+          </div>
+          <div class="interpretations">
+            ${scene.interpretations.map((interp, i) => `
+              <div class="interpretation-card" data-index="${i}" data-correct="${interp.correct}" onclick="selectInterpretation(this)">
+                <div class="card-label">${interp.label}</div>
+                <div class="speech-bubble">${interp.statement}</div>
+                <div class="hidden-cues" id="cues${i}">
+                  ${interp.hiddenCues.map(cue => `
+                    <div class="cue-item ${cue.type}">
+                      <span>${cue.icon}</span>
+                      <span>${cue.text}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="credibility-meter" id="meter${i}">
+                  <div class="credibility-fill ${interp.credibility >= 50 ? 'high' : 'low'}" style="width: 0%"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      window.truthScannerData = scene.interpretations;
+    }
+
+    function updateScanner(value) {
+      const threshold = 40;
+      const revealed = value >= threshold;
+      
+      // Reveal hidden cues
+      document.querySelectorAll('.hidden-cues').forEach(el => {
+        el.classList.toggle('revealed', revealed);
+      });
+      
+      // Reveal credibility meters
+      document.querySelectorAll('.credibility-meter').forEach((el, i) => {
+        el.classList.toggle('revealed', revealed);
+        if (revealed && window.truthScannerData) {
+          const fill = el.querySelector('.credibility-fill');
+          fill.style.width = window.truthScannerData[i].credibility + '%';
+        }
+      });
+    }
+
+    function selectInterpretation(card) {
+      document.querySelectorAll('.interpretation-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      window.selectedInterpretation = parseInt(card.dataset.index);
+      document.getElementById('submitBtn').disabled = false;
     }
 
     function setupDragAndDrop() {
@@ -1149,6 +1391,8 @@
         submitSignalSorter();
       } else if (scene.gameType === 'patternPath') {
         submitPatternPath();
+      } else if (scene.gameType === 'truthScanner') {
+        submitTruthScanner();
       } else {
         submitMultipleChoice();
       }
@@ -1199,6 +1443,35 @@
       });
       
       const isCorrect = correctCount === scene.correctCount;
+      answers.push(isCorrect);
+      
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      
+      showFeedbackAndNext(isCorrect);
+    }
+
+    function submitTruthScanner() {
+      if (window.selectedInterpretation === undefined) return;
+      
+      const scene = scenes[currentScene];
+      const cards = document.querySelectorAll('.interpretation-card');
+      
+      cards.forEach((card, i) => {
+        const isCorrectCard = card.dataset.correct === 'true';
+        const isSelected = i === window.selectedInterpretation;
+        
+        if (isCorrectCard) {
+          card.classList.add('correct');
+        } else if (isSelected) {
+          card.classList.add('wrong');
+        }
+        
+        card.style.pointerEvents = 'none';
+      });
+      
+      const selectedCard = cards[window.selectedInterpretation];
+      const isCorrect = selectedCard.dataset.correct === 'true';
       answers.push(isCorrect);
       
       const dot = document.getElementById(`dot${currentScene}`);
