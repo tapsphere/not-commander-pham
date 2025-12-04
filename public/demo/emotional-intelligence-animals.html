@@ -985,6 +985,116 @@
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Echo Match Styles */
+    .echo-match {
+      width: 100%;
+    }
+
+    .echo-instruction {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6C3483;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .parrot-phrases {
+      background: linear-gradient(135deg, #F5EEF8, #E8DAEF);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .phrase-bubble {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      animation: echoIn 0.4s ease backwards;
+      box-shadow: 0 2px 8px rgba(108, 52, 131, 0.1);
+    }
+
+    .phrase-bubble:nth-child(1) { animation-delay: 0.1s; }
+    .phrase-bubble:nth-child(2) { animation-delay: 0.3s; }
+    .phrase-bubble:nth-child(3) { animation-delay: 0.5s; }
+
+    @keyframes echoIn {
+      from { 
+        opacity: 0; 
+        transform: translateX(-20px) scale(0.9);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    .phrase-icon {
+      font-size: 1.2rem;
+    }
+
+    .echo-question {
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+
+    .echo-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .echo-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 12px;
+      background: white;
+      border: 3px solid #e0e0e0;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .echo-option:hover {
+      border-color: #D7BDE2;
+      transform: translateY(-2px);
+    }
+
+    .echo-option.selected {
+      border-color: #6C3483;
+      background: #F5EEF8;
+    }
+
+    .echo-option.correct {
+      border-color: #38ef7d !important;
+      background: #d1fae5 !important;
+    }
+
+    .echo-option.wrong {
+      border-color: #ef4444 !important;
+      background: #fee2e2 !important;
+    }
+
+    .echo-option-icon {
+      font-size: 2rem;
+    }
+
+    .echo-option-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #666;
+      text-align: center;
+    }
   </style>
 </head>
 <body class="bg-intro">
@@ -1158,16 +1268,23 @@
         bgClass: 'bg-parrot',
         borderColor: '#6C3483',
         scenario: 'You notice tension in a meeting. Something feels wrong, but no one is addressing it directly.',
-        task: 'From minimal cues, what\'s the valid conclusion?',
-        choices: [
-          { text: 'Stay quiet and observe more', correct: false },
-          { text: 'Someone is personally attacking you', correct: false },
-          { text: 'Clear, assertive expression is needed', correct: true },
-          { text: 'Comfort someone else first', correct: false }
+        task: 'Listen to the cues and match the right response:',
+        gameType: 'echoMatch',
+        phrases: [
+          { icon: '😶', text: 'Everyone avoids eye contact...' },
+          { icon: '⏸️', text: 'Long uncomfortable pauses...' },
+          { icon: '😤', text: 'Someone sighs heavily...' }
+        ],
+        question: 'What action echoes these signals?',
+        echoOptions: [
+          { icon: '🤫', label: 'Stay silent', correct: false },
+          { icon: '🗣️', label: 'Speak up clearly', correct: true },
+          { icon: '🏃', label: 'Leave the room', correct: false },
+          { icon: '😊', label: 'Change the subject', correct: false }
         ],
         feedback: {
-          correct: 'Yes! When something feels wrong, speaking out clearly and respectfully is often the right choice.',
-          wrong: 'When tension exists but isn\'t addressed, clear and assertive communication is typically needed.'
+          correct: 'Yes! These signals echo the need for someone to speak up clearly and address the tension directly.',
+          wrong: 'The uncomfortable cues (avoidance, pauses, sighs) are calling for clear, assertive communication.'
         }
       },
       {
@@ -1269,6 +1386,9 @@
         document.getElementById('submitBtn').disabled = true;
       } else if (scene.gameType === 'assumptionBreaker') {
         loadAssumptionBreaker(scene, choicesContainer);
+      } else if (scene.gameType === 'echoMatch') {
+        loadEchoMatch(scene, choicesContainer);
+        document.getElementById('submitBtn').disabled = true;
       } else {
         loadMultipleChoice(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
@@ -1435,6 +1555,66 @@
       const slider = document.getElementById('rating' + index);
       const valueDisplay = document.getElementById('ratingValue' + index);
       valueDisplay.textContent = slider.value + '%';
+    }
+
+    // Echo Match Functions
+    function loadEchoMatch(scene, container) {
+      container.innerHTML = `
+        <div class="echo-match">
+          <div class="echo-instruction">🦜 Listen to the signals...</div>
+          <div class="parrot-phrases">
+            ${scene.phrases.map(phrase => `
+              <div class="phrase-bubble">
+                <span class="phrase-icon">${phrase.icon}</span>
+                <span>${phrase.text}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="echo-question">${scene.question}</div>
+          <div class="echo-options">
+            ${scene.echoOptions.map((opt, i) => `
+              <div class="echo-option" data-index="${i}" data-correct="${opt.correct}" onclick="selectEchoOption(this)">
+                <span class="echo-option-icon">${opt.icon}</span>
+                <span class="echo-option-label">${opt.label}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectEchoOption(option) {
+      document.querySelectorAll('.echo-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      window.selectedEchoOption = parseInt(option.dataset.index);
+      document.getElementById('submitBtn').disabled = false;
+    }
+
+    function submitEchoMatch() {
+      const scene = scenes[currentScene];
+      const options = document.querySelectorAll('.echo-option');
+      
+      options.forEach((opt, i) => {
+        const isCorrect = opt.dataset.correct === 'true';
+        const isSelected = i === window.selectedEchoOption;
+        
+        if (isCorrect) {
+          opt.classList.add('correct');
+        } else if (isSelected) {
+          opt.classList.add('wrong');
+        }
+        
+        opt.style.pointerEvents = 'none';
+      });
+      
+      const selectedOption = options[window.selectedEchoOption];
+      const isCorrect = selectedOption.dataset.correct === 'true';
+      answers.push(isCorrect);
+      
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      
+      showFeedbackAndNext(isCorrect);
     }
 
     // Assumption Breaker (Swipe Game) Functions
@@ -1746,6 +1926,8 @@
         submitPatternPath();
       } else if (scene.gameType === 'truthScanner') {
         submitTruthScanner();
+      } else if (scene.gameType === 'echoMatch') {
+        submitEchoMatch();
       } else {
         submitMultipleChoice();
       }
