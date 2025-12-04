@@ -731,11 +731,10 @@
         badgeClass: 'badge-optimism',
         bgClass: 'bg-dolphin',
         borderColor: '#7D6608',
-        scenario: 'A looping pathway appears with shifting symbols. Find the tiles that represent optimism!',
-        task: 'Tap the 4 tiles that show optimism patterns:',
+        scenario: 'A pathway appears with various emotional symbols. Some represent optimism, others are distractors.',
+        task: 'Tap the 4 tiles that show optimism:',
         gameType: 'patternPath',
         correctCount: 4,
-        patternHint: ['🌅', '→', '😊', '→', '🚀'],
         tiles: [
           { icon: '🌅', label: 'New beginnings', correct: true },
           { icon: '😊', label: 'Positive outlook', correct: true },
@@ -971,11 +970,13 @@
       // Shuffle tiles for randomness
       const shuffledTiles = [...scene.tiles].sort(() => Math.random() - 0.5);
       
+      const hintHtml = scene.patternHint 
+        ? `<div class="pattern-hint">Pattern: ${scene.patternHint.map(h => `<span>${h}</span>`).join('')}</div>`
+        : '';
+      
       container.innerHTML = `
         <div class="pattern-path">
-          <div class="pattern-hint">
-            Pattern: ${scene.patternHint.map(h => `<span>${h}</span>`).join('')}
-          </div>
+          ${hintHtml}
           <div class="path-grid">
             ${shuffledTiles.map((tile, i) => `
               <div class="path-tile" data-index="${i}" data-correct="${tile.correct}" onclick="selectTile(this)">
