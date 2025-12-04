@@ -802,12 +802,13 @@
       // Check game type
       if (scene.gameType === 'signalSorter') {
         loadSignalSorter(scene, choicesContainer);
+        // Signal sorter enables submit in setupDragAndDrop
       } else {
         loadMultipleChoice(scene, choicesContainer);
+        document.getElementById('submitBtn').disabled = true;
       }
       
       selectedAnswer = null;
-      document.getElementById('submitBtn').disabled = true;
       document.getElementById('submitBtn').textContent = 'Submit Answer';
       document.getElementById('submitBtn').onclick = submitAnswer;
       document.getElementById('feedback').classList.add('hidden');
@@ -1064,7 +1065,6 @@
       document.querySelectorAll('.clue-item').forEach(clue => {
         clue.draggable = false;
         clue.style.cursor = 'default';
-      });
       });
       
       const isCorrect = correctCount >= totalClues * 0.8; // 80% threshold
