@@ -563,6 +563,89 @@
       border-color: #ef4444 !important;
       background: #fee2e2 !important;
     }
+
+    /* Pattern Path Styles */
+    .pattern-path {
+      width: 100%;
+    }
+
+    .pattern-hint {
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: rgba(125, 102, 8, 0.1);
+      border-radius: 12px;
+      font-weight: 600;
+      color: #7D6608;
+    }
+
+    .pattern-hint span {
+      font-size: 1.5rem;
+      margin: 0 4px;
+    }
+
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .path-tile {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+      border: 3px solid #e0e0e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 1.5rem;
+      padding: 8px;
+      user-select: none;
+    }
+
+    .path-tile:hover {
+      border-color: #F9E79F;
+      transform: scale(1.05);
+    }
+
+    .path-tile.selected {
+      border-color: #F9E79F;
+      background: #FEF9E7;
+      box-shadow: 0 0 12px rgba(249, 231, 159, 0.5);
+    }
+
+    .path-tile.correct {
+      border-color: #38ef7d !important;
+      background: #d1fae5 !important;
+    }
+
+    .path-tile.wrong {
+      border-color: #ef4444 !important;
+      background: #fee2e2 !important;
+    }
+
+    .path-tile .tile-icon {
+      font-size: 1.8rem;
+    }
+
+    .path-tile .tile-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      margin-top: 4px;
+      text-align: center;
+      color: #666;
+    }
+
+    .selection-counter {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body class="bg-intro">
@@ -648,17 +731,24 @@
         badgeClass: 'badge-optimism',
         bgClass: 'bg-dolphin',
         borderColor: '#7D6608',
-        scenario: 'You see three colleagues who all share: positive body language, forward-looking statements, and enthusiasm about upcoming projects.',
-        task: 'What emotional pattern do you see?',
-        choices: [
-          { text: 'Empathy - feeling others\' emotions', correct: false },
-          { text: 'Courage - facing fears boldly', correct: false },
-          { text: 'Optimism - hopeful forward-thinking', correct: true },
-          { text: 'Resilience - bouncing back from setbacks', correct: false }
+        scenario: 'A looping pathway appears with shifting symbols. Find the tiles that represent optimism!',
+        task: 'Tap the 4 tiles that show optimism patterns:',
+        gameType: 'patternPath',
+        correctCount: 4,
+        patternHint: ['🌅', '→', '😊', '→', '🚀'],
+        tiles: [
+          { icon: '🌅', label: 'New beginnings', correct: true },
+          { icon: '😊', label: 'Positive outlook', correct: true },
+          { icon: '🚀', label: 'Future goals', correct: true },
+          { icon: '💪', label: 'Growth mindset', correct: true },
+          { icon: '😢', label: 'Dwelling on past', correct: false },
+          { icon: '⚠️', label: 'Worst case', correct: false },
+          { icon: '🔙', label: 'Looking back', correct: false },
+          { icon: '😤', label: 'Frustration', correct: false }
         ],
         feedback: {
-          correct: 'You spotted the pattern! Forward-looking enthusiasm is a key sign of optimism.',
-          wrong: 'The pattern of forward-looking statements and enthusiasm indicates optimism, not other emotions.'
+          correct: 'Excellent pattern recognition! You identified all the optimism signals: new beginnings, positive outlook, future goals, and growth mindset.',
+          wrong: 'Optimism focuses on positive future outcomes. Look for forward-looking, hopeful symbols.'
         }
       },
       {
@@ -812,6 +902,9 @@
       if (scene.gameType === 'signalSorter') {
         loadSignalSorter(scene, choicesContainer);
         // Signal sorter enables submit in setupDragAndDrop
+      } else if (scene.gameType === 'patternPath') {
+        loadPatternPath(scene, choicesContainer);
+        document.getElementById('submitBtn').disabled = true;
       } else {
         loadMultipleChoice(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
@@ -871,6 +964,43 @@
       `;
       
       setupDragAndDrop();
+    }
+
+    function loadPatternPath(scene, container) {
+      // Shuffle tiles for randomness
+      const shuffledTiles = [...scene.tiles].sort(() => Math.random() - 0.5);
+      
+      container.innerHTML = `
+        <div class="pattern-path">
+          <div class="pattern-hint">
+            Pattern: ${scene.patternHint.map(h => `<span>${h}</span>`).join('')}
+          </div>
+          <div class="path-grid">
+            ${shuffledTiles.map((tile, i) => `
+              <div class="path-tile" data-index="${i}" data-correct="${tile.correct}" onclick="selectTile(this)">
+                <span class="tile-icon">${tile.icon}</span>
+                <span class="tile-label">${tile.label}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="selection-counter" id="selectionCounter">Selected: 0 / ${scene.correctCount}</div>
+        </div>
+      `;
+      
+      window.patternPathRequired = scene.correctCount;
+    }
+
+    function selectTile(tile) {
+      const scene = scenes[currentScene];
+      if (scene.gameType !== 'patternPath') return;
+      
+      tile.classList.toggle('selected');
+      
+      const selectedCount = document.querySelectorAll('.path-tile.selected').length;
+      document.getElementById('selectionCounter').textContent = `Selected: ${selectedCount} / ${window.patternPathRequired}`;
+      
+      // Enable submit when correct number selected
+      document.getElementById('submitBtn').disabled = selectedCount !== window.patternPathRequired;
     }
 
     function setupDragAndDrop() {
@@ -1015,6 +1145,8 @@
       
       if (scene.gameType === 'signalSorter') {
         submitSignalSorter();
+      } else if (scene.gameType === 'patternPath') {
+        submitPatternPath();
       } else {
         submitMultipleChoice();
       }
@@ -1038,6 +1170,37 @@
         if (scene.choices[i].correct) btn.classList.add('correct');
         else if (i === selectedAnswer && !isCorrect) btn.classList.add('wrong');
       });
+      
+      showFeedbackAndNext(isCorrect);
+    }
+
+    function submitPatternPath() {
+      const scene = scenes[currentScene];
+      const tiles = document.querySelectorAll('.path-tile');
+      let correctCount = 0;
+      
+      tiles.forEach(tile => {
+        const isCorrectTile = tile.dataset.correct === 'true';
+        const isSelected = tile.classList.contains('selected');
+        
+        // Mark correct tiles
+        if (isCorrectTile) {
+          tile.classList.add(isSelected ? 'correct' : 'wrong');
+        } else if (isSelected) {
+          tile.classList.add('wrong');
+        }
+        
+        if (isSelected && isCorrectTile) correctCount++;
+        
+        // Disable clicking
+        tile.style.pointerEvents = 'none';
+      });
+      
+      const isCorrect = correctCount === scene.correctCount;
+      answers.push(isCorrect);
+      
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
       
       showFeedbackAndNext(isCorrect);
     }
