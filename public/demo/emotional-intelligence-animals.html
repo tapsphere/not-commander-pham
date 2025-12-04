@@ -416,6 +416,144 @@
     }
 
     .hidden { display: none !important; }
+
+    /* Signal Sorter Styles */
+    .signal-sorter {
+      width: 100%;
+    }
+
+    .clues-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      min-height: 80px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .clue-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 20px;
+      cursor: grab;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      user-select: none;
+      animation: floatIn 0.5s ease backwards;
+    }
+
+    .clue-item:nth-child(1) { animation-delay: 0.1s; }
+    .clue-item:nth-child(2) { animation-delay: 0.2s; }
+    .clue-item:nth-child(3) { animation-delay: 0.3s; }
+    .clue-item:nth-child(4) { animation-delay: 0.4s; }
+    .clue-item:nth-child(5) { animation-delay: 0.5s; }
+    .clue-item:nth-child(6) { animation-delay: 0.6s; }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.8); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .clue-item:hover {
+      border-color: #667eea;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .clue-item:active {
+      cursor: grabbing;
+      transform: scale(1.1);
+    }
+
+    .clue-item.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .clue-icon {
+      font-size: 1.2rem;
+    }
+
+    .buckets-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 480px) {
+      .buckets-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .bucket {
+      border: 3px dashed #ccc;
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 150px;
+      transition: all 0.3s ease;
+      background: #fafafa;
+    }
+
+    .bucket.drag-over {
+      border-color: #667eea;
+      background: #f0f4ff;
+      transform: scale(1.02);
+    }
+
+    .bucket-header {
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .bucket-relevant .bucket-header { color: #059669; border-color: #a7f3d0; }
+    .bucket-noise .bucket-header { color: #dc2626; border-color: #fecaca; }
+
+    .bucket-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 60px;
+    }
+
+    .bucket-items .clue-item {
+      animation: none;
+      font-size: 0.8rem;
+      padding: 8px 12px;
+    }
+
+    .bucket-relevant .clue-item {
+      border-color: #a7f3d0;
+      background: #ecfdf5;
+    }
+
+    .bucket-noise .clue-item {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .clue-item.correct-placement {
+      border-color: #38ef7d !important;
+      background: #d1fae5 !important;
+    }
+
+    .clue-item.wrong-placement {
+      border-color: #ef4444 !important;
+      background: #fee2e2 !important;
+    }
   </style>
 </head>
 <body class="bg-intro">
@@ -479,16 +617,19 @@
         bgClass: 'bg-elephant',
         borderColor: '#8B4557',
         scenario: 'Your teammate arrives late, avoids eye contact, and speaks softly. The room feels tense.',
-        task: 'Break this situation into emotional components:',
-        choices: [
-          { text: 'Behavior = disrespect; Emotion = anger', correct: false },
-          { text: 'Behavior = discomfort; Emotion = fear', correct: true },
-          { text: 'Behavior = frustration; Emotion = annoyance', correct: false },
-          { text: 'Behavior = distraction; Emotion = apathy', correct: false }
+        task: 'Sort these clues: Which are relevant emotional signals?',
+        gameType: 'signalSorter',
+        clues: [
+          { icon: '👀', text: 'Avoids eye contact', relevant: true },
+          { icon: '🗣️', text: 'Speaks softly', relevant: true },
+          { icon: '⏰', text: 'Arrived late', relevant: false },
+          { icon: '😰', text: 'Body tension', relevant: true },
+          { icon: '📱', text: 'Checked phone once', relevant: false },
+          { icon: '🚪', text: 'Sat near door', relevant: false }
         ],
         feedback: {
-          correct: 'Excellent! You correctly identified the subtle signs of discomfort and fear.',
-          wrong: 'The combination of avoiding eye contact and speaking softly suggests discomfort and fear, not anger or disrespect.'
+          correct: 'Excellent empathy! You identified the emotional signals: eye contact avoidance, soft speech, and body tension reveal discomfort.',
+          wrong: 'Focus on body language and voice cues. Timing and positioning are less reliable emotional indicators.'
         }
       },
       {
@@ -657,17 +798,18 @@
       document.getElementById('taskLabel').textContent = scene.task;
       
       const choicesContainer = document.getElementById('choices');
-      const letters = ['A', 'B', 'C', 'D'];
-      choicesContainer.innerHTML = scene.choices.map((choice, i) => `
-        <button class="choice-btn" onclick="selectChoice(${i})">
-          <span class="choice-letter">${letters[i]}</span>
-          <span>${choice.text}</span>
-        </button>
-      `).join('');
+      
+      // Check game type
+      if (scene.gameType === 'signalSorter') {
+        loadSignalSorter(scene, choicesContainer);
+      } else {
+        loadMultipleChoice(scene, choicesContainer);
+      }
       
       selectedAnswer = null;
       document.getElementById('submitBtn').disabled = true;
       document.getElementById('submitBtn').textContent = 'Submit Answer';
+      document.getElementById('submitBtn').onclick = submitAnswer;
       document.getElementById('feedback').classList.add('hidden');
       
       // Update progress dots
@@ -684,6 +826,164 @@
       card.style.animation = 'slideUp 0.5s ease';
     }
 
+    function loadMultipleChoice(scene, container) {
+      const letters = ['A', 'B', 'C', 'D'];
+      container.innerHTML = scene.choices.map((choice, i) => `
+        <button class="choice-btn" onclick="selectChoice(${i})">
+          <span class="choice-letter">${letters[i]}</span>
+          <span>${choice.text}</span>
+        </button>
+      `).join('');
+    }
+
+    function loadSignalSorter(scene, container) {
+      container.innerHTML = `
+        <div class="signal-sorter">
+          <div class="clues-area" id="cluesArea">
+            ${scene.clues.map((clue, i) => `
+              <div class="clue-item" draggable="true" data-index="${i}" data-relevant="${clue.relevant}">
+                <span class="clue-icon">${clue.icon}</span>
+                <span>${clue.text}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="buckets-container">
+            <div class="bucket bucket-relevant" id="bucketRelevant">
+              <div class="bucket-header">✓ Relevant Signals</div>
+              <div class="bucket-items" data-bucket="relevant"></div>
+            </div>
+            <div class="bucket bucket-noise" id="bucketNoise">
+              <div class="bucket-header">✗ Noise / Not Relevant</div>
+              <div class="bucket-items" data-bucket="noise"></div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      setupDragAndDrop();
+    }
+
+    function setupDragAndDrop() {
+      const clues = document.querySelectorAll('.clue-item');
+      const buckets = document.querySelectorAll('.bucket-items');
+      const cluesArea = document.getElementById('cluesArea');
+      
+      clues.forEach(clue => {
+        clue.addEventListener('dragstart', handleDragStart);
+        clue.addEventListener('dragend', handleDragEnd);
+        // Touch support
+        clue.addEventListener('touchstart', handleTouchStart, { passive: false });
+        clue.addEventListener('touchmove', handleTouchMove, { passive: false });
+        clue.addEventListener('touchend', handleTouchEnd);
+      });
+      
+      buckets.forEach(bucket => {
+        bucket.addEventListener('dragover', handleDragOver);
+        bucket.addEventListener('dragleave', handleDragLeave);
+        bucket.addEventListener('drop', handleDrop);
+      });
+      
+      cluesArea.addEventListener('dragover', handleDragOver);
+      cluesArea.addEventListener('dragleave', handleDragLeave);
+      cluesArea.addEventListener('drop', handleDrop);
+    }
+
+    let draggedElement = null;
+    let touchClone = null;
+
+    function handleDragStart(e) {
+      draggedElement = e.target.closest('.clue-item');
+      draggedElement.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+      draggedElement.classList.remove('dragging');
+      document.querySelectorAll('.bucket, .clues-area').forEach(el => el.classList.remove('drag-over'));
+      checkSignalSorterComplete();
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      const target = e.target.closest('.bucket-items, .clues-area');
+      if (target) {
+        target.closest('.bucket, .clues-area')?.classList.add('drag-over');
+      }
+    }
+
+    function handleDragLeave(e) {
+      const target = e.target.closest('.bucket, .clues-area');
+      if (target) target.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const target = e.target.closest('.bucket-items, .clues-area');
+      if (target && draggedElement) {
+        target.appendChild(draggedElement);
+        target.closest('.bucket, .clues-area')?.classList.remove('drag-over');
+      }
+      checkSignalSorterComplete();
+    }
+
+    // Touch handlers for mobile
+    function handleTouchStart(e) {
+      draggedElement = e.target.closest('.clue-item');
+      const rect = draggedElement.getBoundingClientRect();
+      
+      touchClone = draggedElement.cloneNode(true);
+      touchClone.style.position = 'fixed';
+      touchClone.style.left = rect.left + 'px';
+      touchClone.style.top = rect.top + 'px';
+      touchClone.style.width = rect.width + 'px';
+      touchClone.style.zIndex = '1000';
+      touchClone.style.opacity = '0.8';
+      touchClone.style.pointerEvents = 'none';
+      document.body.appendChild(touchClone);
+      
+      draggedElement.classList.add('dragging');
+    }
+
+    function handleTouchMove(e) {
+      e.preventDefault();
+      if (!touchClone) return;
+      
+      const touch = e.touches[0];
+      touchClone.style.left = (touch.clientX - touchClone.offsetWidth / 2) + 'px';
+      touchClone.style.top = (touch.clientY - touchClone.offsetHeight / 2) + 'px';
+      
+      // Highlight drop target
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      document.querySelectorAll('.bucket, .clues-area').forEach(el => el.classList.remove('drag-over'));
+      const dropTarget = elementBelow?.closest('.bucket, .clues-area');
+      if (dropTarget) dropTarget.classList.add('drag-over');
+    }
+
+    function handleTouchEnd(e) {
+      if (!touchClone || !draggedElement) return;
+      
+      const touch = e.changedTouches[0];
+      const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropTarget = elementBelow?.closest('.bucket-items, .clues-area');
+      
+      if (dropTarget) {
+        dropTarget.appendChild(draggedElement);
+      }
+      
+      touchClone.remove();
+      touchClone = null;
+      draggedElement.classList.remove('dragging');
+      document.querySelectorAll('.bucket, .clues-area').forEach(el => el.classList.remove('drag-over'));
+      
+      checkSignalSorterComplete();
+    }
+
+    function checkSignalSorterComplete() {
+      const cluesArea = document.getElementById('cluesArea');
+      const remainingClues = cluesArea?.querySelectorAll('.clue-item').length || 0;
+      document.getElementById('submitBtn').disabled = remainingClues > 0;
+    }
+
     function selectChoice(index) {
       const buttons = document.querySelectorAll('.choice-btn');
       buttons.forEach((btn, i) => {
@@ -695,6 +995,16 @@
     }
 
     function submitAnswer() {
+      const scene = scenes[currentScene];
+      
+      if (scene.gameType === 'signalSorter') {
+        submitSignalSorter();
+      } else {
+        submitMultipleChoice();
+      }
+    }
+
+    function submitMultipleChoice() {
       if (selectedAnswer === null) return;
       
       const scene = scenes[currentScene];
@@ -713,6 +1023,48 @@
         else if (i === selectedAnswer && !isCorrect) btn.classList.add('wrong');
       });
       
+      showFeedbackAndNext(isCorrect);
+    }
+
+    function submitSignalSorter() {
+      const scene = scenes[currentScene];
+      const relevantBucket = document.querySelector('[data-bucket="relevant"]');
+      const noiseBucket = document.querySelector('[data-bucket="noise"]');
+      
+      let correctCount = 0;
+      let totalClues = scene.clues.length;
+      
+      // Check relevant bucket
+      relevantBucket.querySelectorAll('.clue-item').forEach(clue => {
+        const isRelevant = clue.dataset.relevant === 'true';
+        clue.classList.add(isRelevant ? 'correct-placement' : 'wrong-placement');
+        if (isRelevant) correctCount++;
+      });
+      
+      // Check noise bucket
+      noiseBucket.querySelectorAll('.clue-item').forEach(clue => {
+        const isRelevant = clue.dataset.relevant === 'true';
+        clue.classList.add(!isRelevant ? 'correct-placement' : 'wrong-placement');
+        if (!isRelevant) correctCount++;
+      });
+      
+      // Disable dragging
+      document.querySelectorAll('.clue-item').forEach(clue => {
+        clue.draggable = false;
+        clue.style.cursor = 'default';
+      });
+      
+      const isCorrect = correctCount >= totalClues * 0.8; // 80% threshold
+      answers.push(isCorrect);
+      
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      
+      showFeedbackAndNext(isCorrect);
+    }
+
+    function showFeedbackAndNext(isCorrect) {
+      const scene = scenes[currentScene];
       const feedback = document.getElementById('feedback');
       feedback.textContent = isCorrect ? scene.feedback.correct : scene.feedback.wrong;
       feedback.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
