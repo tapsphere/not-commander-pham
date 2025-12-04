@@ -818,6 +818,173 @@
       color: #6C3483;
       margin-top: 6px;
     }
+
+    /* Assumption Breaker (Swipe) Styles */
+    .assumption-breaker {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .swipe-instruction {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #1E8449;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .swipe-hints {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .hint-left {
+      color: #ef4444;
+    }
+
+    .hint-right {
+      color: #22c55e;
+    }
+
+    .swipe-container {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      perspective: 1000px;
+    }
+
+    .swipe-card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      cursor: grab;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    .swipe-card:active {
+      cursor: grabbing;
+    }
+
+    .swipe-card.swiping-left {
+      background: linear-gradient(135deg, #fee2e2, white);
+      box-shadow: -8px 8px 30px rgba(239, 68, 68, 0.3);
+    }
+
+    .swipe-card.swiping-right {
+      background: linear-gradient(135deg, white, #d1fae5);
+      box-shadow: 8px 8px 30px rgba(34, 197, 94, 0.3);
+    }
+
+    .swipe-card.swipe-out-left {
+      animation: swipeOutLeft 0.4s ease forwards;
+    }
+
+    .swipe-card.swipe-out-right {
+      animation: swipeOutRight 0.4s ease forwards;
+    }
+
+    @keyframes swipeOutLeft {
+      to {
+        transform: translateX(-150%) rotate(-30deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes swipeOutRight {
+      to {
+        transform: translateX(150%) rotate(30deg);
+        opacity: 0;
+      }
+    }
+
+    .thought-bubble {
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-align: center;
+      color: #333;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 16px;
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .thought-bubble::before {
+      content: '💭';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5rem;
+    }
+
+    .card-type-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-top: 8px;
+    }
+
+    .card-type-label.faulty {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .card-type-label.compassionate {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .swipe-progress {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 16px;
+    }
+
+    .swipe-result {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      margin-top: 8px;
+      padding: 8px 16px;
+      border-radius: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .swipe-result.correct {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .swipe-result.wrong {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="bg-intro">
@@ -970,16 +1137,17 @@
         bgClass: 'bg-dog',
         borderColor: '#1E8449',
         scenario: 'You haven\'t heard from your friend all day. Your mind races with possible explanations.',
-        task: 'Which assumption leads to a wrong conclusion?',
-        choices: [
-          { text: '"They must be mad at me."', correct: true },
-          { text: '"They may be overwhelmed."', correct: false },
-          { text: '"They may be tired."', correct: false },
-          { text: '"They may be busy."', correct: false }
+        task: 'Swipe LEFT to reject faulty assumptions, RIGHT to keep compassionate ones:',
+        gameType: 'assumptionBreaker',
+        assumptions: [
+          { text: '"They must be mad at me."', type: 'faulty', swipeDirection: 'left' },
+          { text: '"They\'re probably just busy."', type: 'compassionate', swipeDirection: 'right' },
+          { text: '"I did something wrong."', type: 'faulty', swipeDirection: 'left' },
+          { text: '"They might need some space."', type: 'compassionate', swipeDirection: 'right' }
         ],
         feedback: {
-          correct: 'Correct! Assuming anger without evidence is a common logical gap. Compassion helps us see other possibilities.',
-          wrong: 'Assuming "they must be mad" without evidence is the faulty assumption here.'
+          correct: 'Excellent compassion! You correctly identified faulty assumptions vs. understanding interpretations.',
+          wrong: 'Remember: assuming the worst without evidence is a logical gap. Compassion helps us see other possibilities.'
         }
       },
       {
@@ -1099,6 +1267,8 @@
       } else if (scene.gameType === 'truthScanner') {
         loadTruthScanner(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
+      } else if (scene.gameType === 'assumptionBreaker') {
+        loadAssumptionBreaker(scene, choicesContainer);
       } else {
         loadMultipleChoice(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
@@ -1265,6 +1435,169 @@
       const slider = document.getElementById('rating' + index);
       const valueDisplay = document.getElementById('ratingValue' + index);
       valueDisplay.textContent = slider.value + '%';
+    }
+
+    // Assumption Breaker (Swipe Game) Functions
+    function loadAssumptionBreaker(scene, container) {
+      window.swipeData = {
+        assumptions: [...scene.assumptions],
+        currentIndex: 0,
+        correctCount: 0,
+        totalCount: scene.assumptions.length
+      };
+      
+      container.innerHTML = `
+        <div class="assumption-breaker">
+          <div class="swipe-instruction">👆 Swipe cards left or right</div>
+          <div class="swipe-hints">
+            <span class="hint-left">← REJECT (Faulty)</span>
+            <span class="hint-right">KEEP (Compassionate) →</span>
+          </div>
+          <div class="swipe-container" id="swipeContainer"></div>
+          <div class="swipe-progress" id="swipeProgress">Card 1 of ${scene.assumptions.length}</div>
+          <div id="swipeResults"></div>
+        </div>
+      `;
+      
+      renderSwipeCard();
+      document.getElementById('submitBtn').style.display = 'none';
+    }
+
+    function renderSwipeCard() {
+      const container = document.getElementById('swipeContainer');
+      const data = window.swipeData;
+      
+      if (data.currentIndex >= data.totalCount) {
+        finishAssumptionBreaker();
+        return;
+      }
+      
+      const assumption = data.assumptions[data.currentIndex];
+      
+      container.innerHTML = `
+        <div class="swipe-card" id="swipeCard">
+          <div class="thought-bubble">${assumption.text}</div>
+          <div class="card-type-label ${assumption.type}">${assumption.type === 'faulty' ? '⚠️ Assumption' : '💚 Interpretation'}</div>
+        </div>
+      `;
+      
+      document.getElementById('swipeProgress').textContent = 
+        `Card ${data.currentIndex + 1} of ${data.totalCount}`;
+      
+      setupSwipeListeners();
+    }
+
+    function setupSwipeListeners() {
+      const card = document.getElementById('swipeCard');
+      if (!card) return;
+      
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+      
+      const handleStart = (clientX) => {
+        startX = clientX;
+        isDragging = true;
+        card.style.transition = 'none';
+      };
+      
+      const handleMove = (clientX) => {
+        if (!isDragging) return;
+        currentX = clientX - startX;
+        const rotation = currentX * 0.1;
+        card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+        
+        // Visual feedback
+        card.classList.remove('swiping-left', 'swiping-right');
+        if (currentX < -50) {
+          card.classList.add('swiping-left');
+        } else if (currentX > 50) {
+          card.classList.add('swiping-right');
+        }
+      };
+      
+      const handleEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        card.style.transition = 'transform 0.3s ease';
+        
+        const threshold = 80;
+        if (currentX < -threshold) {
+          swipeCard('left');
+        } else if (currentX > threshold) {
+          swipeCard('right');
+        } else {
+          card.style.transform = 'translateX(0) rotate(0)';
+          card.classList.remove('swiping-left', 'swiping-right');
+        }
+      };
+      
+      // Mouse events
+      card.addEventListener('mousedown', (e) => handleStart(e.clientX));
+      document.addEventListener('mousemove', (e) => handleMove(e.clientX));
+      document.addEventListener('mouseup', handleEnd);
+      
+      // Touch events
+      card.addEventListener('touchstart', (e) => {
+        handleStart(e.touches[0].clientX);
+      }, { passive: true });
+      
+      card.addEventListener('touchmove', (e) => {
+        handleMove(e.touches[0].clientX);
+      }, { passive: true });
+      
+      card.addEventListener('touchend', handleEnd);
+    }
+
+    function swipeCard(direction) {
+      const card = document.getElementById('swipeCard');
+      const data = window.swipeData;
+      const assumption = data.assumptions[data.currentIndex];
+      
+      // Determine if swipe was correct
+      const isCorrect = assumption.swipeDirection === direction;
+      if (isCorrect) data.correctCount++;
+      
+      // Show result briefly
+      const resultsDiv = document.getElementById('swipeResults');
+      resultsDiv.innerHTML = `
+        <div class="swipe-result ${isCorrect ? 'correct' : 'wrong'}">
+          ${isCorrect ? '✅ Correct!' : '❌ Wrong direction'}
+        </div>
+      `;
+      
+      // Animate card out
+      card.classList.add(direction === 'left' ? 'swipe-out-left' : 'swipe-out-right');
+      
+      setTimeout(() => {
+        data.currentIndex++;
+        resultsDiv.innerHTML = '';
+        renderSwipeCard();
+      }, 500);
+    }
+
+    function finishAssumptionBreaker() {
+      const data = window.swipeData;
+      const isCorrect = data.correctCount >= data.totalCount - 1; // Allow 1 mistake
+      
+      answers.push(isCorrect);
+      
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      
+      document.getElementById('swipeContainer').innerHTML = `
+        <div style="text-align: center; padding: 24px;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">${isCorrect ? '🎉' : '😔'}</div>
+          <div style="font-weight: 600; color: ${isCorrect ? '#065f46' : '#991b1b'};">
+            ${data.correctCount}/${data.totalCount} correct
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('submitBtn').style.display = 'block';
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').textContent = 'Continue';
+      document.getElementById('submitBtn').onclick = () => showFeedbackAndNext(isCorrect);
     }
 
     function setupDragAndDrop() {
