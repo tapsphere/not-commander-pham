@@ -2,907 +2,603 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Emotional Intelligence - Animal Guides</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emotional Intelligence: Animal Guides</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    
-    :root {
-      --primary: #2D5556;
-      --secondary: #6C8FA4;
-      --accent: #F0C7A0;
-      --background: #1A1A2E;
-      --surface: #16213E;
-      --text: #FFFFFF;
-      --success: #4CAF50;
-      --error: #FF5252;
-      
-      /* Animal colors */
-      --elephant-blue: #4A90D9;
-      --dolphin-yellow: #FFD93D;
-      --owl-purple: #9B59B6;
-      --dog-green: #27AE60;
-      --parrot-orange: #E67E22;
-      --tiger-black: #2C3E50;
-    }
-    
+
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--background);
-      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
-      overflow-x: hidden;
+      transition: background-color 0.5s ease;
     }
-    
+
+    /* Scene-specific backgrounds from reference */
+    .bg-intro { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-elephant { background: #FADCD9; }
+    .bg-dolphin { background: #F9E79F; }
+    .bg-owl { background: #D7BDE2; }
+    .bg-dog { background: #D5F5E3; }
+    .bg-parrot { background: #D2B4DE; }
+    .bg-tiger { background: #F5B7B1; }
+    .bg-results { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+
     .game-container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    
+
+    /* Header with timer */
     .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 20px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+      z-index: 100;
     }
-    
-    .timer {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: var(--accent);
-    }
-    
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 24px;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
-      transition: width 0.5s ease;
-    }
-    
-    .scene {
-      display: none;
-      flex-direction: column;
-      flex: 1;
-      animation: fadeIn 0.5s ease;
-    }
-    
-    .scene.active {
+
+    .progress-dots {
       display: flex;
+      gap: 8px;
     }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      transition: all 0.3s ease;
     }
-    
+
+    .dot.active { background: #667eea; transform: scale(1.2); }
+    .dot.completed { background: #38ef7d; }
+    .dot.wrong { background: #ef4444; }
+
+    .timer {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #333;
+      background: #f0f0f0;
+      padding: 8px 16px;
+      border-radius: 20px;
+    }
+
+    .timer.warning { color: #f59e0b; background: #fef3c7; }
+    .timer.danger { color: #ef4444; background: #fee2e2; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
     /* Intro Screen */
     .intro-screen {
       text-align: center;
-      padding: 40px 20px;
-    }
-    
-    .intro-screen h1 {
-      font-size: 2rem;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, var(--accent), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .intro-screen p {
-      color: rgba(255,255,255,0.7);
-      margin-bottom: 24px;
-      line-height: 1.6;
-    }
-    
-    .animal-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin: 32px 0;
-    }
-    
-    .animal-preview {
-      background: var(--surface);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-    }
-    
-    .animal-emoji {
-      font-size: 2.5rem;
-      margin-bottom: 8px;
-    }
-    
-    .animal-name {
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.6);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .start-btn {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
+      max-width: 600px;
+    }
+
+    .intro-screen h1 {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .intro-screen p {
+      font-size: 1.25rem;
+      margin-bottom: 32px;
+      opacity: 0.9;
+    }
+
+    .animal-preview {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .animal-preview img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .start-btn {
+      background: white;
+      color: #667eea;
       border: none;
       padding: 16px 48px;
-      font-size: 1.1rem;
-      border-radius: 12px;
-      cursor: pointer;
-      margin-top: 24px;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .start-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(45, 85, 86, 0.4);
-    }
-    
-    /* Scene Content */
-    .scene-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .animal-badge {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    
-    .scene-info h2 {
       font-size: 1.25rem;
-      margin-bottom: 4px;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
     }
-    
-    .scene-info .emotion {
-      font-size: 0.875rem;
-      color: var(--accent);
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
     }
-    
-    .scenario-card {
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 24px;
+
+    /* Scene Card */
+    .scene-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      margin-top: 80px;
+      animation: slideUp 0.5s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animal-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 24px;
-      border-left: 4px solid;
     }
-    
-    .scenario-card h3 {
+
+    .animal-image {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      margin-bottom: 16px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .animal-name {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #333;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .emotion-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 20px;
       font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .badge-empathy { background: #FADCD9; color: #8B4557; }
+    .badge-optimism { background: #F9E79F; color: #7D6608; }
+    .badge-insight { background: #D7BDE2; color: #6C3483; }
+    .badge-compassion { background: #D5F5E3; color: #1E8449; }
+    .badge-speak { background: #D2B4DE; color: #6C3483; }
+    .badge-courage { background: #F5B7B1; color: #922B21; }
+
+    .scenario-text {
+      font-size: 1rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border-left: 4px solid currentColor;
+    }
+
+    .task-label {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #667eea;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: rgba(255,255,255,0.5);
       margin-bottom: 12px;
     }
-    
-    .scenario-card p {
-      line-height: 1.7;
-      font-size: 1rem;
-    }
-    
-    .cue-strip {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 8px;
-      margin-top: 16px;
-    }
-    
-    .color-badge {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-    }
-    
-    .phrase {
-      font-style: italic;
-      color: rgba(255,255,255,0.7);
-    }
-    
-    .task-card {
-      background: rgba(240, 199, 160, 0.1);
-      border: 1px solid var(--accent);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .task-card h4 {
-      color: var(--accent);
-      margin-bottom: 8px;
-      font-size: 0.875rem;
-      text-transform: uppercase;
-    }
-    
+
     .choices {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
-    
-    .choice {
-      background: var(--surface);
-      border: 2px solid transparent;
+
+    .choice-btn {
+      padding: 16px 20px;
+      border: 2px solid #e0e0e0;
       border-radius: 12px;
-      padding: 16px;
+      background: white;
+      font-size: 1rem;
+      text-align: left;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 12px;
     }
-    
-    .choice:hover {
-      border-color: rgba(255,255,255,0.2);
+
+    .choice-btn:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
     }
-    
-    .choice.selected {
-      border-color: var(--accent);
-      background: rgba(240, 199, 160, 0.1);
+
+    .choice-btn.selected {
+      border-color: #667eea;
+      background: #eff2ff;
     }
-    
-    .choice.correct {
-      border-color: var(--success);
-      background: rgba(76, 175, 80, 0.1);
+
+    .choice-btn.correct {
+      border-color: #38ef7d;
+      background: #ecfdf5;
     }
-    
-    .choice.incorrect {
-      border-color: var(--error);
-      background: rgba(255, 82, 82, 0.1);
+
+    .choice-btn.wrong {
+      border-color: #ef4444;
+      background: #fef2f2;
     }
-    
+
+    .choice-btn.disabled {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
     .choice-letter {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.1);
+      background: #f0f0f0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
+      font-weight: 700;
+      color: #666;
       flex-shrink: 0;
     }
-    
-    .choice.selected .choice-letter {
-      background: var(--accent);
-      color: var(--background);
-    }
-    
+
+    .choice-btn.selected .choice-letter { background: #667eea; color: white; }
+    .choice-btn.correct .choice-letter { background: #38ef7d; color: white; }
+    .choice-btn.wrong .choice-letter { background: #ef4444; color: white; }
+
     .submit-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 16px;
-      font-size: 1rem;
-      border-radius: 12px;
-      cursor: pointer;
       width: 100%;
-      margin-top: 16px;
-      transition: all 0.2s;
-      opacity: 0.5;
-      pointer-events: none;
-    }
-    
-    .submit-btn.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    
-    .submit-btn.active:hover {
-      background: var(--secondary);
-    }
-    
-    .feedback-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 100;
-    }
-    
-    .feedback-modal.show {
-      display: flex;
-    }
-    
-    .feedback-content {
-      background: var(--surface);
-      border-radius: 20px;
-      padding: 32px;
-      max-width: 400px;
-      text-align: center;
-      animation: popIn 0.3s ease;
-    }
-    
-    @keyframes popIn {
-      from { transform: scale(0.8); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    
-    .feedback-icon {
-      font-size: 4rem;
-      margin-bottom: 16px;
-    }
-    
-    .feedback-content h3 {
-      font-size: 1.5rem;
-      margin-bottom: 12px;
-    }
-    
-    .feedback-content p {
-      color: rgba(255,255,255,0.7);
-      margin-bottom: 24px;
-      line-height: 1.6;
-    }
-    
-    .next-btn {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      padding: 14px 32px;
-      font-size: 1rem;
-      border-radius: 10px;
+      border-radius: 12px;
+      font-size: 1.125rem;
+      font-weight: 700;
       cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
     }
-    
+
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .feedback {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .feedback.correct { background: #ecfdf5; color: #059669; }
+    .feedback.wrong { background: #fef2f2; color: #dc2626; }
+
     /* Results Screen */
     .results-screen {
       text-align: center;
-      padding: 40px 20px;
+      color: white;
+      max-width: 500px;
     }
-    
-    .results-icon {
-      font-size: 5rem;
-      margin-bottom: 24px;
-    }
-    
+
     .results-screen h2 {
       font-size: 2rem;
-      margin-bottom: 8px;
-    }
-    
-    .proficiency-badge {
-      display: inline-block;
-      padding: 8px 24px;
-      border-radius: 20px;
-      font-weight: bold;
-      margin-bottom: 32px;
-    }
-    
-    .proficiency-badge.mastery {
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      color: #000;
-    }
-    
-    .proficiency-badge.proficient {
-      background: linear-gradient(135deg, #4CAF50, #2E7D32);
-    }
-    
-    .proficiency-badge.needs-work {
-      background: linear-gradient(135deg, #FF5722, #E64A19);
-    }
-    
-    .score-card {
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 24px;
       margin-bottom: 24px;
     }
-    
-    .score-value {
-      font-size: 3rem;
-      font-weight: bold;
-      background: linear-gradient(135deg, var(--accent), var(--secondary));
+
+    .score-card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      color: #333;
+      margin-bottom: 24px;
+    }
+
+    .score-big {
+      font-size: 4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    
+
     .score-label {
-      color: rgba(255,255,255,0.6);
-      margin-top: 4px;
-    }
-    
-    .sub-results {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      text-align: left;
-      margin-top: 24px;
-    }
-    
-    .sub-result {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 8px;
-    }
-    
-    .sub-result .emoji {
-      font-size: 1.5rem;
-    }
-    
-    .sub-result .name {
-      flex: 1;
-      font-size: 0.875rem;
-    }
-    
-    .sub-result .status {
-      font-size: 1.25rem;
-    }
-    
-    .xp-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #9945FF, #14F195);
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: bold;
-      margin-top: 24px;
-    }
-    
-    .restart-btn {
-      background: var(--surface);
-      border: 2px solid var(--primary);
-      color: white;
-      padding: 14px 32px;
       font-size: 1rem;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 16px;
+      color: #666;
+      margin-bottom: 24px;
     }
+
+    .scene-results {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .scene-result {
+      padding: 12px;
+      border-radius: 12px;
+      background: #f8f9fa;
+    }
+
+    .scene-result img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      margin-bottom: 4px;
+    }
+
+    .scene-result.correct { background: #ecfdf5; }
+    .scene-result.wrong { background: #fef2f2; }
+
+    .xp-earned {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .retry-btn {
+      background: white;
+      color: #11998e;
+      border: none;
+      padding: 16px 48px;
+      font-size: 1.125rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .retry-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
-<body>
-  <div class="game-container">
-    <div class="header" id="header" style="display: none;">
-      <span class="scene-counter">Scene <span id="currentScene">1</span>/6</span>
-      <span class="timer" id="timer">3:00</span>
-    </div>
-    
-    <div class="progress-bar" id="progressBar" style="display: none;">
-      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-    </div>
-    
-    <!-- INTRO SCREEN -->
-    <div class="scene active" id="intro">
-      <div class="intro-screen">
-        <h1>🧠 Emotional Intelligence</h1>
-        <h2 style="color: var(--accent); margin-bottom: 24px;">Animal Guides Validator</h2>
-        <p>Test your analytical thinking through 6 emotional scenarios. Each scene features an animal guide representing a core emotion.</p>
-        
-        <div class="animal-grid">
-          <div class="animal-preview">
-            <div class="animal-emoji">🐘</div>
-            <div class="animal-name">Elephant</div>
-          </div>
-          <div class="animal-preview">
-            <div class="animal-emoji">🐬</div>
-            <div class="animal-name">Dolphin</div>
-          </div>
-          <div class="animal-preview">
-            <div class="animal-emoji">🦉</div>
-            <div class="animal-name">Owl</div>
-          </div>
-          <div class="animal-preview">
-            <div class="animal-emoji">🐕</div>
-            <div class="animal-name">Dog</div>
-          </div>
-          <div class="animal-preview">
-            <div class="animal-emoji">🦜</div>
-            <div class="animal-name">Parrot</div>
-          </div>
-          <div class="animal-preview">
-            <div class="animal-emoji">🐯</div>
-            <div class="animal-name">Tiger</div>
-          </div>
-        </div>
-        
-        <p style="font-size: 0.875rem;">Sub-competencies tested: Breaking down information, Identifying patterns, Comparing sources, Finding assumptions, Drawing conclusions, Testing edge cases</p>
-        
-        <button class="start-btn" onclick="startGame()">Begin Assessment</button>
-      </div>
-    </div>
-    
-    <!-- SCENE 1: Elephant -->
-    <div class="scene" id="scene1">
-      <div class="scene-header">
-        <div class="animal-badge" style="background: var(--elephant-blue);">🐘</div>
-        <div class="scene-info">
-          <h2>Scene 1: Elephant</h2>
-          <div class="emotion">Empathy • Break complex information</div>
-        </div>
-      </div>
-      
-      <div class="scenario-card" style="border-color: var(--elephant-blue);">
-        <h3>Scenario</h3>
-        <p>Your teammate arrives late, avoids eye contact, and speaks softly.</p>
-        <div class="cue-strip">
-          <div class="color-badge" style="background: var(--elephant-blue);"></div>
-          <span>🐘</span>
-          <span class="phrase">"Understanding others requires seeing all the pieces"</span>
-        </div>
-      </div>
-      
-      <div class="task-card">
-        <h4>Your Task</h4>
-        <p>Break the situation into emotional components.</p>
-      </div>
-      
-      <div class="choices" data-correct="1">
-        <div class="choice" data-index="0">
-          <span class="choice-letter">A</span>
-          <span>Behavior = disrespect; Emotion = anger</span>
-        </div>
-        <div class="choice" data-index="1">
-          <span class="choice-letter">B</span>
-          <span>Behavior = discomfort; Emotion = fear</span>
-        </div>
-        <div class="choice" data-index="2">
-          <span class="choice-letter">C</span>
-          <span>Behavior = frustration; Emotion = annoyance</span>
-        </div>
-        <div class="choice" data-index="3">
-          <span class="choice-letter">D</span>
-          <span>Behavior = distraction; Emotion = apathy</span>
-        </div>
-      </div>
-      
-      <button class="submit-btn" onclick="submitAnswer(1)">Submit Answer</button>
-    </div>
-    
-    <!-- SCENE 2: Dolphin -->
-    <div class="scene" id="scene2">
-      <div class="scene-header">
-        <div class="animal-badge" style="background: var(--dolphin-yellow);">🐬</div>
-        <div class="scene-info">
-          <h2>Scene 2: Dolphin</h2>
-          <div class="emotion">Optimism • Identify patterns</div>
-        </div>
-      </div>
-      
-      <div class="scenario-card" style="border-color: var(--dolphin-yellow);">
-        <h3>Scenario</h3>
-        <p>You observe three colleagues over a week. Each one shows: a yellow band on their desk, dolphin imagery, and phrases about "looking forward" and "possibilities."</p>
-        <div class="cue-strip">
-          <div class="color-badge" style="background: var(--dolphin-yellow);"></div>
-          <span>🐬</span>
-          <span class="phrase">"Joy rides the waves of possibility"</span>
-        </div>
-      </div>
-      
-      <div class="task-card">
-        <h4>Your Task</h4>
-        <p>Identify the emotional pattern these colleagues share.</p>
-      </div>
-      
-      <div class="choices" data-correct="2">
-        <div class="choice" data-index="0">
-          <span class="choice-letter">A</span>
-          <span>Empathy</span>
-        </div>
-        <div class="choice" data-index="1">
-          <span class="choice-letter">B</span>
-          <span>Courage</span>
-        </div>
-        <div class="choice" data-index="2">
-          <span class="choice-letter">C</span>
-          <span>Optimism</span>
-        </div>
-        <div class="choice" data-index="3">
-          <span class="choice-letter">D</span>
-          <span>Resilience</span>
-        </div>
-      </div>
-      
-      <button class="submit-btn" onclick="submitAnswer(2)">Submit Answer</button>
-    </div>
-    
-    <!-- SCENE 3: Owl -->
-    <div class="scene" id="scene3">
-      <div class="scene-header">
-        <div class="animal-badge" style="background: var(--owl-purple);">🦉</div>
-        <div class="scene-info">
-          <h2>Scene 3: Owl</h2>
-          <div class="emotion">Insight • Compare sources</div>
-        </div>
-      </div>
-      
-      <div class="scenario-card" style="border-color: var(--owl-purple);">
-        <h3>Scenario</h3>
-        <p>A colleague tells you: "She's definitely angry at me." But you notice: a purple band, an owl symbol, and the phrase "See clearly in the dark" on her desk.</p>
-        <div class="cue-strip">
-          <div class="color-badge" style="background: var(--owl-purple);"></div>
-          <span>🦉</span>
-          <span class="phrase">"See clearly in the dark"</span>
-        </div>
-      </div>
-      
-      <div class="task-card">
-        <h4>Your Task</h4>
-        <p>Compare sources: which interpretation is more credible?</p>
-      </div>
-      
-      <div class="choices" data-correct="1">
-        <div class="choice" data-index="0">
-          <span class="choice-letter">A</span>
-          <span>The self-report ("She's angry")</span>
-        </div>
-        <div class="choice" data-index="1">
-          <span class="choice-letter">B</span>
-          <span>The emotional cues → indicates self-doubt, not anger</span>
-        </div>
-        <div class="choice" data-index="2">
-          <span class="choice-letter">C</span>
-          <span>Both are equally valid</span>
-        </div>
-        <div class="choice" data-index="3">
-          <span class="choice-letter">D</span>
-          <span>Neither provides useful information</span>
-        </div>
-      </div>
-      
-      <button class="submit-btn" onclick="submitAnswer(3)">Submit Answer</button>
-    </div>
-    
-    <!-- SCENE 4: Dog -->
-    <div class="scene" id="scene4">
-      <div class="scene-header">
-        <div class="animal-badge" style="background: var(--dog-green);">🐕</div>
-        <div class="scene-info">
-          <h2>Scene 4: Dog</h2>
-          <div class="emotion">Compassion • Find assumptions</div>
-        </div>
-      </div>
-      
-      <div class="scenario-card" style="border-color: var(--dog-green);">
-        <h3>Scenario</h3>
-        <p>You haven't heard from your friend all day. Your mind races with possibilities.</p>
-        <div class="cue-strip">
-          <div class="color-badge" style="background: var(--dog-green);"></div>
-          <span>🐕</span>
-          <span class="phrase">"Love heals"</span>
-        </div>
-      </div>
-      
-      <div class="task-card">
-        <h4>Your Task</h4>
-        <p>Which assumption leads to the wrong conclusion?</p>
-      </div>
-      
-      <div class="choices" data-correct="0">
-        <div class="choice" data-index="0">
-          <span class="choice-letter">A</span>
-          <span>"They must be mad at me."</span>
-        </div>
-        <div class="choice" data-index="1">
-          <span class="choice-letter">B</span>
-          <span>"They may be overwhelmed."</span>
-        </div>
-        <div class="choice" data-index="2">
-          <span class="choice-letter">C</span>
-          <span>"They may be tired."</span>
-        </div>
-        <div class="choice" data-index="3">
-          <span class="choice-letter">D</span>
-          <span>"They may be busy."</span>
-        </div>
-      </div>
-      
-      <button class="submit-btn" onclick="submitAnswer(4)">Submit Answer</button>
-    </div>
-    
-    <!-- SCENE 5: Parrot -->
-    <div class="scene" id="scene5">
-      <div class="scene-header">
-        <div class="animal-badge" style="background: var(--parrot-orange);">🦜</div>
-        <div class="scene-info">
-          <h2>Scene 5: Parrot</h2>
-          <div class="emotion">Speak Out • Draw conclusions</div>
-        </div>
-      </div>
-      
-      <div class="scenario-card" style="border-color: var(--parrot-orange);">
-        <h3>Scenario</h3>
-        <p>You have limited information. The only cues available are: an orange band, a parrot symbol, and the phrase below.</p>
-        <div class="cue-strip">
-          <div class="color-badge" style="background: var(--parrot-orange);"></div>
-          <span>🦜</span>
-          <span class="phrase">"If something feels wrong, speak out"</span>
-        </div>
-      </div>
-      
-      <div class="task-card">
-        <h4>Your Task</h4>
-        <p>Draw a valid conclusion from this incomplete data.</p>
-      </div>
-      
-      <div class="choices" data-correct="2">
-        <div class="choice" data-index="0">
-          <span class="choice-letter">A</span>
-          <span>Stay quiet and observe more</span>
-        </div>
-        <div class="choice" data-index="1">
-          <span class="choice-letter">B</span>
-          <span>Someone is attacking you</span>
-        </div>
-        <div class="choice" data-index="2">
-          <span class="choice-letter">C</span>
-          <span>You need clear, assertive expression</span>
-        </div>
-        <div class="choice" data-index="3">
-          <span class="choice-letter">D</span>
-          <span>Focus on comforting someone else</span>
-        </div>
-      </div>
-      
-      <button class="submit-btn" onclick="submitAnswer(5)">Submit Answer</button>
-    </div>
-    
-    <!-- SCENE 6: Tiger -->
-    <div class="scene" id="scene6">
-      <div class="scene-header">
-        <div class="animal-badge" style="background: var(--tiger-black);">🐯</div>
-        <div class="scene-info">
-          <h2>Scene 6: Tiger</h2>
-          <div class="emotion">Courage • Test edge cases</div>
-        </div>
-      </div>
-      
-      <div class="scenario-card" style="border-color: var(--tiger-black);">
-        <h3>Scenario</h3>
-        <p>You need to speak up about an issue. BUT: the room is tense, emotions are high, and timing feels risky.</p>
-        <div class="cue-strip">
-          <div class="color-badge" style="background: var(--tiger-black);"></div>
-          <span>🐯</span>
-          <span class="phrase">"Courage with boundaries"</span>
-        </div>
-      </div>
-      
-      <div class="task-card">
-        <h4>Your Task</h4>
-        <p>Given these constraints, what's the correct action?</p>
-      </div>
-      
-      <div class="choices" data-correct="2">
-        <div class="choice" data-index="0">
-          <span class="choice-letter">A</span>
-          <span>Speak aggressively to be heard</span>
-        </div>
-        <div class="choice" data-index="1">
-          <span class="choice-letter">B</span>
-          <span>Stay completely silent</span>
-        </div>
-        <div class="choice" data-index="2">
-          <span class="choice-letter">C</span>
-          <span>Use courage with respectful boundaries</span>
-        </div>
-        <div class="choice" data-index="3">
-          <span class="choice-letter">D</span>
-          <span>Shift to empathy and avoid the topic</span>
-        </div>
-      </div>
-      
-      <button class="submit-btn" onclick="submitAnswer(6)">Submit Answer</button>
-    </div>
-    
-    <!-- RESULTS SCREEN -->
-    <div class="scene" id="results">
-      <div class="results-screen">
-        <div class="results-icon" id="resultsIcon">🏆</div>
-        <h2>Assessment Complete</h2>
-        <div class="proficiency-badge" id="proficiencyBadge">Proficient</div>
-        
-        <div class="score-card">
-          <div class="score-value" id="scoreValue">83%</div>
-          <div class="score-label">Overall Score</div>
-        </div>
-        
-        <div class="sub-results" id="subResults">
-          <!-- Populated by JS -->
-        </div>
-        
-        <div class="xp-badge" id="xpBadge">
-          <span>⚡</span>
-          <span id="xpValue">+150 XP</span>
-        </div>
-        
-        <button class="restart-btn" onclick="restartGame()">Try Again</button>
-      </div>
-    </div>
+<body class="bg-intro">
+  <!-- Header -->
+  <div class="header hidden" id="header">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="timer" id="timer">3:00</div>
   </div>
-  
-  <!-- Feedback Modal -->
-  <div class="feedback-modal" id="feedbackModal">
-    <div class="feedback-content">
-      <div class="feedback-icon" id="feedbackIcon">✅</div>
-      <h3 id="feedbackTitle">Correct!</h3>
-      <p id="feedbackText">You correctly identified the emotional components.</p>
-      <button class="next-btn" onclick="nextScene()">Continue</button>
+
+  <div class="game-container">
+    <!-- Intro Screen -->
+    <div class="intro-screen" id="introScreen">
+      <h1>🌟 Animal Guides</h1>
+      <p>Discover emotional intelligence through 6 animal companions. Each animal teaches you a different way to understand emotions.</p>
+      <div class="animal-preview">
+        <img src="animals/elephant.png" alt="Elephant">
+        <img src="animals/dolphin.png" alt="Dolphin">
+        <img src="animals/owl.png" alt="Owl">
+        <img src="animals/dog.png" alt="Dog">
+        <img src="animals/parrot.png" alt="Parrot">
+        <img src="animals/tiger.png" alt="Tiger">
+      </div>
+      <button class="start-btn" onclick="startGame()">Begin Journey</button>
+    </div>
+
+    <!-- Scene Card -->
+    <div class="scene-card hidden" id="sceneCard">
+      <div class="animal-hero">
+        <img class="animal-image" id="animalImage" src="" alt="">
+        <div class="animal-name" id="animalName"></div>
+        <div class="emotion-badge" id="emotionBadge"></div>
+      </div>
+      <div class="scenario-text" id="scenarioText"></div>
+      <div class="task-label" id="taskLabel"></div>
+      <div class="choices" id="choices"></div>
+      <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>Submit Answer</button>
+      <div class="feedback hidden" id="feedback"></div>
+    </div>
+
+    <!-- Results Screen -->
+    <div class="results-screen hidden" id="resultsScreen">
+      <h2>Journey Complete!</h2>
+      <div class="score-card">
+        <div class="score-big" id="finalScore">0%</div>
+        <div class="score-label">Accuracy Score</div>
+        <div class="scene-results" id="sceneResults"></div>
+        <div class="xp-earned" id="xpEarned">+0 XP</div>
+      </div>
+      <button class="retry-btn" onclick="restartGame()">Try Again</button>
     </div>
   </div>
 
   <script>
-    // Game State
-    let currentScene = 0;
-    let answers = [];
-    let timeLeft = 180; // 3 minutes
-    let timerInterval = null;
-    let startTime = null;
-    
     const scenes = [
-      { animal: '🐘', name: 'Elephant', emotion: 'Empathy', sub: 'Break complex information' },
-      { animal: '🐬', name: 'Dolphin', emotion: 'Optimism', sub: 'Identify patterns' },
-      { animal: '🦉', name: 'Owl', emotion: 'Insight', sub: 'Compare sources' },
-      { animal: '🐕', name: 'Dog', emotion: 'Compassion', sub: 'Find assumptions' },
-      { animal: '🦜', name: 'Parrot', emotion: 'Speak Out', sub: 'Draw conclusions' },
-      { animal: '🐯', name: 'Tiger', emotion: 'Courage', sub: 'Test edge cases' }
+      {
+        animal: 'Elephant',
+        image: 'animals/elephant.png',
+        emotion: 'Empathy',
+        badgeClass: 'badge-empathy',
+        bgClass: 'bg-elephant',
+        borderColor: '#8B4557',
+        scenario: 'Your teammate arrives late, avoids eye contact, and speaks softly. The room feels tense.',
+        task: 'Break this situation into emotional components:',
+        choices: [
+          { text: 'Behavior = disrespect; Emotion = anger', correct: false },
+          { text: 'Behavior = discomfort; Emotion = fear', correct: true },
+          { text: 'Behavior = frustration; Emotion = annoyance', correct: false },
+          { text: 'Behavior = distraction; Emotion = apathy', correct: false }
+        ],
+        feedback: {
+          correct: 'Excellent! You correctly identified the subtle signs of discomfort and fear.',
+          wrong: 'The combination of avoiding eye contact and speaking softly suggests discomfort and fear, not anger or disrespect.'
+        }
+      },
+      {
+        animal: 'Dolphin',
+        image: 'animals/dolphin.png',
+        emotion: 'Optimism',
+        badgeClass: 'badge-optimism',
+        bgClass: 'bg-dolphin',
+        borderColor: '#7D6608',
+        scenario: 'You see three colleagues who all share: positive body language, forward-looking statements, and enthusiasm about upcoming projects.',
+        task: 'What emotional pattern do you see?',
+        choices: [
+          { text: 'Empathy - feeling others\' emotions', correct: false },
+          { text: 'Courage - facing fears boldly', correct: false },
+          { text: 'Optimism - hopeful forward-thinking', correct: true },
+          { text: 'Resilience - bouncing back from setbacks', correct: false }
+        ],
+        feedback: {
+          correct: 'You spotted the pattern! Forward-looking enthusiasm is a key sign of optimism.',
+          wrong: 'The pattern of forward-looking statements and enthusiasm indicates optimism, not other emotions.'
+        }
+      },
+      {
+        animal: 'Owl',
+        image: 'animals/owl.png',
+        emotion: 'Insight',
+        badgeClass: 'badge-insight',
+        bgClass: 'bg-owl',
+        borderColor: '#6C3483',
+        scenario: 'Someone says: "She\'s angry at me." But you observe: calm tone, relaxed posture, and a thoughtful pause before responding.',
+        task: 'Which interpretation is more credible?',
+        choices: [
+          { text: 'The verbal statement ("She\'s angry")', correct: false },
+          { text: 'The observed cues → she\'s not angry', correct: true },
+          { text: 'Both are equally valid', correct: false },
+          { text: 'Neither provides enough information', correct: false }
+        ],
+        feedback: {
+          correct: 'Wise choice! Non-verbal cues often reveal more truth than words alone.',
+          wrong: 'The observed cues (calm tone, relaxed posture) contradict the verbal claim and are more credible.'
+        }
+      },
+      {
+        animal: 'Dog',
+        image: 'animals/dog.png',
+        emotion: 'Compassion',
+        badgeClass: 'badge-compassion',
+        bgClass: 'bg-dog',
+        borderColor: '#1E8449',
+        scenario: 'You haven\'t heard from your friend all day. Your mind races with possible explanations.',
+        task: 'Which assumption leads to a wrong conclusion?',
+        choices: [
+          { text: '"They must be mad at me."', correct: true },
+          { text: '"They may be overwhelmed."', correct: false },
+          { text: '"They may be tired."', correct: false },
+          { text: '"They may be busy."', correct: false }
+        ],
+        feedback: {
+          correct: 'Correct! Assuming anger without evidence is a common logical gap. Compassion helps us see other possibilities.',
+          wrong: 'Assuming "they must be mad" without evidence is the faulty assumption here.'
+        }
+      },
+      {
+        animal: 'Parrot',
+        image: 'animals/parrot.png',
+        emotion: 'Speak Out',
+        badgeClass: 'badge-speak',
+        bgClass: 'bg-parrot',
+        borderColor: '#6C3483',
+        scenario: 'You notice tension in a meeting. Something feels wrong, but no one is addressing it directly.',
+        task: 'From minimal cues, what\'s the valid conclusion?',
+        choices: [
+          { text: 'Stay quiet and observe more', correct: false },
+          { text: 'Someone is personally attacking you', correct: false },
+          { text: 'Clear, assertive expression is needed', correct: true },
+          { text: 'Comfort someone else first', correct: false }
+        ],
+        feedback: {
+          correct: 'Yes! When something feels wrong, speaking out clearly and respectfully is often the right choice.',
+          wrong: 'When tension exists but isn\'t addressed, clear and assertive communication is typically needed.'
+        }
+      },
+      {
+        animal: 'Tiger',
+        image: 'animals/tiger.png',
+        emotion: 'Courage',
+        badgeClass: 'badge-courage',
+        bgClass: 'bg-tiger',
+        borderColor: '#922B21',
+        scenario: 'You want to speak up about an important issue, BUT: the room is tense, your manager looks stressed, and the topic is sensitive.',
+        task: 'Given these constraints, what\'s the best action?',
+        choices: [
+          { text: 'Speak aggressively to be heard', correct: false },
+          { text: 'Stay completely silent', correct: false },
+          { text: 'Use courage with respectful boundaries', correct: true },
+          { text: 'Shift to empathy and ignore the issue', correct: false }
+        ],
+        feedback: {
+          correct: 'Perfect! True courage means speaking up while respecting boundaries and timing.',
+          wrong: 'Courage with boundaries means speaking up respectfully, not aggressively or staying silent.'
+        }
+      }
     ];
-    
-    // Initialize choice listeners
-    document.querySelectorAll('.choices').forEach(choiceContainer => {
-      choiceContainer.querySelectorAll('.choice').forEach(choice => {
-        choice.addEventListener('click', () => selectChoice(choice, choiceContainer));
-      });
-    });
-    
-    function selectChoice(choice, container) {
-      container.querySelectorAll('.choice').forEach(c => c.classList.remove('selected'));
-      choice.classList.add('selected');
-      container.closest('.scene').querySelector('.submit-btn').classList.add('active');
-    }
-    
+
+    let currentScene = 0;
+    let selectedAnswer = null;
+    let answers = [];
+    let timerInterval;
+    let timeLeft = 180;
+    let gameStarted = false;
+
     function startGame() {
-      currentScene = 1;
-      answers = [];
-      startTime = Date.now();
+      document.getElementById('introScreen').classList.add('hidden');
+      document.getElementById('header').classList.remove('hidden');
+      document.getElementById('sceneCard').classList.remove('hidden');
+      gameStarted = true;
       
-      document.getElementById('intro').classList.remove('active');
-      document.getElementById('scene1').classList.add('active');
-      document.getElementById('header').style.display = 'flex';
-      document.getElementById('progressBar').style.display = 'block';
+      // Create progress dots
+      const dotsContainer = document.getElementById('progressDots');
+      dotsContainer.innerHTML = scenes.map((_, i) => 
+        `<div class="dot ${i === 0 ? 'active' : ''}" id="dot${i}"></div>`
+      ).join('');
       
-      updateProgress();
       startTimer();
+      loadScene(0);
     }
-    
+
     function startTimer() {
-      timeLeft = 180;
-      updateTimerDisplay();
       timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
@@ -912,172 +608,153 @@
         }
       }, 1000);
     }
-    
+
     function updateTimerDisplay() {
+      const timer = document.getElementById('timer');
       const mins = Math.floor(timeLeft / 60);
       const secs = timeLeft % 60;
-      document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+      timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+      
+      timer.classList.remove('warning', 'danger');
+      if (timeLeft <= 30) timer.classList.add('danger');
+      else if (timeLeft <= 60) timer.classList.add('warning');
     }
-    
-    function updateProgress() {
-      const progress = ((currentScene - 1) / 6) * 100;
-      document.getElementById('progressFill').style.width = progress + '%';
-      document.getElementById('currentScene').textContent = currentScene;
-    }
-    
-    function submitAnswer(sceneNum) {
-      const sceneEl = document.getElementById('scene' + sceneNum);
-      const choiceContainer = sceneEl.querySelector('.choices');
-      const selectedChoice = choiceContainer.querySelector('.choice.selected');
+
+    function loadScene(index) {
+      const scene = scenes[index];
+      document.body.className = scene.bgClass;
       
-      if (!selectedChoice) return;
+      document.getElementById('animalImage').src = scene.image;
+      document.getElementById('animalImage').alt = scene.animal;
+      document.getElementById('animalName').textContent = scene.animal;
       
-      const selectedIndex = parseInt(selectedChoice.dataset.index);
-      const correctIndex = parseInt(choiceContainer.dataset.correct);
-      const isCorrect = selectedIndex === correctIndex;
+      const badge = document.getElementById('emotionBadge');
+      badge.textContent = scene.emotion;
+      badge.className = `emotion-badge ${scene.badgeClass}`;
       
-      answers.push({
-        scene: sceneNum,
-        selected: selectedIndex,
-        correct: correctIndex,
-        isCorrect: isCorrect
+      const scenarioEl = document.getElementById('scenarioText');
+      scenarioEl.textContent = scene.scenario;
+      scenarioEl.style.borderColor = scene.borderColor;
+      
+      document.getElementById('taskLabel').textContent = scene.task;
+      
+      const choicesContainer = document.getElementById('choices');
+      const letters = ['A', 'B', 'C', 'D'];
+      choicesContainer.innerHTML = scene.choices.map((choice, i) => `
+        <button class="choice-btn" onclick="selectChoice(${i})">
+          <span class="choice-letter">${letters[i]}</span>
+          <span>${choice.text}</span>
+        </button>
+      `).join('');
+      
+      selectedAnswer = null;
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').textContent = 'Submit Answer';
+      document.getElementById('feedback').classList.add('hidden');
+      
+      // Update progress dots
+      scenes.forEach((_, i) => {
+        const dot = document.getElementById(`dot${i}`);
+        dot.classList.remove('active');
+        if (i === index) dot.classList.add('active');
       });
       
-      // Show visual feedback on choices
-      choiceContainer.querySelectorAll('.choice').forEach(c => {
-        const idx = parseInt(c.dataset.index);
-        if (idx === correctIndex) c.classList.add('correct');
-        else if (idx === selectedIndex && !isCorrect) c.classList.add('incorrect');
+      // Re-animate card
+      const card = document.getElementById('sceneCard');
+      card.style.animation = 'none';
+      card.offsetHeight;
+      card.style.animation = 'slideUp 0.5s ease';
+    }
+
+    function selectChoice(index) {
+      const buttons = document.querySelectorAll('.choice-btn');
+      buttons.forEach((btn, i) => {
+        btn.classList.remove('selected');
+        if (i === index) btn.classList.add('selected');
+      });
+      selectedAnswer = index;
+      document.getElementById('submitBtn').disabled = false;
+    }
+
+    function submitAnswer() {
+      if (selectedAnswer === null) return;
+      
+      const scene = scenes[currentScene];
+      const isCorrect = scene.choices[selectedAnswer].correct;
+      answers.push(isCorrect);
+      
+      // Update dot
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      
+      // Show feedback
+      const buttons = document.querySelectorAll('.choice-btn');
+      buttons.forEach((btn, i) => {
+        btn.classList.add('disabled');
+        if (scene.choices[i].correct) btn.classList.add('correct');
+        else if (i === selectedAnswer && !isCorrect) btn.classList.add('wrong');
       });
       
-      // Show feedback modal
-      const modal = document.getElementById('feedbackModal');
-      const icon = document.getElementById('feedbackIcon');
-      const title = document.getElementById('feedbackTitle');
-      const text = document.getElementById('feedbackText');
+      const feedback = document.getElementById('feedback');
+      feedback.textContent = isCorrect ? scene.feedback.correct : scene.feedback.wrong;
+      feedback.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
+      feedback.classList.remove('hidden');
       
-      if (isCorrect) {
-        icon.textContent = '✅';
-        title.textContent = 'Correct!';
-        text.textContent = `Great job! The ${scenes[sceneNum-1].animal} ${scenes[sceneNum-1].name} guides you to ${scenes[sceneNum-1].emotion.toLowerCase()}.`;
+      const submitBtn = document.getElementById('submitBtn');
+      if (currentScene < scenes.length - 1) {
+        submitBtn.textContent = 'Next Animal →';
+        submitBtn.onclick = nextScene;
       } else {
-        icon.textContent = '❌';
-        title.textContent = 'Not Quite';
-        text.textContent = `The ${scenes[sceneNum-1].animal} ${scenes[sceneNum-1].name} represents ${scenes[sceneNum-1].emotion}. Review the cues and try again next time.`;
+        submitBtn.textContent = 'See Results';
+        submitBtn.onclick = finishGame;
       }
-      
-      modal.classList.add('show');
+      submitBtn.disabled = false;
     }
-    
+
     function nextScene() {
-      document.getElementById('feedbackModal').classList.remove('show');
-      
-      // Hide current scene
-      document.getElementById('scene' + currentScene).classList.remove('active');
-      
       currentScene++;
-      
-      if (currentScene > 6) {
-        finishGame();
-      } else {
-        document.getElementById('scene' + currentScene).classList.add('active');
-        updateProgress();
-      }
+      loadScene(currentScene);
+      document.getElementById('submitBtn').onclick = submitAnswer;
     }
-    
+
     function finishGame() {
       clearInterval(timerInterval);
       
-      // Hide all scenes
-      document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
-      document.getElementById('header').style.display = 'none';
-      document.getElementById('progressBar').style.display = 'none';
+      document.getElementById('header').classList.add('hidden');
+      document.getElementById('sceneCard').classList.add('hidden');
+      document.getElementById('resultsScreen').classList.remove('hidden');
+      document.body.className = 'bg-results';
       
-      // Calculate results
-      const correctCount = answers.filter(a => a.isCorrect).length;
-      const score = Math.round((correctCount / 6) * 100);
-      const timeSpent = Math.round((Date.now() - startTime) / 1000);
+      const correctCount = answers.filter(a => a).length;
+      const percentage = Math.round((correctCount / scenes.length) * 100);
       
-      // Determine proficiency
-      let level, xp, icon;
-      if (score >= 90) {
-        level = 'Mastery';
-        xp = 200;
-        icon = '🏆';
-      } else if (score >= 70) {
-        level = 'Proficient';
-        xp = 150;
-        icon = '⭐';
-      } else {
-        level = 'Needs Work';
-        xp = 50;
-        icon = '📚';
-      }
+      document.getElementById('finalScore').textContent = `${percentage}%`;
       
-      // Update results UI
-      document.getElementById('resultsIcon').textContent = icon;
-      document.getElementById('scoreValue').textContent = score + '%';
-      document.getElementById('xpValue').textContent = '+' + xp + ' XP';
+      // Calculate XP
+      let xp = 20;
+      if (percentage >= 90) xp = 100;
+      else if (percentage >= 60) xp = 60;
+      document.getElementById('xpEarned').textContent = `+${xp} XP`;
       
-      const badge = document.getElementById('proficiencyBadge');
-      badge.textContent = level;
-      badge.className = 'proficiency-badge ' + level.toLowerCase().replace(' ', '-');
-      
-      // Build sub-results
-      const subResults = document.getElementById('subResults');
-      subResults.innerHTML = scenes.map((scene, idx) => {
-        const answer = answers[idx];
-        const status = answer && answer.isCorrect ? '✅' : '❌';
-        return `
-          <div class="sub-result">
-            <span class="emoji">${scene.animal}</span>
-            <span class="name">${scene.name}: ${scene.sub}</span>
-            <span class="status">${status}</span>
-          </div>
-        `;
-      }).join('');
-      
-      // Show results
-      document.getElementById('results').classList.add('active');
-      
-      // Emit results for parent iframe
-      window.__RESULT__ = {
-        score: score,
-        level: level === 'Mastery' ? 3 : level === 'Proficient' ? 2 : 1,
-        xp: xp,
-        passed: score >= 70,
-        timeSpent: timeSpent
-      };
-      
-      window.__PROOF__ = {
-        answers: answers,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Notify parent if in iframe
-      if (window.parent !== window) {
-        window.parent.postMessage({ type: 'GAME_COMPLETE', result: window.__RESULT__, proof: window.__PROOF__ }, '*');
-      }
+      // Show scene results
+      const resultsContainer = document.getElementById('sceneResults');
+      resultsContainer.innerHTML = scenes.map((scene, i) => `
+        <div class="scene-result ${answers[i] ? 'correct' : 'wrong'}">
+          <img src="${scene.image}" alt="${scene.animal}">
+          <div>${answers[i] ? '✓' : '✗'}</div>
+        </div>
+      `).join('');
     }
-    
+
     function restartGame() {
-      // Reset all choices
-      document.querySelectorAll('.choice').forEach(c => {
-        c.classList.remove('selected', 'correct', 'incorrect');
-      });
-      document.querySelectorAll('.submit-btn').forEach(b => b.classList.remove('active'));
-      
-      // Show intro
-      document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
-      document.getElementById('intro').classList.add('active');
-      
       currentScene = 0;
+      selectedAnswer = null;
       answers = [];
-    }
-    
-    // Signal ready
-    if (window.parent !== window) {
-      window.parent.postMessage({ type: 'GAME_READY' }, '*');
+      timeLeft = 180;
+      
+      document.getElementById('resultsScreen').classList.add('hidden');
+      document.getElementById('introScreen').classList.remove('hidden');
+      document.body.className = 'bg-intro';
     }
   </script>
 </body>
