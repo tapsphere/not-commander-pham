@@ -1456,7 +1456,7 @@
       
       // Create master gain for ambient sounds
       const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.08;
+      masterGain.gain.value = 0.06;
       masterGain.connect(audioCtx.destination);
       
       // Drone pad 1 - Low fundamental
@@ -1479,60 +1479,18 @@
       drone2Gain.connect(masterGain);
       drone2.start();
       
-      // Shimmer - High ethereal tone with LFO
-      const shimmer = audioCtx.createOscillator();
-      const shimmerGain = audioCtx.createGain();
-      const shimmerLFO = audioCtx.createOscillator();
-      const shimmerLFOGain = audioCtx.createGain();
-      
-      shimmer.type = 'sine';
-      shimmer.frequency.value = 880; // A5
-      shimmerGain.gain.value = 0.05;
-      
-      shimmerLFO.type = 'sine';
-      shimmerLFO.frequency.value = 0.2;
-      shimmerLFOGain.gain.value = 0.03;
-      
-      shimmerLFO.connect(shimmerLFOGain);
-      shimmerLFOGain.connect(shimmerGain.gain);
-      shimmer.connect(shimmerGain);
-      shimmerGain.connect(masterGain);
-      shimmerLFO.start();
-      shimmer.start();
-      
-      // Magical sparkle - Random gentle chimes
-      function playSparkle() {
-        if (!ambientPlaying) return;
-        
-        const sparkle = audioCtx.createOscillator();
-        const sparkleGain = audioCtx.createGain();
-        const sparkleFilter = audioCtx.createBiquadFilter();
-        
-        const notes = [523, 659, 784, 880, 1047, 1319]; // C major pentatonic high
-        sparkle.frequency.value = notes[Math.floor(Math.random() * notes.length)];
-        sparkle.type = 'sine';
-        
-        sparkleFilter.type = 'lowpass';
-        sparkleFilter.frequency.value = 2000;
-        
-        sparkleGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        sparkleGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
-        
-        sparkle.connect(sparkleFilter);
-        sparkleFilter.connect(sparkleGain);
-        sparkleGain.connect(masterGain);
-        sparkle.start();
-        sparkle.stop(audioCtx.currentTime + 2);
-        
-        // Schedule next sparkle
-        setTimeout(playSparkle, 3000 + Math.random() * 5000);
-      }
-      
-      // Start sparkles after a delay
-      setTimeout(playSparkle, 2000);
+      // Drone pad 3 - Octave warmth
+      const drone3 = audioCtx.createOscillator();
+      const drone3Gain = audioCtx.createGain();
+      drone3.type = 'sine';
+      drone3.frequency.value = 220; // A3
+      drone3Gain.gain.value = 0.15;
+      drone3.connect(drone3Gain);
+      drone3Gain.connect(masterGain);
+      drone3.start();
       
       // Store nodes for cleanup
-      ambientNodes = [drone1, drone2, shimmer, shimmerLFO, masterGain];
+      ambientNodes = [drone1, drone2, drone3, masterGain];
     }
     
     function stopAmbientMusic() {
