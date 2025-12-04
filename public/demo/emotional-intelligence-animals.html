@@ -1190,18 +1190,13 @@
     function loadTruthScanner(scene, container) {
       container.innerHTML = `
         <div class="truth-scanner">
-          <div class="scanner-instruction">🔍 Slide to reveal hidden emotional cues</div>
-          <div class="scanner-slider-container">
-            <span>🔦</span>
-            <input type="range" class="scanner-slider" id="scannerSlider" min="0" max="100" value="0" oninput="updateScanner(this.value)">
-            <span>🔍</span>
-          </div>
+          <div class="scanner-instruction">🔍 Compare the evidence and choose the credible interpretation</div>
           <div class="interpretations">
             ${scene.interpretations.map((interp, i) => `
               <div class="interpretation-card" data-index="${i}" data-correct="${interp.correct}" onclick="selectInterpretation(this)">
                 <div class="card-label">${interp.label}</div>
                 <div class="speech-bubble">${interp.statement}</div>
-                <div class="hidden-cues" id="cues${i}">
+                <div class="hidden-cues revealed">
                   ${interp.hiddenCues.map(cue => `
                     <div class="cue-item ${cue.type}">
                       <span>${cue.icon}</span>
@@ -1209,35 +1204,14 @@
                     </div>
                   `).join('')}
                 </div>
-                <div class="credibility-meter" id="meter${i}">
-                  <div class="credibility-fill ${interp.credibility >= 50 ? 'high' : 'low'}" style="width: 0%"></div>
+                <div class="credibility-meter revealed">
+                  <div class="credibility-fill ${interp.credibility >= 50 ? 'high' : 'low'}" style="width: ${interp.credibility}%"></div>
                 </div>
               </div>
             `).join('')}
           </div>
         </div>
       `;
-      
-      window.truthScannerData = scene.interpretations;
-    }
-
-    function updateScanner(value) {
-      const threshold = 40;
-      const revealed = value >= threshold;
-      
-      // Reveal hidden cues
-      document.querySelectorAll('.hidden-cues').forEach(el => {
-        el.classList.toggle('revealed', revealed);
-      });
-      
-      // Reveal credibility meters
-      document.querySelectorAll('.credibility-meter').forEach((el, i) => {
-        el.classList.toggle('revealed', revealed);
-        if (revealed && window.truthScannerData) {
-          const fill = el.querySelector('.credibility-fill');
-          fill.style.width = window.truthScannerData[i].credibility + '%';
-        }
-      });
     }
 
     function selectInterpretation(card) {
