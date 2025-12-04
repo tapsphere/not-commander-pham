@@ -660,40 +660,6 @@
       font-weight: 600;
     }
 
-    .scanner-slider-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding: 12px;
-      background: rgba(108, 52, 131, 0.1);
-      border-radius: 12px;
-    }
-
-    .scanner-slider-container span {
-      font-size: 1.5rem;
-    }
-
-    .scanner-slider {
-      flex: 1;
-      height: 8px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: linear-gradient(90deg, #e0e0e0 0%, #D7BDE2 50%, #6C3483 100%);
-      border-radius: 4px;
-      outline: none;
-    }
-
-    .scanner-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 32px;
-      height: 32px;
-      background: #6C3483;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(108, 52, 131, 0.4);
-    }
-
     .interpretations {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -712,20 +678,9 @@
       border: 3px solid #e0e0e0;
       border-radius: 16px;
       padding: 16px;
-      cursor: pointer;
       transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
-    }
-
-    .interpretation-card:hover {
-      border-color: #D7BDE2;
-      transform: translateY(-2px);
-    }
-
-    .interpretation-card.selected {
-      border-color: #6C3483;
-      background: #F5EEF8;
     }
 
     .interpretation-card.correct {
@@ -743,7 +698,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #999;
+      color: #6C3483;
       margin-bottom: 8px;
     }
 
@@ -759,16 +714,9 @@
     }
 
     .hidden-cues {
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.4s ease;
       font-size: 0.85rem;
       color: #666;
-    }
-
-    .hidden-cues.revealed {
-      opacity: 1;
-      transform: translateY(0);
+      margin-bottom: 12px;
     }
 
     .cue-item {
@@ -781,31 +729,51 @@
       border-radius: 6px;
     }
 
-    .cue-item.positive { background: rgba(56, 239, 125, 0.15); }
-    .cue-item.negative { background: rgba(239, 68, 68, 0.15); }
+    .cue-item.positive { background: rgba(56, 239, 125, 0.15); color: #065f46; }
+    .cue-item.negative { background: rgba(239, 68, 68, 0.15); color: #991b1b; }
 
-    .credibility-meter {
-      height: 4px;
-      background: #e0e0e0;
-      border-radius: 2px;
-      margin-top: 8px;
-      overflow: hidden;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+    .card-slider-container {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e0e0e0;
     }
 
-    .credibility-meter.revealed {
-      opacity: 1;
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: #666;
+      margin-bottom: 6px;
     }
 
-    .credibility-fill {
-      height: 100%;
-      border-radius: 2px;
-      transition: width 0.5s ease;
+    .card-slider {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #22c55e 100%);
+      border-radius: 4px;
+      outline: none;
     }
 
-    .credibility-fill.high { background: #38ef7d; }
-    .credibility-fill.low { background: #ef4444; }
+    .card-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      background: #6C3483;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(108, 52, 131, 0.4);
+      border: 3px solid white;
+    }
+
+    .slider-value {
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #6C3483;
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body class="bg-intro">
@@ -1190,13 +1158,13 @@
     function loadTruthScanner(scene, container) {
       container.innerHTML = `
         <div class="truth-scanner">
-          <div class="scanner-instruction">🔍 Compare the evidence and choose the credible interpretation</div>
+          <div class="scanner-instruction">🔍 Read the clues and set each credibility slider to match</div>
           <div class="interpretations">
             ${scene.interpretations.map((interp, i) => `
-              <div class="interpretation-card" data-index="${i}" data-correct="${interp.correct}" onclick="selectInterpretation(this)">
+              <div class="interpretation-card" data-index="${i}" data-target="${interp.credibility}">
                 <div class="card-label">${interp.label}</div>
                 <div class="speech-bubble">${interp.statement}</div>
-                <div class="hidden-cues revealed">
+                <div class="hidden-cues">
                   ${interp.hiddenCues.map(cue => `
                     <div class="cue-item ${cue.type}">
                       <span>${cue.icon}</span>
@@ -1204,21 +1172,28 @@
                     </div>
                   `).join('')}
                 </div>
-                <div class="credibility-meter revealed">
-                  <div class="credibility-fill ${interp.credibility >= 50 ? 'high' : 'low'}" style="width: ${interp.credibility}%"></div>
+                <div class="card-slider-container">
+                  <div class="slider-label">
+                    <span>Not Credible</span>
+                    <span>Very Credible</span>
+                  </div>
+                  <input type="range" class="card-slider" id="slider${i}" min="0" max="100" value="50" oninput="updateSliderValue(${i})">
+                  <div class="slider-value" id="sliderValue${i}">50%</div>
                 </div>
               </div>
             `).join('')}
           </div>
         </div>
       `;
+      
+      window.truthScannerData = scene.interpretations;
+      document.getElementById('submitBtn').disabled = false;
     }
 
-    function selectInterpretation(card) {
-      document.querySelectorAll('.interpretation-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      window.selectedInterpretation = parseInt(card.dataset.index);
-      document.getElementById('submitBtn').disabled = false;
+    function updateSliderValue(index) {
+      const slider = document.getElementById('slider' + index);
+      const valueDisplay = document.getElementById('sliderValue' + index);
+      valueDisplay.textContent = slider.value + '%';
     }
 
     function setupDragAndDrop() {
@@ -1426,32 +1401,39 @@
     }
 
     function submitTruthScanner() {
-      if (window.selectedInterpretation === undefined) return;
-      
       const scene = scenes[currentScene];
       const cards = document.querySelectorAll('.interpretation-card');
+      const tolerance = 15; // Allow ±15% tolerance
+      
+      let allCorrect = true;
       
       cards.forEach((card, i) => {
-        const isCorrectCard = card.dataset.correct === 'true';
-        const isSelected = i === window.selectedInterpretation;
+        const slider = document.getElementById('slider' + i);
+        const userValue = parseInt(slider.value);
+        const targetValue = parseInt(card.dataset.target);
         
-        if (isCorrectCard) {
+        const isWithinTolerance = Math.abs(userValue - targetValue) <= tolerance;
+        
+        if (isWithinTolerance) {
           card.classList.add('correct');
-        } else if (isSelected) {
+        } else {
           card.classList.add('wrong');
+          allCorrect = false;
         }
         
-        card.style.pointerEvents = 'none';
+        // Disable slider
+        slider.disabled = true;
+        
+        // Show the target value
+        document.getElementById('sliderValue' + i).textContent = `${userValue}% (Target: ${targetValue}%)`;
       });
       
-      const selectedCard = cards[window.selectedInterpretation];
-      const isCorrect = selectedCard.dataset.correct === 'true';
-      answers.push(isCorrect);
+      answers.push(allCorrect);
       
       const dot = document.getElementById(`dot${currentScene}`);
-      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      dot.classList.add(allCorrect ? 'completed' : 'wrong');
       
-      showFeedbackAndNext(isCorrect);
+      showFeedbackAndNext(allCorrect);
     }
 
     function submitSignalSorter() {
