@@ -1095,6 +1095,126 @@
       color: #666;
       text-align: center;
     }
+
+    /* Boundary Builder Styles */
+    .boundary-builder {
+      width: 100%;
+    }
+
+    .builder-instruction {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #922B21;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .constraints-zone {
+      background: linear-gradient(135deg, #FDEDEC, #F5B7B1);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .constraint-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      border: 2px dashed #e0e0e0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .constraint-item:hover {
+      border-color: #922B21;
+    }
+
+    .constraint-item.marked {
+      border-color: #922B21;
+      border-style: solid;
+      background: #FEF5E7;
+    }
+
+    .constraint-item.marked::after {
+      content: '🐾';
+      margin-left: auto;
+      font-size: 1.2rem;
+    }
+
+    .constraint-icon {
+      font-size: 1.2rem;
+    }
+
+    .boundary-progress {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #666;
+      margin: 12px 0;
+    }
+
+    .action-phase {
+      display: none;
+    }
+
+    .action-phase.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .action-question {
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+
+    .action-options {
+      display: grid;
+      gap: 8px;
+    }
+
+    .action-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: white;
+      border: 3px solid #e0e0e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+
+    .action-option:hover {
+      border-color: #F5B7B1;
+    }
+
+    .action-option.selected {
+      border-color: #922B21;
+      background: #FDEDEC;
+    }
+
+    .action-option.correct {
+      border-color: #38ef7d !important;
+      background: #d1fae5 !important;
+    }
+
+    .action-option.wrong {
+      border-color: #ef4444 !important;
+      background: #fee2e2 !important;
+    }
+
+    .action-option-icon {
+      font-size: 1.3rem;
+    }
   </style>
 </head>
 <body class="bg-intro">
@@ -1294,16 +1414,24 @@
         badgeClass: 'badge-courage',
         bgClass: 'bg-tiger',
         borderColor: '#922B21',
-        scenario: 'You want to speak up about an important issue, BUT: the room is tense, your manager looks stressed, and the topic is sensitive.',
-        task: 'Given these constraints, what\'s the best action?',
-        choices: [
-          { text: 'Speak aggressively to be heard', correct: false },
-          { text: 'Stay completely silent', correct: false },
-          { text: 'Use courage with respectful boundaries', correct: true },
-          { text: 'Shift to empathy and ignore the issue', correct: false }
+        scenario: 'You want to speak up about an important issue. First, identify the constraints you must respect.',
+        task: 'Tap to mark all the boundaries, then choose your action:',
+        gameType: 'boundaryBuilder',
+        constraints: [
+          { icon: '😰', text: 'Room is tense', mustMark: true },
+          { icon: '😓', text: 'Manager looks stressed', mustMark: true },
+          { icon: '⚠️', text: 'Topic is sensitive', mustMark: true },
+          { icon: '☕', text: 'Coffee is cold', mustMark: false }
+        ],
+        actionQuestion: 'Given these boundaries, what\'s the courageous action?',
+        actions: [
+          { icon: '😤', text: 'Speak aggressively to be heard', correct: false },
+          { icon: '🤐', text: 'Stay completely silent', correct: false },
+          { icon: '🦁', text: 'Speak up with respectful boundaries', correct: true },
+          { icon: '🙈', text: 'Ignore the issue entirely', correct: false }
         ],
         feedback: {
-          correct: 'Perfect! True courage means speaking up while respecting boundaries and timing.',
+          correct: 'Perfect! True courage means speaking up while acknowledging and respecting the boundaries you identified.',
           wrong: 'Courage with boundaries means speaking up respectfully, not aggressively or staying silent.'
         }
       }
@@ -1388,6 +1516,9 @@
         loadAssumptionBreaker(scene, choicesContainer);
       } else if (scene.gameType === 'echoMatch') {
         loadEchoMatch(scene, choicesContainer);
+        document.getElementById('submitBtn').disabled = true;
+      } else if (scene.gameType === 'boundaryBuilder') {
+        loadBoundaryBuilder(scene, choicesContainer);
         document.getElementById('submitBtn').disabled = true;
       } else {
         loadMultipleChoice(scene, choicesContainer);
@@ -1609,6 +1740,118 @@
       
       const selectedOption = options[window.selectedEchoOption];
       const isCorrect = selectedOption.dataset.correct === 'true';
+      answers.push(isCorrect);
+      
+      const dot = document.getElementById(`dot${currentScene}`);
+      dot.classList.add(isCorrect ? 'completed' : 'wrong');
+      
+      showFeedbackAndNext(isCorrect);
+    }
+
+    // Boundary Builder Functions
+    function loadBoundaryBuilder(scene, container) {
+      window.boundaryData = {
+        markedConstraints: new Set(),
+        requiredMarks: scene.constraints.filter(c => c.mustMark).length,
+        phase: 'marking'
+      };
+      
+      container.innerHTML = `
+        <div class="boundary-builder">
+          <div class="builder-instruction">🐾 Tap to mark the real constraints</div>
+          <div class="constraints-zone">
+            ${scene.constraints.map((c, i) => `
+              <div class="constraint-item" data-index="${i}" data-must-mark="${c.mustMark}" onclick="toggleConstraint(this)">
+                <span class="constraint-icon">${c.icon}</span>
+                <span>${c.text}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="boundary-progress" id="boundaryProgress">Mark the constraints: 0 / ${window.boundaryData.requiredMarks}</div>
+          <div class="action-phase" id="actionPhase">
+            <div class="action-question">${scene.actionQuestion}</div>
+            <div class="action-options">
+              ${scene.actions.map((a, i) => `
+                <div class="action-option" data-index="${i}" data-correct="${a.correct}" onclick="selectBoundaryAction(this)">
+                  <span class="action-option-icon">${a.icon}</span>
+                  <span>${a.text}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleConstraint(item) {
+      if (window.boundaryData.phase !== 'marking') return;
+      
+      const index = parseInt(item.dataset.index);
+      
+      if (item.classList.contains('marked')) {
+        item.classList.remove('marked');
+        window.boundaryData.markedConstraints.delete(index);
+      } else {
+        item.classList.add('marked');
+        window.boundaryData.markedConstraints.add(index);
+      }
+      
+      // Check if correct constraints are marked
+      const scene = scenes[currentScene];
+      const correctlyMarked = scene.constraints.filter((c, i) => 
+        c.mustMark && window.boundaryData.markedConstraints.has(i)
+      ).length;
+      
+      document.getElementById('boundaryProgress').textContent = 
+        `Mark the constraints: ${correctlyMarked} / ${window.boundaryData.requiredMarks}`;
+      
+      // If all required are marked, show action phase
+      if (correctlyMarked >= window.boundaryData.requiredMarks) {
+        window.boundaryData.phase = 'action';
+        document.getElementById('actionPhase').classList.add('active');
+        document.getElementById('boundaryProgress').textContent = '✅ Boundaries set! Now choose your action:';
+      }
+    }
+
+    function selectBoundaryAction(option) {
+      document.querySelectorAll('.action-option').forEach(o => o.classList.remove('selected'));
+      option.classList.add('selected');
+      window.selectedBoundaryAction = parseInt(option.dataset.index);
+      document.getElementById('submitBtn').disabled = false;
+    }
+
+    function submitBoundaryBuilder() {
+      const scene = scenes[currentScene];
+      const options = document.querySelectorAll('.action-option');
+      
+      // First check if wrong constraints were marked
+      let wrongMarks = 0;
+      document.querySelectorAll('.constraint-item').forEach((item, i) => {
+        const mustMark = item.dataset.mustMark === 'true';
+        const isMarked = item.classList.contains('marked');
+        if (isMarked && !mustMark) wrongMarks++;
+      });
+      
+      options.forEach((opt, i) => {
+        const isCorrect = opt.dataset.correct === 'true';
+        const isSelected = i === window.selectedBoundaryAction;
+        
+        if (isCorrect) {
+          opt.classList.add('correct');
+        } else if (isSelected) {
+          opt.classList.add('wrong');
+        }
+        
+        opt.style.pointerEvents = 'none';
+      });
+      
+      // Disable constraint clicking
+      document.querySelectorAll('.constraint-item').forEach(c => c.style.pointerEvents = 'none');
+      
+      const selectedOption = options[window.selectedBoundaryAction];
+      const actionCorrect = selectedOption.dataset.correct === 'true';
+      const isCorrect = actionCorrect && wrongMarks === 0;
+      
       answers.push(isCorrect);
       
       const dot = document.getElementById(`dot${currentScene}`);
@@ -1928,6 +2171,8 @@
         submitTruthScanner();
       } else if (scene.gameType === 'echoMatch') {
         submitEchoMatch();
+      } else if (scene.gameType === 'boundaryBuilder') {
+        submitBoundaryBuilder();
       } else {
         submitMultipleChoice();
       }
