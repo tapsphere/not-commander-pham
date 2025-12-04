@@ -865,7 +865,7 @@
 
     function setupDragAndDrop() {
       const clues = document.querySelectorAll('.clue-item');
-      const buckets = document.querySelectorAll('.bucket-items');
+      const buckets = document.querySelectorAll('.bucket');
       const cluesArea = document.getElementById('cluesArea');
       
       clues.forEach(clue => {
@@ -877,6 +877,7 @@
         clue.addEventListener('touchend', handleTouchEnd);
       });
       
+      // Add listeners to the whole bucket div for better drop target
       buckets.forEach(bucket => {
         bucket.addEventListener('dragover', handleDragOver);
         bucket.addEventListener('dragleave', handleDragLeave);
@@ -886,6 +887,9 @@
       cluesArea.addEventListener('dragover', handleDragOver);
       cluesArea.addEventListener('dragleave', handleDragLeave);
       cluesArea.addEventListener('drop', handleDrop);
+      
+      // Enable submit right away - user can submit whenever ready
+      document.getElementById('submitBtn').disabled = false;
     }
 
     let draggedElement = null;
@@ -900,30 +904,35 @@
     function handleDragEnd(e) {
       draggedElement.classList.remove('dragging');
       document.querySelectorAll('.bucket, .clues-area').forEach(el => el.classList.remove('drag-over'));
-      checkSignalSorterComplete();
     }
 
     function handleDragOver(e) {
       e.preventDefault();
-      const target = e.target.closest('.bucket-items, .clues-area');
-      if (target) {
-        target.closest('.bucket, .clues-area')?.classList.add('drag-over');
-      }
+      e.target.closest('.bucket, .clues-area')?.classList.add('drag-over');
     }
 
     function handleDragLeave(e) {
-      const target = e.target.closest('.bucket, .clues-area');
-      if (target) target.classList.remove('drag-over');
+      // Only remove if leaving the bucket entirely
+      const relatedTarget = e.relatedTarget;
+      const bucket = e.target.closest('.bucket, .clues-area');
+      if (bucket && !bucket.contains(relatedTarget)) {
+        bucket.classList.remove('drag-over');
+      }
     }
 
     function handleDrop(e) {
       e.preventDefault();
-      const target = e.target.closest('.bucket-items, .clues-area');
-      if (target && draggedElement) {
-        target.appendChild(draggedElement);
-        target.closest('.bucket, .clues-area')?.classList.remove('drag-over');
+      const bucket = e.target.closest('.bucket, .clues-area');
+      if (bucket && draggedElement) {
+        // Find the bucket-items container or clues-area to append to
+        const dropTarget = bucket.classList.contains('clues-area') 
+          ? bucket 
+          : bucket.querySelector('.bucket-items');
+        if (dropTarget) {
+          dropTarget.appendChild(draggedElement);
+        }
+        bucket.classList.remove('drag-over');
       }
-      checkSignalSorterComplete();
     }
 
     // Touch handlers for mobile
@@ -964,24 +973,21 @@
       
       const touch = e.changedTouches[0];
       const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-      const dropTarget = elementBelow?.closest('.bucket-items, .clues-area');
+      const bucket = elementBelow?.closest('.bucket, .clues-area');
       
-      if (dropTarget) {
-        dropTarget.appendChild(draggedElement);
+      if (bucket) {
+        const dropTarget = bucket.classList.contains('clues-area')
+          ? bucket
+          : bucket.querySelector('.bucket-items');
+        if (dropTarget) {
+          dropTarget.appendChild(draggedElement);
+        }
       }
       
       touchClone.remove();
       touchClone = null;
       draggedElement.classList.remove('dragging');
       document.querySelectorAll('.bucket, .clues-area').forEach(el => el.classList.remove('drag-over'));
-      
-      checkSignalSorterComplete();
-    }
-
-    function checkSignalSorterComplete() {
-      const cluesArea = document.getElementById('cluesArea');
-      const remainingClues = cluesArea?.querySelectorAll('.clue-item').length || 0;
-      document.getElementById('submitBtn').disabled = remainingClues > 0;
     }
 
     function selectChoice(index) {
@@ -1030,28 +1036,35 @@
       const scene = scenes[currentScene];
       const relevantBucket = document.querySelector('[data-bucket="relevant"]');
       const noiseBucket = document.querySelector('[data-bucket="noise"]');
+      const cluesArea = document.getElementById('cluesArea');
       
       let correctCount = 0;
       let totalClues = scene.clues.length;
       
-      // Check relevant bucket
+      // Check relevant bucket - should contain items where relevant=true
       relevantBucket.querySelectorAll('.clue-item').forEach(clue => {
         const isRelevant = clue.dataset.relevant === 'true';
         clue.classList.add(isRelevant ? 'correct-placement' : 'wrong-placement');
         if (isRelevant) correctCount++;
       });
       
-      // Check noise bucket
+      // Check noise bucket - should contain items where relevant=false
       noiseBucket.querySelectorAll('.clue-item').forEach(clue => {
         const isRelevant = clue.dataset.relevant === 'true';
         clue.classList.add(!isRelevant ? 'correct-placement' : 'wrong-placement');
         if (!isRelevant) correctCount++;
       });
       
+      // Unsorted clues count as wrong
+      cluesArea.querySelectorAll('.clue-item').forEach(clue => {
+        clue.classList.add('wrong-placement');
+      });
+      
       // Disable dragging
       document.querySelectorAll('.clue-item').forEach(clue => {
         clue.draggable = false;
         clue.style.cursor = 'default';
+      });
       });
       
       const isCorrect = correctCount >= totalClues * 0.8; // 80% threshold
