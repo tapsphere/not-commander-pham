@@ -1444,7 +1444,71 @@
     let timeLeft = 180;
     let gameStarted = false;
 
+    // Sound Effects using Web Audio API
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playClickSound() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 600;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+    
+    function playSuccessSound() {
+      const notes = [523, 659, 784]; // C5, E5, G5 chord
+      notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4 + i * 0.08);
+        osc.start(audioCtx.currentTime + i * 0.08);
+        osc.stop(audioCtx.currentTime + 0.5);
+      });
+    }
+    
+    function playWrongSound() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 200;
+      osc.type = 'sawtooth';
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.3);
+    }
+    
+    function playSwipeSound(direction) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = direction === 'right' ? 500 : 300;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+
     function startGame() {
+      // Resume audio context on user interaction (required by browsers)
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      playClickSound();
+      
       document.getElementById('introScreen').classList.add('hidden');
       document.getElementById('header').classList.remove('hidden');
       document.getElementById('sceneCard').classList.remove('hidden');
@@ -1608,6 +1672,7 @@
     }
 
     function selectTile(tile) {
+      playClickSound();
       const scene = scenes[currentScene];
       if (scene.gameType !== 'patternPath') return;
       
@@ -1715,6 +1780,7 @@
     }
 
     function selectEchoOption(option) {
+      playClickSound();
       document.querySelectorAll('.echo-option').forEach(o => o.classList.remove('selected'));
       option.classList.add('selected');
       window.selectedEchoOption = parseInt(option.dataset.index);
@@ -1784,6 +1850,7 @@
     }
 
     function toggleConstraint(item) {
+      playClickSound();
       if (window.boundaryData.phase !== 'marking') return;
       
       const index = parseInt(item.dataset.index);
@@ -1807,6 +1874,7 @@
       
       // If all required are marked, show action phase
       if (correctlyMarked >= window.boundaryData.requiredMarks) {
+        playSuccessSound();
         window.boundaryData.phase = 'action';
         document.getElementById('actionPhase').classList.add('active');
         document.getElementById('boundaryProgress').textContent = '✅ Boundaries set! Now choose your action:';
@@ -1814,6 +1882,7 @@
     }
 
     function selectBoundaryAction(option) {
+      playClickSound();
       document.querySelectorAll('.action-option').forEach(o => o.classList.remove('selected'));
       option.classList.add('selected');
       window.selectedBoundaryAction = parseInt(option.dataset.index);
@@ -1973,13 +2042,19 @@
     }
 
     function swipeCard(direction) {
+      playSwipeSound(direction);
       const card = document.getElementById('swipeCard');
       const data = window.swipeData;
       const assumption = data.assumptions[data.currentIndex];
       
       // Determine if swipe was correct
       const isCorrect = assumption.swipeDirection === direction;
-      if (isCorrect) data.correctCount++;
+      if (isCorrect) {
+        data.correctCount++;
+        setTimeout(() => playSuccessSound(), 100);
+      } else {
+        setTimeout(() => playWrongSound(), 100);
+      }
       
       // Show result briefly
       const resultsDiv = document.getElementById('swipeResults');
@@ -2151,6 +2226,7 @@
     }
 
     function selectChoice(index) {
+      playClickSound();
       const buttons = document.querySelectorAll('.choice-btn');
       buttons.forEach((btn, i) => {
         btn.classList.remove('selected');
@@ -2313,6 +2389,13 @@
     }
 
     function showFeedbackAndNext(isCorrect) {
+      // Play sound effect
+      if (isCorrect) {
+        playSuccessSound();
+      } else {
+        playWrongSound();
+      }
+      
       const scene = scenes[currentScene];
       const feedback = document.getElementById('feedback');
       feedback.textContent = isCorrect ? scene.feedback.correct : scene.feedback.wrong;
