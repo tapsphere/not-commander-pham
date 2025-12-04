@@ -1447,59 +1447,26 @@
     // Sound Effects using Web Audio API
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let ambientPlaying = false;
-    let ambientNodes = [];
+    let ambientAudio = null;
     
-    // Ambient Background Music - Calm Meditation
+    // Ambient Background Music - Calm Meditation MP3
     function startAmbientMusic() {
       if (ambientPlaying) return;
       ambientPlaying = true;
       
-      // Create master gain for ambient sounds
-      const masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.06;
-      masterGain.connect(audioCtx.destination);
-      
-      // Drone pad 1 - Low fundamental
-      const drone1 = audioCtx.createOscillator();
-      const drone1Gain = audioCtx.createGain();
-      drone1.type = 'sine';
-      drone1.frequency.value = 110; // A2
-      drone1Gain.gain.value = 0.3;
-      drone1.connect(drone1Gain);
-      drone1Gain.connect(masterGain);
-      drone1.start();
-      
-      // Drone pad 2 - Fifth harmony
-      const drone2 = audioCtx.createOscillator();
-      const drone2Gain = audioCtx.createGain();
-      drone2.type = 'sine';
-      drone2.frequency.value = 165; // E3
-      drone2Gain.gain.value = 0.2;
-      drone2.connect(drone2Gain);
-      drone2Gain.connect(masterGain);
-      drone2.start();
-      
-      // Drone pad 3 - Octave warmth
-      const drone3 = audioCtx.createOscillator();
-      const drone3Gain = audioCtx.createGain();
-      drone3.type = 'sine';
-      drone3.frequency.value = 220; // A3
-      drone3Gain.gain.value = 0.15;
-      drone3.connect(drone3Gain);
-      drone3Gain.connect(masterGain);
-      drone3.start();
-      
-      // Store nodes for cleanup
-      ambientNodes = [drone1, drone2, drone3, masterGain];
+      ambientAudio = new Audio('meditation-background.mp3');
+      ambientAudio.loop = true;
+      ambientAudio.volume = 0.15; // Light background volume
+      ambientAudio.play().catch(e => console.log('Audio play failed:', e));
     }
     
     function stopAmbientMusic() {
       ambientPlaying = false;
-      ambientNodes.forEach(node => {
-        try { node.stop && node.stop(); } catch(e) {}
-        try { node.disconnect(); } catch(e) {}
-      });
-      ambientNodes = [];
+      if (ambientAudio) {
+        ambientAudio.pause();
+        ambientAudio.currentTime = 0;
+        ambientAudio = null;
+      }
     }
     
     function playClickSound() {
