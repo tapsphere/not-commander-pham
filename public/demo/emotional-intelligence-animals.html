@@ -717,6 +717,15 @@
       font-size: 0.85rem;
       color: #666;
       margin-bottom: 12px;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .hidden-cues.revealed {
+      opacity: 1;
+      max-height: 200px;
     }
 
     .cue-item {
@@ -731,6 +740,14 @@
 
     .cue-item.positive { background: rgba(56, 239, 125, 0.15); color: #065f46; }
     .cue-item.negative { background: rgba(239, 68, 68, 0.15); color: #991b1b; }
+
+    .scan-progress {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6C3483;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
 
     .card-slider-container {
       margin-top: 12px;
@@ -751,7 +768,7 @@
       height: 8px;
       -webkit-appearance: none;
       appearance: none;
-      background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #22c55e 100%);
+      background: linear-gradient(90deg, #e0e0e0 0%, #D7BDE2 50%, #6C3483 100%);
       border-radius: 4px;
       outline: none;
     }
@@ -765,6 +782,33 @@
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(108, 52, 131, 0.4);
       border: 3px solid white;
+    }
+
+    .rating-slider-container {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed #D7BDE2;
+    }
+
+    .rating-slider {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #22c55e 100%);
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .rating-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      border: 2px solid #6C3483;
     }
 
     .slider-value {
@@ -1158,13 +1202,17 @@
     function loadTruthScanner(scene, container) {
       container.innerHTML = `
         <div class="truth-scanner">
-          <div class="scanner-instruction">🔍 Read the clues and set each credibility slider to match</div>
+          <div class="scanner-instruction">🔍 Slide to scan for evidence, then rate credibility</div>
           <div class="interpretations">
             ${scene.interpretations.map((interp, i) => `
               <div class="interpretation-card" data-index="${i}" data-target="${interp.credibility}">
                 <div class="card-label">${interp.label}</div>
                 <div class="speech-bubble">${interp.statement}</div>
-                <div class="hidden-cues">
+                <div class="card-slider-container">
+                  <div class="scan-progress" id="scanProgress${i}">🔦 Slide to scan</div>
+                  <input type="range" class="card-slider" id="scanner${i}" min="0" max="100" value="0" oninput="updateScanner(${i})">
+                </div>
+                <div class="hidden-cues" id="cues${i}">
                   ${interp.hiddenCues.map(cue => `
                     <div class="cue-item ${cue.type}">
                       <span>${cue.icon}</span>
@@ -1172,13 +1220,13 @@
                     </div>
                   `).join('')}
                 </div>
-                <div class="card-slider-container">
+                <div class="rating-slider-container" id="ratingContainer${i}" style="display: none;">
                   <div class="slider-label">
-                    <span>Not Credible</span>
-                    <span>Very Credible</span>
+                    <span>❌ Not Credible</span>
+                    <span>✅ Very Credible</span>
                   </div>
-                  <input type="range" class="card-slider" id="slider${i}" min="0" max="100" value="50" oninput="updateSliderValue(${i})">
-                  <div class="slider-value" id="sliderValue${i}">50%</div>
+                  <input type="range" class="rating-slider" id="rating${i}" min="0" max="100" value="50" oninput="updateRating(${i})">
+                  <div class="slider-value" id="ratingValue${i}">50%</div>
                 </div>
               </div>
             `).join('')}
@@ -1187,12 +1235,35 @@
       `;
       
       window.truthScannerData = scene.interpretations;
-      document.getElementById('submitBtn').disabled = false;
+      window.scannedCards = [false, false];
+      document.getElementById('submitBtn').disabled = true;
     }
 
-    function updateSliderValue(index) {
-      const slider = document.getElementById('slider' + index);
-      const valueDisplay = document.getElementById('sliderValue' + index);
+    function updateScanner(index) {
+      const scanner = document.getElementById('scanner' + index);
+      const value = parseInt(scanner.value);
+      const cues = document.getElementById('cues' + index);
+      const progress = document.getElementById('scanProgress' + index);
+      const ratingContainer = document.getElementById('ratingContainer' + index);
+      
+      if (value >= 70) {
+        cues.classList.add('revealed');
+        progress.textContent = '✅ Evidence revealed!';
+        ratingContainer.style.display = 'block';
+        window.scannedCards[index] = true;
+        
+        // Enable submit only when both cards are scanned
+        if (window.scannedCards[0] && window.scannedCards[1]) {
+          document.getElementById('submitBtn').disabled = false;
+        }
+      } else {
+        progress.textContent = `🔦 Scanning... ${value}%`;
+      }
+    }
+
+    function updateRating(index) {
+      const slider = document.getElementById('rating' + index);
+      const valueDisplay = document.getElementById('ratingValue' + index);
       valueDisplay.textContent = slider.value + '%';
     }
 
@@ -1403,13 +1474,14 @@
     function submitTruthScanner() {
       const scene = scenes[currentScene];
       const cards = document.querySelectorAll('.interpretation-card');
-      const tolerance = 15; // Allow ±15% tolerance
+      const tolerance = 20; // Allow ±20% tolerance
       
       let allCorrect = true;
       
       cards.forEach((card, i) => {
-        const slider = document.getElementById('slider' + i);
-        const userValue = parseInt(slider.value);
+        const ratingSlider = document.getElementById('rating' + i);
+        const scannerSlider = document.getElementById('scanner' + i);
+        const userValue = parseInt(ratingSlider.value);
         const targetValue = parseInt(card.dataset.target);
         
         const isWithinTolerance = Math.abs(userValue - targetValue) <= tolerance;
@@ -1421,11 +1493,12 @@
           allCorrect = false;
         }
         
-        // Disable slider
-        slider.disabled = true;
+        // Disable sliders
+        ratingSlider.disabled = true;
+        scannerSlider.disabled = true;
         
         // Show the target value
-        document.getElementById('sliderValue' + i).textContent = `${userValue}% (Target: ${targetValue}%)`;
+        document.getElementById('ratingValue' + i).textContent = `${userValue}% (Target: ${targetValue}%)`;
       });
       
       answers.push(allCorrect);
