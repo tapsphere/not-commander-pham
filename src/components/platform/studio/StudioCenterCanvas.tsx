@@ -1,8 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
-import { Clock, ChevronLeft, Undo, Sparkles, Play, Trophy, Award, RotateCcw } from 'lucide-react';
+import { Clock, ChevronLeft, Undo, Play, Trophy, Award, RotateCcw, Activity } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { MechanicPreview } from './MechanicPreview';
+import { ScrubSlider } from './mechanics/ScrubSlider';
+import { 
+  performThreeWayStitch, 
+  initializeBiometricTrace,
+  TelemetrySample,
+  UNIVERSAL_LAYOUT,
+} from './SceneAssembler';
 
 interface StudioCenterCanvasProps {
   currentSceneIndex: number;
@@ -35,6 +42,10 @@ export function StudioCenterCanvas({
 }: StudioCenterCanvasProps) {
   const { isDarkMode } = useStudioTheme();
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  
+  // Telemetry state (DNA Library Section 2 & 3)
+  const [verifiedSignals, setVerifiedSignals] = useState(0);
+  const telemetrySamplesRef = useRef<TelemetrySample[]>([]);
 
   // Create preview URL for logo
   useEffect(() => {
@@ -138,6 +149,16 @@ export function StudioCenterCanvas({
     </div>
   );
 
+  // Handle slider value change with telemetry
+  const handleSliderChange = (value: number, samples: TelemetrySample[]) => {
+    telemetrySamplesRef.current = samples;
+    setVerifiedSignals(prev => prev + 1);
+    console.log(`[Telemetry] Value: ${value}%, Samples: ${samples.length}, Verified: ${verifiedSignals + 1}`);
+  };
+
+  // Check if current scene should use DNA Library mechanic (Scene 3 = Data Analysis)
+  const isDataAnalysisScene = currentSceneIndex === 3;
+
   // Render Gameplay Screen (Scenes 1-6)
   const renderGameplayScreen = () => {
     const displayQuestion = currentScene?.question || 'Select the most effective approach for this scenario...';
@@ -150,6 +171,108 @@ export function StudioCenterCanvas({
     const displayChoices = currentScene?.choices || ghostChoices;
     const currentMechanic = currentSubCompetency?.game_mechanic || null;
 
+    // Scene 3 uses DNA Library 30/50/20 layout with ScrubSlider
+    if (isDataAnalysisScene) {
+      const actionCue = currentSubCompetency?.action_cue || 
+        'Adjust the slider to filter the noise and reveal the optimal data threshold.';
+      
+      return (
+        <div className="h-full flex flex-col overflow-hidden pt-6 bg-background">
+          {/* ═══════════════════════════════════════════════════════════════
+              TOP 30% - Context Zone (Action Cue / Soul)
+              DNA Library: text-sm or text-base, Slate-500
+          ═══════════════════════════════════════════════════════════════ */}
+          <div 
+            className="flex-none px-4"
+            style={{ height: `${UNIVERSAL_LAYOUT.topZone}%` }}
+          >
+            {/* Header Bar */}
+            <div className="glass-card px-3 py-2 flex items-center gap-3 mb-2">
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-sm text-foreground truncate">
+                  Data Analysis
+                </h3>
+                <p className="text-xs text-muted-foreground truncate">
+                  Continuous Scrub
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>30s</span>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
+              <div 
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {/* Action Cue (Soul) - text-sm per DNA Library */}
+            <div className="glass-card p-3">
+              <p className="text-sm text-foreground leading-relaxed">
+                {actionCue}
+              </p>
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              MIDDLE 50% - Visual Stage (Mascot/Feedback Area)
+              DNA Library: Central visual area, blur tied to slider
+          ═══════════════════════════════════════════════════════════════ */}
+          <div 
+            className="flex-none flex items-center justify-center px-4"
+            style={{ height: `${UNIVERSAL_LAYOUT.middleZone}%` }}
+          >
+            <div className="w-full">
+              {/* Continuous Scrub Mechanic (Scene 3) */}
+              <ScrubSlider
+                targetValue={65}
+                targetTolerance={10}
+                onValueChange={handleSliderChange}
+                isGhostState={!currentScene}
+              />
+            </div>
+          </div>
+
+          {/* ═══════════════════════════════════════════════════════════════
+              BOTTOM 20% - Interaction Zone
+              DNA Library: Telemetry buttons + Submit
+          ═══════════════════════════════════════════════════════════════ */}
+          <div 
+            className="flex-none px-4 pb-4 flex flex-col justify-end"
+            style={{ height: `${UNIVERSAL_LAYOUT.bottomZone}%` }}
+          >
+            {/* Telemetry Buttons (LOCKED - Mandatory for biometric jitter tracking) */}
+            <div className="flex gap-2 mb-3">
+              <button className="glass-button px-3 py-1.5 rounded-lg text-xs text-muted-foreground flex items-center gap-1">
+                <Undo className="h-3 w-3" />
+                Undo
+              </button>
+              <button className="glass-button px-3 py-1.5 rounded-lg text-xs text-muted-foreground flex items-center gap-1">
+                <ChevronLeft className="h-3 w-3" />
+                Back
+              </button>
+              {/* Telemetry indicator */}
+              <div className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Activity className="h-3 w-3" />
+                <span>{verifiedSignals} signals</span>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button className="w-full py-3 rounded-xl font-semibold text-sm bg-primary text-primary-foreground shadow-lg transition-all hover:opacity-90">
+              Submit Answer
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Default gameplay screen for other scenes (1, 2, 4, 5, 6)
     return (
       <div className="h-full overflow-hidden pt-6" style={{ backgroundColor: designSettings.background }}>
         {/* Header */}
