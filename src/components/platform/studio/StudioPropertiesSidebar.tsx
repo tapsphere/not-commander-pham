@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,10 +9,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Play, Trophy, Gamepad2, Lock, Plus, Trash2, Upload, 
   Sparkles, Palette, Box, FileText, Loader2, Target, Zap,
-  AlertTriangle
+  AlertTriangle, RotateCcw, Wand2
 } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
-import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES } from '../template-steps/types';
+import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES, createDefaultScene } from '../template-steps/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
@@ -49,6 +49,11 @@ export function StudioPropertiesSidebar({
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
+  const [localAiPrompt, setLocalAiPrompt] = useState('');
+  const [isLocalAiProcessing, setIsLocalAiProcessing] = useState(false);
+  
+  // Store original scene data for reset functionality
+  const originalScenesRef = useRef<Map<string, SceneData>>(new Map());
 
   const bgColor = isDarkMode ? 'bg-slate-900/90' : 'bg-white/95';
   const borderColor = isDarkMode ? 'border-white/10' : 'border-slate-200';
@@ -63,12 +68,52 @@ export function StudioPropertiesSidebar({
     ? subCompetencies.find(s => s.id === currentScene.subCompetencyId)
     : null;
 
+  // Store original scene when first loaded (for reset)
+  if (currentScene && !originalScenesRef.current.has(currentScene.id)) {
+    originalScenesRef.current.set(currentScene.id, JSON.parse(JSON.stringify(currentScene)));
+  }
+
   const updateScene = (updates: Partial<SceneData>) => {
     if (!currentScene) return;
     const newScenes = scenes.map((s, i) => 
       i === currentSceneIndex - 1 ? { ...s, ...updates } : s
     );
     setScenes(newScenes);
+  };
+
+  // Reset current scene to DNA Library blueprint
+  const handleResetToDefault = () => {
+    if (!currentScene) return;
+    
+    const subId = currentScene.subCompetencyId;
+    const defaultScene = createDefaultScene(subId, currentSceneIndex);
+    
+    // Preserve the original ID but reset content
+    const newScenes = scenes.map((s, i) => 
+      i === currentSceneIndex - 1 
+        ? { ...defaultScene, id: currentScene.id, subCompetencyId: subId } 
+        : s
+    );
+    setScenes(newScenes);
+    setLocalAiPrompt('');
+    toast.success('Scene reset to DNA Library defaults');
+  };
+
+  // Apply local AI adjustments to current scene only
+  const handleLocalAiAdjust = async () => {
+    if (!currentScene || !localAiPrompt.trim()) return;
+    
+    setIsLocalAiProcessing(true);
+    
+    // Simulate AI processing (in production, this would call the AI endpoint)
+    await new Promise(r => setTimeout(r, 1200));
+    
+    const adjustedQuestion = `${currentScene.question} (Adjusted: ${localAiPrompt})`;
+    updateScene({ question: adjustedQuestion });
+    
+    toast.success('Local adjustment applied to this scene only');
+    setIsLocalAiProcessing(false);
+    setLocalAiPrompt('');
   };
 
   const addChoice = () => {
@@ -269,23 +314,34 @@ export function StudioPropertiesSidebar({
 
     return (
       <div className="space-y-5">
+        {/* RESET TO DEFAULT - Prominent at top */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleResetToDefault}
+          className="w-full border-amber-500/50 text-amber-600 hover:bg-amber-500/10 hover:border-amber-500"
+        >
+          <RotateCcw className="h-4 w-4 mr-2" />
+          Reset to Default
+        </Button>
+
         <SectionHeader icon={Gamepad2} label={`Scene ${currentSceneIndex}`} isDarkMode={isDarkMode} />
 
-        {/* LOCKED Mission Requirement Badge */}
-        {currentSubCompetency?.action_cue && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="h-4 w-4 text-amber-500" />
-              <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
-                Mission Requirement
-              </span>
-              <Lock className="h-3 w-3 text-amber-500/60" />
-            </div>
-            <p className={`text-sm ${textColor} leading-relaxed`}>
-              {currentSubCompetency.action_cue}
-            </p>
-          </div>
-        )}
+        {/* EDITABLE Action Cue (Data Panel) */}
+        <div className="space-y-2">
+          <Label className={mutedColor}>Action Cue</Label>
+          <Textarea
+            value={currentSubCompetency?.action_cue || ''}
+            readOnly
+            className={`resize-none ${inputBg} opacity-70`}
+            rows={2}
+            placeholder="Action cue from framework..."
+          />
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <Lock className="h-2.5 w-2.5" />
+            Linked to DNA Library
+          </p>
+        </div>
 
         {/* LOCKED Framework Data */}
         {currentSubCompetency && (
@@ -301,7 +357,7 @@ export function StudioPropertiesSidebar({
           </div>
         )}
 
-        {/* Editable Question */}
+        {/* Editable Question / Prompt */}
         <div className="space-y-2">
           <Label className={mutedColor}>Question / Prompt</Label>
           <Textarea
@@ -311,21 +367,6 @@ export function StudioPropertiesSidebar({
             rows={3}
             placeholder="Enter the scene question..."
           />
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAiRemix}
-            disabled={isRemixing}
-            className="w-full mt-2"
-          >
-            {isRemixing ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4 mr-2" />
-            )}
-            AI Remix with Action Cue
-          </Button>
         </div>
 
         {/* Dynamic Choices (2-10) */}
@@ -400,6 +441,58 @@ export function StudioPropertiesSidebar({
               </button>
             ))}
           </div>
+        </div>
+
+        {/* BRAND COLOR REMIX */}
+        <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+          <div className="flex items-center gap-2">
+            <Palette className="h-4 w-4 text-primary" />
+            <Label className={textColor}>Brand Color Remix</Label>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={designSettings.primary}
+              onChange={(e) => setDesignSettings({ ...designSettings, primary: e.target.value })}
+              className="w-10 h-10 rounded-lg cursor-pointer border-0"
+            />
+            <div className="flex-1">
+              <span className={`text-xs ${mutedColor}`}>--brand-primary</span>
+              <p className={`text-sm font-mono ${textColor}`}>{designSettings.primary}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* LOCAL AI ADJUSTMENTS - Single Scene Only */}
+        <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+          <div className="flex items-center gap-2">
+            <Wand2 className="h-4 w-4 text-primary" />
+            <Label className={textColor}>Local Adjustments</Label>
+          </div>
+          <p className={`text-xs ${mutedColor}`}>
+            Only affects this scene. Changes won't propagate.
+          </p>
+          <Textarea
+            value={localAiPrompt}
+            onChange={(e) => setLocalAiPrompt(e.target.value)}
+            className={`resize-none ${inputBg}`}
+            rows={2}
+            placeholder="e.g., Make the tone more urgent..."
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLocalAiAdjust}
+            disabled={isLocalAiProcessing || !localAiPrompt.trim()}
+            className="w-full"
+          >
+            {isLocalAiProcessing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            Apply to This Scene
+          </Button>
         </div>
       </div>
     );
