@@ -105,7 +105,27 @@ export function StudioPropertiesSidebar({
     
     setIsLocalAiProcessing(true);
     
-    // Simulate AI processing (in production, this would call the AI endpoint)
+    // Check if the prompt is about color changes
+    const colorPrompt = localAiPrompt.toLowerCase();
+    if (colorPrompt.includes('color') || colorPrompt.includes('blue') || colorPrompt.includes('red') || 
+        colorPrompt.includes('green') || colorPrompt.includes('purple') || colorPrompt.includes('orange')) {
+      // Parse color from prompt and apply
+      let newColor = designSettings.primary;
+      if (colorPrompt.includes('blue')) newColor = '#3b82f6';
+      else if (colorPrompt.includes('red')) newColor = '#ef4444';
+      else if (colorPrompt.includes('green')) newColor = '#22c55e';
+      else if (colorPrompt.includes('purple')) newColor = '#a855f7';
+      else if (colorPrompt.includes('orange')) newColor = '#f97316';
+      
+      setDesignSettings({ ...designSettings, primary: newColor });
+      document.documentElement.style.setProperty('--brand-primary', newColor);
+      toast.success(`Brand color changed to ${newColor}`);
+      setIsLocalAiProcessing(false);
+      setLocalAiPrompt('');
+      return;
+    }
+    
+    // Simulate AI processing for text adjustments
     await new Promise(r => setTimeout(r, 1200));
     
     const adjustedQuestion = `${currentScene.question} (Adjusted: ${localAiPrompt})`;
@@ -443,7 +463,7 @@ export function StudioPropertiesSidebar({
           </div>
         </div>
 
-        {/* BRAND COLOR REMIX */}
+        {/* BRAND COLOR REMIX - Updates CSS variable globally */}
         <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
           <div className="flex items-center gap-2">
             <Palette className="h-4 w-4 text-primary" />
@@ -453,7 +473,13 @@ export function StudioPropertiesSidebar({
             <input
               type="color"
               value={designSettings.primary}
-              onChange={(e) => setDesignSettings({ ...designSettings, primary: e.target.value })}
+              onChange={(e) => {
+                const newColor = e.target.value;
+                setDesignSettings({ ...designSettings, primary: newColor });
+                // Update CSS variable globally
+                document.documentElement.style.setProperty('--brand-primary', newColor);
+                toast.success(`Brand color updated: ${newColor}`);
+              }}
               className="w-10 h-10 rounded-lg cursor-pointer border-0"
             />
             <div className="flex-1">
@@ -461,6 +487,14 @@ export function StudioPropertiesSidebar({
               <p className={`text-sm font-mono ${textColor}`}>{designSettings.primary}</p>
             </div>
           </div>
+          {/* Live Preview Swatch */}
+          <div 
+            className="h-8 rounded-lg border transition-all duration-200"
+            style={{ 
+              backgroundColor: designSettings.primary,
+              borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
+            }}
+          />
         </div>
 
         {/* LOCAL AI ADJUSTMENTS - Single Scene Only */}
