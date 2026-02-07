@@ -3,6 +3,12 @@
  * 
  * Renders mechanic-specific UI layouts based on game_mechanic column
  * from Excel Framework data. Uses DNA Library blueprints for mapping.
+ * 
+ * Player Toggle Logic:
+ * - State A: Nothing selected → Next button hidden/greyed
+ * - State B: Option clicked → Highlight, save data, show Next
+ * - State C: Same option clicked again → Deselect, clear data, hide Next
+ * - State D: Different option clicked → Auto-deselect old, select new
  */
 
 import { DesignSettings, ChoiceData } from '../template-steps/types';
@@ -15,7 +21,7 @@ import {
   PatternGrid,
   TradeoffMatrix,
 } from './mechanics';
-import { GripVertical, CheckCircle, XCircle } from 'lucide-react';
+import { GripVertical, CheckCircle, Circle } from 'lucide-react';
 
 interface MechanicPreviewProps {
   mechanic: string | null;
@@ -23,6 +29,8 @@ interface MechanicPreviewProps {
   designSettings: DesignSettings;
   isGhostState: boolean;
   playerAction?: string | null;
+  selectedChoiceId?: string | null;
+  onChoiceSelect?: (choiceId: string | null) => void;
 }
 
 /**
@@ -36,6 +44,8 @@ export function MechanicPreview({
   designSettings,
   isGhostState,
   playerAction,
+  selectedChoiceId,
+  onChoiceSelect,
 }: MechanicPreviewProps) {
   // Step 1: Detect mechanic type using SceneAssembler logic
   const mechanicType = detectMechanicType(mechanic, playerAction);
@@ -47,6 +57,8 @@ export function MechanicPreview({
       choices={choices}
       designSettings={designSettings}
       isGhostState={isGhostState}
+      selectedChoiceId={selectedChoiceId}
+      onChoiceSelect={onChoiceSelect}
     />
   );
 }
@@ -56,6 +68,8 @@ interface MechanicRendererProps {
   choices: ChoiceData[];
   designSettings: DesignSettings;
   isGhostState: boolean;
+  selectedChoiceId?: string | null;
+  onChoiceSelect?: (choiceId: string | null) => void;
 }
 
 /**
@@ -66,6 +80,8 @@ function MechanicRenderer({
   choices,
   designSettings,
   isGhostState,
+  selectedChoiceId,
+  onChoiceSelect,
 }: MechanicRendererProps) {
   switch (mechanicType) {
     case 'data_analysis':
@@ -137,12 +153,14 @@ function MechanicRenderer({
       
     case 'multi_choice':
     default:
-      // Default - Multi-choice button stack
+      // Default - Multi-choice button stack with toggle
       return (
         <MultiChoiceLayout
           choices={choices}
           designSettings={designSettings}
           isGhostState={isGhostState}
+          selectedChoiceId={selectedChoiceId}
+          onChoiceSelect={onChoiceSelect}
         />
       );
   }
@@ -205,15 +223,19 @@ function RankingLayout({
   );
 }
 
-// Multi-choice: Dynamic grid (2-10 buttons)
+// Multi-choice: Dynamic grid with toggle selection
 function MultiChoiceLayout({ 
   choices, 
   designSettings, 
-  isGhostState 
+  isGhostState,
+  selectedChoiceId,
+  onChoiceSelect,
 }: { 
   choices: ChoiceData[];
   designSettings: DesignSettings;
   isGhostState: boolean;
+  selectedChoiceId?: string | null;
+  onChoiceSelect?: (choiceId: string | null) => void;
 }) {
   const displayChoices = choices.length > 0 ? choices : [
     { id: '1', text: 'Strategic Response A', isCorrect: true },
@@ -221,6 +243,19 @@ function MultiChoiceLayout({
     { id: '3', text: 'Tactical Option C', isCorrect: false },
     { id: '4', text: 'Fallback Decision D', isCorrect: false },
   ];
+
+  // Handle toggle logic
+  const handleChoiceClick = (choiceId: string) => {
+    if (!onChoiceSelect) return;
+    
+    // State C: Same option clicked again → Deselect
+    if (selectedChoiceId === choiceId) {
+      onChoiceSelect(null);
+    } else {
+      // State B & D: Select new option (auto-deselects old one)
+      onChoiceSelect(choiceId);
+    }
+  };
 
   // Dynamic sizing based on choice count
   const choiceCount = displayChoices.length;
@@ -231,32 +266,40 @@ function MultiChoiceLayout({
 
   return (
     <div className={`px-4 ${gap} max-h-[140px] overflow-y-auto`}>
-      {displayChoices.map((choice, idx) => (
-        <div
-          key={choice.id}
-          className={`rounded-lg ${padding} flex items-center gap-2 border transition-all`}
-          style={{
-            backgroundColor: choice.isCorrect 
-              ? `${designSettings.highlight}30`
-              : designSettings.background,
-            borderColor: choice.isCorrect 
-              ? designSettings.highlight
-              : `${designSettings.text}20`,
-          }}
-        >
-          {choice.isCorrect ? (
-            <CheckCircle className={`${iconSize} flex-shrink-0`} style={{ color: designSettings.highlight }} />
-          ) : (
-            <XCircle className={`${iconSize} flex-shrink-0 opacity-40`} style={{ color: designSettings.text }} />
-          )}
-          <span 
-            className={`${textSize} flex-1 ${!choice.text && isGhostState ? 'opacity-40 italic' : ''}`}
-            style={{ color: designSettings.text }}
+      {displayChoices.map((choice, idx) => {
+        const isSelected = selectedChoiceId === choice.id;
+        
+        return (
+          <button
+            key={choice.id}
+            onClick={() => handleChoiceClick(choice.id)}
+            className={`w-full rounded-lg ${padding} flex items-center gap-2 border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
+            style={{
+              backgroundColor: isSelected 
+                ? `${designSettings.primary}25`
+                : designSettings.background,
+              borderColor: isSelected 
+                ? designSettings.primary
+                : `${designSettings.text}20`,
+              boxShadow: isSelected 
+                ? `0 0 0 2px ${designSettings.primary}40`
+                : 'none',
+            }}
           >
-            {choice.text || `Option ${idx + 1}`}
-          </span>
-        </div>
-      ))}
+            {isSelected ? (
+              <CheckCircle className={`${iconSize} flex-shrink-0`} style={{ color: designSettings.primary }} />
+            ) : (
+              <Circle className={`${iconSize} flex-shrink-0 opacity-40`} style={{ color: designSettings.text }} />
+            )}
+            <span 
+              className={`${textSize} flex-1 text-left ${!choice.text && isGhostState ? 'opacity-40 italic' : ''}`}
+              style={{ color: designSettings.text }}
+            >
+              {choice.text || `Option ${idx + 1}`}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
