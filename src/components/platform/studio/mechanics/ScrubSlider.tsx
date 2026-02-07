@@ -1,30 +1,32 @@
 /**
- * ScrubSlider - Continuous Scrub Interaction (Data Analysis)
+ * ScrubSlider - Continuous Scrub Interaction (Data Analysis / Scene 3)
  * 
  * DNA Library 3.3: "Horizontal metallic track. Background clarity tied to slider %"
  * Telemetry: Velocity Consistency - Sample X-coordinate every 16ms (60Hz)
+ * 
+ * Universal UX (Section 5):
+ * - Typography: text-sm max
+ * - Positioning: In bottom third of screen
+ * - Uses Brand CSS Variables - NO hard-coded hex
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { DesignSettings } from '../../template-steps/types';
 import { TelemetrySample } from '../SceneAssembler';
 
 interface ScrubSliderProps {
-  designSettings: DesignSettings;
-  isGhostState: boolean;
   targetValue?: number; // 0-100, the "correct" zone
   targetTolerance?: number; // ± tolerance for correct answer
   onValueChange?: (value: number, samples: TelemetrySample[]) => void;
   disabled?: boolean;
+  isGhostState?: boolean;
 }
 
 export function ScrubSlider({
-  designSettings,
-  isGhostState,
   targetValue = 65,
   targetTolerance = 10,
   onValueChange,
   disabled = false,
+  isGhostState = false,
 }: ScrubSliderProps) {
   const [value, setValue] = useState(30);
   const [isDragging, setIsDragging] = useState(false);
@@ -115,51 +117,38 @@ export function ScrubSlider({
 
   return (
     <div className="px-4 py-3 space-y-3">
-      {/* Context indicator */}
+      {/* Context indicator - text-sm per UX constraints */}
       <div 
-        className={`text-xs text-center mb-2 ${isGhostState ? 'opacity-40 italic' : ''}`}
-        style={{ color: designSettings.text }}
+        className={`text-xs text-center text-muted-foreground ${isGhostState ? 'opacity-40 italic' : ''}`}
       >
         Adjust the slider to find the optimal value
       </div>
 
-      {/* Background visual that responds to slider */}
+      {/* Background visual that responds to slider - uses CSS variables */}
       <div 
-        className="relative h-16 rounded-lg overflow-hidden mb-3"
+        className="relative h-16 rounded-lg overflow-hidden bg-secondary/20"
         style={{ 
-          backgroundColor: `${designSettings.secondary}20`,
           filter: `blur(${blurAmount}px)`,
           transition: 'filter 0.1s ease-out',
         }}
       >
         <div 
-          className="absolute inset-0 flex items-center justify-center"
-          style={{ backgroundColor: `${designSettings.primary}${Math.round(proximityToTarget * 40)}` }}
+          className="absolute inset-0 flex items-center justify-center bg-primary/20"
+          style={{ opacity: proximityToTarget * 0.4 }}
         >
           <div 
-            className="text-2xl font-bold transition-opacity"
-            style={{ 
-              color: designSettings.text,
-              opacity: proximityToTarget,
-            }}
+            className="text-2xl font-bold text-foreground transition-opacity"
+            style={{ opacity: proximityToTarget }}
           >
             {value}%
           </div>
         </div>
       </div>
 
-      {/* Slider Track */}
+      {/* Slider Track - Metallic appearance using CSS variables */}
       <div 
         ref={trackRef}
-        className="relative h-10 rounded-full cursor-pointer select-none"
-        style={{
-          background: `linear-gradient(90deg, 
-            ${designSettings.secondary}30 0%, 
-            ${designSettings.primary}50 50%, 
-            ${designSettings.secondary}30 100%
-          )`,
-          boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
-        }}
+        className="relative h-10 rounded-full cursor-pointer select-none bg-gradient-to-r from-muted via-secondary to-muted shadow-inner"
         onMouseDown={(e) => handleStart(e.clientX)}
         onTouchStart={(e) => handleStart(e.touches[0].clientX)}
         onTouchMove={(e) => isDragging && handleMove(e.touches[0].clientX)}
@@ -167,47 +156,37 @@ export function ScrubSlider({
       >
         {/* Target Zone Indicator */}
         <div 
-          className="absolute top-0 bottom-0 rounded-full opacity-30"
+          className="absolute top-0 bottom-0 rounded-full bg-accent/30 border-2 border-dashed border-accent"
           style={{
             left: `${targetLeft}%`,
             width: `${targetWidth}%`,
-            backgroundColor: designSettings.highlight,
-            border: `2px dashed ${designSettings.highlight}`,
           }}
         />
 
         {/* Filled Track */}
         <div 
-          className="absolute top-0 left-0 bottom-0 rounded-l-full transition-all"
-          style={{
-            width: `${value}%`,
-            backgroundColor: isInTargetZone 
-              ? `${designSettings.highlight}80`
-              : `${designSettings.primary}60`,
-          }}
+          className={`absolute top-0 left-0 bottom-0 rounded-l-full transition-all ${
+            isInTargetZone ? 'bg-accent/60' : 'bg-primary/40'
+          }`}
+          style={{ width: `${value}%` }}
         />
 
         {/* Thumb */}
         <div 
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full shadow-lg transition-transform ${
+          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full shadow-lg transition-transform border-[3px] border-background ${
             isDragging ? 'scale-125' : 'scale-100'
-          }`}
-          style={{
-            left: `${value}%`,
-            backgroundColor: isInTargetZone ? designSettings.highlight : designSettings.primary,
-            boxShadow: `0 4px 12px ${designSettings.primary}50`,
-            border: `3px solid ${designSettings.background}`,
-          }}
+          } ${isInTargetZone ? 'bg-accent' : 'bg-primary'}`}
+          style={{ left: `${value}%` }}
         />
       </div>
 
-      {/* Labels */}
-      <div className="flex justify-between text-[10px]" style={{ color: designSettings.text }}>
-        <span className="opacity-50">0%</span>
-        <span className={`font-medium ${isInTargetZone ? '' : 'opacity-50'}`}>
+      {/* Labels - text-sm per UX constraints */}
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>0%</span>
+        <span className={`font-medium ${isInTargetZone ? 'text-accent' : ''}`}>
           {isInTargetZone ? '✓ Target Zone' : 'Find Target'}
         </span>
-        <span className="opacity-50">100%</span>
+        <span>100%</span>
       </div>
     </div>
   );
