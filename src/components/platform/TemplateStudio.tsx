@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Eye, Loader2, Save, Moon, Sun, X, Settings2, Layers } from 'lucide-react';
+import { Eye, Loader2, Save, Moon, Sun, X } from 'lucide-react';
 import { 
   TemplateStepFramework,
   TemplateFormData,
@@ -19,14 +19,9 @@ import {
   StudioFilmstrip,
   StudioPropertiesSidebar,
   StudioCenterCanvas,
+  StudioNavigator,
 } from './studio';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TemplateStudioProps {
   template?: {
@@ -48,10 +43,10 @@ function StudioContent({
 }: TemplateStudioProps) {
   const { isDarkMode, toggleTheme } = useStudioTheme();
   
+  const [currentStep, setCurrentStep] = useState(1);
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [showFrameworkSheet, setShowFrameworkSheet] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
@@ -70,6 +65,16 @@ function StudioContent({
   
   // Scene state
   const [scenes, setScenes] = useState<SceneData[]>([]);
+
+  // Calculate completed steps
+  const completedSteps = useMemo(() => {
+    const completed: number[] = [];
+    if (logoFile || designSettings.primary !== DEFAULT_DESIGN_SETTINGS.primary) completed.push(1);
+    if (formData.name.trim()) completed.push(2);
+    if (selectedSubCompetencies.length > 0) completed.push(3);
+    if (scenes.length > 0 && scenes.some(s => s.question.trim())) completed.push(4);
+    return completed;
+  }, [logoFile, designSettings.primary, formData.name, selectedSubCompetencies.length, scenes]);
 
   // Fetch competencies on mount
   useEffect(() => {
@@ -122,6 +127,13 @@ function StudioContent({
       }));
     }
   }, [template]);
+
+  // When step changes to Scenes, show filmstrip
+  useEffect(() => {
+    if (currentStep === 4) {
+      setCurrentSceneIndex(0);
+    }
+  }, [currentStep]);
 
   const handlePreview = async () => {
     setGenerating(true);
@@ -206,7 +218,6 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Upload cover image if provided
       let coverImageUrl = null;
       if (coverImageFile) {
         const fileExt = coverImageFile.name.split('.').pop();
@@ -294,6 +305,10 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
     ? 'bg-slate-950/50'
     : 'bg-slate-100/50';
 
+  const leftPanelStyles = isDarkMode
+    ? 'bg-slate-900/90 border-r border-white/5'
+    : 'bg-white/95 border-r border-slate-200';
+
   return (
     <div className={`fixed inset-0 z-50 flex flex-col ${bgStyles}`}>
       {/* Top Header Bar */}
@@ -321,42 +336,6 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Framework Configuration Sheet Trigger */}
-          <Sheet open={showFrameworkSheet} onOpenChange={setShowFrameworkSheet}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={buttonStyles}
-              >
-                <Layers className="h-4 w-4 mr-2" />
-                Framework
-                {selectedSubCompetencies.length > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
-                    {selectedSubCompetencies.length}
-                  </span>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[500px] sm:w-[600px] overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Logic Framework Configuration</SheetTitle>
-              </SheetHeader>
-              <div className="mt-6">
-                <TemplateStepFramework
-                  competencies={competencies}
-                  subCompetencies={subCompetencies}
-                  selectedCompetency={selectedCompetency}
-                  setSelectedCompetency={setSelectedCompetency}
-                  selectedSubCompetencies={selectedSubCompetencies}
-                  setSelectedSubCompetencies={setSelectedSubCompetencies}
-                  scenes={scenes}
-                  setScenes={setScenes}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
-
           <Button
             variant="ghost"
             size="sm"
@@ -403,36 +382,68 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main 3-Pane Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Center Canvas Area */}
-        <div className={`flex-1 flex flex-col ${canvasAreaStyles}`}>
-          {/* Canvas */}
-          <div className="flex-1 overflow-hidden">
-            <StudioCenterCanvas
-              currentSceneIndex={currentSceneIndex}
-              formData={formData}
-              scenes={scenes}
-              designSettings={designSettings}
-              subCompetencies={subCompetencies}
-              mascotFile={mascotFile}
-              logoFile={logoFile}
-            />
-          </div>
-
-          {/* Bottom Filmstrip */}
-          <StudioFilmstrip
-            currentSceneIndex={currentSceneIndex}
-            setCurrentSceneIndex={setCurrentSceneIndex}
-            scenes={scenes}
-            subCompetencies={subCompetencies}
-            designSettings={designSettings}
+        {/* Left Navigator Pane */}
+        <div className={`w-56 flex-shrink-0 ${leftPanelStyles}`}>
+          <StudioNavigator
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+            completedSteps={completedSteps}
           />
+        </div>
+
+        {/* Center Area: Canvas + Filmstrip (or Framework config) */}
+        <div className={`flex-1 flex flex-col ${canvasAreaStyles}`}>
+          {currentStep === 3 ? (
+            // Framework configuration takes full center when on step 3
+            <ScrollArea className="flex-1">
+              <div className="p-6 max-w-3xl mx-auto">
+                <TemplateStepFramework
+                  competencies={competencies}
+                  subCompetencies={subCompetencies}
+                  selectedCompetency={selectedCompetency}
+                  setSelectedCompetency={setSelectedCompetency}
+                  selectedSubCompetencies={selectedSubCompetencies}
+                  setSelectedSubCompetencies={setSelectedSubCompetencies}
+                  scenes={scenes}
+                  setScenes={setScenes}
+                />
+              </div>
+            </ScrollArea>
+          ) : (
+            <>
+              {/* Center Canvas */}
+              <div className="flex-1 overflow-hidden">
+                <StudioCenterCanvas
+                  currentSceneIndex={currentStep === 4 ? currentSceneIndex : 0}
+                  formData={formData}
+                  scenes={scenes}
+                  designSettings={designSettings}
+                  subCompetencies={subCompetencies}
+                  mascotFile={mascotFile}
+                  logoFile={logoFile}
+                />
+              </div>
+
+              {/* Bottom Filmstrip - only show on Scenes step */}
+              {currentStep === 4 && (
+                <StudioFilmstrip
+                  currentSceneIndex={currentSceneIndex}
+                  setCurrentSceneIndex={setCurrentSceneIndex}
+                  scenes={scenes}
+                  subCompetencies={subCompetencies}
+                  designSettings={designSettings}
+                />
+              )}
+            </>
+          )}
         </div>
 
         {/* Right Properties Sidebar */}
         <div className="w-80 flex-shrink-0">
           <StudioPropertiesSidebar
+            currentStep={currentStep}
             currentSceneIndex={currentSceneIndex}
             scenes={scenes}
             setScenes={setScenes}

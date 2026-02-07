@@ -5,16 +5,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Play, Trophy, Gamepad2, Lock, Plus, Trash2, Upload, 
-  Sparkles, Palette, Box, FileText, Loader2 
+  Sparkles, Palette, Box, FileText, Loader2, Target, Zap,
+  AlertTriangle
 } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
-import { DesignSettings, SceneData, SubCompetency, TemplateFormData } from '../template-steps/types';
+import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES } from '../template-steps/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface StudioPropertiesSidebarProps {
   currentSceneIndex: number;
+  currentStep: number;
   scenes: SceneData[];
   setScenes: (scenes: SceneData[]) => void;
   subCompetencies: SubCompetency[];
@@ -30,6 +34,7 @@ interface StudioPropertiesSidebarProps {
 
 export function StudioPropertiesSidebar({
   currentSceneIndex,
+  currentStep,
   scenes,
   setScenes,
   subCompetencies,
@@ -94,23 +99,21 @@ export function StudioPropertiesSidebar({
     if (!currentScene) return;
     setIsRemixing(true);
     
-    // Simulate AI remix
     await new Promise(r => setTimeout(r, 1500));
     
     const brandContext = formData.name || 'your brand';
-    const updatedQuestion = currentScene.question.includes('scenario')
-      ? currentScene.question.replace('scenario', `${brandContext} challenge`)
-      : `In this ${brandContext} challenge: ${currentScene.question}`;
+    const actionCue = currentSubCompetency?.action_cue || '';
+    const updatedQuestion = `Based on the mission: "${actionCue}" - ${currentScene.question.replace(/scenario|situation/gi, `${brandContext} challenge`)}`;
     
     updateScene({ question: updatedQuestion });
-    toast.success('Scene remixed with brand context!');
+    toast.success('Scene remixed with brand context and Action Cue!');
     setIsRemixing(false);
   };
 
-  // Render based on scene type
-  const renderIntroProperties = () => (
+  // Render Step-Based Properties
+  const renderBrandProperties = () => (
     <div className="space-y-6">
-      <SectionHeader icon={Play} label="Intro Screen" />
+      <SectionHeader icon={Palette} label="Brand Identity" isDarkMode={isDarkMode} />
       
       {/* Logo Upload */}
       <div className="space-y-2">
@@ -124,7 +127,7 @@ export function StudioPropertiesSidebar({
         />
         <label htmlFor="logo-upload-sidebar" className="cursor-pointer block">
           <div className={`
-            h-20 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 transition-all
+            h-24 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 transition-all
             ${isDarkMode ? 'border-white/20 hover:border-white/40' : 'border-slate-300 hover:border-slate-400'}
           `}>
             {logoFile ? (
@@ -141,7 +144,7 @@ export function StudioPropertiesSidebar({
 
       {/* Mascot Upload */}
       <div className="space-y-2">
-        <Label className={mutedColor}>3D Mascot (Lottie JSON)</Label>
+        <Label className={mutedColor}>3D Mascot (Optional)</Label>
         <input
           type="file"
           id="mascot-upload-sidebar"
@@ -162,41 +165,16 @@ export function StudioPropertiesSidebar({
             ) : (
               <>
                 <Box className={`h-4 w-4 ${mutedColor}`} />
-                <span className={mutedColor}>Optional .json</span>
+                <span className={mutedColor}>Lottie JSON</span>
               </>
             )}
           </div>
         </label>
       </div>
 
-      {/* Welcome Text */}
-      <div className="space-y-2">
-        <Label className={mutedColor}>Welcome Title</Label>
-        <Input
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className={inputBg}
-          placeholder="Your Validator Name"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label className={mutedColor}>Welcome Subtitle</Label>
-        <Textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className={`resize-none ${inputBg}`}
-          rows={2}
-          placeholder="Brief description..."
-        />
-      </div>
-
       {/* Brand Colors */}
-      <div className="space-y-3 pt-4 border-t border-dashed" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-        <div className="flex items-center gap-2">
-          <Palette className={`h-4 w-4 ${mutedColor}`} />
-          <span className={`text-sm font-medium ${textColor}`}>Brand Colors</span>
-        </div>
+      <div className="space-y-3">
+        <Label className={mutedColor}>Brand Colors</Label>
         <div className="grid grid-cols-2 gap-3">
           <ColorPicker
             label="Primary"
@@ -227,16 +205,63 @@ export function StudioPropertiesSidebar({
     </div>
   );
 
+  const renderInfoProperties = () => (
+    <div className="space-y-6">
+      <SectionHeader icon={FileText} label="Template Info" isDarkMode={isDarkMode} />
+      
+      {/* Industry */}
+      <div className="space-y-2">
+        <Label className={mutedColor}>Industry Context</Label>
+        <Select 
+          value={formData.industry} 
+          onValueChange={(v) => setFormData({ ...formData, industry: v })}
+        >
+          <SelectTrigger className={`h-11 ${inputBg}`}>
+            <SelectValue placeholder="Select industry..." />
+          </SelectTrigger>
+          <SelectContent className={isDarkMode ? 'bg-slate-900 border-white/10' : ''}>
+            {INDUSTRIES.map(industry => (
+              <SelectItem key={industry} value={industry}>
+                {industry}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Name */}
+      <div className="space-y-2">
+        <Label className={mutedColor}>Template Name *</Label>
+        <Input
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className={`h-12 text-lg ${inputBg}`}
+          placeholder="e.g., Budget Allocation Challenge"
+        />
+      </div>
+
+      {/* Description */}
+      <div className="space-y-2">
+        <Label className={mutedColor}>Description</Label>
+        <Textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className={`resize-none ${inputBg}`}
+          rows={3}
+          placeholder="Brief description of the validator..."
+        />
+      </div>
+    </div>
+  );
+
   const renderGameplayProperties = () => {
     if (!currentScene) {
       return (
-        <div className="flex flex-col items-center justify-center h-64 text-center">
-          <Gamepad2 className={`h-10 w-10 mb-3 ${mutedColor}`} />
-          <p className={`text-sm ${mutedColor}`}>
-            This scene is not configured yet.
-          </p>
+        <div className="flex flex-col items-center justify-center h-64 text-center p-4">
+          <AlertTriangle className={`h-10 w-10 mb-3 ${mutedColor}`} />
+          <p className={`text-sm font-medium ${textColor}`}>Scene Not Configured</p>
           <p className={`text-xs mt-1 ${mutedColor}`}>
-            Select competencies in Framework step to create scenes.
+            Configure the Framework step first to create gameplay scenes.
           </p>
         </div>
       );
@@ -244,29 +269,39 @@ export function StudioPropertiesSidebar({
 
     return (
       <div className="space-y-5">
-        <SectionHeader icon={Gamepad2} label={`Scene ${currentSceneIndex}`} />
+        <SectionHeader icon={Gamepad2} label={`Scene ${currentSceneIndex}`} isDarkMode={isDarkMode} />
 
-        {/* Locked Framework Badge */}
-        {currentSubCompetency && (
-          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+        {/* LOCKED Mission Requirement Badge */}
+        {currentSubCompetency?.action_cue && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30">
             <div className="flex items-center gap-2 mb-2">
-              <Lock className="h-3.5 w-3.5 text-amber-600" />
-              <span className="text-xs font-medium text-amber-600">LOCKED FRAMEWORK</span>
+              <Target className="h-4 w-4 text-amber-500" />
+              <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
+                Mission Requirement
+              </span>
+              <Lock className="h-3 w-3 text-amber-500/60" />
             </div>
-            {currentSubCompetency.action_cue && (
-              <p className={`text-xs ${textColor} mb-1`}>
-                <span className={mutedColor}>Action Cue:</span> {currentSubCompetency.action_cue}
-              </p>
-            )}
-            {currentSubCompetency.game_mechanic && (
-              <p className={`text-xs ${textColor}`}>
-                <span className={mutedColor}>Mechanic:</span> {currentSubCompetency.game_mechanic}
-              </p>
-            )}
+            <p className={`text-sm ${textColor} leading-relaxed`}>
+              {currentSubCompetency.action_cue}
+            </p>
           </div>
         )}
 
-        {/* Question */}
+        {/* LOCKED Framework Data */}
+        {currentSubCompetency && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="h-3.5 w-3.5 text-amber-600" />
+              <span className={`text-xs font-medium ${mutedColor}`}>Locked C-BEN Data</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <LockedField label="Mechanic" value={currentSubCompetency.game_mechanic} isDarkMode={isDarkMode} />
+              <LockedField label="Validator" value={currentSubCompetency.validator_type} isDarkMode={isDarkMode} />
+            </div>
+          </div>
+        )}
+
+        {/* Editable Question */}
         <div className="space-y-2">
           <Label className={mutedColor}>Question / Prompt</Label>
           <Textarea
@@ -277,7 +312,6 @@ export function StudioPropertiesSidebar({
             placeholder="Enter the scene question..."
           />
           
-          {/* AI Remix Button */}
           <Button
             variant="outline"
             size="sm"
@@ -290,11 +324,11 @@ export function StudioPropertiesSidebar({
             ) : (
               <Sparkles className="h-4 w-4 mr-2" />
             )}
-            Remix with Brand Context
+            AI Remix with Action Cue
           </Button>
         </div>
 
-        {/* Choices */}
+        {/* Dynamic Choices (2-10) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className={mutedColor}>Choices ({currentScene.choices.length}/10)</Label>
@@ -371,9 +405,40 @@ export function StudioPropertiesSidebar({
     );
   };
 
+  const renderIntroProperties = () => (
+    <div className="space-y-6">
+      <SectionHeader icon={Play} label="Intro Screen" isDarkMode={isDarkMode} />
+      
+      <p className={`text-sm ${mutedColor}`}>
+        The intro screen uses your Brand Identity settings from Step 1.
+      </p>
+
+      <div className="space-y-2">
+        <Label className={mutedColor}>Welcome Title</Label>
+        <Input
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          className={inputBg}
+          placeholder="Validator Name"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className={mutedColor}>Welcome Subtitle</Label>
+        <Textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className={`resize-none ${inputBg}`}
+          rows={2}
+          placeholder="Brief description..."
+        />
+      </div>
+    </div>
+  );
+
   const renderResultsProperties = () => (
     <div className="space-y-6">
-      <SectionHeader icon={Trophy} label="Results Screen" />
+      <SectionHeader icon={Trophy} label="Results Screen" isDarkMode={isDarkMode} />
 
       <div className="space-y-2">
         <Label className={mutedColor}>Success Message</Label>
@@ -395,20 +460,15 @@ export function StudioPropertiesSidebar({
         />
       </div>
 
-      <div className="space-y-3 pt-4 border-t border-dashed" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+      <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
         <Label className={mutedColor}>Result Actions</Label>
         
-        <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}>
+        <div className={`flex items-center justify-between p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
           <span className={`text-sm ${textColor}`}>Show "Claim Badge" Button</span>
           <Switch defaultChecked />
         </div>
 
-        <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}>
-          <span className={`text-sm ${textColor}`}>Show Leaderboard Link</span>
-          <Switch defaultChecked />
-        </div>
-
-        <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' }}>
+        <div className={`flex items-center justify-between p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
           <span className={`text-sm ${textColor}`}>Enable Retry</span>
           <Switch defaultChecked />
         </div>
@@ -416,10 +476,50 @@ export function StudioPropertiesSidebar({
     </div>
   );
 
+  // Decide what to render based on step and scene
   const renderProperties = () => {
-    if (currentSceneIndex === 0) return renderIntroProperties();
-    if (currentSceneIndex === 7) return renderResultsProperties();
-    return renderGameplayProperties();
+    // If viewing filmstrip scenes, show scene-specific properties
+    if (currentStep === 4) {
+      if (currentSceneIndex === 0) return renderIntroProperties();
+      if (currentSceneIndex === 7) return renderResultsProperties();
+      return renderGameplayProperties();
+    }
+    
+    // Otherwise show step-based properties
+    switch (currentStep) {
+      case 1:
+        return renderBrandProperties();
+      case 2:
+        return renderInfoProperties();
+      case 3:
+        return (
+          <div className="space-y-4">
+            <SectionHeader icon={Lock} label="Framework" isDarkMode={isDarkMode} />
+            <p className={`text-sm ${mutedColor}`}>
+              Configure the C-BEN framework in the left panel. Selected competencies will appear here.
+            </p>
+            {scenes.length > 0 && (
+              <div className="space-y-2">
+                <Label className={mutedColor}>Active Scenes ({scenes.length})</Label>
+                {scenes.map((scene, idx) => {
+                  const sub = subCompetencies.find(s => s.id === scene.subCompetencyId);
+                  return (
+                    <div 
+                      key={scene.id}
+                      className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}
+                    >
+                      <p className={`text-sm font-medium ${textColor}`}>Scene {idx + 1}</p>
+                      <p className={`text-xs ${mutedColor} truncate`}>{sub?.statement}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -428,40 +528,34 @@ export function StudioPropertiesSidebar({
       <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between`}>
         <span className={`text-sm font-medium ${textColor}`}>Properties</span>
         <Badge variant="outline" className="text-xs">
-          {currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === 7 ? 'Results' : `Scene ${currentSceneIndex}`}
+          {currentStep === 4 
+            ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === 7 ? 'Results' : `Scene ${currentSceneIndex}`)
+            : `Step ${currentStep}`
+          }
         </Badge>
       </div>
 
       {/* Sidebar Content */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {renderProperties()}
-      </div>
+      <ScrollArea className="flex-1">
+        <div className="p-4">
+          {renderProperties()}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
 
 // Helper Components
-function SectionHeader({ icon: Icon, label }: { icon: any; label: string }) {
-  const { isDarkMode } = useStudioTheme();
+function SectionHeader({ icon: Icon, label, isDarkMode }: { icon: any; label: string; isDarkMode: boolean }) {
   return (
-    <div className="flex items-center gap-2 pb-2 border-b" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+    <div className="flex items-center gap-2 pb-3 border-b" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
       <Icon className={`h-4 w-4 ${isDarkMode ? 'text-white/70' : 'text-slate-600'}`} />
       <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{label}</span>
     </div>
   );
 }
 
-function ColorPicker({ 
-  label, 
-  value, 
-  onChange, 
-  isDarkMode 
-}: { 
-  label: string; 
-  value: string; 
-  onChange: (v: string) => void; 
-  isDarkMode: boolean;
-}) {
+function ColorPicker({ label, value, onChange, isDarkMode }: { label: string; value: string; onChange: (v: string) => void; isDarkMode: boolean }) {
   return (
     <div className="space-y-1">
       <span className={`text-xs ${isDarkMode ? 'text-white/50' : 'text-slate-500'}`}>{label}</span>
@@ -476,6 +570,17 @@ function ColorPicker({
           {value}
         </span>
       </div>
+    </div>
+  );
+}
+
+function LockedField({ label, value, isDarkMode }: { label: string; value: string | null; isDarkMode: boolean }) {
+  return (
+    <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-amber-500/5 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
+      <span className={`text-[10px] font-medium ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>{label}</span>
+      <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-white/80' : 'text-slate-700'}`}>
+        {value || 'Not set'}
+      </p>
     </div>
   );
 }
