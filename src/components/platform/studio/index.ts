@@ -8,3 +8,4 @@ export { MechanicPreview } from './MechanicPreview';
 export { StudioFilmstrip } from './StudioFilmstrip';
 export { StudioPropertiesSidebar } from './StudioPropertiesSidebar';
 export { StudioCenterCanvas } from './StudioCenterCanvas';
+export { StudioNavigator } from './StudioNavigator';
