@@ -1,6 +1,7 @@
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
-import { CheckCircle, XCircle, Clock, ChevronLeft, Undo } from 'lucide-react';
+import { Clock, ChevronLeft, Undo, Sparkles } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
+import { MechanicPreview } from './MechanicPreview';
 
 interface StudioLiveMirrorProps {
   formData: TemplateFormData;
@@ -9,6 +10,8 @@ interface StudioLiveMirrorProps {
   setCurrentSceneIndex: (index: number) => void;
   designSettings: DesignSettings;
   subCompetencies: SubCompetency[];
+  mascotFile?: File | null;
+  showScene0?: boolean;
 }
 
 // Industry-specific placeholders for ghost state
@@ -39,6 +42,8 @@ export function StudioLiveMirror({
   setCurrentSceneIndex,
   designSettings,
   subCompetencies,
+  mascotFile,
+  showScene0 = false,
 }: StudioLiveMirrorProps) {
   const { isDarkMode } = useStudioTheme();
   const currentScene = scenes[currentSceneIndex] || null;
@@ -48,7 +53,7 @@ export function StudioLiveMirror({
 
   const progressPercent = scenes.length > 0 
     ? ((currentSceneIndex + 1) / scenes.length) * 100 
-    : 25; // Default ghost progress
+    : 25;
 
   // Get placeholder based on industry or default
   const placeholder = INDUSTRY_PLACEHOLDERS[formData.industry] || INDUSTRY_PLACEHOLDERS['default'];
@@ -57,6 +62,10 @@ export function StudioLiveMirror({
   const isGhostState = !formData.name.trim();
   const displayName = formData.name || placeholder.name;
   const displayDescription = currentSub?.action_cue || placeholder.description;
+  const displayQuestion = currentScene?.question || 'Select the most effective approach for this scenario...';
+
+  // Get the current mechanic for layout selection
+  const currentMechanic = currentSub?.game_mechanic || null;
 
   // Ghost choices for empty state
   const ghostChoices = [
@@ -67,35 +76,66 @@ export function StudioLiveMirror({
   ];
 
   const displayChoices = currentScene?.choices || ghostChoices;
-  const displayQuestion = currentScene?.question || 'Select the most effective approach for this scenario...';
+
+  // Scene 0 intro screen (with mascot)
+  if (showScene0 && mascotFile) {
+    return (
+      <div className="h-full flex flex-col items-center justify-start pt-4 overflow-hidden">
+        <div className="text-center mb-3">
+          <span className={`text-xs font-medium uppercase tracking-widest ${
+            isDarkMode ? 'text-white/50' : 'text-slate-500'
+          }`}>
+            Scene 0 · Intro
+          </span>
+        </div>
+        
+        <MobileFrame designSettings={designSettings} isDarkMode={isDarkMode}>
+          <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+            {/* Mascot placeholder */}
+            <div 
+              className="w-24 h-24 rounded-full mb-4 flex items-center justify-center"
+              style={{ backgroundColor: `${designSettings.primary}30` }}
+            >
+              <Sparkles className="h-10 w-10" style={{ color: designSettings.primary }} />
+            </div>
+            <h2 
+              className="text-lg font-bold mb-2"
+              style={{ color: designSettings.text }}
+            >
+              {displayName}
+            </h2>
+            <p 
+              className="text-sm opacity-70 mb-6"
+              style={{ color: designSettings.text }}
+            >
+              {displayDescription}
+            </p>
+            <button
+              className="px-8 py-3 rounded-xl font-semibold text-sm"
+              style={{
+                backgroundColor: designSettings.primary,
+                color: designSettings.background,
+              }}
+            >
+              Start Challenge
+            </button>
+          </div>
+        </MobileFrame>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col items-center justify-start pt-4 overflow-hidden">
       <div className="text-center mb-3">
         <span className={`text-xs font-medium uppercase tracking-widest ${
-          isDarkMode ? 'text-white/50' : 'text-foreground/50'
+          isDarkMode ? 'text-white/50' : 'text-slate-500'
         }`}>
           Live Mirror Preview
         </span>
       </div>
       
-      {/* Mobile Frame with Glassmorphism */}
-      <div 
-        className={`mx-auto w-[280px] h-[520px] rounded-[2.5rem] border-[10px] shadow-2xl overflow-hidden relative ${
-          isDarkMode 
-            ? 'border-white/20 bg-black/20 backdrop-blur-xl' 
-            : 'border-foreground/20 bg-white/80 backdrop-blur-xl'
-        }`}
-        style={{ 
-          backgroundColor: designSettings.background,
-          fontFamily: designSettings.font,
-        }}
-      >
-        {/* Notch */}
-        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-xl z-10 ${
-          isDarkMode ? 'bg-white/10' : 'bg-foreground/20'
-        }`} />
-        
+      <MobileFrame designSettings={designSettings} isDarkMode={isDarkMode}>
         {/* Screen Content */}
         <div className="h-full overflow-hidden pt-6">
           {/* Header */}
@@ -145,7 +185,7 @@ export function StudioLiveMirror({
           {/* Question Area */}
           <div className="px-4 py-3">
             <div 
-              className="rounded-xl p-4 min-h-[60px]"
+              className="rounded-xl p-4 min-h-[50px]"
               style={{ backgroundColor: `${designSettings.secondary}20` }}
             >
               <p 
@@ -157,43 +197,13 @@ export function StudioLiveMirror({
             </div>
           </div>
 
-          {/* Choices - Dynamic sizing based on count */}
-          <div className="px-4 space-y-1.5 overflow-y-auto max-h-[140px]">
-            {displayChoices.map((choice, idx) => {
-              // Dynamic sizing: smaller padding for more choices
-              const choiceCount = displayChoices.length;
-              const padding = choiceCount > 6 ? 'p-1.5' : choiceCount > 4 ? 'p-2' : 'p-2.5';
-              const textSize = choiceCount > 6 ? 'text-[10px]' : 'text-xs';
-              const iconSize = choiceCount > 6 ? 'h-3 w-3' : 'h-4 w-4';
-              
-              return (
-                <div
-                  key={choice.id}
-                  className={`rounded-lg ${padding} flex items-center gap-2 border transition-all`}
-                  style={{
-                    backgroundColor: choice.isCorrect 
-                      ? `${designSettings.highlight}30`
-                      : designSettings.background,
-                    borderColor: choice.isCorrect 
-                      ? designSettings.highlight
-                      : `${designSettings.text}20`,
-                  }}
-                >
-                  {choice.isCorrect ? (
-                    <CheckCircle className={`${iconSize} flex-shrink-0`} style={{ color: designSettings.highlight }} />
-                  ) : (
-                    <XCircle className={`${iconSize} flex-shrink-0 opacity-40`} style={{ color: designSettings.text }} />
-                  )}
-                  <span 
-                    className={`${textSize} flex-1 ${!choice.text && isGhostState ? 'opacity-40 italic' : ''}`}
-                    style={{ color: designSettings.text }}
-                  >
-                    {choice.text || `Option ${idx + 1}`}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          {/* Mechanic-based layout */}
+          <MechanicPreview
+            mechanic={currentMechanic}
+            choices={displayChoices}
+            designSettings={designSettings}
+            isGhostState={isGhostState}
+          />
 
           {/* Telemetry Buttons (LOCKED - Mandatory for biometric jitter tracking) */}
           <div className="absolute bottom-[70px] left-4 flex gap-2">
@@ -232,7 +242,7 @@ export function StudioLiveMirror({
             </button>
           </div>
         </div>
-      </div>
+      </MobileFrame>
 
       {/* Scene Navigator Dots */}
       {scenes.length > 0 ? (
@@ -246,9 +256,7 @@ export function StudioLiveMirror({
                   ? 'scale-125 ring-2 ring-offset-2 ring-primary' 
                   : 'opacity-40 hover:opacity-70'
               }`}
-              style={{ 
-                backgroundColor: designSettings.primary,
-              }}
+              style={{ backgroundColor: designSettings.primary }}
               title={`Scene ${idx + 1}`}
             />
           ))}
@@ -259,12 +267,44 @@ export function StudioLiveMirror({
             <div
               key={idx}
               className={`w-2.5 h-2.5 rounded-full opacity-20 ${
-                isDarkMode ? 'bg-white' : 'bg-foreground'
+                isDarkMode ? 'bg-white' : 'bg-slate-400'
               }`}
             />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// Mobile Frame Component
+function MobileFrame({ 
+  children, 
+  designSettings, 
+  isDarkMode 
+}: { 
+  children: React.ReactNode; 
+  designSettings: DesignSettings; 
+  isDarkMode: boolean;
+}) {
+  return (
+    <div 
+      className={`mx-auto w-[280px] h-[520px] rounded-[2.5rem] border-[10px] shadow-2xl overflow-hidden relative ${
+        isDarkMode 
+          ? 'border-slate-700 shadow-black/50' 
+          : 'border-slate-300 shadow-slate-400/30'
+      }`}
+      style={{ 
+        backgroundColor: designSettings.background,
+        fontFamily: designSettings.font,
+      }}
+    >
+      {/* Notch */}
+      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-xl z-10 ${
+        isDarkMode ? 'bg-slate-700' : 'bg-slate-300'
+      }`} />
+      
+      {children}
     </div>
   );
 }
