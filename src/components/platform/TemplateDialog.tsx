@@ -1336,9 +1336,9 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
 
             {selectedCompetency && subCompetencies.length > 0 && (
               <div>
-                <Label>Select Sub-Competencies (1-4) *</Label>
+                <Label>Select Sub-Competencies (1-6) *</Label>
                 <p className="text-xs text-gray-400 mb-2">
-                  Each sub-competency will be tested in one scene. Select up to 4 for multi-scene games.
+                  Each sub-competency will be tested in one scene. Select up to 6 for multi-scene games.
                 </p>
                 <div className="space-y-2 mt-2 max-h-60 overflow-y-auto bg-gray-800 border border-gray-700 rounded-md p-3">
                   {subCompetencies.map((sub) => (
@@ -1348,7 +1348,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                         checked={selectedSubCompetencies.includes(sub.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            if (selectedSubCompetencies.length < 4) {
+                            if (selectedSubCompetencies.length < 6) {
                               const newSubs = [...selectedSubCompetencies, sub.id];
                               setSelectedSubCompetencies(newSubs);
                               // Auto-map to next available scene
@@ -1360,13 +1360,13 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                               // Set active scenes to match sub count
                               setActiveScenes(newSubs.length);
                             } else {
-                              toast.error('Maximum 4 sub-competencies allowed');
+                              toast.error('Maximum 6 sub-competencies allowed');
                             }
                           } else {
                             const newSubs = selectedSubCompetencies.filter(id => id !== sub.id);
                             setSelectedSubCompetencies(newSubs);
                             // Rebuild scene mapping
-                            const newMapping: {[key: number]: string} = { 1: '', 2: '', 3: '', 4: '' };
+                            const newMapping: {[key: number]: string} = { 1: '', 2: '', 3: '', 4: '', 5: '', 6: '' };
                             newSubs.forEach((subId, idx) => {
                               newMapping[idx + 1] = subId;
                             });
@@ -1391,7 +1391,7 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
                   ))}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
-                  Selected: {selectedSubCompetencies.length}/4 • Each sub = 1 scene
+                  Selected: {selectedSubCompetencies.length}/6 • Each sub = 1 scene
                 </p>
               </div>
             )}
