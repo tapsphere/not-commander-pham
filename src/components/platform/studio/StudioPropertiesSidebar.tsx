@@ -108,19 +108,40 @@ export function StudioPropertiesSidebar({
     
     // Check if the prompt is about color changes
     const colorPrompt = localAiPrompt.toLowerCase();
-    if (colorPrompt.includes('color') || colorPrompt.includes('blue') || colorPrompt.includes('red') || 
-        colorPrompt.includes('green') || colorPrompt.includes('purple') || colorPrompt.includes('orange')) {
-      // Parse color from prompt and apply
+    const colorKeywords = ['color', 'blue', 'red', 'green', 'purple', 'orange', 'pink', 'yellow', 'teal', 'cyan', 'magenta'];
+    const isColorPrompt = colorKeywords.some(keyword => colorPrompt.includes(keyword));
+    
+    if (isColorPrompt) {
+      // Parse color from prompt and apply to the appropriate design setting
       let newColor = designSettings.primary;
-      if (colorPrompt.includes('blue')) newColor = '#3b82f6';
-      else if (colorPrompt.includes('red')) newColor = '#ef4444';
-      else if (colorPrompt.includes('green')) newColor = '#22c55e';
-      else if (colorPrompt.includes('purple')) newColor = '#a855f7';
-      else if (colorPrompt.includes('orange')) newColor = '#f97316';
+      let colorName = '';
       
-      setDesignSettings({ ...designSettings, primary: newColor });
-      document.documentElement.style.setProperty('--brand-primary', newColor);
-      toast.success(`Brand color changed to ${newColor}`);
+      if (colorPrompt.includes('blue')) { newColor = '#3b82f6'; colorName = 'blue'; }
+      else if (colorPrompt.includes('red')) { newColor = '#ef4444'; colorName = 'red'; }
+      else if (colorPrompt.includes('green')) { newColor = '#22c55e'; colorName = 'green'; }
+      else if (colorPrompt.includes('purple')) { newColor = '#a855f7'; colorName = 'purple'; }
+      else if (colorPrompt.includes('orange')) { newColor = '#f97316'; colorName = 'orange'; }
+      else if (colorPrompt.includes('pink')) { newColor = '#ec4899'; colorName = 'pink'; }
+      else if (colorPrompt.includes('yellow')) { newColor = '#eab308'; colorName = 'yellow'; }
+      else if (colorPrompt.includes('teal') || colorPrompt.includes('cyan')) { newColor = '#14b8a6'; colorName = 'teal'; }
+      else if (colorPrompt.includes('magenta')) { newColor = '#d946ef'; colorName = 'magenta'; }
+      
+      // Check what element to change (slider, button, accent, etc.)
+      if (colorPrompt.includes('slider') || colorPrompt.includes('accent')) {
+        setDesignSettings({ ...designSettings, accent: newColor });
+        toast.success(`Slider/accent color changed to ${colorName || newColor}`);
+      } else if (colorPrompt.includes('background') || colorPrompt.includes('bg')) {
+        setDesignSettings({ ...designSettings, background: newColor });
+        toast.success(`Background color changed to ${colorName || newColor}`);
+      } else if (colorPrompt.includes('secondary')) {
+        setDesignSettings({ ...designSettings, secondary: newColor });
+        toast.success(`Secondary color changed to ${colorName || newColor}`);
+      } else {
+        // Default to primary
+        setDesignSettings({ ...designSettings, primary: newColor });
+        toast.success(`Primary color changed to ${colorName || newColor}`);
+      }
+      
       setIsLocalAiProcessing(false);
       setLocalAiPrompt('');
       return;
@@ -464,7 +485,6 @@ export function StudioPropertiesSidebar({
           </div>
         </div>
 
-        {/* BRAND COLOR REMIX - 4-color palette with shuffle */}
         <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
           <div className="flex items-center gap-2">
             <Palette className="h-4 w-4 text-primary" />
@@ -484,7 +504,7 @@ export function StudioPropertiesSidebar({
                 accent: colors.accent,
                 background: colors.background
               });
-              // Update CSS variables globally
+              // Update CSS variables globally (both brand and Tailwind tokens)
               document.documentElement.style.setProperty('--brand-primary', colors.primary);
               document.documentElement.style.setProperty('--brand-secondary', colors.secondary);
               document.documentElement.style.setProperty('--brand-accent', colors.accent);
