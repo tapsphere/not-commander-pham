@@ -7,11 +7,12 @@
  * Universal UX (Section 5):
  * - Typography: text-sm max
  * - Positioning: In bottom third of screen
- * - Uses Brand CSS Variables - NO hard-coded hex
+ * - Uses Brand Colors from designSettings prop
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { TelemetrySample } from '../SceneAssembler';
+import { DesignSettings } from '../../template-steps/types';
 
 interface ScrubSliderProps {
   targetValue?: number; // 0-100, the "correct" zone
@@ -19,6 +20,7 @@ interface ScrubSliderProps {
   onValueChange?: (value: number, samples: TelemetrySample[]) => void;
   disabled?: boolean;
   isGhostState?: boolean;
+  designSettings?: DesignSettings;
 }
 
 export function ScrubSlider({
@@ -27,6 +29,7 @@ export function ScrubSlider({
   onValueChange,
   disabled = false,
   isGhostState = false,
+  designSettings,
 }: ScrubSliderProps) {
   const [value, setValue] = useState(30);
   const [isDragging, setIsDragging] = useState(false);
@@ -36,6 +39,15 @@ export function ScrubSlider({
 
   // 60Hz sampling (every ~16ms)
   const SAMPLE_RATE_MS = 16;
+
+  // Default colors if no designSettings
+  const colors = {
+    primary: designSettings?.primary || 'hsl(var(--primary))',
+    secondary: designSettings?.secondary || 'hsl(var(--secondary))',
+    accent: designSettings?.accent || designSettings?.highlight || 'hsl(var(--accent))',
+    background: designSettings?.background || 'hsl(var(--background))',
+    text: designSettings?.text || 'hsl(var(--foreground))',
+  };
 
   const handleMove = useCallback((clientX: number) => {
     if (!trackRef.current || disabled) return;
@@ -119,36 +131,44 @@ export function ScrubSlider({
     <div className="px-4 py-3 space-y-3">
       {/* Context indicator - text-sm per UX constraints */}
       <div 
-        className={`text-xs text-center text-muted-foreground ${isGhostState ? 'opacity-40 italic' : ''}`}
+        className={`text-xs text-center ${isGhostState ? 'opacity-40 italic' : ''}`}
+        style={{ color: colors.text }}
       >
         Adjust the slider to find the optimal value
       </div>
 
-      {/* Background visual that responds to slider - uses CSS variables */}
+      {/* Background visual that responds to slider - uses brand colors */}
       <div 
-        className="relative h-16 rounded-lg overflow-hidden bg-secondary/20"
+        className="relative h-16 rounded-lg overflow-hidden"
         style={{ 
+          backgroundColor: `${colors.secondary}20`,
           filter: `blur(${blurAmount}px)`,
           transition: 'filter 0.1s ease-out',
         }}
       >
         <div 
-          className="absolute inset-0 flex items-center justify-center bg-primary/20"
-          style={{ opacity: proximityToTarget * 0.4 }}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{ 
+            backgroundColor: `${colors.primary}20`,
+            opacity: proximityToTarget * 0.4 
+          }}
         >
           <div 
-            className="text-2xl font-bold text-foreground transition-opacity"
-            style={{ opacity: proximityToTarget }}
+            className="text-2xl font-bold transition-opacity"
+            style={{ color: colors.text, opacity: proximityToTarget }}
           >
             {value}%
           </div>
         </div>
       </div>
 
-      {/* Slider Track - Metallic appearance using CSS variables */}
+      {/* Slider Track - Metallic appearance using brand colors */}
       <div 
         ref={trackRef}
-        className="relative h-10 rounded-full cursor-pointer select-none bg-gradient-to-r from-muted via-secondary to-muted shadow-inner"
+        className="relative h-10 rounded-full cursor-pointer select-none shadow-inner"
+        style={{
+          background: `linear-gradient(to right, ${colors.text}10, ${colors.secondary}30, ${colors.text}10)`,
+        }}
         onMouseDown={(e) => handleStart(e.clientX)}
         onTouchStart={(e) => handleStart(e.touches[0].clientX)}
         onTouchMove={(e) => isDragging && handleMove(e.touches[0].clientX)}
@@ -156,34 +176,43 @@ export function ScrubSlider({
       >
         {/* Target Zone Indicator */}
         <div 
-          className="absolute top-0 bottom-0 rounded-full bg-accent/30 border-2 border-dashed border-accent"
+          className="absolute top-0 bottom-0 rounded-full border-2 border-dashed"
           style={{
             left: `${targetLeft}%`,
             width: `${targetWidth}%`,
+            backgroundColor: `${colors.accent}30`,
+            borderColor: colors.accent,
           }}
         />
 
         {/* Filled Track */}
         <div 
-          className={`absolute top-0 left-0 bottom-0 rounded-l-full transition-all ${
-            isInTargetZone ? 'bg-accent/60' : 'bg-primary/40'
-          }`}
-          style={{ width: `${value}%` }}
+          className="absolute top-0 left-0 bottom-0 rounded-l-full transition-all"
+          style={{ 
+            width: `${value}%`,
+            backgroundColor: isInTargetZone ? `${colors.accent}60` : `${colors.primary}40`
+          }}
         />
 
         {/* Thumb */}
         <div 
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full shadow-lg transition-transform border-[3px] border-background ${
-            isDragging ? 'scale-125' : 'scale-100'
-          } ${isInTargetZone ? 'bg-accent' : 'bg-primary'}`}
-          style={{ left: `${value}%` }}
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full shadow-lg transition-transform border-[3px]"
+          style={{ 
+            left: `${value}%`,
+            transform: `translate(-50%, -50%) scale(${isDragging ? 1.25 : 1})`,
+            backgroundColor: isInTargetZone ? colors.accent : colors.primary,
+            borderColor: colors.background,
+          }}
         />
       </div>
 
       {/* Labels - text-sm per UX constraints */}
-      <div className="flex justify-between text-[10px] text-muted-foreground">
+      <div className="flex justify-between text-[10px]" style={{ color: colors.text }}>
         <span>0%</span>
-        <span className={`font-medium ${isInTargetZone ? 'text-accent' : ''}`}>
+        <span 
+          className="font-medium"
+          style={{ color: isInTargetZone ? colors.accent : colors.text }}
+        >
           {isInTargetZone ? '✓ Target Zone' : 'Find Target'}
         </span>
         <span>100%</span>

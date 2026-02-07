@@ -207,26 +207,30 @@ export function StudioCenterCanvas({
     const currentMechanic = currentSubCompetency?.game_mechanic || null;
 
     // Scene 3 uses DNA Library 30/50/20 layout with ScrubSlider
+    // Updated to use designSettings for brand colors like other scenes
     if (isDataAnalysisScene) {
       const actionCue = currentSubCompetency?.action_cue || 
         'Adjust the slider to filter the noise and reveal the optimal data threshold.';
       
       return (
-        <div className="h-full flex flex-col overflow-hidden bg-background">
+        <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: designSettings.background }}>
           {/* ═══════════════════════════════════════════════════════════════
               HEADER - "Studio" title with centered 30s Timer
           ═══════════════════════════════════════════════════════════════ */}
           <div className="flex-none px-4 pt-6 pb-2">
-            <div className="glass-card px-3 py-2 flex items-center justify-between">
-              <button className="flex items-center gap-1 text-muted-foreground text-sm">
+            <div 
+              className="rounded-xl px-3 py-2 flex items-center justify-between"
+              style={{ backgroundColor: `${designSettings.primary}15` }}
+            >
+              <button className="flex items-center gap-1 text-sm" style={{ color: designSettings.text }}>
                 <ChevronLeft className="h-4 w-4" />
                 Back
               </button>
               
               {/* Centered Timer - Studio Title */}
               <div className="flex flex-col items-center">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Studio</span>
-                <div className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                <span className="text-[10px] opacity-70 uppercase tracking-wider" style={{ color: designSettings.text }}>Studio</span>
+                <div className="flex items-center gap-1 text-sm font-semibold" style={{ color: designSettings.text }}>
                   <Clock className="h-3.5 w-3.5" />
                   <span>30s</span>
                 </div>
@@ -245,16 +249,19 @@ export function StudioCenterCanvas({
             style={{ height: `${UNIVERSAL_LAYOUT.topZone}%` }}
           >
             {/* Progress Bar */}
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
+            <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: `${designSettings.text}15` }}>
               <div 
-                className="h-full rounded-full bg-primary transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
+                className="h-full rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%`, backgroundColor: designSettings.primary }}
               />
             </div>
 
             {/* Action Cue (Soul) - text-sm per DNA Library */}
-            <div className="glass-card p-3">
-              <p className="text-sm text-foreground leading-relaxed">
+            <div 
+              className="rounded-xl p-3"
+              style={{ backgroundColor: `${designSettings.secondary}15` }}
+            >
+              <p className="text-sm leading-relaxed" style={{ color: designSettings.text }}>
                 {actionCue}
               </p>
             </div>
@@ -269,12 +276,13 @@ export function StudioCenterCanvas({
             style={{ height: `${UNIVERSAL_LAYOUT.middleZone}%` }}
           >
             <div className="w-full">
-              {/* Continuous Scrub Mechanic (Scene 3) */}
+              {/* Continuous Scrub Mechanic (Scene 3) - pass designSettings for branding */}
               <ScrubSlider
                 targetValue={65}
                 targetTolerance={10}
                 onValueChange={handleSliderChange}
                 isGhostState={!currentScene}
+                designSettings={designSettings}
               />
             </div>
           </div>
@@ -289,12 +297,15 @@ export function StudioCenterCanvas({
           >
             {/* Telemetry Buttons (LOCKED - Mandatory for biometric jitter tracking) */}
             <div className="flex gap-2 mb-3">
-              <button className="glass-button px-3 py-1.5 rounded-lg text-xs text-muted-foreground flex items-center gap-1">
+              <button 
+                className="px-3 py-1.5 rounded-lg text-xs flex items-center gap-1"
+                style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
+              >
                 <Undo className="h-3 w-3" />
                 Undo
               </button>
               {/* Telemetry indicator */}
-              <div className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+              <div className="ml-auto flex items-center gap-1 text-[10px]" style={{ color: designSettings.text }}>
                 <Activity className="h-3 w-3" />
                 <span>{verifiedSignals} signals</span>
               </div>
@@ -302,12 +313,24 @@ export function StudioCenterCanvas({
 
             {/* Navigation Footer - Scene 3 always shows Back/Next */}
             <div className="flex gap-2">
-              <button className="flex-1 py-3 rounded-xl font-semibold text-sm border border-border text-foreground bg-background/50 flex items-center justify-center gap-2 transition-all hover:bg-muted">
+              <button 
+                className="flex-1 py-3 rounded-xl font-semibold text-sm border flex items-center justify-center gap-2 transition-all"
+                style={{ 
+                  borderColor: `${designSettings.text}30`, 
+                  color: designSettings.text,
+                  backgroundColor: `${designSettings.background}80`
+                }}
+              >
                 <ChevronLeft className="h-4 w-4" />
                 Back
               </button>
               <button 
-                className="flex-1 py-3 rounded-xl font-semibold text-sm bg-primary text-primary-foreground shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                style={{ 
+                  backgroundColor: designSettings.primary, 
+                  color: designSettings.background,
+                  boxShadow: `0 4px 12px ${designSettings.primary}40`
+                }}
                 onClick={() => onSceneChange?.(currentSceneIndex + 1)}
               >
                 Next
