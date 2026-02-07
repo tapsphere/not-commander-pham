@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package, PlayCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { TemplateDialogNew } from '@/components/platform/TemplateDialogNew';
+import { TemplateStudio } from '@/components/platform/TemplateStudio';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
 import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
 import { PostTestActions } from '@/components/platform/PostTestActions';
@@ -688,13 +688,16 @@ export default function CreatorDashboard() {
         </TabsContent>
       </Tabs>
 
-      <TemplateDialogNew
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        template={selectedTemplate}
-        onSuccess={loadTemplates}
-        onTemplateCreated={handleTemplateCreated}
-      />
+      {dialogOpen && (
+        <TemplateStudio
+          template={selectedTemplate}
+          onSuccess={loadTemplates}
+          onClose={() => {
+            setDialogOpen(false);
+            setSelectedTemplate(null);
+          }}
+        />
+      )}
 
       <CompetenciesDialog
         open={competenciesDialogOpen}
