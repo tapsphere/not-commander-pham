@@ -57,20 +57,23 @@ export function TemplateStepFramework({
   const getSelectedSubData = (id: string) => subCompetencies.find(s => s.id === id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
       <div className="text-center mb-6">
-        <h2 className="text-xl font-semibold text-foreground mb-2">Framework & Logic</h2>
+        <div className="inline-flex items-center gap-2 mb-2">
+          <Lock className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Logic Framework</h2>
+        </div>
         <p className="text-sm text-muted-foreground">
-          Select competencies to test. Each sub-competency creates one scene.
+          Select competencies from the PlayOps standard. Action Cues and Mechanics are locked.
         </p>
       </div>
 
       {/* Competency Selection */}
       <div className="space-y-4">
-        <div>
-          <Label htmlFor="competency" className="text-foreground">Select Competency *</Label>
+        <div className="bg-muted/50 border border-border rounded-xl p-4">
+          <Label htmlFor="competency" className="text-foreground font-medium">Select Competency *</Label>
           <Select value={selectedCompetency} onValueChange={setSelectedCompetency}>
-            <SelectTrigger className="bg-muted border-border">
+            <SelectTrigger className="bg-background border-border mt-2 h-11">
               <SelectValue placeholder="Choose a competency..." />
             </SelectTrigger>
             <SelectContent className="bg-background border-border z-[9999]">
@@ -85,85 +88,141 @@ export function TemplateStepFramework({
 
         {/* Sub-Competency Selection */}
         {selectedCompetency && subCompetencies.length > 0 && (
-          <div>
-            <Label className="text-foreground">Select Sub-Competencies (1-6) *</Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Click in order. Each sub-competency = 1 scene.
+          <div className="bg-muted/50 border border-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-foreground font-medium">Select Sub-Competencies *</Label>
+              <Badge variant="outline" className="text-xs">
+                {selectedSubCompetencies.length}/6 selected
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Each sub-competency creates one scene. Click in order (1-6 max).
             </p>
-            <div className="space-y-2 max-h-60 overflow-y-auto bg-muted border border-border rounded-md p-3">
-              {subCompetencies.map((sub, index) => {
+            <div className="space-y-2 max-h-52 overflow-y-auto bg-background border border-border rounded-lg p-3">
+              {subCompetencies.map((sub) => {
                 const isSelected = selectedSubCompetencies.includes(sub.id);
                 const orderIndex = selectedSubCompetencies.indexOf(sub.id);
                 
                 return (
                   <div 
                     key={sub.id} 
-                    className={`flex items-start space-x-3 p-2 rounded-md transition-colors ${
-                      isSelected ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/50'
+                    className={`flex items-start space-x-3 p-3 rounded-lg transition-all cursor-pointer ${
+                      isSelected 
+                        ? 'bg-primary/10 border border-primary/40 shadow-sm' 
+                        : 'hover:bg-muted border border-transparent'
                     }`}
+                    onClick={() => handleSubCompetencyToggle(sub.id, !isSelected)}
                   >
                     <Checkbox
                       id={sub.id}
                       checked={isSelected}
                       onCheckedChange={(checked) => handleSubCompetencyToggle(sub.id, !!checked)}
+                      className="mt-0.5"
                     />
-                    <div className="flex-1">
-                      <label htmlFor={sub.id} className="text-sm cursor-pointer">
-                        {sub.statement}
-                      </label>
-                      {isSelected && (
-                        <Badge variant="outline" className="ml-2 text-xs bg-primary/20 text-primary">
-                          Scene {orderIndex + 1}
-                        </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <label htmlFor={sub.id} className="text-sm font-medium cursor-pointer text-foreground">
+                          {sub.statement}
+                        </label>
+                        {isSelected && (
+                          <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
+                            Scene {orderIndex + 1}
+                          </Badge>
+                        )}
+                      </div>
+                      {isSelected && sub.action_cue && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {sub.action_cue}
+                        </p>
                       )}
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Selected: {selectedSubCompetencies.length}/6
-            </p>
           </div>
         )}
 
-        {/* Locked Framework Display */}
+        {/* Locked Framework Display - THE KEY UI FOR LOCKED FIELDS */}
         {selectedSubCompetencies.length > 0 && (
-          <div className="bg-muted border border-primary/30 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Lock className="h-4 w-4 text-primary" />
-              <h4 className="font-semibold text-sm text-primary">
-                Locked PlayOps Framework
-              </h4>
+          <div className="bg-amber-500/5 border-2 border-amber-500/30 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 bg-amber-500/20 rounded-lg">
+                <Lock className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm text-foreground">
+                  Locked PlayOps Framework
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  These fields are pulled from the C-BEN standard and cannot be edited
+                </p>
+              </div>
             </div>
-            <div className="space-y-4">
+            
+            <div className="space-y-3">
               {selectedSubCompetencies.map((subId, idx) => {
                 const sub = getSelectedSubData(subId);
                 if (!sub) return null;
                 
                 return (
-                  <div key={sub.id} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                    <p className="font-medium text-foreground mb-2">
-                      Scene {idx + 1}: {sub.statement}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="bg-background/50 rounded p-2">
-                        <span className="text-muted-foreground">Action Cue:</span>
-                        <p className="text-foreground">{sub.action_cue || 'Not defined'}</p>
+                  <div 
+                    key={sub.id} 
+                    className="bg-background rounded-lg p-4 border border-border"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div 
+                        className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center"
+                      >
+                        {idx + 1}
                       </div>
-                      <div className="bg-background/50 rounded p-2">
-                        <span className="text-muted-foreground">Mechanic:</span>
-                        <p className="text-foreground">{sub.game_mechanic || 'Not defined'}</p>
+                      <p className="font-medium text-sm text-foreground flex-1 truncate">
+                        {sub.statement}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Locked Action Cue */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background">
+                          <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            ACTION CUE
+                          </span>
+                        </div>
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 pt-4">
+                          <p className="text-xs text-foreground leading-relaxed">
+                            {sub.action_cue || 'Not defined in framework'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Locked Mechanic */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background">
+                          <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            MECHANIC
+                          </span>
+                        </div>
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 pt-4">
+                          <p className="text-xs text-foreground font-medium">
+                            {sub.game_mechanic || 'Not defined'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="text-xs text-muted-foreground mt-3 italic flex items-center gap-1">
-              <Lock className="h-3 w-3" />
-              These mechanics are LOCKED per C-BEN standards
-            </p>
+            
+            <div className="mt-4 pt-3 border-t border-amber-500/20">
+              <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
+                <Lock className="h-3 w-3 text-amber-600" />
+                Action Cues and Game Mechanics are mandatory per C-BEN competency standards
+              </p>
+            </div>
           </div>
         )}
       </div>
