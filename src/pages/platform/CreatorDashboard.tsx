@@ -2,16 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Package, PlayCircle } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateStudio } from '@/components/platform/TemplateStudio';
 import { CompetenciesDialog } from '@/components/platform/CompetenciesDialog';
 import { ValidatorTestWizard } from '@/components/platform/ValidatorTestWizard';
 import { PostTestActions } from '@/components/platform/PostTestActions';
-import { DesignElementUpload } from '@/components/platform/DesignElementUpload';
-import { DesignElementLibrary } from '@/components/platform/DesignElementLibrary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -498,14 +495,6 @@ export default function CreatorDashboard() {
         </div>
         <div className="flex gap-3">
           <Button
-            onClick={() => navigate('/platform/creator-demo')}
-            variant="outline"
-            className="gap-2"
-          >
-            <PlayCircle className="w-4 h-4" />
-            Demo Flow
-          </Button>
-          <Button
             onClick={() => navigate('/platform/creator/profile-edit')}
             variant="outline"
             className="gap-2"
@@ -524,19 +513,7 @@ export default function CreatorDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="games" className="space-y-6">
-        <TabsList className="bg-card border border-border">
-          <TabsTrigger value="games" className="gap-2">
-            <Layers className="w-4 h-4" />
-            My Games
-          </TabsTrigger>
-          <TabsTrigger value="elements" className="gap-2">
-            <Package className="w-4 h-4" />
-            Design Elements
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="games" className="space-y-6">
+      <div className="space-y-6">
           <div className="flex justify-between items-center">
             <p className="text-muted-foreground">Create game templates with CBE competencies built in</p>
             <Button 
@@ -681,13 +658,7 @@ export default function CreatorDashboard() {
               </div>
             </TooltipProvider>
           )}
-        </TabsContent>
-
-        <TabsContent value="elements" className="space-y-6">
-          <DesignElementUpload />
-          <DesignElementLibrary />
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {dialogOpen && (
         <TemplateStudio
