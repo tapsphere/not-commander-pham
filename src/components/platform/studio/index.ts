@@ -5,3 +5,6 @@ export { StudioIdentityStep } from './StudioIdentityStep';
 export { StudioBrandStep } from './StudioBrandStep';
 export { StudioTemplateInfoStep } from './StudioTemplateInfoStep';
 export { MechanicPreview } from './MechanicPreview';
+export { StudioFilmstrip } from './StudioFilmstrip';
+export { StudioPropertiesSidebar } from './StudioPropertiesSidebar';
+export { StudioCenterCanvas } from './StudioCenterCanvas';

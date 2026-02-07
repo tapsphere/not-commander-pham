@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { ChevronLeft, ChevronRight, Eye, Loader2, Save, Moon, Sun, X } from 'lucide-react';
+import { Eye, Loader2, Save, Moon, Sun, X, Settings2, Layers } from 'lucide-react';
 import { 
   TemplateStepFramework,
-  TemplateStepSceneBuilder,
   TemplateFormData,
   SceneData,
   DesignSettings,
@@ -17,11 +16,17 @@ import {
 import { 
   StudioThemeProvider, 
   useStudioTheme, 
-  StudioLiveMirror, 
-  StudioStepperNav,
-  StudioBrandStep,
-  StudioTemplateInfoStep,
+  StudioFilmstrip,
+  StudioPropertiesSidebar,
+  StudioCenterCanvas,
 } from './studio';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 interface TemplateStudioProps {
   template?: {
@@ -43,17 +48,17 @@ function StudioContent({
 }: TemplateStudioProps) {
   const { isDarkMode, toggleTheme } = useStudioTheme();
   
-  const [currentStep, setCurrentStep] = useState(1);
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [showFrameworkSheet, setShowFrameworkSheet] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [designSettings, setDesignSettings] = useState<DesignSettings>(DEFAULT_DESIGN_SETTINGS);
   
-  // New: Brand assets
+  // Brand assets
   const [mascotFile, setMascotFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   
@@ -107,13 +112,6 @@ function StudioContent({
     fetchSubCompetencies();
   }, [selectedCompetency]);
 
-  // Update current scene index when scenes change
-  useEffect(() => {
-    if (currentSceneIndex >= scenes.length && scenes.length > 0) {
-      setCurrentSceneIndex(scenes.length - 1);
-    }
-  }, [scenes.length, currentSceneIndex]);
-
   // Initialize with template data if editing
   useEffect(() => {
     if (template) {
@@ -124,42 +122,6 @@ function StudioContent({
       }));
     }
   }, [template]);
-
-  // New step order: 1=Brand, 2=Template Info, 3=Framework, 4=Scenes
-  const canProceed = (step: number) => {
-    switch (step) {
-      case 1:
-        return true; // Brand step - always accessible
-      case 2:
-        return true; // Template Info - accessible after brand
-      case 3:
-        return formData.name.trim().length > 0; // Framework needs name
-      case 4:
-        return selectedSubCompetencies.length > 0; // Scenes need competencies
-      default:
-        return false;
-    }
-  };
-
-  const canNavigate = (targetStep: number) => {
-    if (targetStep < currentStep) return true;
-    for (let i = 1; i < targetStep; i++) {
-      if (!canProceed(i + 1)) return false;
-    }
-    return true;
-  };
-
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
 
   const handlePreview = async () => {
     setGenerating(true);
@@ -312,74 +274,14 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
     }
   };
 
-  // New step content order: Brand → Template → Framework → Scenes
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <StudioBrandStep
-            designSettings={designSettings}
-            setDesignSettings={setDesignSettings}
-            mascotFile={mascotFile}
-            setMascotFile={setMascotFile}
-            logoFile={logoFile}
-            setLogoFile={setLogoFile}
-          />
-        );
-      case 2:
-        return (
-          <StudioTemplateInfoStep
-            formData={formData}
-            setFormData={setFormData}
-            coverImageFile={coverImageFile}
-            setCoverImageFile={setCoverImageFile}
-          />
-        );
-      case 3:
-        return (
-          <TemplateStepFramework
-            competencies={competencies}
-            subCompetencies={subCompetencies}
-            selectedCompetency={selectedCompetency}
-            setSelectedCompetency={setSelectedCompetency}
-            selectedSubCompetencies={selectedSubCompetencies}
-            setSelectedSubCompetencies={setSelectedSubCompetencies}
-            scenes={scenes}
-            setScenes={setScenes}
-          />
-        );
-      case 4:
-        return (
-          <TemplateStepSceneBuilder
-            scenes={scenes}
-            setScenes={setScenes}
-            subCompetencies={subCompetencies}
-            selectedSubCompetencies={selectedSubCompetencies}
-            currentSceneIndex={currentSceneIndex}
-            setCurrentSceneIndex={setCurrentSceneIndex}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Professional neutral themes
+  // Theme styles
   const bgStyles = isDarkMode 
     ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' 
     : 'bg-[#F8F9FA]';
   
-  const panelStyles = isDarkMode 
-    ? 'bg-slate-900/80 backdrop-blur-xl border-r border-white/5' 
-    : 'bg-white/90 backdrop-blur-xl border-r border-slate-200';
-  
   const headerStyles = isDarkMode 
-    ? 'bg-slate-900/50 border-b border-white/5' 
-    : 'bg-white/70 border-b border-slate-200';
-  
-  const footerStyles = isDarkMode 
-    ? 'bg-slate-900/50 border-t border-white/5' 
-    : 'bg-white/70 border-t border-slate-200';
+    ? 'bg-slate-900/80 border-b border-white/5 backdrop-blur-xl' 
+    : 'bg-white/90 border-b border-slate-200 backdrop-blur-xl';
   
   const textStyles = isDarkMode ? 'text-white' : 'text-slate-900';
   const mutedStyles = isDarkMode ? 'text-white/60' : 'text-slate-600';
@@ -388,142 +290,163 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
     ? 'text-white/70 hover:text-white hover:bg-white/10' 
     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100';
 
+  const canvasAreaStyles = isDarkMode
+    ? 'bg-slate-950/50'
+    : 'bg-slate-100/50';
+
   return (
-    <div className={`fixed inset-0 z-50 flex ${bgStyles}`}>
-      {/* Left Panel - Editor */}
-      <div className={`flex-1 flex flex-col overflow-hidden ${panelStyles}`}>
-        {/* Studio Header */}
-        <div className={`flex items-center justify-between px-6 py-4 ${headerStyles}`}>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className={buttonStyles}
-            >
-              <X className="h-4 w-4 mr-1" />
-              Close
-            </Button>
-            <div className={`h-6 w-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
-            <h1 className={`text-lg font-semibold ${textStyles}`}>
-              {template ? 'Edit Template' : 'Template Studio'}
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleTheme}
-              className={buttonStyles}
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            
-            {currentStep >= 4 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePreview}
-                disabled={generating || scenes.length === 0}
-                className={isDarkMode 
-                  ? 'border-white/20 text-white hover:bg-white/10' 
-                  : 'border-slate-300 text-slate-700 hover:bg-slate-100'
-                }
-              >
-                {generating ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Eye className="h-4 w-4 mr-2" />
-                )}
-                Preview
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Stepper Navigation */}
-        <div className={headerStyles}>
-          <StudioStepperNav
-            currentStep={currentStep}
-            setCurrentStep={setCurrentStep}
-            canNavigate={canNavigate}
-          />
-        </div>
-
-        {/* Step Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          {renderStepContent()}
-        </div>
-
-        {/* Footer Navigation */}
-        <div className={`px-6 py-4 flex items-center justify-between ${footerStyles}`}>
+    <div className={`fixed inset-0 z-50 flex flex-col ${bgStyles}`}>
+      {/* Top Header Bar */}
+      <div className={`flex items-center justify-between px-4 py-3 ${headerStyles}`}>
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            onClick={handleBack}
-            disabled={currentStep === 1}
+            size="sm"
+            onClick={onClose}
             className={buttonStyles}
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
+            <X className="h-4 w-4 mr-1" />
+            Close
           </Button>
-
-          <div className="flex items-center gap-3">
-            {currentStep < 4 ? (
+          <div className={`h-5 w-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+          <h1 className={`text-base font-semibold ${textStyles}`}>
+            {template ? 'Edit Template' : 'Template Studio'}
+          </h1>
+          {formData.name && (
+            <>
+              <div className={`h-5 w-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+              <span className={`text-sm ${mutedStyles}`}>{formData.name}</span>
+            </>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Framework Configuration Sheet Trigger */}
+          <Sheet open={showFrameworkSheet} onOpenChange={setShowFrameworkSheet}>
+            <SheetTrigger asChild>
               <Button
-                onClick={handleNext}
-                disabled={!canProceed(currentStep + 1)}
-                className={isDarkMode 
-                  ? 'bg-white text-slate-900 hover:bg-white/90' 
-                  : 'bg-slate-900 text-white hover:bg-slate-800'
-                }
+                variant="ghost"
+                size="sm"
+                className={buttonStyles}
               >
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSubmit}
-                disabled={loading || scenes.length === 0}
-                className={isDarkMode 
-                  ? 'bg-white text-slate-900 hover:bg-white/90' 
-                  : 'bg-slate-900 text-white hover:bg-slate-800'
-                }
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Template
-                  </>
+                <Layers className="h-4 w-4 mr-2" />
+                Framework
+                {selectedSubCompetencies.length > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                    {selectedSubCompetencies.length}
+                  </span>
                 )}
               </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[500px] sm:w-[600px] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Logic Framework Configuration</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6">
+                <TemplateStepFramework
+                  competencies={competencies}
+                  subCompetencies={subCompetencies}
+                  selectedCompetency={selectedCompetency}
+                  setSelectedCompetency={setSelectedCompetency}
+                  selectedSubCompetencies={selectedSubCompetencies}
+                  setSelectedSubCompetencies={setSelectedSubCompetencies}
+                  scenes={scenes}
+                  setScenes={setScenes}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className={buttonStyles}
+          >
+            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreview}
+            disabled={generating || scenes.length === 0}
+            className={isDarkMode 
+              ? 'border-white/20 text-white hover:bg-white/10' 
+              : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+            }
+          >
+            {generating ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Eye className="h-4 w-4 mr-2" />
             )}
-          </div>
+            Preview
+          </Button>
+
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !formData.name.trim()}
+            size="sm"
+            className={isDarkMode 
+              ? 'bg-white text-slate-900 hover:bg-white/90' 
+              : 'bg-slate-900 text-white hover:bg-slate-800'
+            }
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Save
+          </Button>
         </div>
       </div>
 
-      {/* Right Panel - Live Mirror */}
-      <div className={`w-[380px] flex-shrink-0 overflow-hidden ${
-        isDarkMode 
-          ? 'bg-slate-950' 
-          : 'bg-slate-100'
-      }`}>
-        <StudioLiveMirror
-          formData={formData}
-          scenes={scenes}
-          currentSceneIndex={currentSceneIndex}
-          setCurrentSceneIndex={setCurrentSceneIndex}
-          designSettings={designSettings}
-          subCompetencies={subCompetencies}
-          mascotFile={mascotFile}
-          logoFile={logoFile}
-          showScene0={currentStep === 1}
-        />
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Center Canvas Area */}
+        <div className={`flex-1 flex flex-col ${canvasAreaStyles}`}>
+          {/* Canvas */}
+          <div className="flex-1 overflow-hidden">
+            <StudioCenterCanvas
+              currentSceneIndex={currentSceneIndex}
+              formData={formData}
+              scenes={scenes}
+              designSettings={designSettings}
+              subCompetencies={subCompetencies}
+              mascotFile={mascotFile}
+              logoFile={logoFile}
+            />
+          </div>
+
+          {/* Bottom Filmstrip */}
+          <StudioFilmstrip
+            currentSceneIndex={currentSceneIndex}
+            setCurrentSceneIndex={setCurrentSceneIndex}
+            scenes={scenes}
+            subCompetencies={subCompetencies}
+            designSettings={designSettings}
+          />
+        </div>
+
+        {/* Right Properties Sidebar */}
+        <div className="w-80 flex-shrink-0">
+          <StudioPropertiesSidebar
+            currentSceneIndex={currentSceneIndex}
+            scenes={scenes}
+            setScenes={setScenes}
+            subCompetencies={subCompetencies}
+            designSettings={designSettings}
+            setDesignSettings={setDesignSettings}
+            formData={formData}
+            setFormData={setFormData}
+            logoFile={logoFile}
+            setLogoFile={setLogoFile}
+            mascotFile={mascotFile}
+            setMascotFile={setMascotFile}
+          />
+        </div>
       </div>
     </div>
   );
