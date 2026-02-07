@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
-import { Clock, ChevronLeft, Undo, Play, Trophy, Award, RotateCcw, Activity } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Undo, Play, Trophy, Award, RotateCcw, Activity, Send } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { MechanicPreview } from './MechanicPreview';
 import { ScrubSlider } from './mechanics/ScrubSlider';
@@ -10,6 +10,7 @@ import {
   TelemetrySample,
   UNIVERSAL_LAYOUT,
 } from './SceneAssembler';
+import { toast } from 'sonner';
 
 interface StudioCenterCanvasProps {
   currentSceneIndex: number;
@@ -19,6 +20,7 @@ interface StudioCenterCanvasProps {
   subCompetencies: SubCompetency[];
   mascotFile?: File | null;
   logoFile?: File | null;
+  onSceneChange?: (index: number) => void;
 }
 
 // Industry-specific placeholders
@@ -39,9 +41,11 @@ export function StudioCenterCanvas({
   subCompetencies,
   mascotFile,
   logoFile,
+  onSceneChange,
 }: StudioCenterCanvasProps) {
   const { isDarkMode } = useStudioTheme();
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(30);
   
   // Telemetry state (DNA Library Section 2 & 3)
   const [verifiedSignals, setVerifiedSignals] = useState(0);
@@ -177,7 +181,30 @@ export function StudioCenterCanvas({
         'Adjust the slider to filter the noise and reveal the optimal data threshold.';
       
       return (
-        <div className="h-full flex flex-col overflow-hidden pt-6 bg-background">
+        <div className="h-full flex flex-col overflow-hidden bg-background">
+          {/* ═══════════════════════════════════════════════════════════════
+              HEADER - "Studio" title with centered 30s Timer
+          ═══════════════════════════════════════════════════════════════ */}
+          <div className="flex-none px-4 pt-6 pb-2">
+            <div className="glass-card px-3 py-2 flex items-center justify-between">
+              <button className="flex items-center gap-1 text-muted-foreground text-sm">
+                <ChevronLeft className="h-4 w-4" />
+                Back
+              </button>
+              
+              {/* Centered Timer - Studio Title */}
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Studio</span>
+                <div className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>30s</span>
+                </div>
+              </div>
+              
+              <div className="w-12" /> {/* Spacer for balance */}
+            </div>
+          </div>
+
           {/* ═══════════════════════════════════════════════════════════════
               TOP 30% - Context Zone (Action Cue / Soul)
               DNA Library: text-sm or text-base, Slate-500
@@ -186,23 +213,6 @@ export function StudioCenterCanvas({
             className="flex-none px-4"
             style={{ height: `${UNIVERSAL_LAYOUT.topZone}%` }}
           >
-            {/* Header Bar */}
-            <div className="glass-card px-3 py-2 flex items-center gap-3 mb-2">
-              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sm text-foreground truncate">
-                  Data Analysis
-                </h3>
-                <p className="text-xs text-muted-foreground truncate">
-                  Continuous Scrub
-                </p>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>30s</span>
-              </div>
-            </div>
-
             {/* Progress Bar */}
             <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
               <div 
@@ -240,7 +250,7 @@ export function StudioCenterCanvas({
 
           {/* ═══════════════════════════════════════════════════════════════
               BOTTOM 20% - Interaction Zone
-              DNA Library: Telemetry buttons + Submit
+              DNA Library: Navigation buttons (Back/Next)
           ═══════════════════════════════════════════════════════════════ */}
           <div 
             className="flex-none px-4 pb-4 flex flex-col justify-end"
@@ -252,10 +262,6 @@ export function StudioCenterCanvas({
                 <Undo className="h-3 w-3" />
                 Undo
               </button>
-              <button className="glass-button px-3 py-1.5 rounded-lg text-xs text-muted-foreground flex items-center gap-1">
-                <ChevronLeft className="h-3 w-3" />
-                Back
-              </button>
               {/* Telemetry indicator */}
               <div className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
                 <Activity className="h-3 w-3" />
@@ -263,35 +269,51 @@ export function StudioCenterCanvas({
               </div>
             </div>
 
-            {/* Submit Button */}
-            <button className="w-full py-3 rounded-xl font-semibold text-sm bg-primary text-primary-foreground shadow-lg transition-all hover:opacity-90">
-              Submit Answer
-            </button>
+            {/* Navigation Footer - Scene 3 always shows Back/Next */}
+            <div className="flex gap-2">
+              <button className="flex-1 py-3 rounded-xl font-semibold text-sm border border-border text-foreground bg-background/50 flex items-center justify-center gap-2 transition-all hover:bg-muted">
+                <ChevronLeft className="h-4 w-4" />
+                Back
+              </button>
+              <button 
+                className="flex-1 py-3 rounded-xl font-semibold text-sm bg-primary text-primary-foreground shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2"
+                onClick={() => onSceneChange?.(currentSceneIndex + 1)}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       );
     }
 
+    // Determine if this is the last gameplay scene (Scene 6 leads to Scene 7)
+    const isLastGameplayScene = currentSceneIndex === 6;
+
     // Default gameplay screen for other scenes (1, 2, 4, 5, 6)
     return (
-      <div className="h-full overflow-hidden pt-6" style={{ backgroundColor: designSettings.background }}>
-        {/* Header */}
+      <div className="h-full overflow-hidden flex flex-col" style={{ backgroundColor: designSettings.background }}>
+        {/* Header with Studio title and centered 30s timer */}
         <div 
-          className="px-4 py-3 flex items-center gap-3"
+          className="px-4 py-3 flex items-center justify-between"
           style={{ backgroundColor: `${designSettings.primary}15` }}
         >
-          <ChevronLeft className="h-5 w-5" style={{ color: designSettings.text }} />
-          <div className="flex-1 min-w-0">
-            <h3 
-              className={`font-semibold text-sm truncate ${isGhostState && !currentScene ? 'opacity-40 italic' : ''}`}
-              style={{ color: designSettings.text }}
-            >
-              {displayName}
-            </h3>
-            <p className="text-xs truncate opacity-70" style={{ color: designSettings.text }}>
-              {currentSubCompetency?.action_cue || placeholder.description}
-            </p>
+          <button className="flex items-center gap-1 text-sm" style={{ color: designSettings.text }}>
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
+          
+          {/* Centered Timer - Studio Title */}
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] opacity-70 uppercase tracking-wider" style={{ color: designSettings.text }}>Studio</span>
+            <div className="flex items-center gap-1 text-sm font-semibold" style={{ color: designSettings.text }}>
+              <Clock className="h-3.5 w-3.5" />
+              <span>30s</span>
+            </div>
           </div>
+          
+          <div className="w-12" /> {/* Spacer for balance */}
         </div>
 
         {/* Progress Bar */}
@@ -308,7 +330,7 @@ export function StudioCenterCanvas({
             </span>
             <span className="text-[10px] flex items-center gap-1" style={{ color: designSettings.text }}>
               <Clock className="h-3 w-3" />
-              {currentScene?.timeLimit || 60}s
+              {currentScene?.timeLimit || 30}s
             </span>
           </div>
         </div>
@@ -329,39 +351,73 @@ export function StudioCenterCanvas({
         </div>
 
         {/* Choices */}
-        <MechanicPreview
-          mechanic={currentMechanic}
-          choices={displayChoices}
-          designSettings={designSettings}
-          isGhostState={!currentScene}
-        />
-
-        {/* Telemetry Buttons (LOCKED) */}
-        <div className="absolute bottom-[70px] left-4 flex gap-2">
-          <div 
-            className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
-            style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
-          >
-            <Undo className="h-3 w-3" />
-            Undo
-          </div>
-          <div 
-            className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
-            style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
-          >
-            <ChevronLeft className="h-3 w-3" />
-            Back
-          </div>
+        <div className="flex-1 overflow-auto">
+          <MechanicPreview
+            mechanic={currentMechanic}
+            choices={displayChoices}
+            designSettings={designSettings}
+            isGhostState={!currentScene}
+          />
         </div>
 
-        {/* Submit Button */}
-        <div className="px-4 py-3 absolute bottom-4 left-0 right-0">
-          <button
-            className="w-full py-3 rounded-xl font-semibold text-sm shadow-lg"
-            style={{ backgroundColor: designSettings.primary, color: designSettings.background }}
-          >
-            Submit Answer
-          </button>
+        {/* Fixed Bottom Navigation */}
+        <div className="px-4 pb-4 pt-2">
+          {/* Telemetry Buttons (LOCKED) */}
+          <div className="flex gap-2 mb-3">
+            <div 
+              className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
+              style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
+            >
+              <Undo className="h-3 w-3" />
+              Undo
+            </div>
+            <div 
+              className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
+              style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
+            >
+              <ChevronLeft className="h-3 w-3" />
+              Back
+            </div>
+          </div>
+
+          {/* Navigation Footer - Scenes 1-5: Back/Next, Scene 6: Back/Submit */}
+          <div className="flex gap-2">
+            <button 
+              className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+              style={{ 
+                backgroundColor: `${designSettings.text}10`, 
+                color: designSettings.text,
+                border: `1px solid ${designSettings.text}20`
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back
+            </button>
+            
+            {isLastGameplayScene ? (
+              <button 
+                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                style={{ backgroundColor: designSettings.primary, color: designSettings.background }}
+                onClick={() => {
+                  // End telemetry session and trigger Scene 7 proof receipt
+                  toast.success('Telemetry session ended. Generating Proof Receipt...');
+                  onSceneChange?.(7);
+                }}
+              >
+                <Send className="h-4 w-4" />
+                Submit
+              </button>
+            ) : (
+              <button 
+                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                style={{ backgroundColor: designSettings.primary, color: designSettings.background }}
+                onClick={() => onSceneChange?.(currentSceneIndex + 1)}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
