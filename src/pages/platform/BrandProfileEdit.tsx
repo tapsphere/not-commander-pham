@@ -31,10 +31,10 @@ export default function BrandProfileEdit() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   useEffect(() => {
-    loadProfile();
+    checkAuth();
   }, []);
 
-  const loadProfile = async () => {
+  const checkAuth = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -42,24 +42,10 @@ export default function BrandProfileEdit() {
         return;
       }
       setUserId(user.id);
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, bio, avatar_url, company_name')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') throw error;
-
-      if (data) {
-        setFullName(data.full_name || '');
-        setBio(data.bio || '');
-        setAvatarUrl(data.avatar_url || '');
-        setCompanyName(data.company_name || '');
-      }
+      // Keep form empty - no pre-populated data
     } catch (error) {
-      console.error('Failed to load profile:', error);
-      toast.error('Failed to load profile');
+      console.error('Failed to check auth:', error);
+      toast.error('Failed to load');
     } finally {
       setLoading(false);
     }
