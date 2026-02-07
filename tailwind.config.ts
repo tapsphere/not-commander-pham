@@ -86,6 +86,12 @@ export default {
           "text-secondary": "hsl(var(--studio-text-secondary))",
           "text-muted": "hsl(var(--studio-text-muted))",
         },
+        // Glass morphism tokens
+        glass: {
+          bg: "hsl(var(--glass-bg))",
+          border: "hsl(var(--glass-border))",
+          hover: "hsl(var(--glass-hover))",
+        },
       },
       spacing: {
         'safe': 'env(safe-area-inset-bottom)',
