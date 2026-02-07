@@ -285,29 +285,19 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
     }
   };
 
-  // Theme styles
-  const bgStyles = isDarkMode 
-    ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' 
-    : 'bg-[#F8F9FA]';
+  // Theme styles using semantic tokens
+  const bgStyles = 'bg-background';
   
-  const headerStyles = isDarkMode 
-    ? 'bg-slate-900/80 border-b border-white/5 backdrop-blur-xl' 
-    : 'bg-white/90 border-b border-slate-200 backdrop-blur-xl';
+  const headerStyles = 'bg-card/95 border-b border-border backdrop-blur-xl';
   
-  const textStyles = isDarkMode ? 'text-white' : 'text-slate-900';
-  const mutedStyles = isDarkMode ? 'text-white/60' : 'text-slate-600';
+  const textStyles = 'text-foreground';
+  const mutedStyles = 'text-muted-foreground';
   
-  const buttonStyles = isDarkMode 
-    ? 'text-white/70 hover:text-white hover:bg-white/10' 
-    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100';
+  const buttonStyles = 'text-muted-foreground hover:text-foreground hover:bg-accent';
 
-  const canvasAreaStyles = isDarkMode
-    ? 'bg-slate-950/50'
-    : 'bg-slate-100/50';
+  const canvasAreaStyles = 'bg-muted/30';
 
-  const leftPanelStyles = isDarkMode
-    ? 'bg-slate-900/90 border-r border-white/5'
-    : 'bg-white/95 border-r border-slate-200';
+  const leftPanelStyles = 'bg-card border-r border-border';
 
   return (
     <div className={`fixed inset-0 z-50 flex flex-col ${bgStyles}`}>
@@ -323,13 +313,13 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             <X className="h-4 w-4 mr-1" />
             Close
           </Button>
-          <div className={`h-5 w-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+          <div className="h-5 w-px bg-border" />
           <h1 className={`text-base font-semibold ${textStyles}`}>
             {template ? 'Edit Template' : 'Template Studio'}
           </h1>
           {formData.name && (
             <>
-              <div className={`h-5 w-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+              <div className="h-5 w-px bg-border" />
               <span className={`text-sm ${mutedStyles}`}>{formData.name}</span>
             </>
           )}
@@ -350,10 +340,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             size="sm"
             onClick={handlePreview}
             disabled={generating || scenes.length === 0}
-            className={isDarkMode 
-              ? 'border-white/20 text-white hover:bg-white/10' 
-              : 'border-slate-300 text-slate-700 hover:bg-slate-100'
-            }
+            className="border-border text-foreground hover:bg-accent"
           >
             {generating ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -367,10 +354,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             onClick={handleSubmit}
             disabled={loading || !formData.name.trim()}
             size="sm"
-            className={isDarkMode 
-              ? 'bg-white text-slate-900 hover:bg-white/90' 
-              : 'bg-slate-900 text-white hover:bg-slate-800'
-            }
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
