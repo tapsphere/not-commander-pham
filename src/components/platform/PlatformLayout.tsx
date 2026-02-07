@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { LogOut, Layers, Store, TestTube } from 'lucide-react';
+import { LogOut, Layers, Store, TestTube, Moon, Sun } from 'lucide-react';
 import { toast } from 'sonner';
+import { useGlobalTheme } from '@/hooks/useGlobalTheme';
 
 export const PlatformLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const { isDarkMode, toggleTheme } = useGlobalTheme();
 
   useEffect(() => {
     checkAuth();
@@ -114,10 +116,22 @@ export const PlatformLayout = () => {
             </nav>
           </div>
 
-          <Button variant="ghost" onClick={handleSignOut} className="gap-2" size="sm">
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="text-muted-foreground hover:text-foreground"
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            
+            <Button variant="ghost" onClick={handleSignOut} className="gap-2" size="sm">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
