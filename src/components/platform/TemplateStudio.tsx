@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -7,7 +6,6 @@ import { ChevronLeft, ChevronRight, Eye, Loader2, Save, Moon, Sun, X } from 'luc
 import { 
   TemplateStepFramework,
   TemplateStepSceneBuilder,
-  TemplateStepBrandSkin,
   TemplateFormData,
   SceneData,
   DesignSettings,
@@ -21,7 +19,8 @@ import {
   useStudioTheme, 
   StudioLiveMirror, 
   StudioStepperNav,
-  StudioIdentityStep 
+  StudioBrandStep,
+  StudioTemplateInfoStep,
 } from './studio';
 
 interface TemplateStudioProps {
@@ -42,7 +41,6 @@ function StudioContent({
   onClose,
   demoMode = false 
 }: TemplateStudioProps) {
-  const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useStudioTheme();
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -54,6 +52,10 @@ function StudioContent({
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [designSettings, setDesignSettings] = useState<DesignSettings>(DEFAULT_DESIGN_SETTINGS);
+  
+  // New: Brand assets
+  const [mascotFile, setMascotFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   
   // Competency state
   const [competencies, setCompetencies] = useState<Competency[]>([]);
@@ -123,25 +125,24 @@ function StudioContent({
     }
   }, [template]);
 
+  // New step order: 1=Brand, 2=Template Info, 3=Framework, 4=Scenes
   const canProceed = (step: number) => {
     switch (step) {
       case 1:
-        return true; // Always can go to step 1
+        return true; // Brand step - always accessible
       case 2:
-        return formData.name.trim().length > 0;
+        return true; // Template Info - accessible after brand
       case 3:
-        return selectedSubCompetencies.length > 0;
+        return formData.name.trim().length > 0; // Framework needs name
       case 4:
-        return scenes.length > 0;
+        return selectedSubCompetencies.length > 0; // Scenes need competencies
       default:
         return false;
     }
   };
 
   const canNavigate = (targetStep: number) => {
-    // Can always go back
     if (targetStep < currentStep) return true;
-    // Can only go forward if all previous steps are complete
     for (let i = 1; i < targetStep; i++) {
       if (!canProceed(i + 1)) return false;
     }
@@ -311,18 +312,30 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
     }
   };
 
+  // New step content order: Brand → Template → Framework → Scenes
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
-          <StudioIdentityStep
+          <StudioBrandStep
+            designSettings={designSettings}
+            setDesignSettings={setDesignSettings}
+            mascotFile={mascotFile}
+            setMascotFile={setMascotFile}
+            logoFile={logoFile}
+            setLogoFile={setLogoFile}
+          />
+        );
+      case 2:
+        return (
+          <StudioTemplateInfoStep
             formData={formData}
             setFormData={setFormData}
             coverImageFile={coverImageFile}
             setCoverImageFile={setCoverImageFile}
           />
         );
-      case 2:
+      case 3:
         return (
           <TemplateStepFramework
             competencies={competencies}
@@ -335,7 +348,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             setScenes={setScenes}
           />
         );
-      case 3:
+      case 4:
         return (
           <TemplateStepSceneBuilder
             scenes={scenes}
@@ -346,52 +359,53 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             setCurrentSceneIndex={setCurrentSceneIndex}
           />
         );
-      case 4:
-        return (
-          <TemplateStepBrandSkin
-            designSettings={designSettings}
-            setDesignSettings={setDesignSettings}
-          />
-        );
       default:
         return null;
     }
   };
 
+  // Professional neutral themes
+  const bgStyles = isDarkMode 
+    ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950' 
+    : 'bg-[#F8F9FA]';
+  
+  const panelStyles = isDarkMode 
+    ? 'bg-slate-900/80 backdrop-blur-xl border-r border-white/5' 
+    : 'bg-white/90 backdrop-blur-xl border-r border-slate-200';
+  
+  const headerStyles = isDarkMode 
+    ? 'bg-slate-900/50 border-b border-white/5' 
+    : 'bg-white/70 border-b border-slate-200';
+  
+  const footerStyles = isDarkMode 
+    ? 'bg-slate-900/50 border-t border-white/5' 
+    : 'bg-white/70 border-t border-slate-200';
+  
+  const textStyles = isDarkMode ? 'text-white' : 'text-slate-900';
+  const mutedStyles = isDarkMode ? 'text-white/60' : 'text-slate-600';
+  
+  const buttonStyles = isDarkMode 
+    ? 'text-white/70 hover:text-white hover:bg-white/10' 
+    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100';
+
   return (
-    <div className={`fixed inset-0 z-50 flex ${
-      isDarkMode 
-        ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-950' 
-        : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'
-    }`}>
+    <div className={`fixed inset-0 z-50 flex ${bgStyles}`}>
       {/* Left Panel - Editor */}
-      <div className={`
-        flex-1 flex flex-col overflow-hidden
-        ${isDarkMode 
-          ? 'bg-white/5 backdrop-blur-xl border-r border-white/10' 
-          : 'bg-white/70 backdrop-blur-xl border-r border-border/50'
-        }
-      `}>
+      <div className={`flex-1 flex flex-col overflow-hidden ${panelStyles}`}>
         {/* Studio Header */}
-        <div className={`
-          flex items-center justify-between px-6 py-4 
-          ${isDarkMode 
-            ? 'bg-white/5 border-b border-white/10' 
-            : 'bg-white/50 border-b border-border/50'
-          }
-        `}>
+        <div className={`flex items-center justify-between px-6 py-4 ${headerStyles}`}>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className={isDarkMode ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}
+              className={buttonStyles}
             >
               <X className="h-4 w-4 mr-1" />
               Close
             </Button>
-            <div className={`h-6 w-px ${isDarkMode ? 'bg-white/20' : 'bg-border'}`} />
-            <h1 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-foreground'}`}>
+            <div className={`h-6 w-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <h1 className={`text-lg font-semibold ${textStyles}`}>
               {template ? 'Edit Template' : 'Template Studio'}
             </h1>
           </div>
@@ -401,18 +415,21 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className={isDarkMode ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}
+              className={buttonStyles}
             >
               {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
             
-            {currentStep >= 3 && (
+            {currentStep >= 4 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePreview}
                 disabled={generating || scenes.length === 0}
-                className={isDarkMode ? 'border-white/20 text-white hover:bg-white/10' : ''}
+                className={isDarkMode 
+                  ? 'border-white/20 text-white hover:bg-white/10' 
+                  : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                }
               >
                 {generating ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -426,12 +443,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
 
         {/* Stepper Navigation */}
-        <div className={`
-          ${isDarkMode 
-            ? 'bg-white/5 border-b border-white/10' 
-            : 'bg-white/30 border-b border-border/50'
-          }
-        `}>
+        <div className={headerStyles}>
           <StudioStepperNav
             currentStep={currentStep}
             setCurrentStep={setCurrentStep}
@@ -445,18 +457,12 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
 
         {/* Footer Navigation */}
-        <div className={`
-          px-6 py-4 flex items-center justify-between
-          ${isDarkMode 
-            ? 'bg-white/5 border-t border-white/10' 
-            : 'bg-white/50 border-t border-border/50'
-          }
-        `}>
+        <div className={`px-6 py-4 flex items-center justify-between ${footerStyles}`}>
           <Button
             variant="ghost"
             onClick={handleBack}
             disabled={currentStep === 1}
-            className={isDarkMode ? 'text-white/70 hover:text-white hover:bg-white/10' : ''}
+            className={buttonStyles}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back
@@ -468,8 +474,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                 onClick={handleNext}
                 disabled={!canProceed(currentStep + 1)}
                 className={isDarkMode 
-                  ? 'bg-white text-black hover:bg-white/90' 
-                  : 'bg-primary text-primary-foreground'
+                  ? 'bg-white text-slate-900 hover:bg-white/90' 
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
                 }
               >
                 Next
@@ -480,8 +486,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                 onClick={handleSubmit}
                 disabled={loading || scenes.length === 0}
                 className={isDarkMode 
-                  ? 'bg-white text-black hover:bg-white/90' 
-                  : 'bg-primary text-primary-foreground'
+                  ? 'bg-white text-slate-900 hover:bg-white/90' 
+                  : 'bg-slate-900 text-white hover:bg-slate-800'
                 }
               >
                 {loading ? (
@@ -502,13 +508,11 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       </div>
 
       {/* Right Panel - Live Mirror */}
-      <div className={`
-        w-[380px] flex-shrink-0 overflow-hidden
-        ${isDarkMode 
-          ? 'bg-black/30 backdrop-blur-xl' 
-          : 'bg-slate-100/80 backdrop-blur-xl'
-        }
-      `}>
+      <div className={`w-[380px] flex-shrink-0 overflow-hidden ${
+        isDarkMode 
+          ? 'bg-slate-950' 
+          : 'bg-slate-100'
+      }`}>
         <StudioLiveMirror
           formData={formData}
           scenes={scenes}
@@ -516,6 +520,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
           setCurrentSceneIndex={setCurrentSceneIndex}
           designSettings={designSettings}
           subCompetencies={subCompetencies}
+          mascotFile={mascotFile}
+          showScene0={currentStep === 1 && !!mascotFile}
         />
       </div>
     </div>

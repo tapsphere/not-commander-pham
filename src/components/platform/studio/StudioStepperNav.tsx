@@ -14,11 +14,12 @@ interface StudioStepperNavProps {
   canNavigate: (step: number) => boolean;
 }
 
+// New tab order: Brand → Template Info → Framework → Scene Builder
 const STEPS: Step[] = [
-  { id: 1, title: 'Identity', description: 'Name & cover', icon: '✨' },
-  { id: 2, title: 'Framework', description: 'Competencies', icon: '🧠' },
-  { id: 3, title: 'Scenes', description: 'Build content', icon: '🎬' },
-  { id: 4, title: 'Brand Skin', description: 'Colors & fonts', icon: '🎨' },
+  { id: 1, title: 'Brand', description: 'Logo & colors', icon: '🎨' },
+  { id: 2, title: 'Template', description: 'Name & cover', icon: '📝' },
+  { id: 3, title: 'Framework', description: 'Competencies', icon: '🧠' },
+  { id: 4, title: 'Scenes', description: 'Build content', icon: '🎬' },
 ];
 
 export function StudioStepperNav({
@@ -27,6 +28,19 @@ export function StudioStepperNav({
   canNavigate,
 }: StudioStepperNavProps) {
   const { isDarkMode } = useStudioTheme();
+
+  // Professional neutral colors
+  const activeStyles = isDarkMode 
+    ? 'bg-white/15 border-white/30 shadow-lg' 
+    : 'bg-white border-slate-300 shadow-md';
+  
+  const completedStyles = isDarkMode
+    ? 'bg-white/10 border-white/20'
+    : 'bg-slate-100 border-slate-200';
+  
+  const inactiveStyles = isDarkMode
+    ? 'bg-white/5 border-white/10 hover:bg-white/10'
+    : 'bg-slate-50 border-slate-200 hover:bg-white';
 
   return (
     <div className="flex items-center justify-center gap-2 py-4 px-6">
@@ -41,29 +55,18 @@ export function StudioStepperNav({
               onClick={() => canClick && setCurrentStep(step.id)}
               disabled={!canClick}
               className={`
-                group flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300
-                ${isActive 
-                  ? isDarkMode 
-                    ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg shadow-white/10' 
-                    : 'bg-primary/20 backdrop-blur-md border border-primary/30 shadow-lg shadow-primary/10'
-                  : isCompleted
-                    ? isDarkMode
-                      ? 'bg-white/10 border border-white/20'
-                      : 'bg-primary/10 border border-primary/20'
-                    : isDarkMode
-                      ? 'bg-white/5 border border-white/10 hover:bg-white/10'
-                      : 'bg-muted border border-border hover:bg-muted/80'
-                }
+                group flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 border
+                ${isActive ? activeStyles : isCompleted ? completedStyles : inactiveStyles}
                 ${!canClick ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
               `}
             >
               <div className={`
                 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all
                 ${isActive 
-                  ? isDarkMode ? 'bg-white text-black' : 'bg-primary text-primary-foreground'
+                  ? isDarkMode ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'
                   : isCompleted
-                    ? isDarkMode ? 'bg-green-400/80 text-black' : 'bg-primary text-primary-foreground'
-                    : isDarkMode ? 'bg-white/20 text-white' : 'bg-muted-foreground/20 text-muted-foreground'
+                    ? isDarkMode ? 'bg-green-500/80 text-white' : 'bg-green-600 text-white'
+                    : isDarkMode ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
                 }
               `}>
                 {isCompleted ? <Check className="h-4 w-4" /> : step.icon}
@@ -72,13 +75,13 @@ export function StudioStepperNav({
               <div className="hidden sm:block text-left">
                 <p className={`text-sm font-semibold ${
                   isActive 
-                    ? isDarkMode ? 'text-white' : 'text-primary'
-                    : isDarkMode ? 'text-white/70' : 'text-foreground'
+                    ? isDarkMode ? 'text-white' : 'text-slate-900'
+                    : isDarkMode ? 'text-white/70' : 'text-slate-700'
                 }`}>
                   {step.title}
                 </p>
                 <p className={`text-[10px] ${
-                  isDarkMode ? 'text-white/40' : 'text-muted-foreground'
+                  isDarkMode ? 'text-white/40' : 'text-slate-500'
                 }`}>
                   {step.description}
                 </p>
@@ -89,8 +92,8 @@ export function StudioStepperNav({
               <div className={`
                 w-8 h-0.5 mx-1 rounded-full transition-all
                 ${currentStep > step.id 
-                  ? isDarkMode ? 'bg-white/50' : 'bg-primary/50'
-                  : isDarkMode ? 'bg-white/10' : 'bg-border'
+                  ? isDarkMode ? 'bg-white/40' : 'bg-slate-400'
+                  : isDarkMode ? 'bg-white/10' : 'bg-slate-200'
                 }
               `} />
             )}
