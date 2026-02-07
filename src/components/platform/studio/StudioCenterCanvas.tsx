@@ -109,6 +109,14 @@ export function StudioCenterCanvas({
   const progressPercent = scenes.length > 0 
     ? (currentSceneIndex / 7) * 100 
     : 15;
+    
+  // Dynamic XP values from PlayOps Framework (Tab 4)
+  // Based on proficiency level - defaults to L2 (Proficient) for preview
+  const XP_VALUES = { L1: 100, L2: 250, L3: 500 } as const;
+  const currentPXP = XP_VALUES.L2; // Shows expected L2 award in preview
+  
+  // Dynamic time limit from scene or sub-competency
+  const currentTimeLimit = currentScene?.timeLimit || 30;
 
   // Render Intro Screen (Scene 0)
   const renderIntroScreen = () => (
@@ -223,16 +231,16 @@ export function StudioCenterCanvas({
               className="rounded-xl px-4 py-2.5 flex items-center justify-between"
               style={{ backgroundColor: `${designSettings.primary}10` }}
             >
-              {/* Left: PXP Counter */}
+              {/* Left: PXP Counter - Dynamic from PlayOps Framework Tab 4 */}
               <div className="flex items-center gap-1">
-                <span className="text-xs font-bold" style={{ color: designSettings.primary }}>1250</span>
+                <span className="text-xs font-bold" style={{ color: designSettings.primary }}>{currentPXP}</span>
                 <span className="text-[10px] font-medium opacity-70" style={{ color: designSettings.text }}>PXP</span>
               </div>
               
-              {/* Center: 30s Timer */}
+              {/* Center: Timer - Dynamic from scene.timeLimit */}
               <div className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4" style={{ color: designSettings.text }} />
-                <span className="text-sm font-bold" style={{ color: designSettings.text }}>30s</span>
+                <span className="text-sm font-bold" style={{ color: designSettings.text }}>{currentTimeLimit}s</span>
               </div>
               
               {/* Right: Scene Progress */}
@@ -342,19 +350,17 @@ export function StudioCenterCanvas({
             className="rounded-xl px-4 py-2.5 flex items-center justify-between"
             style={{ backgroundColor: `${designSettings.primary}10` }}
           >
-            {/* Left: PXP Counter */}
-            <div className="flex items-center gap-1">
-              <span className="text-xs font-bold" style={{ color: designSettings.primary }}>1250</span>
-              <span className="text-[10px] font-medium opacity-70" style={{ color: designSettings.text }}>PXP</span>
-            </div>
-            
-            {/* Center: 30s Timer */}
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" style={{ color: designSettings.text }} />
-              <span className="text-sm font-bold" style={{ color: designSettings.text }}>
-                {currentScene?.timeLimit || 30}s
-              </span>
-            </div>
+              {/* Left: PXP Counter - Dynamic from PlayOps Framework Tab 4 */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold" style={{ color: designSettings.primary }}>{currentPXP}</span>
+                <span className="text-[10px] font-medium opacity-70" style={{ color: designSettings.text }}>PXP</span>
+              </div>
+              
+              {/* Center: Timer - Dynamic from scene.timeLimit */}
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4" style={{ color: designSettings.text }} />
+                <span className="text-sm font-bold" style={{ color: designSettings.text }}>{currentTimeLimit}s</span>
+              </div>
             
             {/* Right: Scene Progress */}
             <div className="flex items-center gap-1">
