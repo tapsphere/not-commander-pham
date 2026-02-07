@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
-import { Clock, ChevronLeft, ChevronRight, Undo, Redo, Play, Trophy, Award, RotateCcw, Activity, Send } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Play, Trophy, Award, RotateCcw, Send } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { MechanicPreview } from './MechanicPreview';
 import { ScrubSlider } from './mechanics/ScrubSlider';
@@ -207,7 +207,7 @@ export function StudioCenterCanvas({
     const currentMechanic = currentSubCompetency?.game_mechanic || null;
 
     // Scene 3 uses DNA Library 30/50/20 layout with ScrubSlider
-    // Updated to use designSettings for brand colors like other scenes
+    // Updated with Aero Studio Standard header/footer
     if (isDataAnalysisScene) {
       const actionCue = currentSubCompetency?.action_cue || 
         'Adjust the slider to filter the noise and reveal the optimal data threshold.';
@@ -215,34 +215,38 @@ export function StudioCenterCanvas({
       return (
         <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: designSettings.background }}>
           {/* ═══════════════════════════════════════════════════════════════
-              HEADER - "Studio" title with centered 30s Timer
+              AERO STATUS BAR HEADER
+              Left: PXP Counter | Center: 30s Timer | Right: Scene Progress
           ═══════════════════════════════════════════════════════════════ */}
           <div className="flex-none px-4 pt-6 pb-2">
             <div 
-              className="rounded-xl px-3 py-2 flex items-center justify-between"
-              style={{ backgroundColor: `${designSettings.primary}15` }}
+              className="rounded-xl px-4 py-2.5 flex items-center justify-between"
+              style={{ backgroundColor: `${designSettings.primary}10` }}
             >
-              <button className="flex items-center gap-1 text-sm" style={{ color: designSettings.text }}>
-                <ChevronLeft className="h-4 w-4" />
-                Back
-              </button>
-              
-              {/* Centered Timer - Studio Title */}
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] opacity-70 uppercase tracking-wider" style={{ color: designSettings.text }}>Studio</span>
-                <div className="flex items-center gap-1 text-sm font-semibold" style={{ color: designSettings.text }}>
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>30s</span>
-                </div>
+              {/* Left: PXP Counter */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold" style={{ color: designSettings.primary }}>1250</span>
+                <span className="text-[10px] font-medium opacity-70" style={{ color: designSettings.text }}>PXP</span>
               </div>
               
-              <div className="w-12" /> {/* Spacer for balance */}
+              {/* Center: 30s Timer */}
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4" style={{ color: designSettings.text }} />
+                <span className="text-sm font-bold" style={{ color: designSettings.text }}>30s</span>
+              </div>
+              
+              {/* Right: Scene Progress */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold" style={{ color: designSettings.text }}>{currentSceneIndex}</span>
+                <span className="text-[10px] opacity-60" style={{ color: designSettings.text }}>OF</span>
+                <span className="text-xs font-bold" style={{ color: designSettings.text }}>7</span>
+              </div>
             </div>
           </div>
 
           {/* ═══════════════════════════════════════════════════════════════
               TOP 30% - Context Zone (Action Cue / Soul)
-              DNA Library: text-sm or text-base, Slate-500
+              DNA Library: text-sm, Scrollable if overflow
           ═══════════════════════════════════════════════════════════════ */}
           <div 
             className="flex-none px-4"
@@ -256,7 +260,7 @@ export function StudioCenterCanvas({
               />
             </div>
 
-            {/* Action Cue (Soul) - text-sm per DNA Library */}
+            {/* Action Cue (Soul) - text-sm per Aero Standard */}
             <div 
               className="rounded-xl p-3"
               style={{ backgroundColor: `${designSettings.secondary}15` }}
@@ -269,11 +273,10 @@ export function StudioCenterCanvas({
 
           {/* ═══════════════════════════════════════════════════════════════
               MIDDLE 50% - Visual Stage (Mascot/Feedback Area)
-              DNA Library: Central visual area, blur tied to slider
+              DNA Library: Central visual area, Scrollable if overflow
           ═══════════════════════════════════════════════════════════════ */}
           <div 
-            className="flex-none flex items-center justify-center px-4"
-            style={{ height: `${UNIVERSAL_LAYOUT.middleZone}%` }}
+            className="flex-1 overflow-auto px-4 flex items-center justify-center"
           >
             <div className="w-full">
               {/* Continuous Scrub Mechanic (Scene 3) - pass designSettings for branding */}
@@ -288,44 +291,25 @@ export function StudioCenterCanvas({
           </div>
 
           {/* ═══════════════════════════════════════════════════════════════
-              BOTTOM 20% - Interaction Zone
-              DNA Library: Navigation buttons (Back/Next)
+              AERO NAVIGATION FOOTER
+              Single row: [ ← Back ] [ Next → ] (No Undo button)
           ═══════════════════════════════════════════════════════════════ */}
-          <div 
-            className="flex-none px-4 pb-4 flex flex-col justify-end"
-            style={{ height: `${UNIVERSAL_LAYOUT.bottomZone}%` }}
-          >
-            {/* Telemetry Buttons (LOCKED - Mandatory for biometric jitter tracking) */}
-            <div className="flex gap-2 mb-3">
+          <div className="flex-none px-4 pb-4">
+            <div className="flex gap-3">
               <button 
-                className="px-3 py-1.5 rounded-lg text-xs flex items-center gap-1"
-                style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
-              >
-                <Undo className="h-3 w-3" />
-                Undo
-              </button>
-              {/* Telemetry indicator */}
-              <div className="ml-auto flex items-center gap-1 text-[10px]" style={{ color: designSettings.text }}>
-                <Activity className="h-3 w-3" />
-                <span>{verifiedSignals} signals</span>
-              </div>
-            </div>
-
-            {/* Navigation Footer - Scene 3 always shows Back/Next */}
-            <div className="flex gap-2">
-              <button 
-                className="flex-1 py-3 rounded-xl font-semibold text-sm border flex items-center justify-center gap-2 transition-all"
+                className="flex-1 py-3 rounded-xl font-semibold text-sm border flex items-center justify-center gap-2 transition-all hover:opacity-80"
                 style={{ 
                   borderColor: `${designSettings.text}30`, 
                   color: designSettings.text,
-                  backgroundColor: `${designSettings.background}80`
+                  backgroundColor: `${designSettings.background}`
                 }}
+                onClick={() => onSceneChange?.(currentSceneIndex - 1)}
               >
                 <ChevronLeft className="h-4 w-4" />
                 Back
               </button>
               <button 
-                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 hover:opacity-90"
                 style={{ 
                   backgroundColor: designSettings.primary, 
                   color: designSettings.background,
@@ -346,57 +330,61 @@ export function StudioCenterCanvas({
     const isLastGameplayScene = currentSceneIndex === 6;
 
     // Default gameplay screen for other scenes (1, 2, 4, 5, 6)
+    // Updated with Aero Studio Standard
     return (
       <div className="h-full overflow-hidden flex flex-col" style={{ backgroundColor: designSettings.background }}>
-        {/* Header with Studio title and centered 30s timer */}
-        <div 
-          className="px-4 py-3 flex items-center justify-between"
-          style={{ backgroundColor: `${designSettings.primary}15` }}
-        >
-          <button className="flex items-center gap-1 text-sm" style={{ color: designSettings.text }}>
-            <ChevronLeft className="h-4 w-4" />
-            Back
-          </button>
-          
-          {/* Centered Timer - Studio Title */}
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] opacity-70 uppercase tracking-wider" style={{ color: designSettings.text }}>Studio</span>
-            <div className="flex items-center gap-1 text-sm font-semibold" style={{ color: designSettings.text }}>
-              <Clock className="h-3.5 w-3.5" />
-              <span>30s</span>
+        {/* ═══════════════════════════════════════════════════════════════
+            AERO STATUS BAR HEADER
+            Left: PXP Counter | Center: 30s Timer | Right: Scene Progress
+        ═══════════════════════════════════════════════════════════════ */}
+        <div className="flex-none px-4 pt-6 pb-2">
+          <div 
+            className="rounded-xl px-4 py-2.5 flex items-center justify-between"
+            style={{ backgroundColor: `${designSettings.primary}10` }}
+          >
+            {/* Left: PXP Counter */}
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-bold" style={{ color: designSettings.primary }}>1250</span>
+              <span className="text-[10px] font-medium opacity-70" style={{ color: designSettings.text }}>PXP</span>
+            </div>
+            
+            {/* Center: 30s Timer */}
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" style={{ color: designSettings.text }} />
+              <span className="text-sm font-bold" style={{ color: designSettings.text }}>
+                {currentScene?.timeLimit || 30}s
+              </span>
+            </div>
+            
+            {/* Right: Scene Progress */}
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-bold" style={{ color: designSettings.text }}>{currentSceneIndex}</span>
+              <span className="text-[10px] opacity-60" style={{ color: designSettings.text }}>OF</span>
+              <span className="text-xs font-bold" style={{ color: designSettings.text }}>7</span>
             </div>
           </div>
-          
-          <div className="w-12" /> {/* Spacer for balance */}
         </div>
 
         {/* Progress Bar */}
-        <div className="px-4 py-2">
-          <div className="h-2 rounded-full bg-black/10 overflow-hidden">
+        <div className="flex-none px-4 py-1">
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: `${designSettings.text}15` }}>
             <div 
               className="h-full rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%`, backgroundColor: designSettings.primary }}
             />
           </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px]" style={{ color: designSettings.text }}>
-              Scene {currentSceneIndex} of 6
-            </span>
-            <span className="text-[10px] flex items-center gap-1" style={{ color: designSettings.text }}>
-              <Clock className="h-3 w-3" />
-              {currentScene?.timeLimit || 30}s
-            </span>
-          </div>
         </div>
 
-        {/* Question */}
-        <div className="px-4 py-3">
+        {/* ═══════════════════════════════════════════════════════════════
+            TOP ZONE - Action Cue (text-sm per Aero Standard)
+        ═══════════════════════════════════════════════════════════════ */}
+        <div className="flex-none px-4 py-2">
           <div 
-            className="rounded-xl p-4 min-h-[50px]"
+            className="rounded-xl p-3"
             style={{ backgroundColor: `${designSettings.secondary}15` }}
           >
             <p 
-              className={`text-sm font-medium leading-relaxed ${!currentScene ? 'opacity-40 italic' : ''}`}
+              className={`text-sm leading-relaxed ${!currentScene ? 'opacity-40 italic' : ''}`}
               style={{ color: designSettings.text }}
             >
               {displayQuestion}
@@ -404,8 +392,11 @@ export function StudioCenterCanvas({
           </div>
         </div>
 
-        {/* Choices with Toggle Selection */}
-        <div className="flex-1 overflow-auto">
+        {/* ═══════════════════════════════════════════════════════════════
+            MIDDLE ZONE - Scrollable Interaction Stage (50%)
+            Click-to-Undo: Clicking active choice deselects it
+        ═══════════════════════════════════════════════════════════════ */}
+        <div className="flex-1 overflow-auto px-4">
           <MechanicPreview
             mechanic={currentMechanic}
             choices={displayChoices}
@@ -413,63 +404,30 @@ export function StudioCenterCanvas({
             isGhostState={!currentScene}
             selectedChoiceId={selectedChoiceId}
             onChoiceSelect={(id) => {
-              setSelectedChoiceId(id);
-              // Track in undo history
-              setCanvasState(
-                { ...canvasState, selectedChoiceId: id, currentSceneIndex },
-                'select_choice',
-                id ? `Selected option` : 'Deselected option'
-              );
+              // AERO Click-to-Undo: Clicking same choice deselects it
+              if (id === selectedChoiceId) {
+                setSelectedChoiceId(null);
+              } else {
+                setSelectedChoiceId(id);
+              }
             }}
           />
         </div>
 
-        {/* Fixed Bottom Navigation */}
-        <div className="px-4 pb-4 pt-2">
-          {/* Undo/Redo Toolbar (Canvas Safety Net) */}
-          <div className="flex gap-2 mb-3">
+        {/* ═══════════════════════════════════════════════════════════════
+            AERO NAVIGATION FOOTER
+            Single row: [ ← Back ] [ Next → ] (Scenes 1-5)
+            Scene 6: [ ← Back ] [ Submit ]
+            No Undo/Redo buttons - Click-to-Undo via choice interaction
+        ═══════════════════════════════════════════════════════════════ */}
+        <div className="flex-none px-4 pb-4 pt-2">
+          <div className="flex gap-3">
             <button 
-              onClick={undo}
-              disabled={!canUndo}
-              className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 transition-all ${
-                canUndo 
-                  ? 'opacity-100 cursor-pointer hover:opacity-80' 
-                  : 'opacity-30 cursor-not-allowed'
-              }`}
-              style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
-              title="Undo (Ctrl+Z / Cmd+Z)"
-            >
-              <Undo className="h-3 w-3" />
-              Undo
-            </button>
-            <button 
-              onClick={redo}
-              disabled={!canRedo}
-              className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 transition-all ${
-                canRedo 
-                  ? 'opacity-100 cursor-pointer hover:opacity-80' 
-                  : 'opacity-30 cursor-not-allowed'
-              }`}
-              style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
-              title="Redo (Ctrl+Shift+Z / Cmd+Shift+Z)"
-            >
-              <Redo className="h-3 w-3" />
-              Redo
-            </button>
-            {/* History indicator */}
-            <div className="ml-auto flex items-center gap-1 text-[10px] opacity-50" style={{ color: designSettings.text }}>
-              <span>{history.length} actions</span>
-            </div>
-          </div>
-
-          {/* Navigation Footer - Conditional Next button based on selection */}
-          <div className="flex gap-2">
-            <button 
-              className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+              className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-80"
               style={{ 
-                backgroundColor: `${designSettings.text}10`, 
+                backgroundColor: designSettings.background, 
                 color: designSettings.text,
-                border: `1px solid ${designSettings.text}20`
+                border: `1px solid ${designSettings.text}25`
               }}
               onClick={() => onSceneChange?.(currentSceneIndex - 1)}
             >
@@ -478,17 +436,15 @@ export function StudioCenterCanvas({
             </button>
             
             {isLastGameplayScene ? (
+              // Scene 6 → Submit button
               <button 
-                disabled={!selectedChoiceId}
-                className={`flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
-                  !selectedChoiceId ? 'opacity-40 cursor-not-allowed' : ''
-                }`}
+                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 hover:opacity-90"
                 style={{ 
-                  backgroundColor: selectedChoiceId ? designSettings.primary : `${designSettings.primary}60`, 
-                  color: designSettings.background 
+                  backgroundColor: designSettings.primary, 
+                  color: designSettings.background,
+                  boxShadow: `0 4px 12px ${designSettings.primary}40`
                 }}
                 onClick={() => {
-                  if (!selectedChoiceId) return;
                   // End telemetry session and trigger Scene 7 proof receipt
                   toast.success('Telemetry session ended. Generating Proof Receipt...');
                   onSceneChange?.(7);
@@ -498,19 +454,15 @@ export function StudioCenterCanvas({
                 Submit
               </button>
             ) : (
+              // Scenes 1-5 → Next button
               <button 
-                disabled={!selectedChoiceId}
-                className={`flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
-                  !selectedChoiceId ? 'opacity-40 cursor-not-allowed' : ''
-                }`}
+                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 hover:opacity-90"
                 style={{ 
-                  backgroundColor: selectedChoiceId ? designSettings.primary : `${designSettings.primary}60`, 
-                  color: designSettings.background 
+                  backgroundColor: designSettings.primary, 
+                  color: designSettings.background,
+                  boxShadow: `0 4px 12px ${designSettings.primary}40`
                 }}
-                onClick={() => {
-                  if (!selectedChoiceId) return;
-                  onSceneChange?.(currentSceneIndex + 1);
-                }}
+                onClick={() => onSceneChange?.(currentSceneIndex + 1)}
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
