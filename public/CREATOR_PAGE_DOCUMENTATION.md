@@ -119,148 +119,164 @@ The Creator Dashboard is the primary workspace for creators to:
 
 ---
 
-## 4. TEMPLATE CREATION FLOW
+## 4. REFACTORED WORKFLOW: THE BRAND CANVAS
 
-### 4.1 Two Creation Methods (Tabs in TemplateDialog)
+The Template Creation process is now a 4-Step Stepper with a persistent 'Live Mirror' Mobile Preview.
 
-**Tab 1: Generate New Game (AI)**
-- AI creates validator from creator's inputs
-- Calls `generate-game` edge function
+### 4.1 Step 1: Identity
+Basic template information:
+- Template Name (required)
+- Description (optional)
+- Cover Image upload
 
-**Tab 2: Test Custom Game**
-- Upload pre-built HTML file
-- Must pass validation before publishing
+### 4.2 Step 2: Framework & Logic (THE PULL)
+- **Trigger:** Creator selects 1 Competency and clicks up to 6 Sub-Competencies in order (1-6).
+- **Automation:** System fetches the following from the `sub_competencies` table:
+    - **Action Cue** (e.g., Identify SQL Injection) → LOCKED.
+    - **Mobile Interaction** (e.g., Drag & Drop) → LOCKED.
+    - **Binary Scoring Rule** → Default 60s (Editable to 45s/30s).
+    - **Telemetry Group** → Locked hidden mapping for biometric capture.
 
-### 4.2 Form Fields — AI Generation
+### 4.3 Step 3: Scene Builder (DYNAMIC CARDS)
+- **Logic Cards:** Each of the 6 scenes displays a 'Scene Logic Card'.
+- **Dynamic Choices:** Default choice slots (2 or 4) are set by the Mechanic but allow creator override (2-10 slots).
+- **Outcome Result Mapping:** Each choice slot must be marked as "Correct (Success)" or "Incorrect (Failure)".
+- **AI Remix Bar:** A prompt at the bottom allows the brand to remix the autofilled template text into brand-specific scenarios.
 
-#### Section 1: Basic Info
-| Field | Type | Required | Max Length |
-|-------|------|----------|------------|
-| Template Name | text | ✅ | — |
-| Description | textarea | ❌ | — |
-
-#### Section 2: Competency Framework
-
-| Field | Source | Options |
-|-------|--------|---------|
-| **Competency** | `master_competencies` table | Dropdown of active competencies |
-| **Sub-Competencies** | `sub_competencies` table | Checkboxes, 1-6 max (each = 1 scene) |
-
-When sub-competencies are selected, the following is displayed from the database:
-- Validator Type
-- Action Cue
-- Game Mechanic
-- Game Loop
-
-**These are LOCKED per C-BEN standards.**
-
-#### Section 3: Customize Your Scenario
-
-| Field | Type | Options/Limit | Source |
-|-------|------|---------------|--------|
-| **Industry/Context** | dropdown | 16 options | Hardcoded in component |
-| **Role/Scenario** | text | 150 chars max | Creator input |
-| **Key Element** | text | 100 chars max | Creator input |
-| **Edge Case Details** | text | 80 chars max | Creator input |
-| **Visual Theme** | dropdown | 5 options | Hardcoded |
-| **Interaction Method** | dropdown | Dynamic based on game_mechanic | Logic in component |
-
-**Industry Options (hardcoded):**
-- Marketing, Operations, Sales, Finance, Human Resources, Communications
-- Customer Service, Technology/IT, Healthcare, Education, Retail
-- Manufacturing, Legal, Supply Chain, Nonprofit, Government
-
-**Visual Theme Options (hardcoded):**
-- Modern/Clean
-- Executive Dashboard
-- Casual/Friendly
-- High-Stakes/Urgent
-- Minimal/Focus Mode
-
-**Interaction Method Options:**
-Dynamically generated based on selected sub-competency's `game_mechanic` field. Examples:
-- Resource Allocation → Drag-and-drop, sliders, +/- buttons
-- Ranking/Prioritization → Drag to reorder, arrows, buckets
-- Data Analysis → Click tags, draw lines, filters
-- Error Detection → Click to flag, dropdown, bins
-
-#### Section 4: Scene Descriptions
-
-| Field | Purpose |
-|-------|---------|
-| Scenario | Context for the scenario |
-| Player Actions | What player does (auto-populated from action_cue) |
-| Scene 1-6 | Description per scene (matches sub-competency count) |
-
-#### Section 5: Edge Case Configuration
-
-| Field | Options |
-|-------|---------|
-| Edge Case Timing | Early, Mid, Late |
-| Edge Case Description | Text field (auto-populated based on game_mechanic) |
-
-#### Section 6: UI Aesthetic
-
-| Field | Purpose |
-|-------|---------|
-| UI Aesthetic | Free text for visual style description |
-
-#### Section 7: Design Customization (Optional)
-
-Checkbox: "Customize colors & font for this game"
-
-If checked, opens `DesignPaletteEditor` with:
-| Field | Default |
-|-------|---------|
-| Primary Color | #C8DBDB |
-| Secondary Color | #6C8FA4 |
-| Accent Color | #2D5556 |
-| Background Color | #F5EDD3 |
-| Highlight Color | #F0C7A0 |
-| Text Color | #2D5556 |
-| Font Family | Inter, sans-serif |
-| Avatar URL | — |
-| Particle Effect | sparkles |
-
-#### Section 8: File Uploads
-
-| Field | Purpose | Storage |
-|-------|---------|---------|
-| Cover Image | Card preview image | `validator-previews` bucket |
-| Custom Game HTML | For custom uploads | `custom-games` bucket |
+### 4.4 Step 4: Brand Skin
+Visual customization that updates the Live Mirror in real-time:
+- Primary Color → affects buttons, progress bars
+- Secondary Color → affects accents
+- Font Family selection
+- Logo/Avatar upload
+- Particle effects selection
 
 ---
 
-## 5. WHAT GETS SAVED TO DATABASE
+## 5. LIVE MIRROR PREVIEW
 
-When form is submitted, this data is saved to `game_templates`:
+A fixed-position side-panel on the right showing a real-time mobile preview:
 
-```javascript
-{
-  name: formData.name,
-  description: formData.description,
-  base_prompt: generatedPrompt, // Built from all form fields
-  template_type: 'ai_generated' | 'custom_upload',
-  competency_id: selectedCompetency,
-  selected_sub_competencies: selectedSubCompetencies, // UUID array
-  design_settings: useCustomDesign ? designSettings : null,
-  cover_photo_url: uploadedCoverUrl,
-  custom_game_url: uploadedGameUrl, // For custom uploads
-  game_config: {
-    industry: formData.industry,
-    visualTheme: formData.visualTheme,
-    interactionMethod: formData.interactionMethod,
-    edgeCaseTiming: formData.edgeCaseTiming,
-    // ... other config
-  },
-  creator_id: user.id,
-  is_published: false
-}
-```
+| Feature | Behavior |
+|---------|----------|
+| **Real-time Text** | Scene question/choices update as creator types |
+| **Color Sync** | Primary color changes button colors instantly |
+| **Choice Slots** | Shows correct/incorrect badges on choices |
+| **Scene Navigation** | Preview shows current scene being edited |
 
 ---
 
-## 6. TEMPLATE CARD ACTIONS
+## 6. DATA SOURCES
+
+### 6.1 Templates Data
+
+**Table:** `game_templates`
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `id` | UUID | Primary key |
+| `name` | text | Template name |
+| `description` | text | Brief description |
+| `base_prompt` | text | AI generation prompt (built from form) |
+| `is_published` | boolean | Published to marketplace |
+| `template_type` | text | `'ai_generated'` or `'custom_upload'` |
+| `custom_game_url` | text | URL for uploaded custom games |
+| `selected_sub_competencies` | UUID[] | Array of selected sub-competency IDs |
+| `design_settings` | JSONB | Per-game design overrides (optional) |
+| `cover_photo_url` | text | Cover image URL |
+| `preview_image` | text | Preview image for card display |
+| `game_config` | JSONB | Game configuration object |
+| `creator_id` | UUID | User who created the template |
+| `created_at` / `updated_at` | timestamp | Timestamps |
+
+### 6.2 Test Results Data
+
+**Table:** `validator_test_results`
+
+| Field | Purpose |
+|-------|---------|
+| `template_id` | Links to template being tested |
+| `overall_status` | `'not_started'`, `'in_progress'`, `'passed'`, `'failed'` |
+| `approved_for_publish` | Boolean — gates publishing |
+| `v3_1_check_results` | JSONB array of 8 automated check results |
+
+### 6.3 Competency Data
+
+**Table:** `master_competencies`
+
+| Field | Purpose |
+|-------|---------|
+| `id` | UUID |
+| `name` | Competency name (e.g., "Analytical Thinking") |
+| `cbe_category` | C-BEN category |
+| `departments` | Array of relevant departments |
+| `is_active` | Whether available for selection |
+
+**Table:** `sub_competencies`
+
+| Field | Purpose |
+|-------|---------|
+| `id` | UUID |
+| `competency_id` | Links to parent competency |
+| `statement` | Sub-competency description |
+| `action_cue` | What player does (C-BEN) |
+| `game_mechanic` | Interactive logic type |
+| `game_loop` | Evidence cycle description |
+| `validator_type` | Assessment family |
+| `player_action` | Verb for player action |
+| `scoring_formula_level_1` | L1 scoring formula |
+| `scoring_formula_level_2` | L2 scoring formula |
+| `scoring_formula_level_3` | L3 scoring formula |
+| `backend_data_captured` | JSONB array of telemetry fields |
+| `display_order` | Sort order |
+
+### 6.4 User Profile Data
+
+**Table:** `profiles`
+
+| Field | Purpose |
+|-------|---------|
+| `full_name` | Creator display name |
+| `avatar_url` | Creator avatar |
+| `design_palette` | Default design settings (JSONB) |
+| `game_avatar_url` | Default game avatar |
+| `default_particle_effect` | Default particle effect |
+| `mascot_animation_type` | Default mascot animation |
+| `primary_color` / `secondary_color` | Default brand colors |
+
+---
+
+## 7. SCENE BUILDER DETAILS
+
+### 7.1 Scene Card Structure
+
+Each scene card contains:
+| Element | Editable | Source |
+|---------|----------|--------|
+| Scene Number | No | Auto-assigned (1-6) |
+| Question Text | Yes | Creator input / AI remix |
+| Choices (2-10) | Yes | Creator configures count |
+| Correct/Incorrect Badge | Yes | Creator assigns per choice |
+| Time Limit | Yes | 30s / 45s / 60s |
+
+### 7.2 Smart Autofill Logic
+
+When a sub-competency is selected:
+1. Fetch `action_cue` and `game_mechanic` from database
+2. Auto-populate scene with template text based on mechanic type
+3. Pre-assign 4 choices with correct/incorrect mapping
+4. Set default time limit to 60s
+
+### 7.3 AI Remix Feature
+
+- Input field at bottom of Scene Builder
+- Creator types prompt (e.g., "Make this about high-fashion boots")
+- AI rewrites Question/Choices text
+- Correct/Incorrect slot assignments remain LOCKED
+
+---
+
+## 8. TEMPLATE CARD ACTIONS
 
 Each template card displays:
 - Preview image (generated if not uploaded)
@@ -280,7 +296,7 @@ Each template card displays:
 
 ---
 
-## 7. PUBLISHING FLOW
+## 9. PUBLISHING FLOW
 
 ### Requirements to Publish:
 1. Template must have test results in `validator_test_results`
@@ -296,9 +312,9 @@ Each template card displays:
 
 ---
 
-## 8. DESIGN ELEMENTS TAB
+## 10. DESIGN ELEMENTS TAB
 
-### 8.1 Element Types Supported
+### 10.1 Element Types Supported
 - Mascot/Avatar (PNG, SVG, GIF)
 - Background (JPG, PNG, SVG)
 - UI Component (SVG, PNG)
@@ -307,7 +323,7 @@ Each template card displays:
 - Font File (TTF, WOFF, WOFF2)
 - Animation (lottie, sprite_sheet, css, gif)
 
-### 8.2 Data Table: `design_elements`
+### 10.2 Data Table: `design_elements`
 
 | Field | Purpose |
 |-------|---------|
@@ -321,91 +337,70 @@ Each template card displays:
 | `usage_count` | Times used by brands |
 | `allowed_zones` | Where element can be placed |
 
-### 8.3 Storage Bucket
+### 10.3 Storage Bucket
 - **Bucket:** `design-elements` (public)
 
 ---
 
-## 9. AUTOMATIC BEHAVIORS
+## 11. AUTOMATIC BEHAVIORS
 
-### 9.1 Auto-Population
+### 11.1 Auto-Population
 When sub-competencies are selected:
 - Scene descriptions auto-populate based on validator_type
 - Interaction methods filter based on game_mechanic
 - Edge case defaults based on game_mechanic
 - Key element suggestions based on game_mechanic
 
-### 9.2 Auto-Generated Covers
+### 11.2 Auto-Generated Covers
 If template has no preview image:
 - `generateDefaultCover()` creates one using creator's avatar/name
 - Uploads to `validator-previews` bucket
 - Updates template record
 
-### 9.3 Creator Role Assignment
+### 11.3 Creator Role Assignment
 On dashboard load, ensures user has `'creator'` role in `user_roles` table.
 
 ---
 
-## 10. RELATED COMPONENTS
+## 12. RELATED COMPONENTS
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| TemplateDialog | `src/components/platform/TemplateDialog.tsx` | Main creation form |
+| TemplateDialog | `src/components/platform/TemplateDialog.tsx` | Main creation stepper |
+| TemplateStepIdentity | `src/components/platform/template-steps/TemplateStepIdentity.tsx` | Step 1: Basic info |
+| TemplateStepFramework | `src/components/platform/template-steps/TemplateStepFramework.tsx` | Step 2: Competency selection |
+| TemplateStepSceneBuilder | `src/components/platform/template-steps/TemplateStepSceneBuilder.tsx` | Step 3: Scene cards |
+| TemplateStepBrandSkin | `src/components/platform/template-steps/TemplateStepBrandSkin.tsx` | Step 4: Visual customization |
+| LiveMobilePreview | `src/components/platform/LiveMobilePreview.tsx` | Real-time preview panel |
+| SceneCard | `src/components/platform/SceneCard.tsx` | Individual scene editor |
 | CompetenciesDialog | `src/components/platform/CompetenciesDialog.tsx` | Manage template competencies |
 | ValidatorTestWizard | `src/components/platform/ValidatorTestWizard.tsx` | V3.1 8-check testing |
 | PostTestActions | `src/components/platform/PostTestActions.tsx` | Post-test publish/download options |
 | DesignPaletteEditor | `src/components/platform/DesignPaletteEditor.tsx` | Color/font customization |
-| PlayOpsStructureGuide | `src/components/platform/PlayOpsStructureGuide.tsx` | Scene structure guide |
-| DesignElementUpload | `src/components/platform/DesignElementUpload.tsx` | Element upload form |
-| DesignElementLibrary | `src/components/platform/DesignElementLibrary.tsx` | Element library view |
 
 ---
 
-## 11. EDGE FUNCTIONS CALLED
+## 13. LOCKED VS EDITABLE (REVISED)
 
-| Function | When Called | Purpose |
-|----------|-------------|---------|
-| `generate-game` | Preview button / AI generation | Generates game HTML from prompt |
-| `publish-template` | Publish button | Creates runtime modes, sets published |
+### LOCKED (Pulled from Data Sheet):
+- **Action Cue:** Auto-populated read-only badge.
+- **Game Mechanic & Interaction Method:** Forced by the competency data; cannot be changed by creator.
+- **Success Mapping:** The "Target" logic slot is hard-coded to the Success outcome.
+- **Telemetry Buttons:** 'Undo' and 'Back' buttons are hard-coded in the UI for jitter tracking.
+- **Scoring Formulas:** L1/L2/L3 formulas from `sub_competencies` table.
+- **Backend Data Captured:** Telemetry fields from database.
+- **XP Values:** 100/250/500 per level (system default).
+- **Scene Structure:** Scene 0 → Instructions → Gameplay → Results.
 
----
-
-## 12. STORAGE BUCKETS USED
-
-| Bucket | Purpose |
-|--------|---------|
-| `validator-previews` | Template cover images |
-| `custom-games` | Uploaded HTML game files |
-| `design-elements` | Creator design assets |
-| `profiles` | User avatars |
-
----
-
-## 13. LOCKED VS EDITABLE
-
-### What Creator CHOOSES (Editable):
-- Template name & description
-- Industry/context
-- Role/scenario text
-- Key elements
-- Edge case specifics
-- Visual theme
-- Interaction method
-- Scene descriptions
-- UI aesthetic
-- Design colors & fonts (optional override)
-- Cover image
-
-### What is LOCKED (From Database/C-BEN):
-- Competency & sub-competency selection (from master list)
-- Action Cue (from sub_competencies)
-- Game Mechanic (from sub_competencies)
-- Game Loop (from sub_competencies)
-- Validator Type (from sub_competencies)
-- Scoring Formulas L1/L2/L3 (from sub_competencies)
-- Backend Data Captured (from sub_competencies)
-- XP Values (100/250/500 per level)
-- Scene structure (Scene 0 → Instructions → Gameplay → Results)
+### EDITABLE (Brand Creativity):
+- **Template Name & Description**
+- **Narrative Content:** All Question and Choice text.
+- **Outcome Feedback:** Custom success/failure messages per brand standards.
+- **Time Limits:** Choice of 30, 45, or 60 seconds per scene.
+- **Choice Count:** 2-10 choices per scene.
+- **Visual Skin:** Logos, colors, fonts, and particle effects.
+- **Industry/Context:** Dropdown selection.
+- **Cover Image:** Custom upload or auto-generated.
 
 ---
 
@@ -424,9 +419,37 @@ Before publishing, templates must pass 8 automated checks:
 
 ---
 
-## 15. FILE SIZE
+## 15. EDGE FUNCTIONS CALLED
 
-- **TemplateDialog.tsx:** 2,373 lines
-- **CreatorDashboard.tsx:** 731 lines
+| Function | When Called | Purpose |
+|----------|-------------|---------|
+| `generate-game` | Preview button / AI generation | Generates game HTML from prompt |
+| `publish-template` | Publish button | Creates runtime modes, sets published |
 
-Both files are candidates for refactoring into smaller components.
+---
+
+## 16. STORAGE BUCKETS USED
+
+| Bucket | Purpose |
+|--------|---------|
+| `validator-previews` | Template cover images |
+| `custom-games` | Uploaded HTML game files |
+| `design-elements` | Creator design assets |
+| `profiles` | User avatars |
+
+---
+
+## 17. FILE SIZES (POST-REFACTOR)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| TemplateDialog.tsx | ~300 | Main stepper wrapper |
+| TemplateStepIdentity.tsx | ~80 | Step 1 component |
+| TemplateStepFramework.tsx | ~200 | Step 2 component |
+| TemplateStepSceneBuilder.tsx | ~250 | Step 3 component |
+| TemplateStepBrandSkin.tsx | ~150 | Step 4 component |
+| LiveMobilePreview.tsx | ~200 | Preview panel |
+| SceneCard.tsx | ~150 | Scene editor card |
+| CreatorDashboard.tsx | ~400 | Dashboard page |
+
+Components are now modular and maintainable.
