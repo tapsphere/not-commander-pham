@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
-import { Clock, ChevronLeft, ChevronRight, Undo, Play, Trophy, Award, RotateCcw, Activity, Send } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Undo, Redo, Play, Trophy, Award, RotateCcw, Activity, Send } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { MechanicPreview } from './MechanicPreview';
 import { ScrubSlider } from './mechanics/ScrubSlider';
@@ -11,6 +11,7 @@ import {
   UNIVERSAL_LAYOUT,
 } from './SceneAssembler';
 import { toast } from 'sonner';
+import { useUndoHistory, HistoryAction } from '@/hooks/useUndoHistory';
 
 interface StudioCenterCanvasProps {
   currentSceneIndex: number;
@@ -33,6 +34,13 @@ const INDUSTRY_PLACEHOLDERS: Record<string, { name: string; description: string 
   'default': { name: 'Competency Validator', description: 'Test your decision-making skills' },
 };
 
+// Canvas state for undo/redo tracking
+interface CanvasState {
+  selectedChoiceId: string | null;
+  sliderValue: number;
+  currentSceneIndex: number;
+}
+
 export function StudioCenterCanvas({
   currentSceneIndex,
   formData,
@@ -46,6 +54,24 @@ export function StudioCenterCanvas({
   const { isDarkMode } = useStudioTheme();
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(30);
+  
+  // Player selection state (toggle logic)
+  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  
+  // Undo/Redo system for canvas actions
+  const {
+    state: canvasState,
+    setState: setCanvasState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    history,
+  } = useUndoHistory<CanvasState>({
+    selectedChoiceId: null,
+    sliderValue: 50,
+    currentSceneIndex: 0,
+  });
   
   // Telemetry state (DNA Library Section 2 & 3)
   const [verifiedSignals, setVerifiedSignals] = useState(0);
@@ -61,6 +87,11 @@ export function StudioCenterCanvas({
       setLogoPreviewUrl(null);
     }
   }, [logoFile]);
+  
+  // Reset selection when scene changes
+  useEffect(() => {
+    setSelectedChoiceId(null);
+  }, [currentSceneIndex]);
 
   const placeholder = INDUSTRY_PLACEHOLDERS[formData.industry] || INDUSTRY_PLACEHOLDERS['default'];
   const isGhostState = !formData.name.trim();
@@ -350,37 +381,65 @@ export function StudioCenterCanvas({
           </div>
         </div>
 
-        {/* Choices */}
+        {/* Choices with Toggle Selection */}
         <div className="flex-1 overflow-auto">
           <MechanicPreview
             mechanic={currentMechanic}
             choices={displayChoices}
             designSettings={designSettings}
             isGhostState={!currentScene}
+            selectedChoiceId={selectedChoiceId}
+            onChoiceSelect={(id) => {
+              setSelectedChoiceId(id);
+              // Track in undo history
+              setCanvasState(
+                { ...canvasState, selectedChoiceId: id, currentSceneIndex },
+                'select_choice',
+                id ? `Selected option` : 'Deselected option'
+              );
+            }}
           />
         </div>
 
         {/* Fixed Bottom Navigation */}
         <div className="px-4 pb-4 pt-2">
-          {/* Telemetry Buttons (LOCKED) */}
+          {/* Undo/Redo Toolbar (Canvas Safety Net) */}
           <div className="flex gap-2 mb-3">
-            <div 
-              className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
+            <button 
+              onClick={undo}
+              disabled={!canUndo}
+              className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 transition-all ${
+                canUndo 
+                  ? 'opacity-100 cursor-pointer hover:opacity-80' 
+                  : 'opacity-30 cursor-not-allowed'
+              }`}
               style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
+              title="Undo (Ctrl+Z / Cmd+Z)"
             >
               <Undo className="h-3 w-3" />
               Undo
-            </div>
-            <div 
-              className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
+            </button>
+            <button 
+              onClick={redo}
+              disabled={!canRedo}
+              className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 transition-all ${
+                canRedo 
+                  ? 'opacity-100 cursor-pointer hover:opacity-80' 
+                  : 'opacity-30 cursor-not-allowed'
+              }`}
               style={{ backgroundColor: `${designSettings.text}15`, color: designSettings.text }}
+              title="Redo (Ctrl+Shift+Z / Cmd+Shift+Z)"
             >
-              <ChevronLeft className="h-3 w-3" />
-              Back
+              <Redo className="h-3 w-3" />
+              Redo
+            </button>
+            {/* History indicator */}
+            <div className="ml-auto flex items-center gap-1 text-[10px] opacity-50" style={{ color: designSettings.text }}>
+              <span>{history.length} actions</span>
             </div>
           </div>
 
-          {/* Navigation Footer - Scenes 1-5: Back/Next, Scene 6: Back/Submit */}
+          {/* Navigation Footer - Conditional Next button based on selection */}
           <div className="flex gap-2">
             <button 
               className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
@@ -389,6 +448,7 @@ export function StudioCenterCanvas({
                 color: designSettings.text,
                 border: `1px solid ${designSettings.text}20`
               }}
+              onClick={() => onSceneChange?.(currentSceneIndex - 1)}
             >
               <ChevronLeft className="h-4 w-4" />
               Back
@@ -396,9 +456,16 @@ export function StudioCenterCanvas({
             
             {isLastGameplayScene ? (
               <button 
-                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
-                style={{ backgroundColor: designSettings.primary, color: designSettings.background }}
+                disabled={!selectedChoiceId}
+                className={`flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
+                  !selectedChoiceId ? 'opacity-40 cursor-not-allowed' : ''
+                }`}
+                style={{ 
+                  backgroundColor: selectedChoiceId ? designSettings.primary : `${designSettings.primary}60`, 
+                  color: designSettings.background 
+                }}
                 onClick={() => {
+                  if (!selectedChoiceId) return;
                   // End telemetry session and trigger Scene 7 proof receipt
                   toast.success('Telemetry session ended. Generating Proof Receipt...');
                   onSceneChange?.(7);
@@ -409,9 +476,18 @@ export function StudioCenterCanvas({
               </button>
             ) : (
               <button 
-                className="flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
-                style={{ backgroundColor: designSettings.primary, color: designSettings.background }}
-                onClick={() => onSceneChange?.(currentSceneIndex + 1)}
+                disabled={!selectedChoiceId}
+                className={`flex-1 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
+                  !selectedChoiceId ? 'opacity-40 cursor-not-allowed' : ''
+                }`}
+                style={{ 
+                  backgroundColor: selectedChoiceId ? designSettings.primary : `${designSettings.primary}60`, 
+                  color: designSettings.background 
+                }}
+                onClick={() => {
+                  if (!selectedChoiceId) return;
+                  onSceneChange?.(currentSceneIndex + 1);
+                }}
               >
                 Next
                 <ChevronRight className="h-4 w-4" />
