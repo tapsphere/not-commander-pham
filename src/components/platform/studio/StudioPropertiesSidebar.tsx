@@ -15,6 +15,7 @@ import { useStudioTheme } from './StudioThemeContext';
 import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES, createDefaultScene } from '../template-steps/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ColorRemixPanel } from '../ColorRemixPanel';
 
 interface StudioPropertiesSidebarProps {
   currentSceneIndex: number;
@@ -463,36 +464,31 @@ export function StudioPropertiesSidebar({
           </div>
         </div>
 
-        {/* BRAND COLOR REMIX - Updates CSS variable globally */}
+        {/* BRAND COLOR REMIX - 4-color palette with shuffle */}
         <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
           <div className="flex items-center gap-2">
             <Palette className="h-4 w-4 text-primary" />
             <Label className={textColor}>Brand Color Remix</Label>
           </div>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={designSettings.primary}
-              onChange={(e) => {
-                const newColor = e.target.value;
-                setDesignSettings({ ...designSettings, primary: newColor });
-                // Update CSS variable globally
-                document.documentElement.style.setProperty('--brand-primary', newColor);
-                toast.success(`Brand color updated: ${newColor}`);
-              }}
-              className="w-10 h-10 rounded-lg cursor-pointer border-0"
-            />
-            <div className="flex-1">
-              <span className={`text-xs ${mutedColor}`}>--brand-primary</span>
-              <p className={`text-sm font-mono ${textColor}`}>{designSettings.primary}</p>
-            </div>
-          </div>
-          {/* Live Preview Swatch */}
-          <div 
-            className="h-8 rounded-lg border transition-all duration-200"
-            style={{ 
-              backgroundColor: designSettings.primary,
-              borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
+          <ColorRemixPanel
+            primaryColor={designSettings.primary}
+            secondaryColor={designSettings.secondary}
+            accentColor={designSettings.accent}
+            backgroundColor={designSettings.background}
+            isDarkMode={isDarkMode}
+            onRemix={(colors) => {
+              setDesignSettings({ 
+                ...designSettings, 
+                primary: colors.primary,
+                secondary: colors.secondary,
+                accent: colors.accent,
+                background: colors.background
+              });
+              // Update CSS variables globally
+              document.documentElement.style.setProperty('--brand-primary', colors.primary);
+              document.documentElement.style.setProperty('--brand-secondary', colors.secondary);
+              document.documentElement.style.setProperty('--brand-accent', colors.accent);
+              document.documentElement.style.setProperty('--brand-background', colors.background);
             }}
           />
         </div>
