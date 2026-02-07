@@ -1,7 +1,8 @@
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
-import { Clock, ChevronLeft, Undo, Sparkles } from 'lucide-react';
+import { Clock, ChevronLeft, Undo, Sparkles, Play } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { MechanicPreview } from './MechanicPreview';
+import { useState, useEffect } from 'react';
 
 interface StudioLiveMirrorProps {
   formData: TemplateFormData;
@@ -11,6 +12,7 @@ interface StudioLiveMirrorProps {
   designSettings: DesignSettings;
   subCompetencies: SubCompetency[];
   mascotFile?: File | null;
+  logoFile?: File | null;
   showScene0?: boolean;
 }
 
@@ -43,9 +45,33 @@ export function StudioLiveMirror({
   designSettings,
   subCompetencies,
   mascotFile,
+  logoFile,
   showScene0 = false,
 }: StudioLiveMirrorProps) {
   const { isDarkMode } = useStudioTheme();
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [mascotPreviewUrl, setMascotPreviewUrl] = useState<string | null>(null);
+
+  // Create preview URLs for uploaded files
+  useEffect(() => {
+    if (logoFile) {
+      const url = URL.createObjectURL(logoFile);
+      setLogoPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setLogoPreviewUrl(null);
+    }
+  }, [logoFile]);
+
+  useEffect(() => {
+    if (mascotFile) {
+      const url = URL.createObjectURL(mascotFile);
+      setMascotPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setMascotPreviewUrl(null);
+    }
+  }, [mascotFile]);
   const currentScene = scenes[currentSceneIndex] || null;
   const currentSub = currentScene 
     ? subCompetencies.find(s => s.id === currentScene.subCompetencyId) 
@@ -77,50 +103,139 @@ export function StudioLiveMirror({
 
   const displayChoices = currentScene?.choices || ghostChoices;
 
-  // Scene 0 intro screen (with mascot)
-  if (showScene0 && mascotFile) {
+  // Scene 0 intro screen (Brand Identity Preview)
+  if (showScene0) {
     return (
       <div className="h-full flex flex-col items-center justify-start pt-4 overflow-hidden">
         <div className="text-center mb-3">
           <span className={`text-xs font-medium uppercase tracking-widest ${
             isDarkMode ? 'text-white/50' : 'text-slate-500'
           }`}>
-            Scene 0 · Intro
+            Scene 0 · Brand Intro
           </span>
         </div>
         
         <MobileFrame designSettings={designSettings} isDarkMode={isDarkMode}>
-          <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-            {/* Mascot placeholder */}
+          <div 
+            className="h-full flex flex-col items-center justify-center p-6 text-center relative overflow-hidden"
+            style={{ backgroundColor: designSettings.background }}
+          >
+            {/* Animated gradient background */}
             <div 
-              className="w-24 h-24 rounded-full mb-4 flex items-center justify-center"
-              style={{ backgroundColor: `${designSettings.primary}30` }}
-            >
-              <Sparkles className="h-10 w-10" style={{ color: designSettings.primary }} />
+              className="absolute inset-0 opacity-30"
+              style={{ 
+                background: `radial-gradient(circle at 50% 30%, ${designSettings.primary}40, transparent 70%)`,
+              }}
+            />
+            
+            {/* Logo or Mascot display */}
+            <div className="relative z-10 mb-6">
+              {logoPreviewUrl ? (
+                <div 
+                  className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${designSettings.primary}20` }}
+                >
+                  <img 
+                    src={logoPreviewUrl} 
+                    alt="Brand Logo" 
+                    className="w-16 h-16 object-contain"
+                  />
+                </div>
+              ) : mascotPreviewUrl ? (
+                <div 
+                  className="w-24 h-24 rounded-full flex items-center justify-center animate-pulse"
+                  style={{ backgroundColor: `${designSettings.primary}30` }}
+                >
+                  <Sparkles 
+                    className="h-10 w-10 animate-spin" 
+                    style={{ 
+                      color: designSettings.primary,
+                      animationDuration: '3s',
+                    }} 
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center border-2 border-dashed"
+                  style={{ 
+                    borderColor: `${designSettings.primary}50`,
+                    backgroundColor: `${designSettings.primary}10`,
+                  }}
+                >
+                  <Play 
+                    className="h-8 w-8" 
+                    style={{ color: designSettings.primary }} 
+                  />
+                </div>
+              )}
             </div>
+            
+            {/* Title */}
             <h2 
-              className="text-lg font-bold mb-2"
+              className={`text-xl font-bold mb-2 relative z-10 ${isGhostState ? 'opacity-40 italic' : ''}`}
               style={{ color: designSettings.text }}
             >
               {displayName}
             </h2>
+            
+            {/* Subtitle */}
             <p 
-              className="text-sm opacity-70 mb-6"
+              className={`text-sm opacity-70 mb-8 max-w-[200px] relative z-10 ${isGhostState ? 'opacity-30' : ''}`}
               style={{ color: designSettings.text }}
             >
-              {displayDescription}
+              {placeholder.description}
             </p>
+            
+            {/* Start Button */}
             <button
-              className="px-8 py-3 rounded-xl font-semibold text-sm"
+              className="px-10 py-3.5 rounded-xl font-semibold text-sm shadow-lg transition-transform hover:scale-105 relative z-10"
               style={{
                 backgroundColor: designSettings.primary,
                 color: designSettings.background,
+                boxShadow: `0 8px 24px ${designSettings.primary}40`,
               }}
             >
               Start Challenge
             </button>
+            
+            {/* Brand colors indicator */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              <div 
+                className="w-3 h-3 rounded-full shadow-sm" 
+                style={{ backgroundColor: designSettings.primary }}
+                title="Primary"
+              />
+              <div 
+                className="w-3 h-3 rounded-full shadow-sm" 
+                style={{ backgroundColor: designSettings.secondary }}
+                title="Secondary"
+              />
+              <div 
+                className="w-3 h-3 rounded-full shadow-sm" 
+                style={{ backgroundColor: designSettings.accent }}
+                title="Accent"
+              />
+            </div>
           </div>
         </MobileFrame>
+        
+        {/* Scene 0 indicator */}
+        <div className="flex justify-center gap-2 mt-4">
+          <div
+            className="w-3 h-3 rounded-full ring-2 ring-offset-2 ring-primary"
+            style={{ 
+              backgroundColor: designSettings.primary,
+            }}
+          />
+          {[1, 2, 3, 4, 5, 6].map((idx) => (
+            <div
+              key={idx}
+              className={`w-2.5 h-2.5 rounded-full opacity-20 ${
+                isDarkMode ? 'bg-white' : 'bg-slate-400'
+              }`}
+            />
+          ))}
+        </div>
       </div>
     );
   }

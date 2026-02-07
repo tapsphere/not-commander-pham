@@ -521,7 +521,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
           designSettings={designSettings}
           subCompetencies={subCompetencies}
           mascotFile={mascotFile}
-          showScene0={currentStep === 1 && !!mascotFile}
+          logoFile={logoFile}
+          showScene0={currentStep === 1}
         />
       </div>
     </div>
