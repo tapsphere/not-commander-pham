@@ -1,79 +1,168 @@
+/**
+ * MechanicPreview - Scene Assembler Integration
+ * 
+ * Renders mechanic-specific UI layouts based on game_mechanic column
+ * from Excel Framework data. Uses DNA Library blueprints for mapping.
+ */
+
 import { DesignSettings, ChoiceData } from '../template-steps/types';
-import { CheckCircle, XCircle, GripVertical } from 'lucide-react';
+import { detectMechanicType, MechanicType } from './SceneAssembler';
+import { 
+  ScrubSlider, 
+  SwipeCard, 
+  QuickTapButtons, 
+  DragConnect,
+  PatternGrid,
+  TradeoffMatrix,
+} from './mechanics';
+import { GripVertical, CheckCircle, XCircle } from 'lucide-react';
 
 interface MechanicPreviewProps {
   mechanic: string | null;
   choices: ChoiceData[];
   designSettings: DesignSettings;
   isGhostState: boolean;
+  playerAction?: string | null;
 }
 
 /**
- * Renders different UI layouts based on game_mechanic type
+ * Main MechanicPreview component
+ * 
+ * Maps Excel game_mechanic → DNA Library blueprint → Component
  */
 export function MechanicPreview({
   mechanic,
   choices,
   designSettings,
   isGhostState,
+  playerAction,
 }: MechanicPreviewProps) {
-  const mechanicLower = (mechanic || '').toLowerCase();
-
-  // Binary mechanic: 2 large toggle buttons
-  if (mechanicLower.includes('binary') || mechanicLower.includes('toggle') || choices.length === 2) {
-    return <BinaryLayout choices={choices} designSettings={designSettings} isGhostState={isGhostState} />;
-  }
-
-  // Ranking/Prioritization mechanic: draggable list
-  if (mechanicLower.includes('ranking') || mechanicLower.includes('priorit') || mechanicLower.includes('order')) {
-    return <RankingLayout choices={choices} designSettings={designSettings} isGhostState={isGhostState} />;
-  }
-
-  // Default: Multi-choice grid (2-10 buttons)
-  return <MultiChoiceLayout choices={choices} designSettings={designSettings} isGhostState={isGhostState} />;
-}
-
-// Binary: 2 large side-by-side buttons
-function BinaryLayout({ choices, designSettings, isGhostState }: Omit<MechanicPreviewProps, 'mechanic'>) {
-  const displayChoices = choices.length >= 2 ? choices.slice(0, 2) : [
-    { id: '1', text: 'Yes', isCorrect: true },
-    { id: '2', text: 'No', isCorrect: false },
-  ];
-
+  // Step 1: Detect mechanic type using SceneAssembler logic
+  const mechanicType = detectMechanicType(mechanic, playerAction);
+  
+  // Step 2: Render appropriate component based on mechanic type
   return (
-    <div className="px-4 flex gap-3">
-      {displayChoices.map((choice, idx) => (
-        <button
-          key={choice.id}
-          className="flex-1 py-6 rounded-xl font-semibold text-sm transition-all border-2"
-          style={{
-            backgroundColor: choice.isCorrect 
-              ? `${designSettings.highlight}30`
-              : designSettings.background,
-            borderColor: choice.isCorrect 
-              ? designSettings.highlight
-              : `${designSettings.text}30`,
-            color: designSettings.text,
-          }}
-        >
-          <div className="flex flex-col items-center gap-1">
-            {choice.isCorrect ? (
-              <CheckCircle className="h-5 w-5" style={{ color: designSettings.highlight }} />
-            ) : (
-              <XCircle className="h-5 w-5 opacity-40" />
-            )}
-            <span className={isGhostState && !choice.text ? 'opacity-40 italic' : ''}>
-              {choice.text || (idx === 0 ? 'Option A' : 'Option B')}
-            </span>
-          </div>
-        </button>
-      ))}
-    </div>
+    <MechanicRenderer
+      mechanicType={mechanicType}
+      choices={choices}
+      designSettings={designSettings}
+      isGhostState={isGhostState}
+    />
   );
 }
 
+interface MechanicRendererProps {
+  mechanicType: MechanicType;
+  choices: ChoiceData[];
+  designSettings: DesignSettings;
+  isGhostState: boolean;
+}
+
+/**
+ * Renders the actual mechanic component based on type
+ */
+function MechanicRenderer({
+  mechanicType,
+  choices,
+  designSettings,
+  isGhostState,
+}: MechanicRendererProps) {
+  switch (mechanicType) {
+    case 'data_analysis':
+      // Continuous Scrub - ScrubSlider with 60Hz telemetry
+      return (
+        <ScrubSlider
+          designSettings={designSettings}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'binary_choice':
+      // Binary - SwipeCard
+      return (
+        <SwipeCard
+          designSettings={designSettings}
+          choices={choices}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'scenario_simulation':
+    case 'communication':
+      // Quick Tap - Glassmorphic button stack
+      return (
+        <QuickTapButtons
+          designSettings={designSettings}
+          choices={choices}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'collaboration':
+      // Drag-to-Connect - SVG canvas
+      return (
+        <DragConnect
+          designSettings={designSettings}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'portfolio_timeline':
+      // Pattern Grid - 5x5 selectable grid
+      return (
+        <PatternGrid
+          designSettings={designSettings}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'strategic_viability':
+      // Trade-off Matrix - 2x2 quadrant placement
+      return (
+        <TradeoffMatrix
+          designSettings={designSettings}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'performance_demo':
+    case 'ranking':
+      // Ranking - Draggable list
+      return (
+        <RankingLayout
+          choices={choices}
+          designSettings={designSettings}
+          isGhostState={isGhostState}
+        />
+      );
+      
+    case 'multi_choice':
+    default:
+      // Default - Multi-choice button stack
+      return (
+        <MultiChoiceLayout
+          choices={choices}
+          designSettings={designSettings}
+          isGhostState={isGhostState}
+        />
+      );
+  }
+}
+
+// ============================================================================
+// FALLBACK LAYOUTS (for mechanics without dedicated components yet)
+// ============================================================================
+
 // Ranking: Draggable list with grip handles
-function RankingLayout({ choices, designSettings, isGhostState }: Omit<MechanicPreviewProps, 'mechanic'>) {
+function RankingLayout({ 
+  choices, 
+  designSettings, 
+  isGhostState 
+}: { 
+  choices: ChoiceData[];
+  designSettings: DesignSettings;
+  isGhostState: boolean;
+}) {
   const displayChoices = choices.length > 0 ? choices : [
     { id: '1', text: 'Priority Item 1', isCorrect: true },
     { id: '2', text: 'Priority Item 2', isCorrect: false },
@@ -118,7 +207,15 @@ function RankingLayout({ choices, designSettings, isGhostState }: Omit<MechanicP
 }
 
 // Multi-choice: Dynamic grid (2-10 buttons)
-function MultiChoiceLayout({ choices, designSettings, isGhostState }: Omit<MechanicPreviewProps, 'mechanic'>) {
+function MultiChoiceLayout({ 
+  choices, 
+  designSettings, 
+  isGhostState 
+}: { 
+  choices: ChoiceData[];
+  designSettings: DesignSettings;
+  isGhostState: boolean;
+}) {
   const displayChoices = choices.length > 0 ? choices : [
     { id: '1', text: 'Strategic Response A', isCorrect: true },
     { id: '2', text: 'Alternative Approach B', isCorrect: false },
