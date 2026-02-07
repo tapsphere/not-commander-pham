@@ -294,36 +294,28 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="w-full p-8 bg-gray-900 border-neon-green">
-          <h1 className="text-2xl font-bold text-center mb-2" style={{ color: 'hsl(var(--neon-green))' }}>
-            Creator & Brand Platform
+        <Card className="w-full p-8 bg-card border-border glass-card">
+          <h1 className="text-2xl font-semibold text-center mb-2 text-foreground">
+            Studio Platform
           </h1>
-          <p className="text-sm text-gray-400 text-center mb-6">
-            {isPasswordRecovery ? 'Set your new password' : 'Sign in to manage templates & customizations'}
+          <p className="text-sm text-muted-foreground text-center mb-6">
+            {isPasswordRecovery ? 'Set your new password' : 'Sign in to create and manage templates'}
           </p>
 
           {/* Demo Mode Buttons */}
           {!isPasswordRecovery && (
             <div className="mb-6 space-y-2">
-              <p className="text-xs text-gray-500 text-center mb-2">Quick Demo Access</p>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => handleDemoMode('brand')}
-                  className="gap-2 border-neon-purple text-neon-purple hover:bg-neon-purple/10"
-                >
-                  <Building2 className="w-4 h-4" />
-                  Demo as Brand
-                </Button>
+              <p className="text-xs text-muted-foreground text-center mb-2">Quick Demo Access</p>
+              <div className="grid grid-cols-1 gap-2">
                 <Button
                   variant="outline"
                   onClick={() => handleDemoMode('creator')}
-                  className="gap-2 border-neon-green text-neon-green hover:bg-neon-green/10"
+                  className="gap-2 glass-button"
                 >
                   <Palette className="w-4 h-4" />
-                  Demo as Creator
+                  Try Demo
                 </Button>
               </div>
               <Separator className="my-4" />
@@ -334,7 +326,7 @@ export default function Auth() {
           <div className="space-y-4">
             <form onSubmit={handlePasswordUpdate} className="space-y-4">
               <div>
-                <Label htmlFor="new-password" className="text-white">New Password</Label>
+                <Label htmlFor="new-password" className="text-foreground">New Password</Label>
                 <div className="relative">
                   <Input
                     id="new-password"
@@ -343,13 +335,13 @@ export default function Auth() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="bg-gray-800 border-gray-700 text-white pr-10"
+                    className="bg-secondary border-border text-foreground pr-10"
                     placeholder="Enter your new password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -404,30 +396,30 @@ export default function Auth() {
 
                 <Separator className="my-4" />
 
-                <div className="text-center text-sm text-gray-400 mb-4">
-                  <Mail className="w-4 h-4 inline mr-1" />
-                  Or continue with email
-                </div>
+                <div className="text-center text-sm text-muted-foreground mb-4">
+408:                   <Mail className="w-4 h-4 inline mr-1" />
+409:                   Or continue with email
+410:                 </div>
 
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div>
-                    <Label htmlFor="signin-email" className="text-white">Email</Label>
+                    <Label htmlFor="signin-email" className="text-foreground">Email</Label>
                     <Input
                       id="signin-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-secondary border-border text-foreground"
                     />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <Label htmlFor="signin-password" className="text-white">Password</Label>
+                      <Label htmlFor="signin-password" className="text-foreground">Password</Label>
                       <button
                         type="button"
                         onClick={() => setShowForgotPassword(true)}
-                        className="text-xs text-neon-green hover:underline"
+                        className="text-xs text-primary hover:underline"
                       >
                         Forgot password?
                       </button>
@@ -439,12 +431,12 @@ export default function Auth() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        className="bg-gray-800 border-gray-700 text-white pr-10"
+                        className="bg-secondary border-border text-foreground pr-10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
@@ -458,19 +450,19 @@ export default function Auth() {
             ) : (
               <div className="space-y-4">
                 <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">Reset Password</h3>
-                  <p className="text-sm text-gray-400">Enter your email to receive a password reset link</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Reset Password</h3>
+                  <p className="text-sm text-muted-foreground">Enter your email to receive a password reset link</p>
                 </div>
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div>
-                    <Label htmlFor="reset-email" className="text-white">Email</Label>
+                    <Label htmlFor="reset-email" className="text-foreground">Email</Label>
                     <Input
                       id="reset-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-gray-800 border-gray-700 text-white"
+                      className="bg-secondary border-border text-foreground"
                     />
                   </div>
                   <Button type="submit" disabled={loading} className="w-full">
@@ -524,54 +516,25 @@ export default function Auth() {
 
             <Separator className="my-4" />
 
-            <div className="text-center text-sm text-gray-400 mb-4">
+            <div className="text-center text-sm text-muted-foreground mb-4">
               <Mail className="w-4 h-4 inline mr-1" />
               Or sign up with email
             </div>
 
             <form onSubmit={handleSignUp} className="space-y-4">
               <div>
-                <Label className="text-white mb-3 block">I am a...</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Card
-                    className={`p-4 cursor-pointer transition-all ${
-                      selectedRole === 'creator'
-                        ? 'border-neon-green bg-neon-green/10'
-                        : 'border-gray-700 bg-gray-800'
-                    }`}
-                    onClick={() => setSelectedRole('creator')}
-                  >
-                    <Palette className="w-8 h-8 mb-2" style={{ color: 'hsl(var(--neon-green))' }} />
-                    <h3 className="font-semibold text-white">Creator</h3>
-                    <p className="text-xs text-gray-400 mt-1">Build game templates</p>
-                  </Card>
-                  <Card
-                    className={`p-4 cursor-pointer transition-all ${
-                      selectedRole === 'brand'
-                        ? 'border-neon-green bg-neon-green/10'
-                        : 'border-gray-700 bg-gray-800'
-                    }`}
-                    onClick={() => setSelectedRole('brand')}
-                  >
-                    <Building2 className="w-8 h-8 mb-2" style={{ color: 'hsl(var(--neon-green))' }} />
-                    <h3 className="font-semibold text-white">Brand</h3>
-                    <p className="text-xs text-gray-400 mt-1">Customize & deploy</p>
-                  </Card>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="signup-email" className="text-white">Email</Label>
+                <Label htmlFor="signup-email" className="text-foreground">Email</Label>
                 <Input
                   id="signup-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="bg-gray-800 border-gray-700 text-white"
+                  className="bg-secondary border-border text-foreground"
                 />
               </div>
                 <div>
-                  <Label htmlFor="signup-password" className="text-white">Password</Label>
+                  <Label htmlFor="signup-password" className="text-foreground">Password</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
@@ -580,12 +543,12 @@ export default function Auth() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
-                      className="bg-gray-800 border-gray-700 text-white pr-10"
+                      className="bg-secondary border-border text-foreground pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showSignUpPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>

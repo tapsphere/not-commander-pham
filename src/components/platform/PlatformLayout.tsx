@@ -2,14 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { LogOut, Palette, Building2, Store, TestTube, RefreshCw } from 'lucide-react';
+import { LogOut, Layers, Store, TestTube } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const PlatformLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [activeRole, setActiveRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,11 +18,8 @@ export const PlatformLayout = () => {
     try {
       // Check for demo mode
       const isDemoMode = localStorage.getItem('demoMode') === 'true';
-      const demoRole = localStorage.getItem('demoRole');
       
-      if (isDemoMode && demoRole) {
-        console.log('Demo mode active:', demoRole);
-        setUserRoles([demoRole]);
+      if (isDemoMode) {
         setLoading(false);
         return;
       }
@@ -32,12 +27,9 @@ export const PlatformLayout = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        console.log('No user found, redirecting to auth');
         navigate('/auth');
         return;
       }
-
-      console.log('User found:', user.id);
 
       const { data: rolesData, error: roleError } = await supabase
         .from('user_roles')
@@ -52,16 +44,10 @@ export const PlatformLayout = () => {
       }
 
       if (!rolesData || rolesData.length === 0) {
-        console.log('No roles found for user');
         toast.error('No role assigned. Please sign up again.');
         navigate('/auth');
         return;
       }
-
-      const roles = rolesData.map(r => r.role);
-      console.log('Roles found:', roles);
-      setUserRoles(roles);
-      setActiveRole(roles[0]); // Set first role as default active role
     } catch (error) {
       console.error('Auth check failed:', error);
       toast.error('Authentication failed');
@@ -72,7 +58,6 @@ export const PlatformLayout = () => {
   };
 
   const handleSignOut = async () => {
-    // Clear demo mode
     localStorage.removeItem('demoMode');
     localStorage.removeItem('demoRole');
     await supabase.auth.signOut();
@@ -80,101 +65,56 @@ export const PlatformLayout = () => {
     navigate('/auth');
   };
 
-  const hasMultipleRoles = userRoles.length > 1;
-  const isCreator = activeRole === 'creator';
-  const isBrand = activeRole === 'brand';
-
-  const toggleRole = () => {
-    if (hasMultipleRoles) {
-      const newRole = activeRole === 'creator' ? 'brand' : 'creator';
-      setActiveRole(newRole);
-      // Navigate to the appropriate dashboard when switching roles
-      if (newRole === 'creator') {
-        navigate('/platform/creator');
-      } else {
-        navigate('/platform/brand');
-      }
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-neon-green">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Top Nav */}
-      <header className="border-b border-neon-green/30 bg-gray-900/50 backdrop-blur">
+      <header className="border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold" style={{ color: 'hsl(var(--neon-green))' }}>
-                {isCreator ? 'Creator Studio' : 'Brand Hub'}
-              </h1>
-              {hasMultipleRoles && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleRole}
-                  className="gap-2"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  Switch to {isCreator ? 'Brand' : 'Creator'}
-                </Button>
-              )}
-            </div>
+            <h1 className="text-xl font-semibold text-foreground">
+              Studio
+            </h1>
             
-            
-            <nav className="flex gap-4">
-              {isCreator && (
-                <>
-                  <Button
-                    variant={location.pathname === '/platform/creator' ? 'default' : 'ghost'}
-                    onClick={() => navigate('/platform/creator')}
-                    className="gap-2"
-                  >
-                    <Palette className="w-4 h-4" />
-                    My Templates
-                  </Button>
-                  <Button
-                    variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
-                    onClick={() => navigate('/platform/validator-test')}
-                    className="gap-2"
-                  >
-                    <TestTube className="w-4 h-4" />
-                    Test Validators
-                  </Button>
-                </>
-              )}
-              
-              {isBrand && (
-                <>
-                  <Button
-                    variant={location.pathname === '/platform/brand' ? 'default' : 'ghost'}
-                    onClick={() => navigate('/platform/brand')}
-                    className="gap-2"
-                  >
-                    <Building2 className="w-4 h-4" />
-                    Dashboard
-                  </Button>
-                  <Button
-                    variant={location.pathname === '/platform/marketplace' ? 'default' : 'ghost'}
-                    onClick={() => navigate('/platform/marketplace')}
-                    className="gap-2"
-                  >
-                    <Store className="w-4 h-4" />
-                    Marketplace
-                  </Button>
-                </>
-              )}
+            <nav className="flex gap-2">
+              <Button
+                variant={location.pathname.includes('/creator') ? 'default' : 'ghost'}
+                onClick={() => navigate('/platform/creator')}
+                className="gap-2"
+                size="sm"
+              >
+                <Layers className="w-4 h-4" />
+                Templates
+              </Button>
+              <Button
+                variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
+                onClick={() => navigate('/platform/validator-test')}
+                className="gap-2"
+                size="sm"
+              >
+                <TestTube className="w-4 h-4" />
+                Test
+              </Button>
+              <Button
+                variant={location.pathname === '/platform/marketplace' ? 'default' : 'ghost'}
+                onClick={() => navigate('/platform/marketplace')}
+                className="gap-2"
+                size="sm"
+              >
+                <Store className="w-4 h-4" />
+                Gallery
+              </Button>
             </nav>
           </div>
 
-          <Button variant="ghost" onClick={handleSignOut} className="gap-2">
+          <Button variant="ghost" onClick={handleSignOut} className="gap-2" size="sm">
             <LogOut className="w-4 h-4" />
             Sign Out
           </Button>

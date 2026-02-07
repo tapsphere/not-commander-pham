@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 /* 
-  Design System: Professional Light/Dark Palette
-  Light Mode: Apple-style grays
-  Dark Mode: Pure black with high contrast
+  Design System: Unified Studio Aesthetic
+  Light Mode: Apple-style professional neutrals
+  Dark Mode: Midnight Slate palette
   All colors MUST be HSL.
 */
 
 @layer base {
   /* Light Mode (Default) - Apple Gray Palette */
   :root {
-    --background: 240 5% 96%; /* #F5F5F7 */
+    --background: 240 5% 97%; /* #F5F5F7 */
     --foreground: 240 6% 12%; /* #1D1D1F */
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* #FFFFFF */
     --card-foreground: 240 6% 12%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 240 6% 12%;
 
-    --primary: 240 6% 12%; /* Brand primary - will be overridden by user's brand color */
+    --primary: 240 6% 12%; /* Midnight - main action color */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 92%;
+    --secondary: 240 5% 94%;
     --secondary-foreground: 240 6% 12%;
 
     --muted: 240 5% 96%;
     --muted-foreground: 240 4% 46%;
 
-    --accent: 240 5% 92%;
+    --accent: 240 5% 94%;
     --accent-foreground: 240 6% 12%;
 
     --destructive: 0 84% 60%;
@@ -40,56 +40,66 @@
     --input: 240 5% 84%;
     --ring: 240 6% 12%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     /* Studio-specific tokens */
-    --studio-bg: 240 5% 96%;
+    --studio-bg: 240 5% 97%;
     --studio-surface: 0 0% 100%;
     --studio-surface-elevated: 0 0% 100%;
     --studio-border: 240 5% 84%;
     --studio-text-primary: 240 6% 12%;
     --studio-text-secondary: 240 4% 46%;
     --studio-text-muted: 240 4% 60%;
+
+    /* Glass tokens - Light mode */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 0 0% 0% / 0.08;
+    --glass-hover: 0 0% 0% / 0.04;
   }
 
-  /* Dark Mode - Pure Black with High Contrast */
+  /* Dark Mode - Midnight Slate Palette */
   .dark {
-    --background: 0 0% 0%; /* #000000 */
+    --background: 220 14% 6%; /* #121417 */
     --foreground: 0 0% 100%; /* #FFFFFF */
 
-    --card: 0 0% 7%; /* #121212 */
+    --card: 217 33% 17%; /* #1E293B */
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 7%;
+    --popover: 217 33% 17%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 100%; /* Brand primary - will be overridden */
-    --primary-foreground: 0 0% 0%;
+    --primary: 0 0% 100%; /* White - main action in dark */
+    --primary-foreground: 220 14% 6%;
 
-    --secondary: 0 0% 11%; /* #1C1C1E */
+    --secondary: 217 33% 22%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 15%;
+    --muted: 217 33% 20%;
     --muted-foreground: 0 0% 64%;
 
-    --accent: 0 0% 11%;
+    --accent: 217 33% 22%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 11%; /* #1C1C1E */
-    --input: 0 0% 11%;
+    --border: 0 0% 100% / 0.12; /* rgba(255, 255, 255, 0.12) */
+    --input: 0 0% 100% / 0.12;
     --ring: 0 0% 100%;
 
     /* Studio-specific tokens - Dark */
-    --studio-bg: 0 0% 0%;
-    --studio-surface: 0 0% 7%;
-    --studio-surface-elevated: 0 0% 11%;
-    --studio-border: 0 0% 15%;
+    --studio-bg: 220 14% 6%;
+    --studio-surface: 217 33% 17%;
+    --studio-surface-elevated: 217 33% 22%;
+    --studio-border: 0 0% 100% / 0.12;
     --studio-text-primary: 0 0% 100%;
-    --studio-text-secondary: 0 0% 70%;
-    --studio-text-muted: 0 0% 50%;
+    --studio-text-secondary: 0 0% 75%;
+    --studio-text-muted: 0 0% 55%;
+
+    /* Glass tokens - Dark mode */
+    --glass-bg: 0 0% 100% / 0.05;
+    --glass-border: 0 0% 100% / 0.1;
+    --glass-hover: 0 0% 100% / 0.08;
   }
 }
 
@@ -100,6 +110,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
   }
 
   /* Dark Mode Typography Fix: Reduce weight and increase spacing to prevent halation */
@@ -138,6 +149,19 @@
     color: hsl(var(--muted-foreground));
   }
 
+  /* Glassmorphism utilities */
+  .glass-card {
+    @apply bg-card/50 backdrop-blur-xl border border-border rounded-2xl;
+  }
+
+  .glass-button {
+    @apply bg-background/5 backdrop-blur-sm border border-border hover:bg-accent/10 transition-colors;
+  }
+
+  .glass-surface {
+    @apply bg-card/60 backdrop-blur-xl border border-border;
+  }
+
   /* Studio-specific utilities */
   .studio-surface {
     background-color: hsl(var(--studio-surface));
@@ -153,10 +177,15 @@
 
   /* Subtle shadows for depth without harsh contrast */
   .shadow-studio {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
   }
 
   .dark .shadow-studio {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  }
+
+  /* Interactive hover states */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
   }
 }
