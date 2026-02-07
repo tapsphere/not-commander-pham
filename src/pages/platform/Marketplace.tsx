@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
@@ -124,64 +123,62 @@ export default function Marketplace() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">Loading creator channels...</p>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-muted-foreground">Loading creator channels...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black pb-safe">
-      {/* Mobile-First Header */}
-      <div className="border-b border-gray-800 bg-gray-900/95 backdrop-blur-sm sticky top-0 z-10">
-        <div className="px-4 py-3">
-          <h1 className="text-xl md:text-2xl font-bold text-neon-green text-glow-green mb-3">
-            Creator Channels
-          </h1>
-          
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search creators..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-full bg-gray-800 border-gray-700"
-            />
-          </div>
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold text-foreground mb-2">
+          Gallery
+        </h1>
+        <p className="text-muted-foreground">Browse published templates from creators</p>
+        
+        <div className="relative mt-4 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search creators..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-card border-border"
+          />
         </div>
       </div>
 
-      <div className="px-4 py-4">
-        <p className="text-xs md:text-sm text-gray-400 mb-4">
-          {filteredCreators.length} creator{filteredCreators.length !== 1 ? 's' : ''}
-        </p>
+      <p className="text-sm text-muted-foreground mb-4">
+        {filteredCreators.length} creator{filteredCreators.length !== 1 ? 's' : ''}
+      </p>
 
-        {/* Mobile-Optimized Creator Channels Grid */}
-        {filteredCreators.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400">No creators found</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {filteredCreators.map((creator) => {
-              // If creator has only one game, go directly to template detail
-              // Otherwise, go to their portfolio
-              const handleClick = () => {
-                if (creator.total_games === 1 && creator.featured_game_id) {
-                  navigate(`/platform/template/${creator.featured_game_id}`);
-                } else {
-                  navigate(`/platform/creator/${creator.creator_id}`);
-                }
-              };
+      {/* Creator Channels Grid */}
+      {filteredCreators.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No creators found</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {filteredCreators.map((creator) => {
+            // If creator has only one game, go directly to template detail
+            // Otherwise, go to their portfolio
+            const handleClick = () => {
+              if (creator.total_games === 1 && creator.featured_game_id) {
+                navigate(`/platform/template/${creator.featured_game_id}`);
+              } else {
+                navigate(`/platform/creator/${creator.creator_id}`);
+              }
+            };
 
-              return (
+            return (
               <div
                 key={creator.creator_id}
                 onClick={handleClick}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden active:bg-gray-800 transition-all cursor-pointer"
+                className="glass-card overflow-hidden hover:border-primary/30 transition-all cursor-pointer hover-lift"
               >
                 {/* Featured Game Cover Image */}
-                <div className="relative aspect-video bg-gray-800">
+                <div className="relative aspect-video bg-muted">
                   {creator.featured_game_image ? (
                     <img 
                       src={creator.featured_game_image.startsWith('/') ? creator.featured_game_image.slice(1) : creator.featured_game_image}
@@ -189,42 +186,41 @@ export default function Marketplace() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-                      <span className="text-4xl">{creator.creator_name?.charAt(0) || '?'}</span>
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                      <span className="text-4xl text-muted-foreground">{creator.creator_name?.charAt(0) || '?'}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Creator Info */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-base md:text-lg text-white mb-1 truncate">
+                  <h3 className="font-semibold text-base md:text-lg text-foreground mb-1 truncate">
                     {creator.creator_name}
                   </h3>
                   
                   {creator.creator_bio && (
-                    <p className="text-xs md:text-sm text-gray-300 line-clamp-2 mb-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                       {creator.creator_bio}
                     </p>
                   )}
 
                   {/* Game Count */}
-                  <p className="text-xs text-gray-400 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     {creator.total_games} game{creator.total_games !== 1 ? 's' : ''}
                   </p>
 
                   {/* View Channel Button */}
-                  <div className="pt-2 border-t border-gray-800">
-                    <span className="text-xs md:text-sm text-neon-green">
+                  <div className="pt-2 border-t border-border">
+                    <span className="text-sm text-primary font-medium">
                       View Channel →
                     </span>
                   </div>
                 </div>
               </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
