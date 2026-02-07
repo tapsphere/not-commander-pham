@@ -2,48 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* 
+  Design System: Professional Light/Dark Palette
+  Light Mode: Apple-style grays
+  Dark Mode: Pure black with high contrast
+  All colors MUST be HSL.
 */
 
 @layer base {
+  /* Light Mode (Default) - Apple Gray Palette */
   :root {
-    --background: 0 0% 0%;
-    --foreground: 75 100% 80%;
+    --background: 240 5% 96%; /* #F5F5F7 */
+    --foreground: 240 6% 12%; /* #1D1D1F */
 
-    --card: 0 0% 5%;
-    --card-foreground: 75 100% 80%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 12%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 75 100% 80%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 12%;
 
-    --primary: 130 100% 50%;
+    --primary: 240 6% 12%; /* Brand primary - will be overridden by user's brand color */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 92%;
+    --secondary-foreground: 240 6% 12%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 240 5% 92%;
+    --accent-foreground: 240 6% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 5% 84%; /* #D2D2D7 */
+    --input: 240 5% 84%;
+    --ring: 240 6% 12%;
+
+    --radius: 0.625rem;
+
+    /* Studio-specific tokens */
+    --studio-bg: 240 5% 96%;
+    --studio-surface: 0 0% 100%;
+    --studio-surface-elevated: 0 0% 100%;
+    --studio-border: 240 5% 84%;
+    --studio-text-primary: 240 6% 12%;
+    --studio-text-secondary: 240 4% 46%;
+    --studio-text-muted: 240 4% 60%;
+  }
+
+  /* Dark Mode - Pure Black with High Contrast */
+  .dark {
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #FFFFFF */
+
+    --card: 0 0% 7%; /* #121212 */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 0 0% 100%; /* Brand primary - will be overridden */
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 130 100% 70%;
+    --secondary: 0 0% 11%; /* #1C1C1E */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 15%;
-    --muted-foreground: 130 50% 50%;
+    --muted-foreground: 0 0% 64%;
 
-    --accent: 291 92% 43%;
+    --accent: 0 0% 11%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 130 100% 40%;
-    --input: 130 100% 40%;
-    --ring: 130 100% 50%;
+    --border: 0 0% 11%; /* #1C1C1E */
+    --input: 0 0% 11%;
+    --ring: 0 0% 100%;
 
-    --neon-green: 130 100% 50%;
-    --neon-purple: 284 41% 42%;
-    --neon-magenta: 291 92% 43%;
-    
-    --glow-green: 0 0 20px hsl(130 100% 50% / 0.6);
-    --glow-purple: 0 0 20px hsl(280 70% 55% / 0.5);
-
-    --radius: 0.5rem;
+    /* Studio-specific tokens - Dark */
+    --studio-bg: 0 0% 0%;
+    --studio-surface: 0 0% 7%;
+    --studio-surface-elevated: 0 0% 11%;
+    --studio-border: 0 0% 15%;
+    --studio-text-primary: 0 0% 100%;
+    --studio-text-secondary: 0 0% 70%;
+    --studio-text-muted: 0 0% 50%;
   }
 }
 
@@ -53,36 +99,64 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Dark Mode Typography Fix: Reduce weight and increase spacing to prevent halation */
+  .dark body {
+    font-weight: 350;
+    letter-spacing: 0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    font-weight: 550;
+    letter-spacing: 0.005em;
+  }
+
+  .dark .font-medium {
+    font-weight: 450;
+  }
+
+  .dark .font-semibold {
+    font-weight: 550;
+  }
+
+  .dark .font-bold {
+    font-weight: 650;
   }
 }
 
 @layer utilities {
-  .text-glow-green {
-    text-shadow: 0 0 20px hsl(var(--neon-green) / 0.8),
-                 0 0 40px hsl(var(--neon-green) / 0.6),
-                 0 0 60px hsl(var(--neon-green) / 0.4);
-  }
-  
-  .text-glow-purple {
-    text-shadow: 0 0 20px hsl(var(--neon-purple) / 0.8),
-                 0 0 40px hsl(var(--neon-purple) / 0.5);
-  }
-  
-  .text-glow-magenta {
-    text-shadow: 0 0 20px hsl(var(--neon-magenta) / 0.8),
-                 0 0 40px hsl(var(--neon-magenta) / 0.5);
+  /* High contrast text utilities - 7:1 ratio compliance */
+  .text-high-contrast {
+    color: hsl(var(--foreground));
   }
 
-  .border-glow-green {
-    box-shadow: 0 0 15px hsl(var(--neon-green) / 0.6),
-                0 0 30px hsl(var(--neon-green) / 0.4),
-                inset 0 0 10px hsl(var(--neon-green) / 0.2);
+  .text-medium-contrast {
+    color: hsl(var(--muted-foreground));
   }
-  
-  .border-glow-purple {
-    box-shadow: 0 0 10px hsl(var(--neon-purple) / 0.5),
-                0 0 20px hsl(var(--neon-purple) / 0.3),
-                inset 0 0 10px hsl(var(--neon-purple) / 0.2);
+
+  /* Studio-specific utilities */
+  .studio-surface {
+    background-color: hsl(var(--studio-surface));
+  }
+
+  .studio-elevated {
+    background-color: hsl(var(--studio-surface-elevated));
+  }
+
+  .studio-border {
+    border-color: hsl(var(--studio-border));
+  }
+
+  /* Subtle shadows for depth without harsh contrast */
+  .shadow-studio {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .dark .shadow-studio {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
   }
 }
