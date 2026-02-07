@@ -16,8 +16,19 @@ const INDUSTRY_PLACEHOLDERS: Record<string, { name: string; description: string 
   'Marketing': { name: 'Brand Campaign Audit', description: 'Evaluate marketing campaign effectiveness and ROI' },
   'Finance': { name: 'Budget Allocation Challenge', description: 'Strategic financial decision-making under pressure' },
   'Healthcare': { name: 'Patient Care Protocol', description: 'Clinical decision-making scenarios' },
-  'Retail': { name: 'Luxury Brand Experience', description: 'Customer journey optimization challenge' },
+  'Retail': { name: 'Luxury Collection Audit', description: 'Customer journey optimization challenge' },
   'Technology': { name: 'Security Threat Response', description: 'Identify and respond to cyber threats' },
+  'Sales': { name: 'Enterprise Deal Navigator', description: 'Complex B2B negotiation scenarios' },
+  'Human Resources': { name: 'Talent Assessment Suite', description: 'Candidate evaluation and culture fit' },
+  'Operations': { name: 'Supply Chain Crisis', description: 'Logistics disruption management' },
+  'Communications': { name: 'Crisis PR Response', description: 'Real-time media crisis handling' },
+  'Customer Service': { name: 'Escalation Handler', description: 'Complex customer complaint resolution' },
+  'Education': { name: 'Curriculum Design Lab', description: 'Learning objective assessment' },
+  'Manufacturing': { name: 'Quality Control Check', description: 'Production line decision-making' },
+  'Legal': { name: 'Case Strategy Builder', description: 'Legal reasoning and precedent analysis' },
+  'Supply Chain': { name: 'Vendor Risk Assessment', description: 'Supplier evaluation scenarios' },
+  'Nonprofit': { name: 'Donor Impact Tracker', description: 'Resource allocation optimization' },
+  'Government': { name: 'Policy Impact Analysis', description: 'Public sector decision-making' },
   'default': { name: 'Competency Validator', description: 'Test critical thinking and decision-making skills' },
 };
 
@@ -146,37 +157,45 @@ export function StudioLiveMirror({
             </div>
           </div>
 
-          {/* Choices */}
-          <div className="px-4 space-y-2 overflow-y-auto max-h-[160px]">
-            {displayChoices.slice(0, 4).map((choice, idx) => (
-              <div
-                key={choice.id}
-                className="rounded-lg p-2.5 flex items-center gap-2 border transition-all"
-                style={{
-                  backgroundColor: choice.isCorrect 
-                    ? `${designSettings.highlight}30`
-                    : designSettings.background,
-                  borderColor: choice.isCorrect 
-                    ? designSettings.highlight
-                    : `${designSettings.text}20`,
-                }}
-              >
-                {choice.isCorrect ? (
-                  <CheckCircle className="h-4 w-4 flex-shrink-0" style={{ color: designSettings.highlight }} />
-                ) : (
-                  <XCircle className="h-4 w-4 flex-shrink-0 opacity-40" style={{ color: designSettings.text }} />
-                )}
-                <span 
-                  className={`text-xs flex-1 ${!choice.text && isGhostState ? 'opacity-40 italic' : ''}`}
-                  style={{ color: designSettings.text }}
+          {/* Choices - Dynamic sizing based on count */}
+          <div className="px-4 space-y-1.5 overflow-y-auto max-h-[140px]">
+            {displayChoices.map((choice, idx) => {
+              // Dynamic sizing: smaller padding for more choices
+              const choiceCount = displayChoices.length;
+              const padding = choiceCount > 6 ? 'p-1.5' : choiceCount > 4 ? 'p-2' : 'p-2.5';
+              const textSize = choiceCount > 6 ? 'text-[10px]' : 'text-xs';
+              const iconSize = choiceCount > 6 ? 'h-3 w-3' : 'h-4 w-4';
+              
+              return (
+                <div
+                  key={choice.id}
+                  className={`rounded-lg ${padding} flex items-center gap-2 border transition-all`}
+                  style={{
+                    backgroundColor: choice.isCorrect 
+                      ? `${designSettings.highlight}30`
+                      : designSettings.background,
+                    borderColor: choice.isCorrect 
+                      ? designSettings.highlight
+                      : `${designSettings.text}20`,
+                  }}
                 >
-                  {choice.text || `Option ${idx + 1}`}
-                </span>
-              </div>
-            ))}
+                  {choice.isCorrect ? (
+                    <CheckCircle className={`${iconSize} flex-shrink-0`} style={{ color: designSettings.highlight }} />
+                  ) : (
+                    <XCircle className={`${iconSize} flex-shrink-0 opacity-40`} style={{ color: designSettings.text }} />
+                  )}
+                  <span 
+                    className={`${textSize} flex-1 ${!choice.text && isGhostState ? 'opacity-40 italic' : ''}`}
+                    style={{ color: designSettings.text }}
+                  >
+                    {choice.text || `Option ${idx + 1}`}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Telemetry Buttons (LOCKED) */}
+          {/* Telemetry Buttons (LOCKED - Mandatory for biometric jitter tracking) */}
           <div className="absolute bottom-[70px] left-4 flex gap-2">
             <div 
               className="px-2 py-1 rounded text-[10px] opacity-60 flex items-center gap-1"
