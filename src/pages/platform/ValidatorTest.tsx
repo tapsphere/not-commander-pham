@@ -129,17 +129,17 @@ export default function ValidatorTest() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      not_started: { icon: AlertCircle, color: 'bg-gray-500', label: 'Not Tested' },
-      in_progress: { icon: PlayCircle, color: 'bg-blue-500', label: 'In Progress' },
-      passed: { icon: CheckCircle, color: 'bg-green-500', label: 'Passed' },
-      failed: { icon: XCircle, color: 'bg-red-500', label: 'Failed' },
-      needs_review: { icon: AlertCircle, color: 'bg-yellow-500', label: 'Needs Review' },
+      not_started: { icon: AlertCircle, color: 'bg-muted text-muted-foreground', label: 'Not Tested' },
+      in_progress: { icon: PlayCircle, color: 'bg-blue-500/20 text-blue-600 dark:text-blue-400', label: 'In Progress' },
+      passed: { icon: CheckCircle, color: 'bg-green-500/20 text-green-600 dark:text-green-400', label: 'Passed' },
+      failed: { icon: XCircle, color: 'bg-red-500/20 text-red-600 dark:text-red-400', label: 'Failed' },
+      needs_review: { icon: AlertCircle, color: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400', label: 'Needs Review' },
     };
 
     const { icon: Icon, color, label } = variants[status as keyof typeof variants] || variants.not_started;
 
     return (
-      <Badge className={`${color} text-white`}>
+      <Badge className={color}>
         <Icon className="w-3 h-3 mr-1" />
         {label}
       </Badge>
@@ -168,19 +168,18 @@ export default function ValidatorTest() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Validator Testing Dashboard</h1>
-            <p className="text-gray-400">
+            <h1 className="text-3xl font-semibold text-foreground mb-2">Validator Testing Dashboard</h1>
+            <p className="text-muted-foreground">
               Stress test all validators before publishing • Ensure quality and C-BEN compliance
             </p>
           </div>
           <Button
             variant="outline"
             onClick={() => window.open('/platform/testing-guide', '_blank')}
-            className="border-gray-600 text-gray-300"
           >
             <BookOpen className="w-4 h-4 mr-2" />
             Testing Guide
@@ -188,18 +187,18 @@ export default function ValidatorTest() {
         </div>
 
         {/* Filters */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-white">Filters</CardTitle>
+            <CardTitle className="text-foreground">Filters</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-4">
             <div className="flex-1">
-              <label className="text-sm text-gray-400 mb-2 block">Template Type</label>
+              <label className="text-sm text-muted-foreground mb-2 block">Template Type</label>
               <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="bg-card border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="ai_generated">🤖 AI Generated</SelectItem>
                   <SelectItem value="custom_upload">📤 Custom Upload</SelectItem>
@@ -208,12 +207,12 @@ export default function ValidatorTest() {
             </div>
 
             <div className="flex-1">
-              <label className="text-sm text-gray-400 mb-2 block">Test Status</label>
+              <label className="text-sm text-muted-foreground mb-2 block">Test Status</label>
               <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="bg-card border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="not_started">Not Tested</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
@@ -228,14 +227,14 @@ export default function ValidatorTest() {
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Validators', value: templates.length, color: 'text-blue-400' },
-            { label: 'Not Tested', value: templates.filter(t => !testResults.has(t.id)).length, color: 'text-yellow-400' },
-            { label: 'Passed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'passed').length, color: 'text-green-400' },
-            { label: 'Failed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'failed').length, color: 'text-red-400' },
+            { label: 'Total Validators', value: templates.length, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'Not Tested', value: templates.filter(t => !testResults.has(t.id)).length, color: 'text-yellow-600 dark:text-yellow-400' },
+            { label: 'Passed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'passed').length, color: 'text-green-600 dark:text-green-400' },
+            { label: 'Failed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'failed').length, color: 'text-red-600 dark:text-red-400' },
           ].map((stat, i) => (
-            <Card key={i} className="bg-gray-800 border-gray-700">
+            <Card key={i} className="glass-card">
               <CardContent className="pt-6">
-                <p className="text-sm text-gray-400">{stat.label}</p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
               </CardContent>
             </Card>
@@ -245,10 +244,10 @@ export default function ValidatorTest() {
         {/* Templates List */}
         <div className="space-y-4">
           {loading ? (
-            <p className="text-gray-400">Loading validators...</p>
+            <p className="text-muted-foreground">Loading validators...</p>
           ) : filteredTemplates.length === 0 ? (
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="pt-6 text-center text-gray-400">
+            <Card className="glass-card">
+              <CardContent className="pt-6 text-center text-muted-foreground">
                 No validators found. Create a validator template first.
               </CardContent>
             </Card>
@@ -261,20 +260,20 @@ export default function ValidatorTest() {
                 : null;
 
               return (
-                <Card key={template.id} className="bg-gray-800 border-gray-700">
+                <Card key={template.id} className="glass-card">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           {template.template_type === 'ai_generated' ? (
-                            <Bot className="w-5 h-5 text-purple-400" />
+                            <Bot className="w-5 h-5 text-purple-500" />
                           ) : (
-                            <Upload className="w-5 h-5 text-blue-400" />
+                            <Upload className="w-5 h-5 text-blue-500" />
                           )}
-                          <CardTitle className="text-white">{template.name}</CardTitle>
+                          <CardTitle className="text-foreground">{template.name}</CardTitle>
                         </div>
                         {subComp && (
-                          <CardDescription className="text-gray-400">
+                          <CardDescription>
                             Sub: {subComp.statement}
                           </CardDescription>
                         )}
@@ -282,7 +281,7 @@ export default function ValidatorTest() {
                       <div className="flex flex-col items-end gap-2">
                         {getStatusBadge(testResult?.overall_status || 'not_started')}
                         {template.is_published && (
-                          <Badge variant="outline" className="border-green-500 text-green-500">
+                          <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">
                             Published
                           </Badge>
                         )}
@@ -294,15 +293,15 @@ export default function ValidatorTest() {
                       {/* Phase Progress */}
                       <div className="grid grid-cols-3 gap-2">
                         <div className="text-center">
-                          <p className="text-xs text-gray-500 mb-1">Phase 1: UX Flow</p>
+                          <p className="text-xs text-muted-foreground mb-1">Phase 1: UX Flow</p>
                           {getStatusBadge(phases.p1)}
                         </div>
                         <div className="text-center">
-                          <p className="text-xs text-gray-500 mb-1">Phase 2: Action Cue</p>
+                          <p className="text-xs text-muted-foreground mb-1">Phase 2: Action Cue</p>
                           {getStatusBadge(phases.p2)}
                         </div>
                         <div className="text-center">
-                          <p className="text-xs text-gray-500 mb-1">Phase 3: Scoring</p>
+                          <p className="text-xs text-muted-foreground mb-1">Phase 3: Scoring</p>
                           {getStatusBadge(phases.p3)}
                         </div>
                       </div>
@@ -311,7 +310,6 @@ export default function ValidatorTest() {
                       <div className="flex gap-2">
                         <Button
                           onClick={() => startTest(template)}
-                          className="bg-neon-green text-black hover:bg-neon-green/80"
                         >
                           <PlayCircle className="w-4 h-4 mr-2" />
                           {testResult ? 'Re-test' : 'Start Test'}
@@ -319,14 +317,13 @@ export default function ValidatorTest() {
                         {testResult && (
                           <Button 
                             variant="outline" 
-                            className="border-gray-600 text-gray-300"
                             onClick={() => startTest(template)}
                           >
                             View Results
                           </Button>
                         )}
                         {testResult?.overall_status === 'passed' && !testResult.approved_for_publish && (
-                          <Button variant="outline" className="border-green-500 text-green-500">
+                          <Button variant="outline" className="border-green-500 text-green-600 dark:text-green-400">
                             Approve for Publish
                           </Button>
                         )}
