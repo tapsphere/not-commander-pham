@@ -1,8 +1,15 @@
 /**
  * SceneAssembler - Master DNA Library Mapping Engine
  * 
- * Maps Excel Framework columns (Game Mechanic, Mobile Interaction) to 
- * component blueprints from the Master DNA Library v1.0
+ * Implements the 3-Way Stitch (Section 6 of DNA Library v1.0):
+ * 1. Brain (Logic): Game Mechanic → Scoring + Validation
+ * 2. Body (Interaction): Mobile Interaction → UI Layout + 60Hz Telemetry
+ * 3. Soul (Content): Action Cue + Scenario → Top 30% Context Zone
+ * 
+ * Universal UX Constraints (Section 5):
+ * - Layout Ratio: 30% Top (Context) / 50% Middle (Visuals) / 20% Bottom (Interaction)
+ * - Typography: text-sm or text-base (Slate-500 equivalent)
+ * - Positioning: Interactive elements in bottom third
  * 
  * Reference: PlayOps_Studio_Unified_Mechanic_Interaction_Library.pdf
  */
@@ -53,11 +60,63 @@ export interface MechanicBlueprint {
   componentName: string;
   uiDna: string;
   telemetry: TelemetryConfig;
-  layoutClass: string;
 }
 
+/**
+ * 3-Way Stitch Structure (DNA Library Section 6)
+ */
+export interface ThreeWayStitch {
+  brain: {
+    mechanicType: MechanicType;
+    scoringLogic: string;
+    validationRules: string[];
+  };
+  body: {
+    interactionType: InteractionType;
+    componentName: string;
+    telemetryConfig: TelemetryConfig;
+    uiDna: string;
+  };
+  soul: {
+    actionCue: string;
+    scenario: string;
+    contextText: string;
+  };
+}
+
+/**
+ * Universal UX Layout Configuration (Section 5)
+ */
+export interface LayoutConfig {
+  topZone: number;      // 30% - Context/Action Cue
+  middleZone: number;   // 50% - Visuals/Mascot
+  bottomZone: number;   // 20% - Interaction
+  typography: {
+    actionCue: string;  // text-sm
+    buttons: string;    // text-sm max
+  };
+  positioning: {
+    interactionZone: 'bottom-third';
+  };
+}
+
+export const UNIVERSAL_LAYOUT: LayoutConfig = {
+  topZone: 30,
+  middleZone: 50,
+  bottomZone: 20,
+  typography: {
+    actionCue: 'text-sm',
+    buttons: 'text-sm',
+  },
+  positioning: {
+    interactionZone: 'bottom-third',
+  },
+};
+
 export interface AssembledScene {
+  stitch: ThreeWayStitch;
   blueprint: MechanicBlueprint;
+  layout: LayoutConfig;
   subCompetency: SubCompetency;
   designSettings: DesignSettings;
   choices: ChoiceData[];
@@ -79,7 +138,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['time_to_first_tap', 'hesitation_count'],
     },
-    layoutClass: 'flex flex-col gap-2',
   },
   case_analysis: {
     mechanicType: 'case_analysis',
@@ -91,7 +149,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 30,
       metrics: ['dwell_time', 'scan_pattern', 'selection_order'],
     },
-    layoutClass: 'grid grid-cols-2 gap-3',
   },
   data_analysis: {
     mechanicType: 'data_analysis',
@@ -103,7 +160,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60, // 60Hz = sample every 16ms
       metrics: ['x_velocity', 'direction_changes', 'overshoot_count'],
     },
-    layoutClass: 'px-4',
   },
   collaboration: {
     mechanicType: 'collaboration',
@@ -115,7 +171,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['rms_error', 'path_smoothness', 'connection_time'],
     },
-    layoutClass: 'relative h-40',
   },
   performance_demo: {
     mechanicType: 'performance_demo',
@@ -127,7 +182,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 30,
       metrics: ['reversal_count', 'final_order_accuracy', 'time_per_item'],
     },
-    layoutClass: 'space-y-2',
   },
   project_artifact: {
     mechanicType: 'project_artifact',
@@ -139,7 +193,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['over_correction_count', 'target_precision', 'time_in_zone'],
     },
-    layoutClass: 'px-4 py-2',
   },
   portfolio_timeline: {
     mechanicType: 'portfolio_timeline',
@@ -151,7 +204,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['slip_count', 'selection_accuracy', 'pattern_time'],
     },
-    layoutClass: 'grid grid-cols-5 gap-1',
   },
   communication: {
     mechanicType: 'communication',
@@ -163,7 +215,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 30,
       metrics: ['response_time', 'is_correct'],
     },
-    layoutClass: 'space-y-2',
   },
   technical_research: {
     mechanicType: 'technical_research',
@@ -175,7 +226,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['tap_consistency', 'force_variance', 'rhythm_score'],
     },
-    layoutClass: 'relative h-36',
   },
   strategic_viability: {
     mechanicType: 'strategic_viability',
@@ -187,7 +237,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['micro_movements', 'release_time', 'quadrant_accuracy'],
     },
-    layoutClass: 'grid grid-cols-2 gap-2 aspect-square',
   },
   binary_choice: {
     mechanicType: 'binary_choice',
@@ -199,7 +248,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 60,
       metrics: ['swipe_speed', 'direction_confidence', 'hesitation_time'],
     },
-    layoutClass: 'flex gap-4',
   },
   ranking: {
     mechanicType: 'ranking',
@@ -211,7 +259,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 30,
       metrics: ['move_count', 'final_accuracy', 'time_per_reorder'],
     },
-    layoutClass: 'space-y-2',
   },
   multi_choice: {
     mechanicType: 'multi_choice',
@@ -223,7 +270,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 30,
       metrics: ['time_to_select', 'change_count', 'is_correct'],
     },
-    layoutClass: 'space-y-1.5',
   },
   unknown: {
     mechanicType: 'unknown',
@@ -235,7 +281,6 @@ const DNA_BLUEPRINTS: Record<MechanicType, MechanicBlueprint> = {
       sampleRate: 30,
       metrics: ['time_to_select', 'is_correct'],
     },
-    layoutClass: 'space-y-1.5',
   },
 };
 
@@ -249,14 +294,16 @@ export function detectMechanicType(gameMechanic: string | null, playerAction?: s
   const mechLower = gameMechanic.toLowerCase();
   const actionLower = (playerAction || '').toLowerCase();
   
+  // Data Analysis / Continuous Scrub detection (Scene 3)
+  if (mechLower.includes('data analysis') || mechLower.includes('noise filter') || 
+      mechLower.includes('scrub') || mechLower.includes('continuous') || 
+      actionLower.includes('scrub') || actionLower.includes('slider')) {
+    return 'data_analysis';
+  }
+  
   // Binary detection
   if (mechLower.includes('binary') || mechLower.includes('toggle') || mechLower.includes('yes/no')) {
     return 'binary_choice';
-  }
-  
-  // Scrub/Slider detection
-  if (mechLower.includes('scrub') || mechLower.includes('continuous') || actionLower.includes('scrub')) {
-    return 'data_analysis';
   }
   
   // Ranking detection
@@ -309,12 +356,82 @@ export function detectMechanicType(gameMechanic: string | null, playerAction?: s
 }
 
 // ============================================================================
-// SCENE ASSEMBLER (Core Function)
+// 3-WAY STITCH ASSEMBLY (Core Function - DNA Library Section 6)
 // ============================================================================
 
 /**
- * Assembles a scene by reading tags from the Excel row (SubCompetency) 
- * and binding the appropriate mechanic logic from the DNA Library
+ * Performs the 3-Way Stitch to assemble a scene:
+ * 1. Brain (Logic): Pull 'Game Mechanic' tag → Apply scoring/validation
+ * 2. Body (Interaction): Pull 'Mobile Interaction' tag → Load UI layout + telemetry
+ * 3. Soul (Content): Pull 'Action Cue' + 'Scenario' → Inject into Context Zone
+ */
+export function performThreeWayStitch(subCompetency: SubCompetency): ThreeWayStitch {
+  const mechanicType = detectMechanicType(
+    subCompetency.game_mechanic,
+    subCompetency.player_action
+  );
+  
+  const blueprint = DNA_BLUEPRINTS[mechanicType];
+  
+  return {
+    // Brain: Logic layer from Excel 'game_mechanic'
+    brain: {
+      mechanicType,
+      scoringLogic: getScoringLogic(subCompetency),
+      validationRules: getValidationRules(mechanicType),
+    },
+    // Body: Interaction layer from Excel 'player_action' / mechanic mapping
+    body: {
+      interactionType: blueprint.interactionType,
+      componentName: blueprint.componentName,
+      telemetryConfig: blueprint.telemetry,
+      uiDna: blueprint.uiDna,
+    },
+    // Soul: Content layer from Excel 'action_cue' + 'statement'
+    soul: {
+      actionCue: subCompetency.action_cue || 'Complete this challenge',
+      scenario: subCompetency.statement || '',
+      contextText: buildContextText(subCompetency),
+    },
+  };
+}
+
+/**
+ * Build context text for the top 30% zone
+ */
+function buildContextText(sub: SubCompetency): string {
+  if (sub.action_cue) return sub.action_cue;
+  if (sub.statement) return sub.statement;
+  return 'Analyze the data and make your decision';
+}
+
+/**
+ * Get scoring logic from sub-competency
+ */
+function getScoringLogic(sub: SubCompetency): string {
+  return sub.scoring_formula_level_1 || sub.scoring_formula_level_2 || 'standard';
+}
+
+/**
+ * Get validation rules based on mechanic type
+ */
+function getValidationRules(mechanicType: MechanicType): string[] {
+  switch (mechanicType) {
+    case 'data_analysis':
+      return ['velocity_threshold', 'target_zone_accuracy', 'time_limit'];
+    case 'binary_choice':
+      return ['swipe_direction', 'confidence_threshold'];
+    case 'collaboration':
+      return ['path_accuracy', 'connection_completeness'];
+    case 'portfolio_timeline':
+      return ['pattern_match', 'selection_accuracy'];
+    default:
+      return ['is_correct', 'time_limit'];
+  }
+}
+
+/**
+ * Main scene assembler - combines 3-Way Stitch with layout constraints
  */
 export function assembleScene(
   subCompetency: SubCompetency,
@@ -322,18 +439,19 @@ export function assembleScene(
   choices: ChoiceData[],
   sceneIndex: number
 ): AssembledScene {
-  // Step 1: Detect mechanic type from Excel data
-  const mechanicType = detectMechanicType(
-    subCompetency.game_mechanic,
-    subCompetency.player_action
-  );
+  // Step 1: Perform 3-Way Stitch
+  const stitch = performThreeWayStitch(subCompetency);
   
-  // Step 2: Get blueprint from DNA Library
-  const blueprint = DNA_BLUEPRINTS[mechanicType];
+  // Step 2: Get blueprint
+  const blueprint = DNA_BLUEPRINTS[stitch.brain.mechanicType];
   
-  // Step 3: Return assembled scene with all bindings
+  // Step 3: Apply Universal UX Layout
+  const layout = UNIVERSAL_LAYOUT;
+  
   return {
+    stitch,
     blueprint,
+    layout,
     subCompetency,
     designSettings,
     choices,
@@ -360,6 +478,13 @@ export function getTelemetryConfig(mechanicType: MechanicType): TelemetryConfig 
  */
 export function getAllBlueprints(): Record<MechanicType, MechanicBlueprint> {
   return DNA_BLUEPRINTS;
+}
+
+/**
+ * Get universal layout configuration
+ */
+export function getUniversalLayout(): LayoutConfig {
+  return UNIVERSAL_LAYOUT;
 }
 
 // ============================================================================

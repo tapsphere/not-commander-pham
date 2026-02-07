@@ -72,7 +72,6 @@ function MechanicRenderer({
       // Continuous Scrub - ScrubSlider with 60Hz telemetry
       return (
         <ScrubSlider
-          designSettings={designSettings}
           isGhostState={isGhostState}
         />
       );
