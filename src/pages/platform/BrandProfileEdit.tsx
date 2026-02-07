@@ -8,10 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, Building2, Upload, User } from 'lucide-react';
+import { ArrowLeft, Upload, User } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { DesignPaletteEditor } from '@/components/platform/DesignPaletteEditor';
 
 export default function BrandProfileEdit() {
   const navigate = useNavigate();
@@ -19,27 +18,10 @@ export default function BrandProfileEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [companyDescription, setCompanyDescription] = useState('');
-  const [companyLogoUrl, setCompanyLogoUrl] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<'brand' | 'creator' | null>(null);
-  const [gameAvatarUrl, setGameAvatarUrl] = useState('');
-  const [particleEffect, setParticleEffect] = useState('sparkles');
-  const [mascotAnimationType, setMascotAnimationType] = useState<'static' | 'gif' | 'lottie' | 'sprite'>('static');
-  const [primaryColor, setPrimaryColor] = useState('#0078D4');
-  const [secondaryColor, setSecondaryColor] = useState('#50E6FF');
-  const [designPalette, setDesignPalette] = useState({
-    primary: '#C8DBDB',
-    secondary: '#6C8FA4',
-    accent: '#2D5556',
-    background: '#F5EDD3',
-    highlight: '#F0C7A0',
-    text: '#2D5556',
-    font: 'Inter, sans-serif'
-  });
   
   // Image crop states
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -47,7 +29,6 @@ export default function BrandProfileEdit() {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [cropType, setCropType] = useState<'avatar' | 'logo' | 'game-avatar'>('avatar');
 
   useEffect(() => {
     loadProfile();
@@ -62,21 +43,9 @@ export default function BrandProfileEdit() {
       }
       setUserId(user.id);
 
-      // Check user roles (they might have multiple)
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-
-      // Determine active role from URL path
-      const isCreatorPath = location.pathname.includes('/creator');
-      const detectedRole = isCreatorPath ? 'creator' : 'brand';
-      
-      setUserRole(detectedRole);
-
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, bio, avatar_url, company_name, company_description, company_logo_url, design_palette, game_avatar_url, default_particle_effect, mascot_animation_type, primary_color, secondary_color')
+        .select('full_name, bio, avatar_url, company_name')
         .eq('user_id', user.id)
         .single();
 
@@ -87,19 +56,6 @@ export default function BrandProfileEdit() {
         setBio(data.bio || '');
         setAvatarUrl(data.avatar_url || '');
         setCompanyName(data.company_name || '');
-        setCompanyDescription(data.company_description || '');
-        setCompanyLogoUrl(data.company_logo_url || '');
-        setGameAvatarUrl(data.game_avatar_url || '');
-        setParticleEffect(data.default_particle_effect || 'sparkles');
-        setPrimaryColor(data.primary_color || '#0078D4');
-        setSecondaryColor(data.secondary_color || '#50E6FF');
-        const animType = data.mascot_animation_type as 'static' | 'gif' | 'lottie' | 'sprite';
-        setMascotAnimationType(animType || 'static');
-        
-        // Load design palette if exists
-        if (data.design_palette) {
-          setDesignPalette(data.design_palette as any);
-        }
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -131,7 +87,6 @@ export default function BrandProfileEdit() {
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
 
-    // Clear canvas with transparency
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(
@@ -154,74 +109,17 @@ export default function BrandProfileEdit() {
     });
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'logo' | 'game-avatar') => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check if it's an animated file (GIF or Lottie JSON)
-      const isAnimated = file.type === 'image/gif' || file.name.endsWith('.json');
-      
-      if (isAnimated) {
-        // Skip crop for animated files, upload directly
-        handleDirectUpload(file, type);
-      } else {
-        const reader = new FileReader();
-        reader.onload = () => {
-          setImageSrc(reader.result as string);
-          setCropType(type);
-          setCropDialogOpen(true);
-          setCrop({ x: 0, y: 0 });
-          setZoom(1);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-  };
-
-  const handleDirectUpload = async (file: File, type: 'avatar' | 'logo' | 'game-avatar') => {
-    if (!userId) return;
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${type}-${Date.now()}.${fileExt}`;
-      const filePath = `${userId}/${fileName}`;
-
-      // Detect animation type
-      let animType: 'static' | 'gif' | 'lottie' | 'sprite' = 'static';
-      if (file.type === 'image/gif') {
-        animType = 'gif';
-      } else if (file.name.endsWith('.json')) {
-        animType = 'lottie';
-      }
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('profiles')
-        .upload(filePath, file, {
-          contentType: file.type,
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profiles')
-        .getPublicUrl(filePath);
-
-      // Update state
-      if (type === 'avatar') {
-        setAvatarUrl(publicUrl);
-      } else if (type === 'game-avatar') {
-        setGameAvatarUrl(publicUrl);
-        setMascotAnimationType(animType);
-      } else {
-        setCompanyLogoUrl(publicUrl);
-      }
-
-      toast.success(`${animType === 'static' ? 'Image' : 'Animation'} uploaded successfully!`);
-    } catch (error: any) {
-      console.error('Failed to upload file:', error);
-      toast.error('Failed to upload file: ' + error.message);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageSrc(reader.result as string);
+        setCropDialogOpen(true);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -230,10 +128,9 @@ export default function BrandProfileEdit() {
 
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
-      const fileName = `${cropType}-${Date.now()}.png`;
+      const fileName = `avatar-${Date.now()}.png`;
       const filePath = `${userId}/${fileName}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, croppedBlob, {
@@ -243,20 +140,11 @@ export default function BrandProfileEdit() {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
 
-      // Update state
-      if (cropType === 'avatar') {
-        setAvatarUrl(publicUrl);
-      } else if (cropType === 'game-avatar') {
-        setGameAvatarUrl(publicUrl);
-      } else {
-        setCompanyLogoUrl(publicUrl);
-      }
-
+      setAvatarUrl(publicUrl);
       setCropDialogOpen(false);
       setImageSrc(null);
       toast.success('Image uploaded successfully!');
@@ -269,37 +157,31 @@ export default function BrandProfileEdit() {
   const handleSave = async () => {
     if (!userId) return;
 
+    // Name is required
+    if (!fullName.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+
     setSaving(true);
     try {
-      const updates: any = {};
-      
-      if (userRole === 'creator') {
-        updates.full_name = fullName;
-        updates.bio = bio;
-        updates.avatar_url = avatarUrl;
-      } else {
-        updates.company_name = companyName;
-        updates.company_description = companyDescription;
-        updates.company_logo_url = companyLogoUrl;
-      }
-      
-      // Both roles get design customization
-      updates.design_palette = designPalette;
-      updates.game_avatar_url = gameAvatarUrl;
-      updates.default_particle_effect = particleEffect;
-      updates.mascot_animation_type = mascotAnimationType;
-      updates.primary_color = primaryColor;
-      updates.secondary_color = secondaryColor;
-
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update({
+          full_name: fullName,
+          company_name: companyName || null,
+          bio: bio || null,
+          avatar_url: avatarUrl || null,
+        })
         .eq('user_id', userId);
 
       if (error) throw error;
 
       toast.success('Profile updated successfully!');
-      navigate(userRole === 'creator' ? '/platform/creator' : '/platform/brand');
+      
+      // Navigate back based on current path
+      const isCreatorPath = location.pathname.includes('/creator');
+      navigate(isCreatorPath ? '/platform/creator' : '/platform/brand');
     } catch (error: any) {
       console.error('Failed to save profile:', error);
       toast.error('Failed to save profile: ' + error.message);
@@ -308,264 +190,63 @@ export default function BrandProfileEdit() {
     }
   };
 
+  const handleCancel = () => {
+    const isCreatorPath = location.pathname.includes('/creator');
+    navigate(isCreatorPath ? '/platform/creator' : '/platform/brand');
+  };
+
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto text-center py-12">
-        <p className="text-gray-400">Loading profile...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Button
-        variant="ghost"
-        onClick={() => navigate(userRole === 'creator' ? '/platform/creator' : '/platform/brand')}
-        className="mb-6"
-        style={{ color: 'hsl(var(--neon-green))' }}
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
-      </Button>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          onClick={handleCancel}
+          className="mb-6 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </Button>
 
-      <Card className="bg-gray-900 border-gray-800 p-8">
-        <h2 className="text-2xl font-bold mb-6" style={{ color: 'hsl(var(--neon-green))' }}>
-          {userRole === 'creator' ? 'Edit Creator Profile' : 'Edit Company Profile'}
-        </h2>
+        {/* Main Card */}
+        <Card className="bg-card border-border p-8">
+          <h1 className="text-2xl font-bold text-foreground mb-8">
+            Edit Profile
+          </h1>
 
-        <div className="space-y-6">
-          {userRole === 'creator' ? (
-            <>
-              {/* Avatar Upload */}
-              <div>
-                <Label className="text-white mb-2">Profile Picture</Label>
-                <div className="flex items-center gap-4 mt-2">
-                  <div
-                    className="w-24 h-24 rounded-full border-2 flex items-center justify-center bg-black/50 overflow-hidden"
-                    style={{ borderColor: 'hsl(var(--neon-green))' }}
-                  >
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <User className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileSelect(e, 'avatar')}
-                      className="hidden"
-                      id="avatar-upload"
-                    />
-                    <label htmlFor="avatar-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="cursor-pointer"
-                        asChild
-                      >
-                        <span>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Image
-                        </span>
-                      </Button>
-                    </label>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Upload a profile picture. You'll be able to crop it after selecting.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Full Name */}
-              <div>
-                <Label htmlFor="full-name" className="text-white mb-2">
-                  Full Name *
-                </Label>
-                <Input
-                  id="full-name"
-                  placeholder="Your Full Name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
-                />
-              </div>
-
-              {/* Bio */}
-              <div>
-                <Label htmlFor="bio" className="text-white mb-2">
-                  Bio *
-                </Label>
-                <Textarea
-                  id="bio"
-                  placeholder="Tell others about yourself and your game creation experience..."
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white min-h-[120px]"
-                />
-              </div>
-
-              {/* Design Palette Settings */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Default Game Design</h3>
-                <p className="text-sm text-gray-400 mb-4">
-                  Set your default colors and font. These will be used for all your games unless you override them per game.
-                </p>
-                <DesignPaletteEditor
-                  palette={designPalette}
-                  onChange={setDesignPalette}
-                />
-              </div>
-
-              {/* Particle Effect Selector */}
-              <div>
-                <Label className="text-white mb-2">Default Particle Effect</Label>
-                <select
-                  value={particleEffect}
-                  onChange={(e) => setParticleEffect(e.target.value)}
-                  className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"
-                >
-                  <option value="sparkles">✨ Sparkles (Gold Twinkles)</option>
-                  <option value="coins">🪙 Coins (Golden Coins)</option>
-                  <option value="stars">⭐ Stars (Bright Stars)</option>
-                  <option value="hearts">❤️ Hearts (Floating Hearts)</option>
-                  <option value="confetti">🎉 Confetti (Colorful Pieces)</option>
-                  <option value="lightning">⚡ Lightning (Electric Bolts)</option>
-                </select>
-                <p className="text-xs text-gray-400 mt-2">
-                  Particles will burst on interactions, correct answers, and celebrations
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Company Logo Upload */}
-              <div>
-                <Label className="text-white mb-2">Company Logo</Label>
-                <div className="flex items-center gap-4 mt-2">
-                  <div
-                    className="w-24 h-24 rounded-lg border-2 flex items-center justify-center bg-black/50 overflow-hidden"
-                    style={{ borderColor: 'hsl(var(--neon-green))' }}
-                  >
-                    {companyLogoUrl ? (
-                      <img
-                        src={companyLogoUrl}
-                        alt="Company Logo"
-                        className="w-full h-full object-contain p-2"
-                      />
-                    ) : (
-                      <Building2 className="w-12 h-12" style={{ color: 'hsl(var(--neon-green))' }} />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileSelect(e, 'logo')}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label htmlFor="logo-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="cursor-pointer"
-                        asChild
-                      >
-                        <span>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Logo
-                        </span>
-                      </Button>
-                    </label>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Upload your company logo. You'll be able to crop it after selecting.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Company Name */}
-              <div>
-                <Label htmlFor="company-name" className="text-white mb-2">
-                  Company Name *
-                </Label>
-                <Input
-                  id="company-name"
-                  placeholder="Your Company Name"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
-                />
-              </div>
-
-              {/* Company Description */}
-              <div>
-                <Label htmlFor="company-description" className="text-white mb-2">
-                  Company Description *
-                </Label>
-                <Textarea
-                  id="company-description"
-                  placeholder="Tell players about your company and what makes your games special..."
-                  value={companyDescription}
-                  onChange={(e) => setCompanyDescription(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white min-h-[120px]"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Design Customization - Available for both creators and brands */}
-          <div className="border-t border-gray-700 pt-6 mt-6">
-            <h3 className="text-xl font-bold text-white mb-4">Game Design Defaults</h3>
-            
-            {/* Design Palette Settings */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-white mb-2">Color Palette & Font</h4>
-              <p className="text-sm text-gray-400 mb-4">
-                Set your default colors and font. These will be applied to all your games unless customized per game.
-              </p>
-              <DesignPaletteEditor
-                palette={designPalette}
-                onChange={setDesignPalette}
-              />
-            </div>
-
-            {/* Game Mascot/Avatar */}
-            <div className="mb-6">
-              <h4 className="text-lg font-semibold text-white mb-2">Game Mascot (Default)</h4>
-              <p className="text-sm text-gray-400 mb-4">
-                Upload an animal, character, or icon that will appear in your games with animations and particles.
-              </p>
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-32 h-32 rounded-lg border-2 flex items-center justify-center bg-black/50 overflow-hidden"
-                  style={{ borderColor: 'hsl(var(--neon-purple))' }}
-                >
-                  {gameAvatarUrl ? (
+          <div className="space-y-8">
+            {/* Profile Picture */}
+            <div>
+              <Label className="text-foreground mb-3 block">Profile Picture</Label>
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-full border-2 border-border flex items-center justify-center bg-muted overflow-hidden">
+                  {avatarUrl ? (
                     <img
-                      src={gameAvatarUrl}
-                      alt="Game Mascot"
-                      className="w-full h-full object-contain"
+                      src={avatarUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <User className="w-12 h-12 text-gray-600" />
+                    <User className="w-10 h-10 text-muted-foreground" />
                   )}
                 </div>
-                <div className="flex-1">
+                <div>
                   <input
                     type="file"
-                    accept="image/png,image/gif,image/jpeg,.json"
-                    onChange={(e) => handleFileSelect(e, 'game-avatar')}
+                    accept="image/*"
+                    onChange={handleFileSelect}
                     className="hidden"
-                    id="game-avatar-upload"
+                    id="avatar-upload"
                   />
-                  <label htmlFor="game-avatar-upload">
+                  <label htmlFor="avatar-upload">
                     <Button
                       type="button"
                       variant="outline"
@@ -574,162 +255,130 @@ export default function BrandProfileEdit() {
                     >
                       <span>
                         <Upload className="w-4 h-4 mr-2" />
-                        Upload Mascot
+                        Upload Image
                       </span>
                     </Button>
                   </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Upload PNG, GIF (animated), or Lottie JSON. Your mascot will animate and react during gameplay.
+                  <p className="text-xs text-muted-foreground mt-2">
+                    JPG, PNG or GIF. Max 5MB.
                   </p>
-                  {gameAvatarUrl && (
-                    <p className="text-xs text-green-400 mt-1">
-                      Current: {mascotAnimationType === 'gif' ? '🎬 Animated GIF' : mascotAnimationType === 'lottie' ? '✨ Lottie Animation' : '🖼️ Static Image'}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Particle Effect Selector */}
+            {/* Name (Required) */}
             <div>
-              <Label className="text-white mb-2">Default Particle Effect</Label>
-              <select
-                value={particleEffect}
-                onChange={(e) => setParticleEffect(e.target.value)}
-                className="w-full p-2 rounded bg-gray-800 border border-gray-700 text-white"
-              >
-                <option value="sparkles">✨ Sparkles (Gold Twinkles)</option>
-                <option value="confetti">🎉 Confetti (Celebration)</option>
-                <option value="stars">⭐ Stars (Glowing)</option>
-                <option value="hearts">❤️ Hearts (Floating)</option>
-                <option value="flames">🔥 Flames (Energetic)</option>
-                <option value="bubbles">💧 Bubbles (Soft)</option>
-                <option value="lightning">⚡ Lightning (Electric)</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-2">
-                Choose the default particle effect that appears when players interact with your mascot.
-              </p>
-            </div>
-
-            {/* Brand Colors - For brands only */}
-            {userRole === 'brand' && (
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="space-y-2">
-                  <Label htmlFor="primaryColor" className="text-white">Primary Brand Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="primaryColor"
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-20 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="flex-1 bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400">Main brand color for demos</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="secondaryColor" className="text-white">Secondary Brand Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="secondaryColor"
-                      type="color"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      className="w-20 h-10 p-1 cursor-pointer"
-                    />
-                    <Input
-                      type="text"
-                      value={secondaryColor}
-                      onChange={(e) => setSecondaryColor(e.target.value)}
-                      className="flex-1 bg-gray-800 border-gray-700 text-white"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400">Accent color for demos</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate(userRole === 'creator' ? '/platform/creator' : '/platform/brand')}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={
-                saving ||
-                (userRole === 'creator' ? !fullName || !bio : !companyName || !companyDescription)
-              }
-              className="flex-1 bg-neon-green text-white hover:bg-neon-green/90"
-            >
-              {saving ? 'Saving...' : 'Save Profile'}
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Crop Dialog */}
-      <Dialog open={cropDialogOpen} onOpenChange={setCropDialogOpen}>
-        <DialogContent className="bg-gray-900 border-gray-800 max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-white">Crop Image</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="relative h-[400px] bg-black rounded-lg overflow-hidden">
-              {imageSrc && (
-                <Cropper
-                  image={imageSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={cropType === 'avatar' || cropType === 'game-avatar' ? 1 : 16 / 9}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={onCropComplete}
-                />
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label className="text-white">Zoom</Label>
-              <input
-                type="range"
-                min={1}
-                max={3}
-                step={0.1}
-                value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="w-full"
+              <Label htmlFor="full-name" className="text-foreground mb-2 block">
+                Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="full-name"
+                placeholder="Enter your name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="bg-background border-input text-foreground"
               />
             </div>
-            <div className="flex gap-3">
+
+            {/* Company (Optional) */}
+            <div>
+              <Label htmlFor="company-name" className="text-foreground mb-2 block">
+                Company
+              </Label>
+              <Input
+                id="company-name"
+                placeholder="Enter your company name (optional)"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                className="bg-background border-input text-foreground"
+              />
+            </div>
+
+            {/* Bio (Optional) */}
+            <div>
+              <Label htmlFor="bio" className="text-foreground mb-2 block">
+                Bio
+              </Label>
+              <Textarea
+                id="bio"
+                placeholder="Tell us about yourself (optional)"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className="bg-background border-input text-foreground min-h-[100px] resize-none"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4 border-t border-border">
               <Button
                 variant="outline"
-                onClick={() => setCropDialogOpen(false)}
+                onClick={handleCancel}
                 className="flex-1"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleCropSave}
-                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90"
+                onClick={handleSave}
+                disabled={saving || !fullName.trim()}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Save & Upload
+                {saving ? 'Saving...' : 'Save Profile'}
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </Card>
+
+        {/* Crop Dialog */}
+        <Dialog open={cropDialogOpen} onOpenChange={setCropDialogOpen}>
+          <DialogContent className="bg-card border-border max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">Crop Image</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="relative h-[400px] bg-muted rounded-lg overflow-hidden">
+                {imageSrc && (
+                  <Cropper
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={onCropComplete}
+                  />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="text-foreground">Zoom</Label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full accent-primary"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setCropDialogOpen(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCropSave}
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Save & Upload
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
