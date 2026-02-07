@@ -13,9 +13,11 @@ interface SceneCardProps {
   sceneIndex: number;
   subCompetency: SubCompetency | undefined;
   onUpdate: (scene: SceneData) => void;
+  isActive?: boolean;
+  onSelect?: () => void;
 }
 
-export function SceneCard({ scene, sceneIndex, subCompetency, onUpdate }: SceneCardProps) {
+export function SceneCard({ scene, sceneIndex, subCompetency, onUpdate, isActive, onSelect }: SceneCardProps) {
   const updateQuestion = (question: string) => {
     onUpdate({ ...scene, question });
   };
@@ -55,7 +57,14 @@ export function SceneCard({ scene, sceneIndex, subCompetency, onUpdate }: SceneC
   };
 
   return (
-    <Card className="p-4 bg-card border-border">
+    <Card 
+      className={`p-4 bg-card border-border cursor-pointer transition-all ${
+        isActive 
+          ? 'ring-2 ring-primary border-primary shadow-lg' 
+          : 'hover:border-primary/50'
+      }`}
+      onClick={onSelect}
+    >
       {/* Scene Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">

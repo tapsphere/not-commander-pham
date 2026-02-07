@@ -121,11 +121,18 @@ The Creator Dashboard is the primary workspace for creators to:
 
 ## 4. REFACTORED WORKFLOW: THE BRAND CANVAS
 
-The Template Creation process is now a 4-Step Stepper with a persistent 'Live Mirror' Mobile Preview.
+The Template Creation process is now a Full-Screen Studio Workspace with a persistent 'Live Mirror' Mobile Preview.
+
+### 4.0 Studio Architecture
+- **Full-Screen Mode:** The studio takes over the entire viewport (no modal dialog).
+- **Split-Pane Layout:** Left pane = 4-Tab Stepper editor, Right pane = Fixed Live Mirror preview.
+- **Theme Support:** Dark/Light mode toggle with high-contrast Glassmorphism styling.
+- **Responsive Design:** Handles different screen sizes without nested scrollbars.
 
 ### 4.1 Step 1: Identity
-Basic template information:
-- Template Name (required)
+Basic template information with industry-specific smart placeholders:
+- Industry Context selection (affects placeholder text)
+- Template Name (required) with ghost preview
 - Description (optional)
 - Cover Image upload
 
@@ -139,6 +146,7 @@ Basic template information:
 
 ### 4.3 Step 3: Scene Builder (DYNAMIC CARDS)
 - **Logic Cards:** Each of the 6 scenes displays a 'Scene Logic Card'.
+- **Scene Syncing:** Clicking a Scene Card instantly updates the Live Mirror to show that scene.
 - **Dynamic Choices:** Default choice slots (2 or 4) are set by the Mechanic but allow creator override (2-10 slots).
 - **Outcome Result Mapping:** Each choice slot must be marked as "Correct (Success)" or "Incorrect (Failure)".
 - **AI Remix Bar:** A prompt at the bottom allows the brand to remix the autofilled template text into brand-specific scenarios.
@@ -159,10 +167,12 @@ A fixed-position side-panel on the right showing a real-time mobile preview:
 
 | Feature | Behavior |
 |---------|----------|
+| **Live Ghost State** | Shows placeholders in 'ghost' style before creator types |
 | **Real-time Text** | Scene question/choices update as creator types |
 | **Color Sync** | Primary color changes button colors instantly |
 | **Choice Slots** | Shows correct/incorrect badges on choices |
-| **Scene Navigation** | Preview shows current scene being edited |
+| **Scene Navigation** | Clicking scene dots updates the preview |
+| **Locked Telemetry Buttons** | 'Undo' and 'Back' buttons hard-coded in UI for jitter tracking |
 
 ---
 
@@ -367,11 +377,15 @@ On dashboard load, ensures user has `'creator'` role in `user_roles` table.
 | Component | File | Purpose |
 |-----------|------|---------|
 | TemplateDialog | `src/components/platform/TemplateDialog.tsx` | Main creation stepper |
+| TemplateStudio | `src/components/platform/TemplateStudio.tsx` | Full-screen studio workspace |
 | TemplateStepIdentity | `src/components/platform/template-steps/TemplateStepIdentity.tsx` | Step 1: Basic info |
 | TemplateStepFramework | `src/components/platform/template-steps/TemplateStepFramework.tsx` | Step 2: Competency selection |
 | TemplateStepSceneBuilder | `src/components/platform/template-steps/TemplateStepSceneBuilder.tsx` | Step 3: Scene cards |
 | TemplateStepBrandSkin | `src/components/platform/template-steps/TemplateStepBrandSkin.tsx` | Step 4: Visual customization |
-| LiveMobilePreview | `src/components/platform/LiveMobilePreview.tsx` | Real-time preview panel |
+| StudioLiveMirror | `src/components/platform/studio/StudioLiveMirror.tsx` | Real-time preview panel |
+| StudioStepperNav | `src/components/platform/studio/StudioStepperNav.tsx` | 4-step navigation |
+| StudioIdentityStep | `src/components/platform/studio/StudioIdentityStep.tsx` | Enhanced identity step |
+| StudioThemeContext | `src/components/platform/studio/StudioThemeContext.tsx` | Dark/light mode toggle |
 | SceneCard | `src/components/platform/SceneCard.tsx` | Individual scene editor |
 | CompetenciesDialog | `src/components/platform/CompetenciesDialog.tsx` | Manage template competencies |
 | ValidatorTestWizard | `src/components/platform/ValidatorTestWizard.tsx` | V3.1 8-check testing |

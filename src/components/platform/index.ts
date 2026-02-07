@@ -16,6 +16,7 @@ export { PlatformLayout } from './PlatformLayout';
 export { PostTestActions } from './PostTestActions';
 export { TemplateDialog } from './TemplateDialog';
 export { TemplateDialogNew } from './TemplateDialogNew';
+export { TemplateStudio } from './TemplateStudio';
 export { LiveMobilePreview } from './LiveMobilePreview';
 export { SceneCard } from './SceneCard';
 export { TemplateTypeSelector } from './TemplateTypeSelector';

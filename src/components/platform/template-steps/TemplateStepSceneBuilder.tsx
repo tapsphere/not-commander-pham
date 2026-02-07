@@ -12,6 +12,8 @@ interface TemplateStepSceneBuilderProps {
   setScenes: (scenes: SceneData[]) => void;
   subCompetencies: SubCompetency[];
   selectedSubCompetencies: string[];
+  currentSceneIndex?: number;
+  setCurrentSceneIndex?: (index: number) => void;
 }
 
 export function TemplateStepSceneBuilder({
@@ -19,6 +21,8 @@ export function TemplateStepSceneBuilder({
   setScenes,
   subCompetencies,
   selectedSubCompetencies,
+  currentSceneIndex = 0,
+  setCurrentSceneIndex,
 }: TemplateStepSceneBuilderProps) {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isRemixing, setIsRemixing] = useState(false);
@@ -131,6 +135,8 @@ export function TemplateStepSceneBuilder({
             sceneIndex={index}
             subCompetency={getSubCompetency(scene.subCompetencyId)}
             onUpdate={(updated) => handleSceneUpdate(index, updated)}
+            isActive={index === currentSceneIndex}
+            onSelect={() => setCurrentSceneIndex?.(index)}
           />
         ))}
       </div>
