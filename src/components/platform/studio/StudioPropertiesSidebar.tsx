@@ -53,31 +53,104 @@ type XPLevel = keyof typeof XP_VALUES;
 
 // Multi-Zone Color Distribution for Smart Brand Remix
 interface ColorZones {
-  surface: string;      // Main background layer
-  container: string;    // Glassmorphic cards and stage area  
-  action: string;       // Primary buttons and progress bars
-  typography: string;   // Primary and secondary text contrast
+  surface: string;      // --brand-bg: Deep base (Midnight, Slate, Off-White)
+  container: string;    // --brand-container: Glassmorphic frosted layer
+  action: string;       // --brand-primary: Buttons, progress bars, active states ONLY
+  typography: string;   // --brand-text: Auto-calculated for contrast
 }
 
-// Smart color distribution algorithm for Multi-Zone Remix
-const distributeColorsToZones = (colors: string[]): ColorZones => {
-  // Sort colors by luminance to ensure proper contrast distribution
-  const getLuminance = (hex: string): number => {
-    const rgb = parseInt(hex.slice(1), 16);
-    const r = (rgb >> 16) & 0xff;
-    const g = (rgb >> 8) & 0xff;
-    const b = rgb & 0xff;
-    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  };
-  
-  const sortedByLuminance = [...colors].sort((a, b) => getLuminance(a) - getLuminance(b));
-  
+// ===== COLOR UTILITY FUNCTIONS =====
+const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+  const cleanHex = hex.replace('#', '');
+  const bigint = parseInt(cleanHex, 16);
   return {
-    surface: sortedByLuminance[0],      // Darkest for background (or lightest in light mode)
-    container: sortedByLuminance[1],    // Second for cards/glass
-    action: sortedByLuminance[2],       // Third for buttons
-    typography: sortedByLuminance[3],   // Brightest for text contrast
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
   };
+};
+
+const rgbToHex = (r: number, g: number, b: number): string => {
+  return '#' + [r, g, b].map(x => {
+    const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+};
+
+const getLuminance = (hex: string): number => {
+  const { r, g, b } = hexToRgb(hex);
+  const [rs, gs, bs] = [r / 255, g / 255, b / 255].map(c =>
+    c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  );
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+const getContrastRatio = (color1: string, color2: string): number => {
+  const l1 = getLuminance(color1);
+  const l2 = getLuminance(color2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+};
+
+const isDarkColor = (hex: string): boolean => getLuminance(hex) < 0.5;
+
+const getContrastTextColor = (backgroundColor: string): string => {
+  return getLuminance(backgroundColor) < 0.5 ? '#FAFAFA' : '#1A1A1A';
+};
+
+const getVibrance = (hex: string): number => {
+  const { r, g, b } = hexToRgb(hex);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const saturation = max === 0 ? 0 : (max - min) / max;
+  const brightness = max / 255;
+  return saturation * 0.7 + brightness * 0.3;
+};
+
+const adjustColorForContainer = (baseColor: string, targetDarkMode: boolean): string => {
+  const { r, g, b } = hexToRgb(baseColor);
+  const factor = targetDarkMode ? 0.2 : 0.1;
+  
+  if (targetDarkMode) {
+    return rgbToHex(r + (255 - r) * factor, g + (255 - g) * factor, b + (255 - b) * factor);
+  } else {
+    return rgbToHex(r * (1 - factor), g * (1 - factor), b * (1 - factor));
+  }
+};
+
+// ===== SMART 4-ZONE DISTRIBUTION ALGORITHM =====
+const distributeColorsToZones = (colors: string[], preferDarkMode = true): ColorZones => {
+  const sortedByLuminance = [...colors].sort((a, b) => getLuminance(a) - getLuminance(b));
+  const sortedByVibrance = [...colors].sort((a, b) => getVibrance(b) - getVibrance(a));
+  
+  // 1. SURFACE: Pick dark for dark mode, light for light mode
+  const surface = preferDarkMode ? sortedByLuminance[0] : sortedByLuminance[sortedByLuminance.length - 1];
+  
+  // 2. ACTION: Most vibrant color with HIGH contrast against surface
+  let action = sortedByVibrance[0];
+  const minContrast = 4.5; // WCAG AA
+  
+  for (const color of sortedByVibrance) {
+    if (color !== surface && getContrastRatio(color, surface) >= minContrast) {
+      action = color;
+      break;
+    }
+  }
+  
+  // Fallback if no good contrast found
+  if (action === surface || getContrastRatio(action, surface) < minContrast) {
+    action = isDarkColor(surface) ? '#FFFFFF' : '#1A1A1A';
+  }
+  
+  // 3. CONTAINER: Glassmorphic layer - slightly different from surface
+  const remaining = colors.filter(c => c !== surface && c !== action);
+  let container = remaining.length > 0 ? remaining[0] : adjustColorForContainer(surface, preferDarkMode);
+  
+  // 4. TYPOGRAPHY: Auto-calculated for optimal contrast
+  const typography = getContrastTextColor(surface);
+  
+  return { surface, container, action, typography };
 };
 
 export function StudioPropertiesSidebar({
@@ -1094,7 +1167,7 @@ export function StudioPropertiesSidebar({
                     </div>
                   </div>
                   
-                  {/* Color Remix Panel with Multi-Zone Logic */}
+{/* Color Remix Panel with 4-Zone Separation Logic */}
                   <ColorRemixPanel
                     primaryColor={designSettings.primary}
                     secondaryColor={designSettings.secondary}
@@ -1102,31 +1175,33 @@ export function StudioPropertiesSidebar({
                     backgroundColor={designSettings.background}
                     isDarkMode={isDarkMode}
                     onRemix={(colors) => {
-                      // Apply Multi-Zone distribution algorithm
+                      // Apply Smart 4-Zone Distribution with isDarkMode awareness
                       const zones = distributeColorsToZones([
                         colors.primary, 
                         colors.secondary, 
                         colors.accent, 
                         colors.background
-                      ]);
+                      ], isDarkMode);
                       setColorZones(zones);
                       
-                      // Map zones to design settings
+                      // Map zones to design settings - ensure distinct separation
                       setDesignSettings({ 
                         ...designSettings, 
-                        background: zones.surface,
-                        secondary: zones.container,
-                        primary: zones.action,
-                        text: zones.typography
+                        background: zones.surface,    // --brand-bg: Deep base
+                        secondary: zones.container,   // --brand-container: Glassmorphic
+                        primary: zones.action,        // --brand-primary: Buttons ONLY
+                        text: zones.typography        // --brand-text: Auto-contrast
                       });
                       
-                      // Update CSS variables for Live Mirror
-                      document.documentElement.style.setProperty('--brand-surface', zones.surface);
+                      // Update CSS variables for Live Mirror - 4 DISTINCT ZONES
+                      document.documentElement.style.setProperty('--brand-bg', zones.surface);
                       document.documentElement.style.setProperty('--brand-container', zones.container);
+                      document.documentElement.style.setProperty('--brand-primary', zones.action);
+                      document.documentElement.style.setProperty('--brand-text', zones.typography);
+                      // Legacy support
+                      document.documentElement.style.setProperty('--brand-surface', zones.surface);
                       document.documentElement.style.setProperty('--brand-action', zones.action);
                       document.documentElement.style.setProperty('--brand-typography', zones.typography);
-                      // Legacy support
-                      document.documentElement.style.setProperty('--brand-primary', zones.action);
                       document.documentElement.style.setProperty('--brand-secondary', zones.container);
                       document.documentElement.style.setProperty('--brand-background', zones.surface);
                     }}
