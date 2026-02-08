@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -67,6 +67,14 @@ export function TemplateStepFramework({
 }: TemplateStepFrameworkProps) {
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
+  const addTrackRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to the Add Track section when it opens
+  useEffect(() => {
+    if (showAddTrackSearch && addTrackRef.current) {
+      addTrackRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showAddTrackSearch]);
 
   // Check for data integrity errors in sub-competencies
   const dataIntegrityErrors: DataIntegrityError[] = subCompetencies
@@ -483,7 +491,7 @@ export function TemplateStepFramework({
         )}
 
         {/* ADD ANOTHER COMPETENCY TRACK BUTTON */}
-        <div className="pt-4 border-t border-border">
+        <div ref={addTrackRef} className="pt-4 border-t border-border scroll-mt-4">
           {showAddTrackSearch ? (
             <div className="bg-emerald-500/5 border-2 border-dashed border-emerald-500/40 rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
