@@ -11,6 +11,7 @@ export { StudioPropertiesSidebar } from './StudioPropertiesSidebar';
 export { StudioCenterCanvas } from './StudioCenterCanvas';
 export { StudioNavigator } from './StudioNavigator';
 export { TelegramNativeOverlay, TelegramPreviewToggle } from './TelegramNativeOverlay';
+export { StudioLiveCodeEditor } from './StudioLiveCodeEditor';
 
 // Scene Layout - 30/50/20 UX Constraints (DNA Library Section 5)
 export { SceneLayout, ContextZone, InteractionZone } from './SceneLayout';

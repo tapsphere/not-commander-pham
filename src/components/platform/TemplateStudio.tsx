@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Eye, Loader2, Save, Moon, Sun, X } from 'lucide-react';
+import { Eye, Loader2, Save, Moon, Sun, X, Code2, PanelLeftClose, PanelLeft, Cloud, ExternalLink } from 'lucide-react';
 import { 
   TemplateStepFramework,
   TemplateFormData,
@@ -21,6 +21,7 @@ import {
   StudioPropertiesSidebar,
   StudioCenterCanvas,
   StudioNavigator,
+  StudioLiveCodeEditor,
 } from './studio';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -50,6 +51,8 @@ function StudioContent({
   const [generating, setGenerating] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [telegramPreviewEnabled, setTelegramPreviewEnabled] = useState(true); // Default to TMA view
+  const [codeEditorOpen, setCodeEditorOpen] = useState(false); // Split-view code editor
+  const [isPublishing, setIsPublishing] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
@@ -328,7 +331,20 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
           )}
         </div>
         
-        <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
+          {/* Open Code Button */}
+          <Button
+            variant={codeEditorOpen ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setCodeEditorOpen(!codeEditorOpen)}
+            className={codeEditorOpen ? "bg-primary/10 text-primary" : buttonStyles}
+          >
+            <Code2 className="h-4 w-4 mr-2" />
+            {codeEditorOpen ? 'Close Code' : 'Open Code'}
+          </Button>
+          
+          <div className="h-5 w-px bg-border" />
+          
           <Button
             variant="ghost"
             size="sm"
@@ -351,6 +367,37 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
               <Eye className="h-4 w-4 mr-2" />
             )}
             Preview
+          </Button>
+
+          {/* Publish to Cloud Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setIsPublishing(true);
+              // Simulate publish to cloud
+              setTimeout(() => {
+                const gameId = `${formData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString(36)}`;
+                const publishUrl = `playops.ai/${gameId}`;
+                navigator.clipboard.writeText(`https://${publishUrl}`);
+                toast.success(
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold">Published to Cloud!</span>
+                    <span className="text-xs text-muted-foreground">URL copied: {publishUrl}</span>
+                  </div>
+                );
+                setIsPublishing(false);
+              }, 1500);
+            }}
+            disabled={isPublishing || !formData.name.trim()}
+            className="border-primary/50 text-primary hover:bg-primary/10"
+          >
+            {isPublishing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Cloud className="h-4 w-4 mr-2" />
+            )}
+            Publish
           </Button>
 
           <Button
@@ -398,22 +445,58 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                 />
               </div>
             </ScrollArea>
-          ) : (
+) : (
             <>
-              {/* Center Canvas */}
-              <div className="flex-1 overflow-hidden">
-<StudioCenterCanvas
-                  currentSceneIndex={currentStep === 4 ? currentSceneIndex : 0}
-                  formData={formData}
-                  scenes={scenes}
-                  designSettings={designSettings}
-                  subCompetencies={subCompetencies}
-                  mascotFile={mascotFile}
-                  logoFile={logoFile}
-                  telegramPreviewEnabled={telegramPreviewEnabled}
-                  onTelegramPreviewToggle={() => setTelegramPreviewEnabled(!telegramPreviewEnabled)}
-                />
-              </div>
+              {/* Split-View: Code Editor (Left) + Preview (Right) when code editor is open */}
+              {codeEditorOpen ? (
+                <div className="flex-1 flex overflow-hidden">
+                  {/* Left: Live Code Editor (50%) */}
+                  <div className="w-1/2 border-r border-border overflow-hidden">
+                    <StudioLiveCodeEditor
+                      formData={formData}
+                      setFormData={setFormData}
+                      scenes={scenes}
+                      setScenes={setScenes}
+                      designSettings={designSettings}
+                      setDesignSettings={setDesignSettings}
+                      currentSceneIndex={currentStep === 4 ? currentSceneIndex : 0}
+                      subCompetencies={subCompetencies}
+                    />
+                  </div>
+                  
+                  {/* Right: Telegram Mobile Preview (50%) */}
+                  <div className="w-1/2 overflow-hidden">
+                    <StudioCenterCanvas
+                      currentSceneIndex={currentStep === 4 ? currentSceneIndex : 0}
+                      formData={formData}
+                      scenes={scenes}
+                      designSettings={designSettings}
+                      subCompetencies={subCompetencies}
+                      mascotFile={mascotFile}
+                      logoFile={logoFile}
+                      telegramPreviewEnabled={telegramPreviewEnabled}
+                      onTelegramPreviewToggle={() => setTelegramPreviewEnabled(!telegramPreviewEnabled)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Center Canvas (Normal View) */}
+                  <div className="flex-1 overflow-hidden">
+                    <StudioCenterCanvas
+                      currentSceneIndex={currentStep === 4 ? currentSceneIndex : 0}
+                      formData={formData}
+                      scenes={scenes}
+                      designSettings={designSettings}
+                      subCompetencies={subCompetencies}
+                      mascotFile={mascotFile}
+                      logoFile={logoFile}
+                      telegramPreviewEnabled={telegramPreviewEnabled}
+                      onTelegramPreviewToggle={() => setTelegramPreviewEnabled(!telegramPreviewEnabled)}
+                    />
+                  </div>
+                </>
+              )}
 
               {/* Bottom Track Rail - show on Scenes step */}
               {currentStep === 4 && (
