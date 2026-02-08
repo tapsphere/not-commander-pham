@@ -6,10 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { 
   Play, Trophy, Gamepad2, Lock, Plus, Trash2, Upload, 
   Sparkles, Palette, Box, FileText, Loader2, Target, Zap,
-  AlertTriangle, RotateCcw, Wand2
+  AlertTriangle, RotateCcw, Wand2, Shield, ChevronDown,
+  MessageSquare, Settings2, Eye, EyeOff
 } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES, createDefaultScene } from '../template-steps/types';
@@ -33,6 +41,10 @@ interface StudioPropertiesSidebarProps {
   setMascotFile: (file: File | null) => void;
 }
 
+// XP Values from PlayOps Framework
+const XP_VALUES = { L1: 100, L2: 250, L3: 500 } as const;
+type XPLevel = keyof typeof XP_VALUES;
+
 export function StudioPropertiesSidebar({
   currentSceneIndex,
   currentStep,
@@ -50,8 +62,9 @@ export function StudioPropertiesSidebar({
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
-  const [localAiPrompt, setLocalAiPrompt] = useState('');
-  const [isLocalAiProcessing, setIsLocalAiProcessing] = useState(false);
+  const [sceneAiPrompt, setSceneAiPrompt] = useState('');
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [selectedXPLevel, setSelectedXPLevel] = useState<XPLevel>('L2');
   
   // Store original scene data for reset functionality
   const originalScenesRef = useRef<Map<string, SceneData>>(new Map());
@@ -96,20 +109,22 @@ export function StudioPropertiesSidebar({
         : s
     );
     setScenes(newScenes);
-    setLocalAiPrompt('');
+    setSceneAiPrompt('');
     toast.success('Scene reset to DNA Library defaults');
   };
 
-  // Apply local AI adjustments to current scene only
-  const handleLocalAiAdjust = async () => {
-    if (!currentScene || !localAiPrompt.trim()) return;
+  // Scene AI Command - Pre-fill all scene fields based on prompt
+  const handleSceneAiCommand = async () => {
+    if (!currentScene || !sceneAiPrompt.trim()) return;
     
-    setIsLocalAiProcessing(true);
+    setIsAiProcessing(true);
     
-    // Check if the prompt is about color changes
-    const colorPrompt = localAiPrompt.toLowerCase();
+    // Check if the prompt is about color/style changes
+    const colorPrompt = sceneAiPrompt.toLowerCase();
     const colorKeywords = ['color', 'blue', 'red', 'green', 'purple', 'orange', 'pink', 'yellow', 'teal', 'cyan', 'magenta'];
+    const styleKeywords = ['style', 'theme', 'look', 'visual', 'aesthetic'];
     const isColorPrompt = colorKeywords.some(keyword => colorPrompt.includes(keyword));
+    const isStylePrompt = styleKeywords.some(keyword => colorPrompt.includes(keyword));
     
     if (isColorPrompt) {
       // Parse color from prompt and apply to the appropriate design setting
@@ -142,20 +157,28 @@ export function StudioPropertiesSidebar({
         toast.success(`Primary color changed to ${colorName || newColor}`);
       }
       
-      setIsLocalAiProcessing(false);
-      setLocalAiPrompt('');
+      setIsAiProcessing(false);
+      setSceneAiPrompt('');
       return;
     }
     
-    // Simulate AI processing for text adjustments
-    await new Promise(r => setTimeout(r, 1200));
+    // Simulate AI processing for content pre-fill
+    await new Promise(r => setTimeout(r, 1500));
     
-    const adjustedQuestion = `${currentScene.question} (Adjusted: ${localAiPrompt})`;
+    // AI-generated content based on prompt and context
+    const brandContext = formData.name || 'your brand';
+    const actionCue = currentSubCompetency?.action_cue || '';
+    
+    // Generate contextual question and choices based on the prompt
+    const adjustedQuestion = sceneAiPrompt.includes('prefill') || sceneAiPrompt.includes('pre-fill')
+      ? `Based on "${brandContext}" and the mission: "${actionCue}" - ${currentScene.question || 'How would you handle this situation?'}`
+      : `${currentScene.question} (Adjusted for: ${sceneAiPrompt})`;
+    
     updateScene({ question: adjustedQuestion });
     
-    toast.success('Local adjustment applied to this scene only');
-    setIsLocalAiProcessing(false);
-    setLocalAiPrompt('');
+    toast.success('AI Command applied to this scene only');
+    setIsAiProcessing(false);
+    setSceneAiPrompt('');
   };
 
   const addChoice = () => {
@@ -164,6 +187,7 @@ export function StudioPropertiesSidebar({
       id: `choice-${Date.now()}`,
       text: `Option ${currentScene.choices.length + 1}`,
       isCorrect: false,
+      brandAligned: false,
     }];
     updateScene({ choices: newChoices });
   };
@@ -174,27 +198,12 @@ export function StudioPropertiesSidebar({
     updateScene({ choices: newChoices });
   };
 
-  const updateChoice = (choiceId: string, updates: { text?: string; isCorrect?: boolean }) => {
+  const updateChoice = (choiceId: string, updates: { text?: string; isCorrect?: boolean; brandAligned?: boolean }) => {
     if (!currentScene) return;
     const newChoices = currentScene.choices.map(c => 
       c.id === choiceId ? { ...c, ...updates } : c
     );
     updateScene({ choices: newChoices });
-  };
-
-  const handleAiRemix = async () => {
-    if (!currentScene) return;
-    setIsRemixing(true);
-    
-    await new Promise(r => setTimeout(r, 1500));
-    
-    const brandContext = formData.name || 'your brand';
-    const actionCue = currentSubCompetency?.action_cue || '';
-    const updatedQuestion = `Based on the mission: "${actionCue}" - ${currentScene.question.replace(/scenario|situation/gi, `${brandContext} challenge`)}`;
-    
-    updateScene({ question: updatedQuestion });
-    toast.success('Scene remixed with brand context and Action Cue!');
-    setIsRemixing(false);
   };
 
   // Render Step-Based Properties
@@ -341,6 +350,7 @@ export function StudioPropertiesSidebar({
     </div>
   );
 
+  // ====== CREATOR COMMAND CENTER (3-Layer Architecture) ======
   const renderGameplayProperties = () => {
     if (!currentScene) {
       return (
@@ -355,8 +365,280 @@ export function StudioPropertiesSidebar({
     }
 
     return (
-      <div className="space-y-5">
-        {/* RESET TO DEFAULT - Prominent at top */}
+      <div className="space-y-4">
+        {/* ===== LAYER 1: SCENE AI COMMAND (Primary Interface) ===== */}
+        <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-primary/30 bg-primary/5' : 'border-primary/20 bg-primary/5'}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 rounded-lg bg-primary/20">
+              <Wand2 className="h-4 w-4 text-primary" />
+            </div>
+            <span className={`text-sm font-semibold ${textColor}`}>Scene AI Command</span>
+          </div>
+          
+          <p className={`text-xs ${mutedColor} mb-3`}>
+            One sentence to pre-fill this scene. AI only affects local content—
+            <span className="text-amber-500 font-medium"> never Header, Footer, or Layout.</span>
+          </p>
+          
+          <Textarea
+            value={sceneAiPrompt}
+            onChange={(e) => setSceneAiPrompt(e.target.value)}
+            className={`resize-none ${inputBg} text-sm`}
+            rows={2}
+            placeholder="e.g., Make this a high-stakes retail scenario with pink accents..."
+          />
+          
+          <Button
+            onClick={handleSceneAiCommand}
+            disabled={isAiProcessing || !sceneAiPrompt.trim()}
+            className="w-full mt-3 bg-primary text-primary-foreground"
+          >
+            {isAiProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Apply to Scene {currentSceneIndex}
+              </>
+            )}
+          </Button>
+          
+          {/* Global DNA Lock Indicator */}
+          <div className={`mt-3 p-2 rounded-lg ${isDarkMode ? 'bg-amber-500/10' : 'bg-amber-50'} border ${isDarkMode ? 'border-amber-500/20' : 'border-amber-200'}`}>
+            <div className="flex items-center gap-2">
+              <Shield className="h-3.5 w-3.5 text-amber-500" />
+              <span className="text-[10px] font-medium text-amber-600">Global DNA Locked</span>
+            </div>
+            <p className="text-[10px] text-amber-600/80 mt-1">
+              Header • Footer • 60Hz Telemetry • 30/50/20 Layout
+            </p>
+          </div>
+        </div>
+
+        {/* ===== LAYER 2: ADVANCED MANUAL CONTROLS (Collapsed by Default) ===== */}
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="advanced" className={`border rounded-lg ${borderColor}`}>
+            <AccordionTrigger className={`px-4 py-3 hover:no-underline ${textColor}`}>
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Advanced Manual Controls</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-4">
+                {/* Content Fields Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-3.5 w-3.5 text-primary" />
+                    <Label className={`text-xs font-medium ${textColor}`}>Content Fields</Label>
+                  </div>
+                  
+                  {/* Action Cue (Editable) */}
+                  <div className="space-y-1.5">
+                    <Label className={`text-xs ${mutedColor}`}>Action Cue</Label>
+                    <Textarea
+                      value={currentSubCompetency?.action_cue || ''}
+                      readOnly
+                      className={`resize-none text-sm ${inputBg} opacity-70`}
+                      rows={2}
+                    />
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Lock className="h-2.5 w-2.5" />
+                      Linked to DNA Library
+                    </p>
+                  </div>
+                  
+                  {/* Scenario (Editable Question) */}
+                  <div className="space-y-1.5">
+                    <Label className={`text-xs ${mutedColor}`}>Scenario</Label>
+                    <Textarea
+                      value={currentScene.question}
+                      onChange={(e) => updateScene({ question: e.target.value })}
+                      className={`resize-none text-sm ${inputBg}`}
+                      rows={3}
+                      placeholder="Enter the scene scenario..."
+                    />
+                  </div>
+                  
+                  {/* PXP Value Selector */}
+                  <div className="space-y-1.5">
+                    <Label className={`text-xs ${mutedColor}`}>PXP Value</Label>
+                    <div className="flex gap-2">
+                      {(Object.keys(XP_VALUES) as XPLevel[]).map((level) => (
+                        <button
+                          key={level}
+                          onClick={() => setSelectedXPLevel(level)}
+                          className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            selectedXPLevel === level
+                              ? 'bg-primary text-primary-foreground'
+                              : isDarkMode ? 'bg-white/5 text-white/70 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {level}: {XP_VALUES[level]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Choice Editor Section */}
+                <div className="space-y-3 pt-3 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-3.5 w-3.5 text-primary" />
+                      <Label className={`text-xs font-medium ${textColor}`}>Choice Editor</Label>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={addChoice}
+                      disabled={currentScene.choices.length >= 10}
+                      className="h-7 text-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                  
+                  <p className={`text-[10px] ${mutedColor}`}>
+                    ✓ = Scientific Correct (hidden) • 🏷️ = Brand-Aligned (visible)
+                  </p>
+
+                  <div className="space-y-2">
+                    {currentScene.choices.map((choice, idx) => (
+                      <div key={choice.id} className={`p-2.5 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-[10px] font-medium ${mutedColor}`}>#{idx + 1}</span>
+                          <Input
+                            value={choice.text}
+                            onChange={(e) => updateChoice(choice.id, { text: e.target.value })}
+                            className={`text-sm h-8 flex-1 ${inputBg}`}
+                            placeholder={`Choice ${idx + 1}...`}
+                          />
+                          <button
+                            onClick={() => removeChoice(choice.id)}
+                            disabled={currentScene.choices.length <= 2}
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                              currentScene.choices.length <= 2 
+                                ? 'opacity-30 cursor-not-allowed' 
+                                : 'hover:bg-red-500/10 text-red-400'
+                            }`}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                        
+                        {/* Alignment Checkboxes */}
+                        <div className="flex items-center gap-4 pl-4">
+                          {/* Scientific Correct (Hidden from creator in final UI, shown here for testing) */}
+                          <div className="flex items-center gap-1.5">
+                            <Checkbox
+                              id={`correct-${choice.id}`}
+                              checked={choice.isCorrect}
+                              onCheckedChange={(checked) => updateChoice(choice.id, { isCorrect: !!checked })}
+                              className="h-3.5 w-3.5"
+                            />
+                            <label 
+                              htmlFor={`correct-${choice.id}`} 
+                              className={`text-[10px] ${mutedColor} flex items-center gap-1`}
+                            >
+                              <EyeOff className="h-2.5 w-2.5" />
+                              Scientific
+                            </label>
+                          </div>
+                          
+                          {/* Brand-Aligned (Visible to creator) */}
+                          <div className="flex items-center gap-1.5">
+                            <Checkbox
+                              id={`brand-${choice.id}`}
+                              checked={choice.brandAligned || false}
+                              onCheckedChange={(checked) => updateChoice(choice.id, { brandAligned: !!checked })}
+                              className="h-3.5 w-3.5 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                            />
+                            <label 
+                              htmlFor={`brand-${choice.id}`} 
+                              className={`text-[10px] ${mutedColor} flex items-center gap-1`}
+                            >
+                              <Eye className="h-2.5 w-2.5" />
+                              Brand-Aligned
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Time Limit */}
+                <div className="space-y-2 pt-3 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+                  <Label className={`text-xs ${mutedColor}`}>Time Limit</Label>
+                  <div className="flex gap-2">
+                    {[30, 45, 60].map((time) => (
+                      <button
+                        key={time}
+                        onClick={() => updateScene({ timeLimit: time as 30 | 45 | 60 })}
+                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                          currentScene.timeLimit === time
+                            ? 'bg-primary text-primary-foreground'
+                            : isDarkMode ? 'bg-white/5 text-white/70 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {time}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color Remix */}
+                <div className="space-y-3 pt-3 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-3.5 w-3.5 text-primary" />
+                    <Label className={`text-xs ${textColor}`}>Brand Color Remix</Label>
+                  </div>
+                  <ColorRemixPanel
+                    primaryColor={designSettings.primary}
+                    secondaryColor={designSettings.secondary}
+                    accentColor={designSettings.accent}
+                    backgroundColor={designSettings.background}
+                    isDarkMode={isDarkMode}
+                    onRemix={(colors) => {
+                      setDesignSettings({ 
+                        ...designSettings, 
+                        primary: colors.primary,
+                        secondary: colors.secondary,
+                        accent: colors.accent,
+                        background: colors.background
+                      });
+                      document.documentElement.style.setProperty('--brand-primary', colors.primary);
+                      document.documentElement.style.setProperty('--brand-secondary', colors.secondary);
+                      document.documentElement.style.setProperty('--brand-accent', colors.accent);
+                      document.documentElement.style.setProperty('--brand-background', colors.background);
+                    }}
+                  />
+                </div>
+
+                {/* Locked Framework Data */}
+                {currentSubCompetency && (
+                  <div className="space-y-2 pt-3 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Lock className="h-3.5 w-3.5 text-amber-600" />
+                      <span className={`text-xs font-medium ${mutedColor}`}>Locked C-BEN Data</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <LockedField label="Mechanic" value={currentSubCompetency.game_mechanic} isDarkMode={isDarkMode} />
+                      <LockedField label="Validator" value={currentSubCompetency.validator_type} isDarkMode={isDarkMode} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        {/* ===== LAYER 3: RESET TO DEFAULT (Bottom) ===== */}
         <Button
           variant="outline"
           size="sm"
@@ -366,184 +648,6 @@ export function StudioPropertiesSidebar({
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset to Default
         </Button>
-
-        <SectionHeader icon={Gamepad2} label={`Scene ${currentSceneIndex}`} isDarkMode={isDarkMode} />
-
-        {/* EDITABLE Action Cue (Data Panel) */}
-        <div className="space-y-2">
-          <Label className={mutedColor}>Action Cue</Label>
-          <Textarea
-            value={currentSubCompetency?.action_cue || ''}
-            readOnly
-            className={`resize-none ${inputBg} opacity-70`}
-            rows={2}
-            placeholder="Action cue from framework..."
-          />
-          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <Lock className="h-2.5 w-2.5" />
-            Linked to DNA Library
-          </p>
-        </div>
-
-        {/* LOCKED Framework Data */}
-        {currentSubCompetency && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 mb-2">
-              <Lock className="h-3.5 w-3.5 text-amber-600" />
-              <span className={`text-xs font-medium ${mutedColor}`}>Locked C-BEN Data</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <LockedField label="Mechanic" value={currentSubCompetency.game_mechanic} isDarkMode={isDarkMode} />
-              <LockedField label="Validator" value={currentSubCompetency.validator_type} isDarkMode={isDarkMode} />
-            </div>
-          </div>
-        )}
-
-        {/* Editable Question / Prompt */}
-        <div className="space-y-2">
-          <Label className={mutedColor}>Question / Prompt</Label>
-          <Textarea
-            value={currentScene.question}
-            onChange={(e) => updateScene({ question: e.target.value })}
-            className={`resize-none ${inputBg}`}
-            rows={3}
-            placeholder="Enter the scene question..."
-          />
-        </div>
-
-        {/* Dynamic Choices (2-10) */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className={mutedColor}>Choices ({currentScene.choices.length}/10)</Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={addChoice}
-              disabled={currentScene.choices.length >= 10}
-              className="h-7 text-xs"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {currentScene.choices.map((choice, idx) => (
-              <div key={choice.id} className="flex items-center gap-2">
-                <div className="flex-1">
-                  <Input
-                    value={choice.text}
-                    onChange={(e) => updateChoice(choice.id, { text: e.target.value })}
-                    className={`text-sm h-9 ${inputBg}`}
-                    placeholder={`Choice ${idx + 1}...`}
-                  />
-                </div>
-                <button
-                  onClick={() => updateChoice(choice.id, { isCorrect: !choice.isCorrect })}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${
-                    choice.isCorrect 
-                      ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' 
-                      : isDarkMode ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-400'
-                  }`}
-                  title={choice.isCorrect ? 'Correct answer' : 'Mark as correct'}
-                >
-                  ✓
-                </button>
-                <button
-                  onClick={() => removeChoice(choice.id)}
-                  disabled={currentScene.choices.length <= 2}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-                    currentScene.choices.length <= 2 
-                      ? 'opacity-30 cursor-not-allowed' 
-                      : 'hover:bg-red-500/10 text-red-400'
-                  }`}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Time Limit */}
-        <div className="space-y-2">
-          <Label className={mutedColor}>Time Limit</Label>
-          <div className="flex gap-2">
-            {[30, 45, 60].map((time) => (
-              <button
-                key={time}
-                onClick={() => updateScene({ timeLimit: time as 30 | 45 | 60 })}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  currentScene.timeLimit === time
-                    ? 'bg-primary text-primary-foreground'
-                    : isDarkMode ? 'bg-white/5 text-white/70 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {time}s
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-          <div className="flex items-center gap-2">
-            <Palette className="h-4 w-4 text-primary" />
-            <Label className={textColor}>Brand Color Remix</Label>
-          </div>
-          <ColorRemixPanel
-            primaryColor={designSettings.primary}
-            secondaryColor={designSettings.secondary}
-            accentColor={designSettings.accent}
-            backgroundColor={designSettings.background}
-            isDarkMode={isDarkMode}
-            onRemix={(colors) => {
-              setDesignSettings({ 
-                ...designSettings, 
-                primary: colors.primary,
-                secondary: colors.secondary,
-                accent: colors.accent,
-                background: colors.background
-              });
-              // Update CSS variables globally (both brand and Tailwind tokens)
-              document.documentElement.style.setProperty('--brand-primary', colors.primary);
-              document.documentElement.style.setProperty('--brand-secondary', colors.secondary);
-              document.documentElement.style.setProperty('--brand-accent', colors.accent);
-              document.documentElement.style.setProperty('--brand-background', colors.background);
-            }}
-          />
-        </div>
-
-        {/* LOCAL AI ADJUSTMENTS - Single Scene Only */}
-        <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-          <div className="flex items-center gap-2">
-            <Wand2 className="h-4 w-4 text-primary" />
-            <Label className={textColor}>Local Adjustments</Label>
-          </div>
-          <p className={`text-xs ${mutedColor}`}>
-            Only affects this scene. Changes won't propagate.
-          </p>
-          <Textarea
-            value={localAiPrompt}
-            onChange={(e) => setLocalAiPrompt(e.target.value)}
-            className={`resize-none ${inputBg}`}
-            rows={2}
-            placeholder="e.g., Make the tone more urgent..."
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLocalAiAdjust}
-            disabled={isLocalAiProcessing || !localAiPrompt.trim()}
-            className="w-full"
-          >
-            {isLocalAiProcessing ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4 mr-2" />
-            )}
-            Apply to This Scene
-          </Button>
-        </div>
       </div>
     );
   };
@@ -601,6 +705,18 @@ export function StudioPropertiesSidebar({
           placeholder="Keep practicing! Review the competency areas..."
           defaultValue="Keep practicing! You can try again."
         />
+      </div>
+
+      {/* Proof Receipt Delta Indicator */}
+      <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
+        <div className="flex items-center gap-2 mb-2">
+          <Zap className="h-4 w-4 text-blue-500" />
+          <span className={`text-sm font-medium ${textColor}`}>Proof Receipt Logic</span>
+        </div>
+        <p className={`text-xs ${mutedColor}`}>
+          Scene 7 will show the delta between <span className="font-medium">Scientific Logic</span> (proficiency) 
+          and <span className="font-medium">Brand Alignment</span> (cultural fit) to surface performance gaps.
+        </p>
       </div>
 
       <div className="space-y-3 pt-4 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
@@ -669,7 +785,12 @@ export function StudioPropertiesSidebar({
     <div className={`h-full ${bgColor} border-l ${borderColor} backdrop-blur-xl flex flex-col`}>
       {/* Sidebar Header */}
       <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between`}>
-        <span className={`text-sm font-medium ${textColor}`}>Properties</span>
+        <span className={`text-sm font-medium ${textColor}`}>
+          {currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 
+            ? 'Command Center' 
+            : 'Properties'
+          }
+        </span>
         <Badge variant="outline" className="text-xs">
           {currentStep === 4 
             ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === 7 ? 'Results' : `Scene ${currentSceneIndex}`)

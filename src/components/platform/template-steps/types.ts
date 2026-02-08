@@ -25,7 +25,8 @@ export interface SceneData {
 export interface ChoiceData {
   id: string;
   text: string;
-  isCorrect: boolean;
+  isCorrect: boolean;       // Scientific correct answer (hidden from creator, used for proficiency scoring)
+  brandAligned?: boolean;   // Brand-aligned answer (visible to creator, for alignment tracking)
 }
 
 export interface DesignSettings {
