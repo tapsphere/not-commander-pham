@@ -196,7 +196,7 @@ Return ONLY the JSON structure as specified.`;
 
     // Fetch Excel file from Supabase Storage
     console.log('Fetching framework Excel file...');
-    const excelUrl = `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/framework-files/CBEN_PlayOps_Framework_Finale.xlsx`;
+    const excelUrl = `${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/framework-files/CBEN_PlayOps_Framework_Finale_V5.xlsx`;
     
     let fileData;
     try {

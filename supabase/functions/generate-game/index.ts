@@ -60,7 +60,7 @@ serve(async (req) => {
     // LEAN AI GENERATION SYSTEM PROMPT
     // ═══════════════════════════════════════════════════════════════
     
-    // PlayOps Framework Integration (from CBEN_PlayOps_Framework_Finale-2.xlsx)
+    // PlayOps Framework Integration (from CBEN_PlayOps_Framework_Finale_V5.xlsx)
     let playOpsInstructions = '';
     if (subCompetencies && subCompetencies.length > 0) {
       playOpsInstructions = `
@@ -130,7 +130,7 @@ window.__CONFIG__ = {
     SessionsL3: 3
   },
   xp: {
-    // PlayOps Framework (CBEN_PlayOps_Framework_Finale-2.xlsx Page 4)
+    // PlayOps Framework (CBEN_PlayOps_Framework_Finale_V5.xlsx Tab 4)
     L1: 100,  // Needs Work
     L2: 250,  // Proficient
     L3: 500   // Mastery
