@@ -1,10 +1,158 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Search, Sparkles, X, Brain, Target, Users, TrendingUp, MessageCircle, Shield, Lightbulb, Heart, Scale, BookOpen, Briefcase, BarChart3, Megaphone, Palette, Code, Handshake, Zap } from 'lucide-react';
+import { Search, Sparkles, X, Brain, Target, Users, TrendingUp, MessageCircle, Shield, Lightbulb, Heart, Scale, BookOpen, Briefcase, BarChart3, Megaphone, Palette, Code, Handshake, Zap, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Competency } from './types';
+
+// ===== SMART SEARCH CONFIGURATION =====
+// The search uses a "Strict Population Filter" - users can describe skills in any way,
+// but the system ONLY records the official C-BEN Competency name from Column B.
+
+// Domain terms (Column A) that should NEVER be populated directly
+// Instead, show competencies within that domain
+const DOMAIN_TERMS: Record<string, string[]> = {
+  'cognitive & analytical': ['Analytical Thinking', 'Critical Reasoning', 'Problem Solving'],
+  'cognitive': ['Analytical Thinking', 'Critical Reasoning', 'Problem Solving'],
+  'analytical': ['Analytical Thinking', 'Critical Reasoning'],
+  'social & interpersonal': ['Communication & Interpersonal Fluency', 'Team Connection', 'Emotional Intelligence & Self-Management'],
+  'social': ['Communication & Interpersonal Fluency', 'Team Connection'],
+  'interpersonal': ['Communication & Interpersonal Fluency', 'Team Connection'],
+  'personal & behavioral': ['Adaptive Mindset & Resilience', 'Initiative', 'Ethical & Purpose-Driven Leadership'],
+  'personal': ['Adaptive Mindset & Resilience', 'Initiative'],
+  'behavioral': ['Adaptive Mindset & Resilience', 'Initiative'],
+  'leadership & management': ['Coaching & Mentorship', 'Ethical & Purpose-Driven Leadership', 'Team Connection'],
+  'leadership': ['Coaching & Mentorship', 'Ethical & Purpose-Driven Leadership'],
+  'management': ['Coaching & Mentorship', 'Team Connection'],
+  'creative & innovation': ['Creative Thinking', 'Problem Solving'],
+  'creative': ['Creative Thinking'],
+  'innovation': ['Creative Thinking', 'Problem Solving'],
+};
+
+// Mechanic terms (Column F) that should NEVER be populated
+// These are interaction patterns, not competencies
+const MECHANIC_TERMS = [
+  'pattern grid', 'decision tree', 'noise filter', 'alignment puzzle',
+  'sequence validator', 'constraint puzzle', 'headline picker',
+  'diagnostic panel', 'trade-off eval', 'data panel', 'quick tap',
+  'drag', 'scrub', 'slider', 'swipe', 'toggle'
+];
+
+// Fuzzy match synonyms - maps user-friendly terms to official C-BEN names (Column B)
+const FUZZY_SYNONYMS: Record<string, string> = {
+  // Analytical variations
+  'analyzing': 'Analytical Thinking',
+  'analysing': 'Analytical Thinking',
+  'analytical': 'Analytical Thinking',
+  'analyze': 'Analytical Thinking',
+  'analyse': 'Analytical Thinking',
+  'analysis': 'Analytical Thinking',
+  'analytic': 'Analytical Thinking',
+  'analyzing things': 'Analytical Thinking',
+  'analytical stuff': 'Analytical Thinking',
+  'analytics': 'Analytical Thinking',
+  'data thinking': 'Analytical Thinking',
+  
+  // Critical Reasoning variations
+  'critical': 'Critical Reasoning',
+  'reasoning': 'Critical Reasoning',
+  'critical thinking': 'Critical Reasoning',
+  'logic': 'Critical Reasoning',
+  'logical': 'Critical Reasoning',
+  'evaluation': 'Critical Reasoning',
+  'evaluating': 'Critical Reasoning',
+  
+  // Problem Solving variations
+  'problem': 'Problem Solving',
+  'problems': 'Problem Solving',
+  'solving': 'Problem Solving',
+  'solutions': 'Problem Solving',
+  'troubleshooting': 'Problem Solving',
+  'fixing': 'Problem Solving',
+  'debugging': 'Problem Solving',
+  
+  // Communication variations
+  'communication': 'Communication & Interpersonal Fluency',
+  'communicating': 'Communication & Interpersonal Fluency',
+  'talking': 'Communication & Interpersonal Fluency',
+  'speaking': 'Communication & Interpersonal Fluency',
+  'presenting': 'Communication & Interpersonal Fluency',
+  'presentation': 'Communication & Interpersonal Fluency',
+  'interpersonal': 'Communication & Interpersonal Fluency',
+  'client handling': 'Communication & Interpersonal Fluency',
+  'customer service': 'Communication & Interpersonal Fluency',
+  
+  // Team Connection variations
+  'team': 'Team Connection',
+  'teamwork': 'Team Connection',
+  'collaboration': 'Team Connection',
+  'collaborating': 'Team Connection',
+  'coordinating': 'Team Connection',
+  'coordination': 'Team Connection',
+  
+  // Adaptive variations
+  'adaptability': 'Adaptive Mindset & Resilience',
+  'adapting': 'Adaptive Mindset & Resilience',
+  'adaptive': 'Adaptive Mindset & Resilience',
+  'resilience': 'Adaptive Mindset & Resilience',
+  'resilient': 'Adaptive Mindset & Resilience',
+  'flexibility': 'Adaptive Mindset & Resilience',
+  'flexible': 'Adaptive Mindset & Resilience',
+  'change': 'Adaptive Mindset & Resilience',
+  'stress': 'Adaptive Mindset & Resilience',
+  
+  // Creative variations
+  'creativity': 'Creative Thinking',
+  'creative': 'Creative Thinking',
+  'ideation': 'Creative Thinking',
+  'brainstorming': 'Creative Thinking',
+  'innovation': 'Creative Thinking',
+  'innovating': 'Creative Thinking',
+  'innovative': 'Creative Thinking',
+  'design thinking': 'Creative Thinking',
+  
+  // Emotional Intelligence variations
+  'emotional': 'Emotional Intelligence & Self-Management',
+  'emotions': 'Emotional Intelligence & Self-Management',
+  'empathy': 'Emotional Intelligence & Self-Management',
+  'empathetic': 'Emotional Intelligence & Self-Management',
+  'self-awareness': 'Emotional Intelligence & Self-Management',
+  'self awareness': 'Emotional Intelligence & Self-Management',
+  'eq': 'Emotional Intelligence & Self-Management',
+  
+  // Ethics variations
+  'ethics': 'Ethical & Purpose-Driven Leadership',
+  'ethical': 'Ethical & Purpose-Driven Leadership',
+  'integrity': 'Ethical & Purpose-Driven Leadership',
+  'values': 'Ethical & Purpose-Driven Leadership',
+  'purpose': 'Ethical & Purpose-Driven Leadership',
+  'governance': 'Ethical & Purpose-Driven Leadership',
+  
+  // Coaching variations
+  'coaching': 'Coaching & Mentorship',
+  'mentoring': 'Coaching & Mentorship',
+  'mentorship': 'Coaching & Mentorship',
+  'training': 'Coaching & Mentorship',
+  'teaching': 'Coaching & Mentorship',
+  'developing people': 'Coaching & Mentorship',
+  
+  // Initiative variations
+  'initiative': 'Initiative',
+  'proactive': 'Initiative',
+  'self-starter': 'Initiative',
+  'self starter': 'Initiative',
+  'entrepreneurial': 'Initiative',
+  'ownership': 'Initiative',
+  
+  // Feedback variations
+  'feedback': 'Feedback & Reflection',
+  'reflection': 'Feedback & Reflection',
+  'reflecting': 'Feedback & Reflection',
+  'learning': 'Feedback & Reflection',
+  'growth mindset': 'Feedback & Reflection',
+  'continuous improvement': 'Feedback & Reflection',
+};
 
 // Creator-friendly tags for each competency category - maps scientific names to role contexts
 const CREATOR_TAGS: Record<string, { tag: string; icon: React.ElementType; color: string }> = {
@@ -258,12 +406,49 @@ export function CompetencyAISearch({
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  // Enhanced semantic search function with industry/role mapping
+  // ===== SMART SEARCH with Strict Population Filter =====
+  // Goal: User can "describe" the skill, but system only "records" the official C-BEN Competency name
   const semanticSearch = useCallback((query: string): SearchResult[] => {
     if (!query.trim()) return [];
 
     const queryLower = query.toLowerCase().trim();
     const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+
+    // ===== CHECK 1: Is this a MECHANIC term? Block it. =====
+    const isMechanicTerm = MECHANIC_TERMS.some(mechanic => 
+      queryLower.includes(mechanic) || mechanic.includes(queryLower)
+    );
+    if (isMechanicTerm) {
+      // Return empty - mechanics should not populate competency field
+      // User should search for what skill they want to test, not how to test it
+      return [];
+    }
+
+    // ===== CHECK 2: Is this a DOMAIN term (Column A)? =====
+    // If so, return competencies within that domain instead
+    let domainCompetencies: string[] = [];
+    for (const [domainTerm, competencyNames] of Object.entries(DOMAIN_TERMS)) {
+      if (queryLower.includes(domainTerm) || domainTerm.includes(queryLower)) {
+        domainCompetencies = [...new Set([...domainCompetencies, ...competencyNames])];
+      }
+    }
+
+    // ===== CHECK 3: Fuzzy synonym matching =====
+    // Check if user typed a synonym/variant of a competency name
+    let fuzzyMatchedCompetency: string | null = null;
+    for (const [synonym, competencyName] of Object.entries(FUZZY_SYNONYMS)) {
+      // Check for exact match or if query contains the synonym
+      if (queryLower === synonym || queryLower.includes(synonym)) {
+        fuzzyMatchedCompetency = competencyName;
+        break;
+      }
+      // Also check if synonym words appear in query
+      const synonymWords = synonym.split(/\s+/);
+      if (synonymWords.length > 1 && synonymWords.every(sw => queryLower.includes(sw))) {
+        fuzzyMatchedCompetency = competencyName;
+        break;
+      }
+    }
 
     // First, check for direct industry term matches
     const matchedIndustry = Object.keys(INDUSTRY_COMPETENCY_MAP).find(industry => 
@@ -278,6 +463,20 @@ export function CompetencyAISearch({
 
       // Get semantic data for this competency
       const semanticData = SEMANTIC_MAPPINGS[comp.name];
+
+      // ===== FUZZY MATCH PRIORITY (highest) =====
+      // If user typed a variant like "analyzing things", boost the matching competency
+      if (fuzzyMatchedCompetency === comp.name) {
+        score += 300; // Highest priority - this IS what they're looking for
+        customMatchReason = `Matches your search for "${query}"`;
+      }
+
+      // ===== DOMAIN TERM MATCHING =====
+      // If user searched a domain (Column A), show competencies within that domain
+      if (domainCompetencies.length > 0 && domainCompetencies.includes(comp.name)) {
+        score += 200;
+        customMatchReason = `Part of the ${Object.keys(DOMAIN_TERMS).find(d => DOMAIN_TERMS[d].includes(comp.name)) || 'related'} category`;
+      }
 
       // ===== INDUSTRY TERM MATCHING (e.g., "Marketing" -> Strategic Communication) =====
       if (matchedIndustry) {
@@ -450,7 +649,10 @@ export function CompetencyAISearch({
             <div className="p-2 border-b border-border bg-muted/30">
               <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Sparkles className="h-3 w-3 text-primary" />
-                AI matched {searchResults.length} scientific competencies to "{searchQuery}"
+                Smart Search matched {searchResults.length} C-BEN competencies to "{searchQuery}"
+              </p>
+              <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                Only official competency names (Column B) are populated
               </p>
             </div>
             <div className="p-2 space-y-1">
@@ -506,18 +708,33 @@ export function CompetencyAISearch({
           </div>
         )}
 
-        {/* No Results State with Fallback Categories */}
+        {/* No Results State - with special messaging for mechanic terms */}
         {isFocused && searchQuery && searchResults.length === 0 && searchQuery.length > 2 && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-xl shadow-lg z-50 p-4">
-            <div className="text-center mb-4">
-              <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No exact matches for "{searchQuery}"
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Try describing the behavior or skill you want to test
-              </p>
-            </div>
+            {/* Check if this was a mechanic term search */}
+            {MECHANIC_TERMS.some(m => searchQuery.toLowerCase().includes(m)) ? (
+              <div className="text-center mb-4">
+                <AlertCircle className="h-8 w-8 text-amber-500 mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground">
+                  "{searchQuery}" is a game mechanic, not a competency
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  <strong>Tip:</strong> Search for the <em>skill</em> you want to test (e.g., "analytical thinking", "communication").
+                  <br />
+                  The game mechanic will be auto-assigned based on the competency you select.
+                </p>
+              </div>
+            ) : (
+              <div className="text-center mb-4">
+                <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  No exact matches for "{searchQuery}"
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Try describing the behavior or skill you want to test
+                </p>
+              </div>
+            )}
             
             {/* Fallback Category Suggestions */}
             {fallbackCategories.length > 0 && (
