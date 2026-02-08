@@ -44,6 +44,9 @@ export interface ChoiceData {
   // Visual choice fields
   icon?: VisualChoiceIcon;  // Lucide icon name for visual mode
   iconLabel?: string;       // Short label under the icon (e.g., "Shoes")
+  // High-fidelity asset fields
+  imageUrl?: string;        // Uploaded brand asset URL (takes priority over icon)
+  imageLabel?: string;      // Label for uploaded image (e.g., "Gucci Purse")
 }
 
 export interface DesignSettings {
