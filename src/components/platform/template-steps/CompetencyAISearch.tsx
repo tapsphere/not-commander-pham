@@ -7,22 +7,30 @@ import { cn } from '@/lib/utils';
 import { Competency } from './types';
 import { useCompetencySearch, CompetencySearchResult } from '@/hooks/useCompetencySearch';
 
-// ===== DATABASE-DRIVEN SMART SEARCH =====
-// All competency data now comes from Supabase tables:
-// - master_competencies (Column B: name, Column A: cbe_category)
-// - sub_competencies (Column C: linked to competency_id)
-// NO HARDCODED MAPPINGS - Database is the only source of truth
+// ===== HIERARCHICAL BEST-MATCH SEARCH =====
+// Smart Search Pool: Searches Column A (Domain), Column B (Competency), Departments
+// Strict Population: ONLY Column B (Competency Name) can be selected
+// Database is the ONLY source of truth - NO hardcoded competency data
+//
+// Flow:
+// 1. User types "analyzing" or "data stuff" → Smart match finds "Analytical Thinking"
+// 2. User types "Sales" (domain) → Shows competencies IN that domain, not "Sales" itself
+// 3. User types "Pattern Grid" (mechanic) → Blocked with helpful message
+// 4. Selection → Fetches 6 sub-competencies from Column C for scene building
 
-// Mechanic terms that should NOT be populated - these are interaction patterns, not competencies
-// These are still validated client-side to provide helpful error messages
+// ===== MECHANIC BLOCKLIST =====
+// Game mechanics are interaction patterns, NOT competencies
+// If user searches these, show guidance to search for skills instead
 const MECHANIC_TERMS = [
   'pattern grid', 'decision tree', 'noise filter', 'alignment puzzle',
   'sequence validator', 'constraint puzzle', 'headline picker',
   'diagnostic panel', 'trade-off eval', 'data panel', 'quick tap',
-  'drag', 'scrub', 'slider', 'swipe', 'toggle'
+  'drag', 'scrub', 'slider', 'swipe', 'toggle', 'tap', 'connect',
+  'visual grid', 'tradeoff matrix', 'swipe card'
 ];
 
-// Creator-friendly tags for each competency - maps to role contexts for better UX
+// ===== CREATOR-FRIENDLY ROLE TAGS =====
+// Helps creators understand which competencies fit which job contexts
 const CREATOR_TAGS: Record<string, { tag: string; icon: React.ElementType; color: string }> = {
   'Analytical Thinking': { tag: 'Best for Data Roles', icon: Brain, color: 'text-blue-500' },
   'Critical Reasoning': { tag: 'Decision Makers', icon: Target, color: 'text-purple-500' },
