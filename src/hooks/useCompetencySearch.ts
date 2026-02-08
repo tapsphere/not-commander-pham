@@ -130,10 +130,20 @@ export function useCompetencySearch() {
   /**
    * Fuzzy string matching with intent detection - calculates similarity score
    * Uses synonym mapping to understand user intent
+   * 
+   * STRICT RULES:
+   * - Do NOT match numeric IDs (1, 2, 3, etc.)
+   * - Only match against text in Column A (domain), Column B (competency name), and Departments
    */
   const fuzzyMatch = useCallback((query: string, target: string): number => {
     const q = query.toLowerCase().trim();
     const t = target.toLowerCase().trim();
+
+    // RULE: Skip pure numeric queries - we don't want ID matching
+    if (/^\d+$/.test(q)) return 0;
+    
+    // RULE: Skip if query is just 1-2 characters (too ambiguous)
+    if (q.length < 3) return 0;
 
     // Exact match - highest priority
     if (q === t) return 100;
@@ -148,20 +158,23 @@ export function useCompetencySearch() {
       }
     }
 
-    // Contains match
+    // Contains match - query is within target
     if (t.includes(q)) return 80;
-    if (q.includes(t)) return 70;
-
-    // Word overlap matching with stemming awareness
-    const queryWords = q.split(/\s+/).filter(w => w.length > 2);
+    
+    // Word-based matching (not character substring)
+    // Split into words and match whole words only
+    const queryWords = q.split(/\s+/).filter(w => w.length > 2 && !/^\d+$/.test(w));
     const targetWords = t.split(/\s+/).filter(w => w.length > 2);
+    
+    if (queryWords.length === 0) return 0;
     
     let matchCount = 0;
     queryWords.forEach(qw => {
-      // Check for partial/stem matches
+      // Check for word-level matches (not arbitrary substrings)
       if (targetWords.some(tw => 
-        tw.includes(qw) || qw.includes(tw) ||
-        tw.startsWith(qw.slice(0, 4)) || qw.startsWith(tw.slice(0, 4))
+        tw === qw || // Exact word match
+        tw.startsWith(qw) || qw.startsWith(tw) || // Prefix match for stemming
+        (qw.length >= 4 && tw.includes(qw)) // Substring only if 4+ chars
       )) {
         matchCount++;
       }
@@ -183,16 +196,31 @@ export function useCompetencySearch() {
    * 3. Fuzzy match against competency names
    * 4. NEVER return the domain/category itself - always return competency names (Column B)
    */
+  /**
+   * Main search function - queries database records with fuzzy matching
+   * 
+   * BLIND SEARCH RULES:
+   * 1. Search Pool: Match against Column A (domain), Column B (competency name), and Departments
+   * 2. Population Rule: ONLY populate with Column B competency names - never IDs or categories
+   * 3. No ID Matching: Disable fuzzy matching for numeric IDs (1, 2, 3, etc.)
+   * 4. Display: Show match reason separately, but bold text is ALWAYS the Column B name
+   */
   const search = useCallback((query: string): CompetencySearchResult[] => {
     if (!query.trim() || competencies.length === 0) return [];
 
     const queryLower = query.toLowerCase().trim();
+    
+    // RULE: Block pure numeric queries - we don't match ID numbers
+    if (/^\d+$/.test(queryLower)) return [];
+    
+    // RULE: Minimum 3 characters for search
+    if (queryLower.length < 3) return [];
+    
     const results: CompetencySearchResult[] = [];
-
-    // Track which competencies we've already added
     const addedIds = new Set<string>();
 
     // Helper to add a competency to results
+    // CRITICAL: Only adds the competency NAME (Column B), never IDs or category names
     const addResult = (
       comp: CompetencyFromDB, 
       score: number, 
@@ -202,59 +230,58 @@ export function useCompetencySearch() {
       if (addedIds.has(comp.id)) return;
       addedIds.add(comp.id);
 
+      // STRICT POPULATION: Only Column B name goes into results
       results.push({
         id: comp.id,
-        name: comp.name,
+        name: comp.name, // COLUMN B ONLY - the official competency name
         cbe_category: comp.cbe_category,
         departments: comp.departments,
         subCompetencies: subCompetencyMap.get(comp.id) || [],
         score,
-        matchReason,
+        matchReason, // This is display-only, not populated into the field
         matchType
       });
     };
 
-    // RULE 1: Check if query matches a category/domain (cbe_category)
-    // If so, return ALL competencies within that category
-    competencies.forEach(comp => {
-      const categoryMatch = fuzzyMatch(queryLower, comp.cbe_category);
-      if (categoryMatch >= 40) {
-        // This is a domain search - return competencies in this domain
-        addResult(
-          comp, 
-          categoryMatch + 50, // Boost for category match
-          `Part of "${comp.cbe_category}" domain`,
-          'category'
-        );
-      }
-    });
-
-    // RULE 2: Check if query matches a department
-    competencies.forEach(comp => {
-      const deptMatch = comp.departments?.some(dept => {
-        const deptLower = dept.toLowerCase();
-        return deptLower.includes(queryLower) || queryLower.includes(deptLower);
-      });
-
-      if (deptMatch) {
-        addResult(
-          comp,
-          80,
-          `Relevant for ${comp.departments.find(d => d.toLowerCase().includes(queryLower)) || 'this department'}`,
-          'department'
-        );
-      }
-    });
-
-    // RULE 3: Fuzzy match on competency name (Column B) - this is what gets populated
+    // PRIORITY 1: Direct name match on Column B (highest priority)
     competencies.forEach(comp => {
       const nameScore = fuzzyMatch(queryLower, comp.name);
       if (nameScore >= 30) {
         addResult(
           comp,
-          nameScore + 100, // Higher priority for direct name matches
-          nameScore >= 80 ? `Exact match: "${comp.name}"` : `Matches "${query}"`,
+          nameScore + 100, // Highest priority for Column B matches
+          nameScore >= 80 ? 'Exact match' : `Matches "${query}"`,
           nameScore >= 80 ? 'exact' : 'fuzzy'
+        );
+      }
+    });
+
+    // PRIORITY 2: Domain/category match (Column A) - returns competencies IN that domain
+    competencies.forEach(comp => {
+      const categoryMatch = fuzzyMatch(queryLower, comp.cbe_category);
+      if (categoryMatch >= 40) {
+        addResult(
+          comp, 
+          categoryMatch + 50,
+          `Found in domain: ${comp.cbe_category}`,
+          'category'
+        );
+      }
+    });
+
+    // PRIORITY 3: Department match - returns competencies relevant to that industry
+    competencies.forEach(comp => {
+      const matchedDept = comp.departments?.find(dept => {
+        const deptLower = dept.toLowerCase();
+        return deptLower.includes(queryLower) || queryLower.includes(deptLower);
+      });
+
+      if (matchedDept) {
+        addResult(
+          comp,
+          80,
+          `Relevant for ${matchedDept}`,
+          'department'
         );
       }
     });
