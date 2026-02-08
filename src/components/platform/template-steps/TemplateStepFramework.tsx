@@ -256,8 +256,26 @@ export function TemplateStepFramework({
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      {/* UNIFIED CREATIVE INPUT - Universal Start */}
-      {showEntryPort && !selectedCompetency && (
+      {/* HEADER - Logic Framework */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-2 mb-2">
+          <Lock className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Logic Framework</h2>
+          {entryPath && (
+            <Badge variant="outline" className="text-xs capitalize">
+              via {entryPath}
+            </Badge>
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {selectedCompetency 
+            ? 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'
+            : 'Search & Build — enter a theme, type a skill, or upload a PDF.'}
+        </p>
+      </div>
+
+      {/* HERO SEARCH BOX - Integrated into Layout */}
+      {!selectedCompetency && (
         <UnifiedCreativeInput
           competencies={competencies}
           subCompetencies={subCompetencies}
@@ -271,26 +289,9 @@ export function TemplateStepFramework({
         />
       )}
 
-      {/* MAIN FRAMEWORK UI */}
+      {/* MAIN FRAMEWORK UI - Always visible structure */}
       {showMainUI && (
         <>
-          {/* Header - Command Center */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 mb-2">
-              <Lock className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">Command Center</h2>
-              {entryPath && (
-                <Badge variant="outline" className="text-xs capitalize">
-                  via {entryPath}
-                </Badge>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {entryPath === 'manual' || !selectedCompetency
-                ? 'Search and select competencies to build your 6-scene structure.'
-                : 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'}
-            </p>
-          </div>
 
           {/* Existing Tracks Summary (if multi-track) */}
           {tracks.length > 0 && (

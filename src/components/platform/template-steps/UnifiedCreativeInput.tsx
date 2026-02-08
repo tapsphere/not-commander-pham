@@ -270,19 +270,8 @@ export function UnifiedCreativeInput({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header - Command Center Hero */}
-      <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 mb-2">
-          <Sparkles className="h-7 w-7 text-primary" />
-          <h2 className="text-2xl font-bold text-foreground">Command Center</h2>
-        </div>
-        <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-          Search & Build — enter a theme, type a skill, or upload a PDF. The AI handles the heavy lifting.
-        </p>
-      </div>
-
-      {/* Large Hero Command Box */}
+    <div className="space-y-4">
+      {/* Large Hero Command Box - The Focal Point */}
       <div className="relative">
         <textarea
           ref={textareaRef}
@@ -360,9 +349,7 @@ export function UnifiedCreativeInput({
         ) : (
           <>
             <Sparkles className="h-5 w-5 mr-2" />
-            {inputValue.trim() && inputValue.trim() !== FASHION_DEMO.activePrompt 
-              ? 'Generate 6-Scene Framework' 
-              : 'Launch Fashion Demo'}
+            Build 6-Scene Framework
             <ArrowRight className="h-5 w-5 ml-2" />
           </>
         )}
