@@ -1,11 +1,11 @@
 # BASE LAYER 1 = BAKED & LOCKED (v3.2)
 
-## C-BEN → PlayOps Dual Framework Aligned
+## Biometric Science Standard — 60Hz Telemetry Aligned
 
 **Last Updated:** February 2026  
 **Supersedes:** v3.1
 
-This document defines the non-negotiable structure for all validator mini-games. These requirements are LOCKED and must be followed exactly to ensure compliance with C-BEN competency standards, Triple-Gate scoring, biometric telemetry, and mobile optimization.
+This document defines the non-negotiable structure for all validator mini-games. These requirements are LOCKED and must be followed exactly to ensure compliance with C-BEN competency standards, Triple-Gate scoring, 60Hz biometric telemetry, and mobile optimization.
 
 ---
 
@@ -19,16 +19,16 @@ Each sub-competency is the **atomic unit of measurement**. One sub-competency = 
 
 Each competency consists of **exactly 6 sub-competency scenes** mapped from the Master DNA spreadsheet:
 
-| Scene | Content Source | Duration |
-|-------|----------------|----------|
-| Scene 0 | Intro Screen | N/A |
-| Scene 1 | Sub-Competency Row 1 | 30s max |
-| Scene 2 | Sub-Competency Row 2 | 30s max |
-| Scene 3 | Sub-Competency Row 3 | 30s max |
-| Scene 4 | Sub-Competency Row 4 | 30s max |
-| Scene 5 | Sub-Competency Row 5 | 30s max |
-| Scene 6 | Sub-Competency Row 6 | 30s max |
-| Final | Results Screen | N/A |
+| Scene | Content Source | Duration | Time Gate |
+|-------|----------------|----------|-----------|
+| Scene 0 | Intro Screen | N/A | N/A |
+| Scene 1 | Sub-Competency Row 1 | Dynamic | 30/45/60s |
+| Scene 2 | Sub-Competency Row 2 | Dynamic | 30/45/60s |
+| Scene 3 | Sub-Competency Row 3 | Dynamic | 30/45/60s |
+| Scene 4 | Sub-Competency Row 4 | Dynamic | 30/45/60s |
+| Scene 5 | Sub-Competency Row 5 | Dynamic | 30/45/60s |
+| Scene 6 | Sub-Competency Row 6 | Dynamic | 30/45/60s |
+| Final | Results Screen | N/A | N/A |
 
 ### Scene 0: Intro Screen
 
@@ -51,14 +51,14 @@ Each competency consists of **exactly 6 sub-competency scenes** mapped from the 
 
 ### Scene 1-6: Sub-Competency Validator Scenes
 
-**Purpose:** Each scene tests one atomic sub-competency with real-time telemetry
+**Purpose:** Each scene tests one atomic sub-competency with real-time 60Hz telemetry
 
 **Required elements:**
 - Clear prompt derived from **Column K: Action Cue** (Verb + Object + Condition)
 - Interactive mechanic from **Column L: Game Mechanic**
-- Mobile interaction from **Column M: Mobile Interaction**
+- Mobile interaction from **Column M: 60Hz Interaction**
 - Scoring logic from **Column N: Scoring Formula**
-- 30-second timer (Safety Gate)
+- Dynamic timer (30s/45s/60s from DNA Sheet)
 - Progress indicator showing scene X of 6
 
 **Data Mapping (Master DNA Columns K-N):**
@@ -67,7 +67,7 @@ Each competency consists of **exactly 6 sub-competency scenes** mapped from the 
 |--------|-------|-------------|
 | K | Action Cue | The specific observable behavior: Verb + Object + Condition |
 | L | Game Mechanic | The interactive structure (10 Approved Mechanics) |
-| M | Mobile Interaction | The touch-event used to gather 60Hz telemetry |
+| M | 60Hz Interaction | The touch-event used to gather biometric telemetry |
 | N | Scoring Formula | Triple-Gate logic (Accuracy + Time + Jitter) |
 
 ### Final: Results Screen
@@ -85,27 +85,35 @@ Each competency consists of **exactly 6 sub-competency scenes** mapped from the 
 
 ---
 
-## 2. TRIPLE-GATE SCORING SYSTEM (v3.2 LOCKED)
+## 2. TRIPLE-GATE SCORING SYSTEM (v3.2 BIOMETRIC)
 
-**DELETED:** All v3.1 "90%/60% accuracy" rules are superseded by the Triple-Gate system.
+**DELETED:** All v3.1 "90%/60% accuracy" rules are superseded by the Biometric Triple-Gate system.
 
 ### The Three Gates
 
 Every scene must pass **all three gates** for Level 3 (Mastery):
 
-| Gate | Name | Requirement |
-|------|------|-------------|
-| **Gate 1** | Accuracy | Correct action selected/performed |
-| **Gate 2** | Time | Complete within 30s Safety Gate |
-| **Gate 3** | Jitter/Stability | 60Hz telemetry shows steady motor control |
+| Gate | Name | Requirement | Measurement |
+|------|------|-------------|-------------|
+| **Gate 1** | Accuracy | Correct action selected/performed | Binary pass/fail |
+| **Gate 2** | Time | Complete within Dynamic Scene Limit (30/45/60s) | Pulled from DNA Sheet |
+| **Gate 3** | Stability | 60Hz telemetry shows steady motor control | Jitter standard deviation |
+
+### First Attempt Rule (CRITICAL)
+
+**Level 3 (Mastery) is ONLY available on the First Attempt.**
+
+- Any retry caps the result at Level 2 maximum
+- Any hint usage caps the result at Level 2 maximum
+- System tracks `first_attempt: boolean` per scene
 
 ### Performance Levels
 
 | Level | Label | Triple-Gate Requirement | XP (per scene) |
 |-------|-------|-------------------------|----------------|
-| **3** | Mastery | Gate 1 ✓ + Gate 2 ✓ + Gate 3 ✓ (First Attempt) | 100 |
-| **2** | Proficient | Gate 1 ✓ + Gate 2 ✓ + Gate 3 marginal OR required Retry/Hint | 60 |
-| **1** | Needs Work | Failed Gate 1 OR Gate 2 OR Gate 3 critical failure | 20 |
+| **3** | Mastery | Gate 1 ✓ + Gate 2 ✓ + Gate 3 ✓ (First Attempt) | 500 |
+| **2** | Proficient | Gate 1 ✓ + Gate 2 ✓ + Gate 3 marginal OR Retry/Hint used | 250 |
+| **1** | Needs Work | Failed Gate 1 OR Gate 2 OR Gate 3 critical failure | 100 |
 
 ### Competency Roll-Up Logic (6-Scene Rule)
 
@@ -117,18 +125,74 @@ Competency-level proficiency is determined **only after all 6 sub-competency val
 | **Proficient** | Green | 4-5/6 scenes cleared at Level 2+ |
 | **Needs Work** | Red | Any scene at Level 1 OR <4 scenes at Level 2+ |
 
-### Time Gates
+### Dynamic Time Gates
 
-- **Safety Gate (T_safety):** 30 seconds per scene (non-negotiable)
-- **Optimal Time:** Derived from mechanic complexity (typically 15-20s)
+Time limits are pulled from the DNA Sheet and vary by mechanic complexity:
+
+- **30 seconds:** Quick decisions (Quick Tap, Toggle)
+- **45 seconds:** Moderate complexity (Slider, Multi-Tap)
+- **60 seconds:** Complex interactions (Continuous Scrub, Drag-to-Connect)
 
 ---
 
-## 3. BIOMETRIC TELEMETRY (v3.2 MANDATORY)
+## 3. BIOMETRIC TELEMETRY (v3.2 MANDATORY — 60Hz)
 
-### window.__TELEMETRY__ (NEW - 60Hz Coordinate Capture)
+### The 60Hz Telemetry Loop
 
-All validators **must** capture touch/pointer coordinates at 60 frames per second:
+All validators **must** capture touch/pointer coordinates at 60 frames per second using the `[x, y, timestamp]` format:
+
+```typescript
+// ============================================
+// BIOMETRIC TELEMETRY CAPTURE — 60Hz LOOP
+// ============================================
+
+interface TelemetryPoint {
+  x: number;     // X coordinate (normalized 0-1)
+  y: number;     // Y coordinate (normalized 0-1)
+  t: number;     // Unix timestamp in milliseconds
+  pressure?: number; // Touch pressure (0-1) if available
+}
+
+class BiometricCapture {
+  private points: TelemetryPoint[] = [];
+  private isCapturing = false;
+  private lastCaptureTime = 0;
+  private readonly SAMPLE_INTERVAL_MS = 16.67; // ~60Hz (1000ms / 60fps)
+  
+  startCapture(): void {
+    this.isCapturing = true;
+    this.points = [];
+    this.lastCaptureTime = 0;
+  }
+  
+  stopCapture(): TelemetryPoint[] {
+    this.isCapturing = false;
+    return [...this.points];
+  }
+  
+  capturePoint(e: PointerEvent, containerRect: DOMRect): void {
+    if (!this.isCapturing) return;
+    
+    const now = performance.now();
+    
+    // Throttle to 60Hz
+    if (now - this.lastCaptureTime < this.SAMPLE_INTERVAL_MS) {
+      return;
+    }
+    
+    this.lastCaptureTime = now;
+    
+    // Capture normalized coordinates relative to container
+    const x = (e.clientX - containerRect.left) / containerRect.width;
+    const y = (e.clientY - containerRect.top) / containerRect.height;
+    const t = Date.now();
+    
+    this.points.push({ x, y, t, pressure: e.pressure || 0.5 });
+  }
+}
+```
+
+### window.__TELEMETRY__ (Required Object)
 
 ```javascript
 window.__TELEMETRY__ = {
@@ -141,12 +205,85 @@ window.__TELEMETRY__ = {
       pressure: number // touch pressure (0-1) if available
     }
   ],
-  jitter_score: number,    // computed stability (0-1, higher = more stable)
-  velocity_avg: number,    // average movement velocity
-  path_deviation: number,  // deviation from optimal path
-  hesitation_count: number // number of pauses > 200ms
+  jitter_score: number,      // computed stability (0-1, higher = more stable)
+  jitter_variance: number,   // raw variance value
+  jitter_stddev: number,     // standard deviation of deltas
+  velocity_avg: number,      // average movement velocity
+  path_deviation: number,    // deviation from optimal path
+  hesitation_count: number,  // number of pauses > 200ms
+  sampling_rate_hz: 60       // Must be 60
 }
 ```
+
+### Jitter/Stability Formula
+
+Calculates **Standard Deviation** of movement deltas to determine hand stability:
+
+```typescript
+// ============================================
+// JITTER ANALYSIS — VARIANCE & STANDARD DEVIATION
+// ============================================
+
+interface JitterAnalysis {
+  xVariance: number;      // Variance of X-axis deltas
+  yVariance: number;      // Variance of Y-axis deltas
+  xStdDev: number;        // Standard deviation of X-axis
+  yStdDev: number;        // Standard deviation of Y-axis
+  combinedStdDev: number; // Combined jitter (Euclidean)
+  stabilityScore: number; // 0-100 (100 = perfectly stable)
+}
+
+function analyzeJitter(points: TelemetryPoint[]): JitterAnalysis {
+  if (points.length < 3) {
+    return { xVariance: 0, yVariance: 0, xStdDev: 0, yStdDev: 0, combinedStdDev: 0, stabilityScore: 100 };
+  }
+  
+  // Calculate deltas between consecutive points
+  const deltaX: number[] = [];
+  const deltaY: number[] = [];
+  
+  for (let i = 1; i < points.length; i++) {
+    deltaX.push(points[i].x - points[i - 1].x);
+    deltaY.push(points[i].y - points[i - 1].y);
+  }
+  
+  // Calculate mean of deltas
+  const meanX = deltaX.reduce((a, b) => a + b, 0) / deltaX.length;
+  const meanY = deltaY.reduce((a, b) => a + b, 0) / deltaY.length;
+  
+  // Calculate variance: Σ(Δ - mean)² / n
+  const varianceX = deltaX.reduce((sum, d) => sum + Math.pow(d - meanX, 2), 0) / deltaX.length;
+  const varianceY = deltaY.reduce((sum, d) => sum + Math.pow(d - meanY, 2), 0) / deltaY.length;
+  
+  // Standard deviation = √variance
+  const stdDevX = Math.sqrt(varianceX);
+  const stdDevY = Math.sqrt(varianceY);
+  
+  // Combined standard deviation (Euclidean)
+  const combinedStdDev = Math.sqrt(stdDevX * stdDevX + stdDevY * stdDevY);
+  
+  // Stability score: exponential decay (k = 0.15)
+  const stabilityScore = Math.max(0, Math.min(100, Math.round(100 * Math.exp(-0.15 * combinedStdDev))));
+  
+  return { xVariance: varianceX, yVariance: varianceY, xStdDev: stdDevX, yStdDev: stdDevY, combinedStdDev, stabilityScore };
+}
+```
+
+### Stability Classification
+
+| Stability Score | Classification | Gate 3 Result |
+|-----------------|----------------|---------------|
+| 90-100 | Elite | ✓ Pass |
+| 70-89 | Stable | ✓ Pass |
+| 50-69 | Moderate | ⚠ Marginal (Level 2 cap) |
+| 0-49 | Unstable | ✗ Fail |
+
+### Jitter Stress Test
+
+The validator testing system performs a **Jitter Stress Test**:
+- Simulates shaky input (high variance pointer movements)
+- Verifies the engine blocks Mastery
+- Confirms score is capped at Level 2 even with perfect accuracy
 
 ### Jitter Measurement by Mechanic
 
@@ -169,35 +306,9 @@ For competencies requiring motor-control validation:
 - **PREFER:** Drag, Scrub, Slide, Hold (enables high-frequency tracking)
 - **AVOID:** Quick Tap (only measures decision latency, not jitter)
 
-### Telemetry Implementation
-
-```javascript
-let telemetryBuffer = [];
-let lastFrame = 0;
-
-function captureFrame(event) {
-  const now = performance.now();
-  if (now - lastFrame >= 16.67) { // ~60 FPS
-    telemetryBuffer.push({
-      t: now - sceneStartTime,
-      x: event.clientX / window.innerWidth,
-      y: event.clientY / window.innerHeight,
-      pressure: event.pressure || 0.5
-    });
-    lastFrame = now;
-  }
-}
-
-// Attach to interaction area
-interactionArea.addEventListener('pointermove', captureFrame);
-interactionArea.addEventListener('touchmove', (e) => {
-  captureFrame(e.touches[0]);
-});
-```
-
 ---
 
-## 4. WINDOW OBJECTS (v3.2 UPDATED)
+## 4. WINDOW OBJECTS (v3.2 BIOMETRIC UPDATED)
 
 ### window.__CONFIG__
 
@@ -210,7 +321,7 @@ window.__CONFIG__ = {
   avatar_url: string | null,
   particle_effect: "confetti" | "sparkles" | "none",
   brand_name: string,
-  time_limit: 30,                // Safety Gate (locked)
+  time_limit: 30 | 45 | 60,      // Dynamic from DNA Sheet
   action_cue: string,            // From Column K
   game_mechanic: string,         // From Column L
   mobile_interaction: string,    // From Column M
@@ -225,7 +336,7 @@ window.__GOLD_KEY__ = {
   correct_action: any,           // Expected correct value/selection
   optimal_path: Array<{action: string, value: any}>,
   optimal_time: number,          // Target time in ms
-  jitter_threshold: 0.3,         // Max acceptable jitter (0-1)
+  jitter_threshold: 0.70,        // Minimum stability score (0-1)
   acceptable_variations: Array<Array<string>>
 }
 ```
@@ -242,13 +353,15 @@ window.__EDGE__ = {
 }
 ```
 
-### window.__TELEMETRY__ (NEW in v3.2)
+### window.__TELEMETRY__ (MANDATORY in v3.2)
 
 ```javascript
 window.__TELEMETRY__ = {
   scene: number,
   samples: Array<{t: number, x: number, y: number, pressure: number}>,
-  jitter_score: number,
+  jitter_score: number,          // 0-1 (higher = more stable)
+  jitter_variance: number,       // Raw variance
+  jitter_stddev: number,         // Standard deviation
   velocity_avg: number,
   path_deviation: number,
   hesitation_count: number,
@@ -263,12 +376,13 @@ window.__RESULT__ = {
   scene: number,
   level: 1 | 2 | 3,
   level_label: "needs_work" | "proficient" | "mastery",
-  xp: 20 | 60 | 100,
+  xp: 100 | 250 | 500,
   time_ms: number,
   gate_1_accuracy: boolean,
   gate_2_time: boolean,
   gate_3_jitter: boolean,
   jitter_score: number,
+  jitter_stddev: number,
   competency_id: string,
   subcompetency_id: string,
   timestamp: number,
@@ -289,12 +403,15 @@ window.__PROOF__ = {
     gate_2: boolean,
     gate_3: boolean,
     time_ms: number,
-    jitter_score: number
+    jitter_score: number,
+    jitter_stddev: number,
+    first_attempt: boolean
   }>,
   competency_rollup: "mastery" | "proficient" | "needs_work",
   total_xp: number,
   first_attempt_count: number,   // How many L3 on first try
-  telemetry_hash: string         // Hash of telemetry data
+  telemetry_samples: Array<{t, x, y, pressure}>, // Raw 60Hz log
+  telemetry_hash: string         // SHA-256 hash of telemetry data
 }
 ```
 
@@ -316,7 +433,7 @@ window.__PROOF__ = {
 - Support touch, mouse, and keyboard input
 - Haptic feedback on all interactions (mobile)
 - Smooth transitions between scenes
-- 60Hz pointer tracking enabled
+- **60Hz pointer tracking enabled**
 
 ---
 
@@ -367,7 +484,7 @@ if (window.Telegram && window.Telegram.WebApp) {
 
 ---
 
-## 8. SELF-VALIDATION CHECKLIST (v3.2)
+## 8. SELF-VALIDATION CHECKLIST (v3.2 BIOMETRIC)
 
 ### Scene Structure
 - ✓ Scene 0 (Intro) present with all required elements
@@ -377,13 +494,16 @@ if (window.Telegram && window.Telegram.WebApp) {
 
 ### Triple-Gate Scoring
 - ✓ Gate 1 (Accuracy) evaluated per scene
-- ✓ Gate 2 (Time) enforces 30s Safety Gate
+- ✓ Gate 2 (Time) enforces Dynamic Limit from DNA Sheet
 - ✓ Gate 3 (Jitter) uses 60Hz telemetry data
+- ✓ First Attempt Rule enforced (Level 3 blocked on retry)
 - ✓ 6-Scene Rule applied for competency roll-up
 
-### Biometric Telemetry
+### Biometric Telemetry (60Hz)
 - ✓ `window.__TELEMETRY__` captures 60Hz coordinates
-- ✓ Jitter score computed from path deviation
+- ✓ Samples include (t, x, y, pressure) at 16.67ms intervals
+- ✓ Jitter variance computed from delta standard deviation
+- ✓ Stability score (0-1) derived from jitter analysis
 - ✓ Telemetry hash included in proof receipt
 
 ### Window Objects
@@ -391,7 +511,7 @@ if (window.Telegram && window.Telegram.WebApp) {
 - ✓ `__GOLD_KEY__` includes jitter_threshold
 - ✓ `__TELEMETRY__` populated with 60Hz samples
 - ✓ `__RESULT__` includes gate_1, gate_2, gate_3 booleans
-- ✓ `__PROOF__` includes scene_results array and rollup
+- ✓ `__PROOF__` includes scene_results array, rollup, and telemetry_hash
 
 ### Mobile & Touch
 - ✓ All touch targets ≥48px
@@ -412,19 +532,20 @@ if (window.Telegram && window.Telegram.WebApp) {
 
 ## 9. VERSION HISTORY
 
-### v3.2 (Current - C-BEN Aligned)
+### v3.2 (Current — Biometric Science Standard)
 - **BREAKING:** Replaced 90%/60% accuracy with Triple-Gate system
-- **NEW:** Added `window.__TELEMETRY__` for 60Hz biometric capture
-- **NEW:** Implemented 6-Scene Rule for competency roll-up
-- **NEW:** Added Gate 3 (Jitter/Stability) requirement
-- **NEW:** Mapped to Master DNA Columns K-N
-- **NEW:** Added jitter measurement by mechanic type
-- Enforced 30s Safety Gate per scene
+- **NEW:** Added mandatory 60Hz telemetry capture (`window.__TELEMETRY__`)
+- **NEW:** Implemented jitter variance calculation (standard deviation formula)
+- **NEW:** Added First Attempt Rule (Level 3 blocked on retry)
+- **NEW:** Dynamic Time Gates (30/45/60s from DNA Sheet)
+- **NEW:** Jitter Stress Test for validation
+- **NEW:** Mapped to Master DNA Columns K-N with 60Hz Interaction (Col M)
+- **UPDATED:** XP values to 500/250/100 per scene
+- **UPDATED:** Enforced 6-Scene Rule for competency roll-up
 
 ### v3.1
 - Updated scoring thresholds to 90%/60%
 - Added `__PROOF__` object requirement
-- Increased XP values to 100/60/20
 - Added time formulas (Tlimit, Ttight)
 
 ### v3.0
@@ -432,19 +553,12 @@ if (window.Telegram && window.Telegram.WebApp) {
 - Added Telegram integration requirements
 - Defined mandatory scene structure
 
-### v2.0
-- Added accessibility requirements
-- Introduced mobile-first design principles
-
-### v1.0
-- Initial framework definition
-
 ---
 
 ## 10. COMPLIANCE STATEMENT
 
-All PlayOps validators derive from C-BEN-recognized assessment methods. Each validator maps 1:1 to an authentic assessment family and captures evidence through interactive simulation rather than passive testing.
+All PlayOps validators derive from C-BEN-recognized assessment methods. Each validator maps 1:1 to an authentic assessment family and captures evidence through interactive simulation with 60Hz biometric telemetry.
 
 **THE CORE LOCKED ARCHITECTURE CANNOT BE OVERRIDDEN. PERIOD.**
 
-This v3.2 specification defines the production-ready foundation aligned with the C-BEN → PlayOps Dual Framework. All games must pass the Triple-Gate, emit required window objects, and capture 60Hz telemetry.
+This v3.2 specification defines the production-ready foundation aligned with the Biometric Science Standard. All games must pass the Triple-Gate, emit required window objects, and capture 60Hz telemetry with jitter analysis.

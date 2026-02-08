@@ -1,6 +1,6 @@
 # BASE LAYER 1 v3.2 Implementation Guide
 
-## C-BEN → PlayOps Dual Framework Integration
+## Biometric Science Standard — 60Hz Telemetry Integration
 
 **Last Updated:** February 2026  
 **Supersedes:** V31_IMPLEMENTATION_GUIDE.md
@@ -9,12 +9,13 @@
 
 ## Overview
 
-This document explains how the platform **enforces** the BASE LAYER 1 v3.2 specification aligned with the C-BEN → PlayOps Dual Framework. The v3.2 update introduces:
+This document explains how the platform **enforces** the BASE LAYER 1 v3.2 Biometric Science Standard. The v3.2 update introduces:
 
-- **Triple-Gate Scoring** (replaces 90%/60% accuracy rules)
+- **Triple-Gate Scoring** (Accuracy + Time + Jitter)
+- **First Attempt Rule** (Level 3 only on first try)
 - **6-Scene Rule** for competency roll-up
 - **60Hz Biometric Telemetry** via `window.__TELEMETRY__`
-- **Master DNA Column Mapping** (K-N)
+- **Master DNA Column Mapping** (K: Action Cue, L: Mechanic, M: 60Hz Interaction, N: Scoring)
 
 ---
 
@@ -23,15 +24,17 @@ This document explains how the platform **enforces** the BASE LAYER 1 v3.2 speci
 | Area | v3.1 (Old) | v3.2 (Current) |
 |------|------------|----------------|
 | **Scoring** | 90%/60% accuracy thresholds | Triple-Gate (Accuracy + Time + Jitter) |
-| **Mastery Definition** | Score ≥ 90% | All 3 gates passed on first attempt |
+| **Mastery Definition** | Score ≥ 90% | All 3 gates passed + First Attempt |
 | **Competency Roll-Up** | Weighted average | 6-Scene Rule (6/6 L3 = Mastery) |
-| **Telemetry** | Basic action tracking | 60Hz (x,y) coordinate capture |
-| **Time Limit** | Configurable (Tlimit, Ttight) | Fixed 30s Safety Gate per scene |
+| **Telemetry** | Basic action tracking | 60Hz (x,y,t) coordinate capture |
+| **Jitter Analysis** | None | Standard deviation of deltas |
+| **Time Limit** | Fixed Tlimit/Ttight | Dynamic (30/45/60s from DNA Sheet) |
+| **XP Values** | 100/60/20 | 500/250/100 |
 | **Data Source** | Static config | Dynamic from Columns K-N |
 
 ---
 
-## 1. Triple-Gate Scoring System
+## 1. Triple-Gate Scoring Engine
 
 ### DELETED: Old Accuracy Rules
 
@@ -39,26 +42,86 @@ The following v3.1 rules are **no longer valid**:
 - ❌ "Score >= 90 = Mastery"
 - ❌ "Score 60-89 = Proficient"  
 - ❌ "Score < 60 = Needs Work"
+- ❌ XP average across scenes
 
 ### NEW: Triple-Gate Logic
 
 Every scene must pass **three independent gates**:
 
 ```typescript
-interface TripleGateResult {
-  gate1_accuracy: boolean;  // Correct action performed
-  gate2_time: boolean;      // Completed within 30s
-  gate3_jitter: boolean;    // Jitter score below threshold
+// ============================================
+// TRIPLE-GATE SCORING — LEVEL 1, 2, 3
+// ============================================
+
+interface ScoringInput {
+  accuracy: boolean;           // Gate 1: Correct action performed
+  time_s: number;              // Actual completion time in seconds
+  jitter_score: number;        // Stability score (0.0 - 1.0)
+  firstAttempt: boolean;       // Is this the first attempt?
 }
 
-function evaluateLevel(gates: TripleGateResult, firstAttempt: boolean): 1 | 2 | 3 {
-  if (gates.gate1_accuracy && gates.gate2_time && gates.gate3_jitter && firstAttempt) {
-    return 3; // Mastery
+interface RuntimeConfig {
+  time_limit_s: number;        // Dynamic limit (30, 45, or 60s from DNA)
+  jitter_threshold: number;    // Minimum stability for mastery (default 0.70)
+}
+
+interface ScoringResult {
+  level: 1 | 2 | 3;
+  passed: boolean;
+  xp: 100 | 250 | 500;
+  label: 'Needs Work' | 'Proficient' | 'Mastery';
+  reasoning: string;
+}
+
+function evaluateTripleGate(input: ScoringInput, config: RuntimeConfig): ScoringResult {
+  const { accuracy, time_s, jitter_score, firstAttempt } = input;
+  const { time_limit_s, jitter_threshold } = config;
+  
+  // ========== GATE 1: Accuracy Check ==========
+  const gate1 = accuracy === true;
+  
+  // ========== GATE 2: Time Check ==========
+  const gate2 = time_s <= time_limit_s;
+  
+  // ========== GATE 3: Jitter/Stability Check ==========
+  const gate3 = jitter_score >= jitter_threshold;
+  
+  // ========== LEVEL ASSIGNMENT ==========
+  
+  if (!gate1 || !gate2) {
+    // Level 1: Failed basic gates
+    return {
+      level: 1,
+      passed: false,
+      xp: 100,
+      label: 'Needs Work',
+      reasoning: !gate1 
+        ? 'Incorrect action selected'
+        : `Time ${time_s}s exceeded limit ${time_limit_s}s`
+    };
   }
-  if (gates.gate1_accuracy && gates.gate2_time) {
-    return 2; // Proficient (Gate 3 marginal or retry needed)
+  
+  if (gate1 && gate2 && gate3 && firstAttempt) {
+    // Level 3: Mastery achieved (all gates + first attempt)
+    return {
+      level: 3,
+      passed: true,
+      xp: 500,
+      label: 'Mastery',
+      reasoning: `Elite performance: First attempt with ${(jitter_score * 100).toFixed(0)}% stability`
+    };
   }
-  return 1; // Needs Work
+  
+  // Level 2: Proficient (passed Gate 1+2, but not all mastery conditions)
+  return {
+    level: 2,
+    passed: true,
+    xp: 250,
+    label: 'Proficient',
+    reasoning: !firstAttempt 
+      ? 'Retry used - capped at Level 2'
+      : `Stability ${(jitter_score * 100).toFixed(0)}% below ${(jitter_threshold * 100).toFixed(0)}% threshold`
+  };
 }
 ```
 
@@ -67,8 +130,15 @@ function evaluateLevel(gates: TripleGateResult, firstAttempt: boolean): 1 | 2 | 
 | Gate | Name | Pass Condition |
 |------|------|----------------|
 | **1** | Accuracy | Player selected/performed the correct action |
-| **2** | Time | Completed within 30-second Safety Gate |
-| **3** | Jitter | `jitter_score <= jitter_threshold` (default 0.3) |
+| **2** | Time | Completed within Dynamic Scene Limit (30/45/60s) |
+| **3** | Jitter | `jitter_score >= jitter_threshold` (default 0.70) |
+
+### First Attempt Rule
+
+**Level 3 (Mastery) is ONLY available on the First Attempt:**
+- Retry usage caps result at Level 2
+- Hint usage caps result at Level 2
+- System tracks `first_attempt: boolean` per scene
 
 ---
 
@@ -82,27 +152,32 @@ The following v3.1 approach is **no longer valid**:
 
 ### NEW: 6-Scene Rule
 
-Competency-level proficiency requires **all 6 sub-competency scenes**:
+Competency-level proficiency requires **all 6 sub-competency scenes** to be completed:
 
 ```typescript
-type SceneResult = { scene: number; level: 1 | 2 | 3; firstAttempt: boolean };
+type SceneResult = { 
+  scene: number; 
+  level: 1 | 2 | 3; 
+  firstAttempt: boolean 
+};
 
 function calculateCompetencyRollup(results: SceneResult[]): 'mastery' | 'proficient' | 'needs_work' {
   if (results.length !== 6) {
     throw new Error('Competency requires exactly 6 scenes');
   }
   
-  const level3Count = results.filter(r => r.level === 3 && r.firstAttempt).length;
-  const level2PlusCount = results.filter(r => r.level >= 2).length;
+  // Count Level 3 achievements on first attempt
+  const level3FirstAttempt = results.filter(r => r.level === 3 && r.firstAttempt).length;
+  const level2Plus = results.filter(r => r.level >= 2).length;
   const hasLevel1 = results.some(r => r.level === 1);
   
   // Mastery (Cyber Yellow): 6/6 scenes at Level 3 on first attempt
-  if (level3Count === 6) {
+  if (level3FirstAttempt === 6) {
     return 'mastery';
   }
   
-  // Proficient (Green): 4+ scenes at Level 2 or higher
-  if (level2PlusCount >= 4 && !hasLevel1) {
+  // Proficient (Green): 4+ scenes at Level 2 or higher, no Level 1
+  if (level2Plus >= 4 && !hasLevel1) {
     return 'proficient';
   }
   
@@ -115,7 +190,7 @@ function calculateCompetencyRollup(results: SceneResult[]): 'mastery' | 'profici
 
 | Competency Result | Badge Color | Requirement |
 |-------------------|-------------|-------------|
-| **Mastery** | Cyber Yellow | 6/6 scenes at Level 3 (first attempt) |
+| **Mastery** | Cyber Yellow | 6/6 scenes at Level 3 (first attempt only) |
 | **Proficient** | Green | 4-5/6 scenes at Level 2+ |
 | **Needs Work** | Red | Any scene at Level 1 |
 
@@ -131,8 +206,8 @@ The Scene Assembler pulls data from the Master DNA spreadsheet Tab 3:
 |--------|-------|---------|-------|
 | **K** | Action Cue | Observable behavior (Verb + Object + Condition) | Scene prompt/instruction |
 | **L** | Game Mechanic | Interactive structure from 10 Approved Mechanics | Component selection |
-| **M** | Mobile Interaction | Touch-event for telemetry capture | Input handler type |
-| **N** | Scoring Formula | Triple-Gate parameters | Threshold configuration |
+| **M** | 60Hz Interaction | Touch-event for biometric telemetry capture | Input handler type |
+| **N** | Scoring Formula | Triple-Gate parameters + time limit | Threshold configuration |
 
 ### Implementation
 
@@ -140,7 +215,7 @@ The Scene Assembler pulls data from the Master DNA spreadsheet Tab 3:
 interface SubCompetencyDNA {
   action_cue: string;           // Column K
   game_mechanic: string;        // Column L
-  mobile_interaction: string;   // Column M
+  mobile_interaction: string;   // Column M (60Hz Interaction)
   scoring_formula: string;      // Column N
 }
 
@@ -151,7 +226,7 @@ function buildScene(dna: SubCompetencyDNA, sceneNumber: number) {
     inputHandler: getInputHandler(dna.mobile_interaction),
     scoring: parseScoringFormula(dna.scoring_formula),
     telemetryConfig: {
-      samplingRate: 60, // Hz
+      samplingRate: 60, // Hz - MANDATORY
       trackJitter: dna.mobile_interaction !== 'Quick Tap'
     }
   };
@@ -160,67 +235,131 @@ function buildScene(dna: SubCompetencyDNA, sceneNumber: number) {
 
 ### Mechanic → Component Mapping
 
-| Game Mechanic | React Component | Mobile Interaction |
-|---------------|-----------------|-------------------|
-| Decision Tree | `<DecisionTree />` | Quick Tap |
-| Data Panel | `<DataPanel />` | Multi-Tap |
-| Noise Filter | `<ScrubSlider />` | Continuous Scrub |
-| Alignment Puzzle | `<DragConnect />` | Drag-to-Connect |
-| Sequence Validator | `<SwipeCard />` | Drag & Drop |
-| Constraint Puzzle | `<ScrubSlider />` | Slider Adjust |
-| Pattern Grid | `<PatternGrid />` | Drag-to-Select |
-| Headline Picker | `<QuickTapButtons />` | Quick Tap |
-| Diagnostic Panel | `<TradeoffMatrix />` | Multi-Touch |
-| Trade-Off Eval | `<TradeoffMatrix />` | Toggle/Slide |
+| Game Mechanic | React Component | 60Hz Interaction | Jitter Measurement |
+|---------------|-----------------|------------------|-------------------|
+| Decision Tree | `<DecisionTree />` | Quick Tap | Decision Latency |
+| Data Panel | `<DataPanel />` | Multi-Tap | Scan Speed |
+| Noise Filter | `<ScrubSlider />` | Continuous Scrub | Velocity Consistency |
+| Alignment Puzzle | `<DragConnect />` | Drag-to-Connect | Targeting Precision |
+| Sequence Validator | `<SwipeCard />` | Drag & Drop | Path Deviation |
+| Constraint Puzzle | `<ScrubSlider />` | Slider Adjust | Fine Motor Control |
+| Pattern Grid | `<PatternGrid />` | Drag-to-Select | X/Y Stability |
+| Headline Picker | `<QuickTapButtons />` | Quick Tap | Output Selection |
+| Diagnostic Panel | `<TradeoffMatrix />` | Multi-Touch | Rhythmic Jitter |
+| Trade-Off Eval | `<TradeoffMatrix />` | Toggle/Slide | Hesitation Jitter |
 
 ---
 
 ## 4. 60Hz Biometric Telemetry
 
-### window.__TELEMETRY__ Implementation
+### The 60Hz Telemetry Loop
+
+Captures `[x, y, timestamp]` during pointer/drag interactions at approximately 60 samples per second:
 
 ```typescript
-interface TelemetrySample {
-  t: number;        // Timestamp (ms since scene start)
-  x: number;        // X coordinate (0-1 normalized)
-  y: number;        // Y coordinate (0-1 normalized)
-  pressure: number; // Touch pressure (0-1)
+// ============================================
+// BIOMETRIC TELEMETRY CAPTURE — 60Hz LOOP
+// ============================================
+
+interface TelemetryPoint {
+  x: number;
+  y: number;
+  t: number;  // Unix timestamp in milliseconds
+  pressure?: number;
 }
 
-interface TelemetryData {
-  scene: number;
-  samples: TelemetrySample[];
-  jitter_score: number;
-  velocity_avg: number;
-  path_deviation: number;
-  hesitation_count: number;
-  sampling_rate_hz: 60;
+class BiometricCapture {
+  private points: TelemetryPoint[] = [];
+  private isCapturing = false;
+  private lastCaptureTime = 0;
+  private readonly SAMPLE_INTERVAL_MS = 16.67; // ~60Hz
+  
+  startCapture(): void {
+    this.isCapturing = true;
+    this.points = [];
+    this.lastCaptureTime = 0;
+  }
+  
+  stopCapture(): TelemetryPoint[] {
+    this.isCapturing = false;
+    return [...this.points];
+  }
+  
+  capturePoint(e: PointerEvent, containerRect: DOMRect): void {
+    if (!this.isCapturing) return;
+    
+    const now = performance.now();
+    
+    // Throttle to 60Hz
+    if (now - this.lastCaptureTime < this.SAMPLE_INTERVAL_MS) {
+      return;
+    }
+    
+    this.lastCaptureTime = now;
+    
+    // Capture normalized coordinates
+    this.points.push({
+      x: (e.clientX - containerRect.left) / containerRect.width,
+      y: (e.clientY - containerRect.top) / containerRect.height,
+      t: Date.now(),
+      pressure: e.pressure || 0.5
+    });
+  }
 }
 ```
 
-### Jitter Calculation
+### Jitter/Stability Analysis
 
 ```typescript
-function calculateJitterScore(samples: TelemetrySample[]): number {
-  if (samples.length < 10) return 1; // Not enough data
-  
-  let totalDeviation = 0;
-  
-  for (let i = 2; i < samples.length; i++) {
-    // Expected position based on velocity
-    const expectedX = samples[i-1].x + (samples[i-1].x - samples[i-2].x);
-    const expectedY = samples[i-1].y + (samples[i-1].y - samples[i-2].y);
-    
-    // Actual deviation
-    const dx = samples[i].x - expectedX;
-    const dy = samples[i].y - expectedY;
-    totalDeviation += Math.sqrt(dx*dx + dy*dy);
+// ============================================
+// JITTER ANALYSIS — VARIANCE & STANDARD DEVIATION
+// ============================================
+
+interface JitterAnalysis {
+  xVariance: number;
+  yVariance: number;
+  xStdDev: number;
+  yStdDev: number;
+  combinedStdDev: number;
+  stabilityScore: number;  // 0-100
+}
+
+function analyzeJitter(points: TelemetryPoint[]): JitterAnalysis {
+  if (points.length < 3) {
+    return { xVariance: 0, yVariance: 0, xStdDev: 0, yStdDev: 0, combinedStdDev: 0, stabilityScore: 100 };
   }
   
-  const avgDeviation = totalDeviation / (samples.length - 2);
+  // Calculate deltas between consecutive points
+  const deltaX: number[] = [];
+  const deltaY: number[] = [];
   
-  // Convert to 0-1 score (higher = more stable)
-  return Math.max(0, 1 - avgDeviation * 10);
+  for (let i = 1; i < points.length; i++) {
+    deltaX.push(points[i].x - points[i - 1].x);
+    deltaY.push(points[i].y - points[i - 1].y);
+  }
+  
+  // Calculate mean of deltas
+  const meanX = deltaX.reduce((a, b) => a + b, 0) / deltaX.length;
+  const meanY = deltaY.reduce((a, b) => a + b, 0) / deltaY.length;
+  
+  // Calculate variance: Σ(Δ - mean)² / n
+  const varianceX = deltaX.reduce((sum, d) => sum + Math.pow(d - meanX, 2), 0) / deltaX.length;
+  const varianceY = deltaY.reduce((sum, d) => sum + Math.pow(d - meanY, 2), 0) / deltaY.length;
+  
+  // Standard deviation = √variance
+  const stdDevX = Math.sqrt(varianceX);
+  const stdDevY = Math.sqrt(varianceY);
+  const combinedStdDev = Math.sqrt(stdDevX * stdDevX + stdDevY * stdDevY);
+  
+  // Stability score: exponential decay (100 * e^(-0.15 * stdDev))
+  const stabilityScore = Math.max(0, Math.min(100, Math.round(100 * Math.exp(-0.15 * combinedStdDev))));
+  
+  return { xVariance: varianceX, yVariance: varianceY, xStdDev: stdDevX, yStdDev: stdDevY, combinedStdDev, stabilityScore };
+}
+
+// Convert 0-100 score to 0-1 for gate comparison
+function normalizeStabilityScore(score: number): number {
+  return score / 100;
 }
 ```
 
@@ -230,7 +369,7 @@ function calculateJitterScore(samples: TelemetrySample[]): number {
 import { useRef, useCallback, useEffect } from 'react';
 
 export function useGameTelemetry(sceneNumber: number) {
-  const samples = useRef<TelemetrySample[]>([]);
+  const samples = useRef<TelemetryPoint[]>([]);
   const sceneStart = useRef<number>(0);
   const lastFrame = useRef<number>(0);
   
@@ -253,12 +392,14 @@ export function useGameTelemetry(sceneNumber: number) {
   }, []);
   
   const finalize = useCallback(() => {
-    const jitter_score = calculateJitterScore(samples.current);
+    const analysis = analyzeJitter(samples.current);
     
     window.__TELEMETRY__ = {
       scene: sceneNumber,
       samples: samples.current,
-      jitter_score,
+      jitter_score: analysis.stabilityScore / 100,
+      jitter_variance: analysis.xVariance + analysis.yVariance,
+      jitter_stddev: analysis.combinedStdDev,
       velocity_avg: calculateVelocity(samples.current),
       path_deviation: calculatePathDeviation(samples.current),
       hesitation_count: countHesitations(samples.current),
@@ -274,7 +415,74 @@ export function useGameTelemetry(sceneNumber: number) {
 
 ---
 
-## 5. Updated GamePlayer Integration
+## 5. Complete Biometric Scoring Pipeline
+
+Full integration showing all three systems working together:
+
+```typescript
+// ============================================
+// COMPLETE BIOMETRIC SCORING PIPELINE
+// ============================================
+
+class GameSession {
+  private biometricCapture = new BiometricCapture();
+  private startTime: number = 0;
+  private actionCorrect: boolean = false;
+  private isFirstAttempt: boolean = true;
+  
+  private readonly config = {
+    time_limit_s: 30,  // From DNA Sheet Column N
+    jitter_threshold: 0.70
+  };
+  
+  startSession(): void {
+    this.startTime = Date.now();
+    this.biometricCapture.startCapture();
+  }
+  
+  recordAction(isCorrect: boolean): void {
+    this.actionCorrect = isCorrect;
+  }
+  
+  captureMovement(e: PointerEvent, rect: DOMRect): void {
+    this.biometricCapture.capturePoint(e, rect);
+  }
+  
+  finishSession(): ScoringResult {
+    const time_s = (Date.now() - this.startTime) / 1000;
+    const points = this.biometricCapture.stopCapture();
+    const jitterAnalysis = analyzeJitter(points);
+    const jitter_score = jitterAnalysis.stabilityScore / 100;
+    
+    const result = evaluateTripleGate(
+      { 
+        accuracy: this.actionCorrect, 
+        time_s, 
+        jitter_score, 
+        firstAttempt: this.isFirstAttempt 
+      },
+      this.config
+    );
+    
+    console.log('Session Complete:', {
+      accuracy: this.actionCorrect,
+      time: `${time_s.toFixed(1)}s`,
+      jitter: {
+        samples: points.length,
+        stdDev: jitterAnalysis.combinedStdDev.toFixed(2),
+        stability: `${jitterAnalysis.stabilityScore}%`
+      },
+      result
+    });
+    
+    return result;
+  }
+}
+```
+
+---
+
+## 6. Updated GamePlayer Integration
 
 ### Scene Flow
 
@@ -282,16 +490,23 @@ export function useGameTelemetry(sceneNumber: number) {
 function GamePlayer({ generatedHtml, competencyId }: Props) {
   const [currentScene, setCurrentScene] = useState(0);
   const [sceneResults, setSceneResults] = useState<SceneResult[]>([]);
+  const [attemptCounts, setAttemptCounts] = useState<Map<number, number>>(new Map());
   const { captureFrame, finalize } = useGameTelemetry(currentScene);
   
   const handleSceneComplete = (result: SceneResult) => {
     // Finalize telemetry for Gate 3
     const telemetry = finalize();
     
-    // Evaluate Triple-Gate
+    // Track attempts
+    const attempts = (attemptCounts.get(currentScene) || 0) + 1;
+    const isFirstAttempt = attempts === 1;
+    
+    // Evaluate Triple-Gate with First Attempt Rule
     const finalResult = {
       ...result,
-      gate3_jitter: telemetry.jitter_score >= 0.7
+      gate3_jitter: telemetry.jitter_score >= 0.70,
+      firstAttempt: isFirstAttempt,
+      level: evaluateFinalLevel(result.gate1, result.gate2, telemetry.jitter_score >= 0.70, isFirstAttempt)
     };
     
     setSceneResults(prev => [...prev, finalResult]);
@@ -304,49 +519,12 @@ function GamePlayer({ generatedHtml, competencyId }: Props) {
       emitProof(rollup);
     }
   };
-  
-  // ... render logic
-}
-```
-
-### Results Display
-
-```typescript
-function ResultsScreen({ sceneResults, rollup }: Props) {
-  const totalXP = sceneResults.reduce((sum, r) => {
-    const xp = r.level === 3 ? 100 : r.level === 2 ? 60 : 20;
-    return sum + xp;
-  }, 0);
-  
-  return (
-    <div className="results-screen">
-      <h1>Competency Assessment Complete</h1>
-      
-      <div className={`rollup-badge ${rollup}`}>
-        {rollup === 'mastery' && '🏆 Mastery'}
-        {rollup === 'proficient' && '✓ Proficient'}
-        {rollup === 'needs_work' && '⚠ Needs Work'}
-      </div>
-      
-      <div className="total-xp">{totalXP} XP Earned</div>
-      
-      <div className="scene-breakdown">
-        {sceneResults.map((r, i) => (
-          <div key={i} className={`scene-result level-${r.level}`}>
-            <span>Scene {i + 1}</span>
-            <span>Level {r.level}</span>
-            <span>{r.level === 3 ? '100' : r.level === 2 ? '60' : '20'} XP</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 ```
 
 ---
 
-## 6. V3.2 Compliance Checker Updates
+## 7. V3.2 Compliance Checker Updates
 
 ### New Checks Added
 
@@ -359,96 +537,31 @@ interface V32ValidationResult {
   hasResult: boolean;
   hasProof: boolean;
   
-  // NEW v3.2 checks
+  // NEW v3.2 Biometric checks
   hasTelemetry: boolean;           // window.__TELEMETRY__ defined
   telemetryAt60Hz: boolean;        // sampling_rate_hz === 60
+  hasJitterAnalysis: boolean;      // jitter_stddev computed
   hasTripleGate: boolean;          // gate_1, gate_2, gate_3 in result
+  hasFirstAttemptRule: boolean;    // first_attempt tracked
   has6Scenes: boolean;             // Exactly 6 sub-competency scenes
   hasRollupLogic: boolean;         // 6-Scene Rule implemented
   actionCueFromColumnK: boolean;   // Action cue matches spreadsheet
   mechanicFromColumnL: boolean;    // Mechanic matches spreadsheet
-}
-```
-
-### Validation Function
-
-```typescript
-function validateV32Compliance(html: string): V32ValidationResult {
-  const result: V32ValidationResult = {
-    // ... existing checks
-    
-    // New v3.2 checks
-    hasTelemetry: html.includes('window.__TELEMETRY__'),
-    telemetryAt60Hz: html.includes('sampling_rate_hz: 60') || 
-                     html.includes('sampling_rate_hz":60'),
-    hasTripleGate: html.includes('gate_1') && 
-                   html.includes('gate_2') && 
-                   html.includes('gate_3'),
-    has6Scenes: (html.match(/scene:\s*[1-6]/g) || []).length >= 6,
-    hasRollupLogic: html.includes('competency_rollup') ||
-                    html.includes('calculateCompetencyRollup'),
-    actionCueFromColumnK: true, // Verified at runtime
-    mechanicFromColumnL: true   // Verified at runtime
-  };
-  
-  return result;
+  interactionFromColumnM: boolean; // 60Hz interaction matches spreadsheet
 }
 ```
 
 ---
 
-## 7. Database Schema Updates
+## 8. Quick Reference Table
 
-### New Fields in sub_competencies Table
-
-```sql
--- These fields map to Master DNA Columns K-N
-ALTER TABLE sub_competencies ADD COLUMN IF NOT EXISTS
-  action_cue TEXT,                    -- Column K
-  game_mechanic TEXT,                 -- Column L  
-  mobile_interaction TEXT,            -- Column M
-  scoring_formula_json JSONB;         -- Column N (structured)
-```
-
-### Session Results Schema
-
-```sql
--- Updated to support Triple-Gate and 6-Scene Rule
-ALTER TABLE sessions ADD COLUMN IF NOT EXISTS
-  gate_1_passed BOOLEAN,
-  gate_2_passed BOOLEAN,
-  gate_3_passed BOOLEAN,
-  jitter_score DECIMAL,
-  first_attempt BOOLEAN,
-  telemetry_hash TEXT;
-```
-
----
-
-## 8. Testing Checklist
-
-### Pre-Publish Validation
-
-- [ ] **Triple-Gate Scoring**
-  - [ ] Gate 1 (Accuracy) evaluates correct action
-  - [ ] Gate 2 (Time) enforces 30s Safety Gate
-  - [ ] Gate 3 (Jitter) uses 60Hz telemetry data
-  
-- [ ] **6-Scene Rule**
-  - [ ] Exactly 6 sub-competency scenes present
-  - [ ] Each scene maps to one DNA row
-  - [ ] Roll-up logic: 6/6 L3 = Mastery
-  
-- [ ] **Telemetry**
-  - [ ] `window.__TELEMETRY__` populated
-  - [ ] 60Hz sampling verified
-  - [ ] Jitter score computed
-  
-- [ ] **Data Mapping**
-  - [ ] Action Cue from Column K
-  - [ ] Mechanic from Column L
-  - [ ] Interaction from Column M
-  - [ ] Scoring from Column N
+| Metric | Gate | Level 1 | Level 2 | Level 3 |
+|--------|------|---------|---------|---------|
+| Accuracy | Gate 1 | ✗ Fail | ✓ Pass | ✓ Pass |
+| Time | Gate 2 | > limit | ≤ limit | ≤ limit |
+| Jitter Score | Gate 3 | — | < 70% | ≥ 70% |
+| First Attempt | — | — | Any | Required |
+| XP Awarded | — | 100 | 250 | 500 |
 
 ---
 
@@ -457,9 +570,11 @@ ALTER TABLE sessions ADD COLUMN IF NOT EXISTS
 ### Breaking Changes
 
 1. **Scoring thresholds removed** - Replace all 90%/60% checks with Triple-Gate
-2. **Time formulas changed** - Replace Tlimit/Ttight with fixed 30s Safety Gate
-3. **New window object required** - Add `window.__TELEMETRY__`
-4. **Roll-up logic changed** - Implement 6-Scene Rule
+2. **Time formulas changed** - Replace Tlimit/Ttight with dynamic limits from DNA Sheet
+3. **XP values updated** - 500/250/100 (was 100/60/20)
+4. **New window object required** - Add `window.__TELEMETRY__` with 60Hz samples
+5. **First Attempt Rule** - Track and enforce first_attempt boolean
+6. **Roll-up logic changed** - Implement 6-Scene Rule
 
 ### Migration Steps
 
@@ -469,18 +584,27 @@ ALTER TABLE sessions ADD COLUMN IF NOT EXISTS
 const level = score >= 90 ? 'mastery' : score >= 60 ? 'proficient' : 'needs_work';
 
 // AFTER (v3.2)
-const level = evaluateTripleGate(gate1, gate2, gate3, firstAttempt);
+const level = evaluateTripleGate({ accuracy, time_s, jitter_score, firstAttempt }, config);
 
-// Step 2: Add telemetry
-window.__TELEMETRY__ = { /* ... */ };
+// Step 2: Add telemetry with jitter analysis
+window.__TELEMETRY__ = {
+  scene: currentScene,
+  samples: telemetrySamples,
+  jitter_score: analysisResult.stabilityScore / 100,
+  jitter_stddev: analysisResult.combinedStdDev,
+  sampling_rate_hz: 60
+};
 
 // Step 3: Update result emission
 window.__RESULT__ = {
-  // ... existing fields
+  scene: currentScene,
+  level: result.level,
   gate_1_accuracy: true,
   gate_2_time: true,
   gate_3_jitter: true,
-  jitter_score: 0.85
+  jitter_score: 0.85,
+  jitter_stddev: 2.3,
+  first_attempt: true
 };
 ```
 
@@ -488,11 +612,14 @@ window.__RESULT__ = {
 
 ## 10. Summary
 
-The v3.2 implementation transforms PlayOps from percentage-based scoring to a rigorous Triple-Gate system aligned with C-BEN competency standards. Key changes:
+The v3.2 implementation transforms PlayOps from percentage-based scoring to a rigorous Biometric Science Standard aligned with C-BEN competency frameworks:
 
 1. **Triple-Gate** replaces 90%/60% accuracy
-2. **6-Scene Rule** replaces weighted averages
-3. **60Hz Telemetry** enables biometric jitter measurement
-4. **Column K-N Mapping** ensures data integrity
+2. **First Attempt Rule** requires mastery on first try
+3. **6-Scene Rule** replaces weighted averages
+4. **60Hz Telemetry** enables biometric jitter measurement
+5. **Jitter Formula** uses standard deviation of deltas
+6. **Column K-N Mapping** ensures data integrity
+7. **Dynamic Time Gates** (30/45/60s) from DNA Sheet
 
 **Documentation → Implementation → Enforcement ✓**
