@@ -375,12 +375,17 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
           />
         );
       case 3:
+        // Get competency name for global context
+        const selectedComp = competencies.find(c => c.id === selectedCompetency);
         return (
           <TemplateStepSceneBuilder
             scenes={scenes}
             setScenes={setScenes}
             subCompetencies={subCompetencies}
             selectedSubCompetencies={selectedSubCompetencies}
+            // Pass global context from Step 2
+            industry={formData.industry}
+            competencyName={selectedComp?.name}
           />
         );
       case 4:
