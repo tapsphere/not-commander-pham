@@ -1,16 +1,16 @@
 import { useState, useRef } from 'react';
 import { 
-  Play, Trophy, Gamepad2, Lock, Plus, Minus, GripVertical, 
-  Layers, Sparkles, ChevronDown, ChevronUp 
+  Play, Trophy, Gamepad2, Lock, Plus, GripVertical, 
+  Layers, Sparkles, ChevronDown, ChevronUp, Minus
 } from 'lucide-react';
-import { DesignSettings, SceneData, SubCompetency, createDefaultScene } from '../template-steps/types';
+import { DesignSettings, SceneData, SubCompetency, CompetencyTrack, createDefaultScene } from '../template-steps/types';
 import { useStudioTheme } from './StudioThemeContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 // Scene types for the unified track
-type SceneType = 'intro' | 'gameplay' | 'results' | 'flex-intro' | 'flex-outro';
+type SceneType = 'intro' | 'gameplay' | 'results' | 'flex-intro' | 'flex-outro' | 'chapter-divider';
 
 interface TrackScene {
   type: SceneType;
@@ -19,6 +19,9 @@ interface TrackScene {
   sceneData?: SceneData;
   subCompetency?: SubCompetency;
   isFlexScene?: boolean;
+  trackId?: string;        // For chaptered tracks
+  trackName?: string;      // Display name for chapter dividers
+  trackNumber?: number;    // Track number (1, 2, 3...)
 }
 
 // Interaction type icons mapping from DNA Library
@@ -40,6 +43,9 @@ interface StudioTrackRailProps {
   setScenes: (scenes: SceneData[]) => void;
   subCompetencies: SubCompetency[];
   designSettings: DesignSettings;
+  // Multi-track props
+  tracks?: CompetencyTrack[];
+  onScrollToTrack?: (trackId: string) => void;
   // Flex scenes
   flexIntroScenes?: TrackScene[];
   flexOutroScenes?: TrackScene[];
@@ -54,6 +60,8 @@ export function StudioTrackRail({
   setScenes,
   subCompetencies,
   designSettings,
+  tracks = [],
+  onScrollToTrack,
   flexIntroScenes = [],
   flexOutroScenes = [],
   onAddFlexScene,
@@ -64,14 +72,16 @@ export function StudioTrackRail({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const dragRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Build the complete track structure
+  // Build the complete track structure with chapter support
   const buildTrackScenes = (): TrackScene[] => {
     const trackScenes: TrackScene[] = [];
     let visualIndex = 0;
+    let sceneDataIndex = 0;
 
     // Flex Intro Scenes (optional)
-    flexIntroScenes.forEach((flex, i) => {
+    flexIntroScenes.forEach((flex) => {
       trackScenes.push({
         ...flex,
         type: 'flex-intro',
@@ -86,30 +96,65 @@ export function StudioTrackRail({
       index: visualIndex++,
     });
 
-    // Gameplay Scenes (Competency Block - up to 6 scenes)
-    for (let i = 0; i < 6; i++) {
-      const sceneData = scenes[i];
-      const subComp = sceneData
-        ? subCompetencies.find(s => s.id === sceneData.subCompetencyId)
-        : undefined;
+    // If we have multiple tracks, add chapter dividers
+    if (tracks.length > 0) {
+      tracks.forEach((track, trackIdx) => {
+        // Chapter Divider
+        if (tracks.length > 1) {
+          trackScenes.push({
+            type: 'chapter-divider',
+            index: visualIndex++,
+            trackId: track.id,
+            trackName: track.competencyName,
+            trackNumber: trackIdx + 1,
+          });
+        }
 
-      trackScenes.push({
-        type: 'gameplay',
-        index: visualIndex++,
-        sceneDataIndex: i,
-        sceneData,
-        subCompetency: subComp,
+        // Gameplay Scenes for this track (up to 6)
+        const trackSceneData = scenes.filter(s => s.trackId === track.id);
+        for (let i = 0; i < 6; i++) {
+          const sceneData = trackSceneData[i];
+          const subComp = sceneData
+            ? subCompetencies.find(s => s.id === sceneData.subCompetencyId)
+            : undefined;
+
+          trackScenes.push({
+            type: 'gameplay',
+            index: visualIndex++,
+            sceneDataIndex: sceneDataIndex++,
+            sceneData,
+            subCompetency: subComp,
+            trackId: track.id,
+            trackNumber: trackIdx + 1,
+          });
+        }
       });
+    } else {
+      // Single track mode (legacy) - 6 gameplay scenes
+      for (let i = 0; i < 6; i++) {
+        const sceneData = scenes[i];
+        const subComp = sceneData
+          ? subCompetencies.find(s => s.id === sceneData.subCompetencyId)
+          : undefined;
+
+        trackScenes.push({
+          type: 'gameplay',
+          index: visualIndex++,
+          sceneDataIndex: i,
+          sceneData,
+          subCompetency: subComp,
+        });
+      }
     }
 
-    // Main Results (Scene 7)
+    // Main Results (final scene)
     trackScenes.push({
       type: 'results',
       index: visualIndex++,
     });
 
     // Flex Outro Scenes (optional)
-    flexOutroScenes.forEach((flex, i) => {
+    flexOutroScenes.forEach((flex) => {
       trackScenes.push({
         ...flex,
         type: 'flex-outro',
@@ -122,17 +167,25 @@ export function StudioTrackRail({
   };
 
   const trackScenes = buildTrackScenes();
-  const totalScenes = trackScenes.length;
+  const totalScenes = trackScenes.filter(t => t.type !== 'chapter-divider').length;
   const configuredScenes = scenes.filter(s => s.question.trim()).length;
 
   // Map visual index to actual scene index for navigation
   const getActualSceneIndex = (track: TrackScene): number => {
     if (track.type === 'intro') return 0;
-    if (track.type === 'results') return 7;
+    if (track.type === 'results') return totalScenes - 1;
     if (track.type === 'gameplay' && track.sceneDataIndex !== undefined) {
-      return track.sceneDataIndex + 1; // Scenes 1-6
+      return track.sceneDataIndex + 1; // +1 for intro
     }
-    // Flex scenes - return -1 for now (could be extended)
+    if (track.type === 'chapter-divider') {
+      // Find the first gameplay scene of this track
+      const firstGameplay = trackScenes.find(
+        t => t.type === 'gameplay' && t.trackId === track.trackId
+      );
+      return firstGameplay?.sceneDataIndex !== undefined 
+        ? firstGameplay.sceneDataIndex + 1 
+        : track.index;
+    }
     return track.index;
   };
 
@@ -151,6 +204,17 @@ export function StudioTrackRail({
     return subComp.id.slice(-6).toUpperCase();
   };
 
+  // Scroll to a specific track
+  const scrollToTrack = (trackId: string) => {
+    if (!scrollRef.current) return;
+    
+    const trackDivider = scrollRef.current.querySelector(`[data-track-id="${trackId}"]`);
+    if (trackDivider) {
+      trackDivider.scrollIntoView({ behavior: 'smooth', inline: 'start' });
+    }
+    onScrollToTrack?.(trackId);
+  };
+
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -165,16 +229,20 @@ export function StudioTrackRail({
 
   const handleDragEnd = () => {
     if (draggedIndex !== null && dragOverIndex !== null && draggedIndex !== dragOverIndex) {
-      // Only allow reordering within gameplay scenes (indices that map to scenes array)
       const draggedTrack = trackScenes.find(t => t.type === 'gameplay' && t.sceneDataIndex === draggedIndex);
       const targetTrack = trackScenes.find(t => t.type === 'gameplay' && t.sceneDataIndex === dragOverIndex);
 
       if (draggedTrack && targetTrack && draggedTrack.sceneDataIndex !== undefined && targetTrack.sceneDataIndex !== undefined) {
-        const newScenes = [...scenes];
-        const [removed] = newScenes.splice(draggedTrack.sceneDataIndex, 1);
-        newScenes.splice(targetTrack.sceneDataIndex, 0, removed);
-        setScenes(newScenes);
-        toast.success(`Scene reordered: ${draggedTrack.sceneDataIndex + 1} → ${targetTrack.sceneDataIndex + 1}`);
+        // Only allow reordering within the same track
+        if (draggedTrack.trackId === targetTrack.trackId) {
+          const newScenes = [...scenes];
+          const [removed] = newScenes.splice(draggedTrack.sceneDataIndex, 1);
+          newScenes.splice(targetTrack.sceneDataIndex, 0, removed);
+          setScenes(newScenes);
+          toast.success(`Scene reordered: ${draggedTrack.sceneDataIndex + 1} → ${targetTrack.sceneDataIndex + 1}`);
+        } else {
+          toast.error('Cannot reorder scenes across different tracks');
+        }
       }
     }
     setDraggedIndex(null);
@@ -191,7 +259,41 @@ export function StudioTrackRail({
   const textColor = isDarkMode ? 'text-white' : 'text-slate-900';
   const mutedColor = isDarkMode ? 'text-white/50' : 'text-slate-500';
 
+  // Render chapter divider
+  const renderChapterDivider = (track: TrackScene) => {
+    return (
+      <div
+        key={`divider-${track.trackId}`}
+        data-track-id={track.trackId}
+        className="flex flex-col items-center justify-center px-2 cursor-pointer"
+        onClick={() => track.trackId && scrollToTrack(track.trackId)}
+      >
+        {/* Vertical Divider Line */}
+        <div className={`w-px h-16 ${isDarkMode ? 'bg-white/20' : 'bg-slate-300'}`} />
+        
+        {/* Track Label */}
+        <div 
+          className={`
+            px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap
+            ${isDarkMode ? 'bg-white/10 text-white/80' : 'bg-slate-100 text-slate-700'}
+          `}
+        >
+          Track {track.trackNumber}: {track.trackName?.slice(0, 12)}
+          {(track.trackName?.length ?? 0) > 12 && '...'}
+        </div>
+        
+        {/* Bottom Divider Line */}
+        <div className={`w-px h-4 ${isDarkMode ? 'bg-white/20' : 'bg-slate-300'}`} />
+      </div>
+    );
+  };
+
   const renderSceneThumbnail = (track: TrackScene) => {
+    // Render chapter divider differently
+    if (track.type === 'chapter-divider') {
+      return renderChapterDivider(track);
+    }
+
     const isActive = getActualSceneIndex(track) === currentSceneIndex;
     const isConfigured = track.type === 'intro' || track.type === 'results' || !!track.sceneData;
     const isDragging = draggedIndex === track.sceneDataIndex;
@@ -219,6 +321,18 @@ export function StudioTrackRail({
         {isGameplay && isConfigured && (
           <div className={`absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab ${mutedColor}`}>
             <GripVertical className="h-3 w-3" />
+          </div>
+        )}
+
+        {/* Track indicator badge for multi-track */}
+        {tracks.length > 1 && track.trackNumber && isGameplay && (
+          <div 
+            className="absolute -top-2 -left-1 w-4 h-4 rounded-full text-[8px] font-bold flex items-center justify-center text-white"
+            style={{ 
+              background: `hsl(${((track.trackNumber - 1) * 60) % 360}, 70%, 50%)` 
+            }}
+          >
+            {track.trackNumber}
           </div>
         )}
 
@@ -342,13 +456,22 @@ export function StudioTrackRail({
             </span>
           </div>
 
-          {/* Chapter indicator */}
-          <Badge 
-            variant="outline" 
-            className={`text-[10px] ${isDarkMode ? 'border-primary/30 text-primary' : 'border-primary/50 text-primary'}`}
-          >
-            Competency Block: {configuredScenes}/6 scenes
-          </Badge>
+          {/* Multi-track or single block indicator */}
+          {tracks.length > 1 ? (
+            <Badge 
+              variant="outline" 
+              className={`text-[10px] ${isDarkMode ? 'border-primary/30 text-primary' : 'border-primary/50 text-primary'}`}
+            >
+              {tracks.length} Tracks • {configuredScenes}/{tracks.length * 6} scenes
+            </Badge>
+          ) : (
+            <Badge 
+              variant="outline" 
+              className={`text-[10px] ${isDarkMode ? 'border-primary/30 text-primary' : 'border-primary/50 text-primary'}`}
+            >
+              Competency Block: {configuredScenes}/6 scenes
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -385,8 +508,8 @@ export function StudioTrackRail({
 
       {/* Track Rail Content */}
       {isExpanded && (
-        <div ref={dragRef} className="px-4 py-3 overflow-x-auto">
-          <div className="flex items-center gap-3 min-w-max group">
+        <div ref={scrollRef} className="px-4 py-3 overflow-x-auto">
+          <div ref={dragRef} className="flex items-center gap-3 min-w-max group">
             {/* Flex Intro Add Button */}
             {onAddFlexScene && flexIntroScenes.length === 0 && (
               <button

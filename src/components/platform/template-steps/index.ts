@@ -5,3 +5,4 @@ export { TemplateStepBrandSkin } from './TemplateStepBrandSkin';
 export { CompetencyAISearch } from './CompetencyAISearch';
 export { CompetencyPropertiesPanel } from './CompetencyPropertiesPanel';
 export * from './types';
+export type { CompetencyTrack, CurriculumState } from './types';

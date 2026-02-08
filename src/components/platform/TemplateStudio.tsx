@@ -10,6 +10,7 @@ import {
   DesignSettings,
   Competency,
   SubCompetency,
+  CompetencyTrack,
   DEFAULT_FORM_DATA,
   DEFAULT_DESIGN_SETTINGS,
 } from './template-steps';
@@ -22,8 +23,11 @@ import {
   StudioCenterCanvas,
   StudioNavigator,
   StudioLiveCodeEditor,
+  CurriculumMapTab,
+  AddTrackNudge,
 } from './studio';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface TemplateStudioProps {
   template?: {
@@ -53,6 +57,7 @@ function StudioContent({
   const [telegramPreviewEnabled, setTelegramPreviewEnabled] = useState(true); // Default to TMA view
   const [codeEditorOpen, setCodeEditorOpen] = useState(false); // Split-view code editor
   const [isPublishing, setIsPublishing] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'properties' | 'curriculum'>('properties');
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
@@ -71,6 +76,10 @@ function StudioContent({
   
   // Scene state
   const [scenes, setScenes] = useState<SceneData[]>([]);
+  
+  // Multi-track curriculum state
+  const [tracks, setTracks] = useState<CompetencyTrack[]>([]);
+  const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
 
   // Calculate completed steps
   const completedSteps = useMemo(() => {
@@ -81,6 +90,39 @@ function StudioContent({
     if (scenes.length > 0 && scenes.some(s => s.question.trim())) completed.push(4);
     return completed;
   }, [logoFile, designSettings.primary, formData.name, selectedSubCompetencies.length, scenes]);
+
+  // Calculate total scenes including all tracks
+  const totalScenesCount = useMemo(() => {
+    // Intro (1) + gameplay scenes + Results (1)
+    const gameplayScenes = tracks.length > 0 ? tracks.length * 6 : Math.min(scenes.length, 6);
+    return 1 + gameplayScenes + 1;
+  }, [tracks.length, scenes.length]);
+
+  // Check if current scene is the last gameplay scene of a track (for nudge)
+  const isLastSceneOfTrack = useMemo(() => {
+    if (tracks.length === 0) {
+      return currentSceneIndex === 6 && scenes.length === 6;
+    }
+    // For multi-track, check if we're on the last scene of any track
+    const currentTrack = tracks.find(t => {
+      const trackScenes = scenes.filter(s => s.trackId === t.id);
+      return trackScenes.length === 6;
+    });
+    return currentTrack && 
+      scenes.filter(s => s.trackId === currentTrack.id).length === 6 &&
+      currentSceneIndex === (tracks.indexOf(currentTrack) + 1) * 6;
+  }, [currentSceneIndex, scenes, tracks]);
+
+  // Get current track info for nudge
+  const currentTrackInfo = useMemo(() => {
+    if (tracks.length === 0 && selectedCompetency) {
+      const comp = competencies.find(c => c.id === selectedCompetency);
+      return { number: 1, name: comp?.name || 'Competency' };
+    }
+    const trackIndex = Math.floor((currentSceneIndex - 1) / 6);
+    const track = tracks[trackIndex];
+    return track ? { number: trackIndex + 1, name: track.competencyName } : null;
+  }, [currentSceneIndex, tracks, selectedCompetency, competencies]);
 
   // Fetch competencies on mount
   useEffect(() => {
@@ -442,10 +484,16 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                   setSelectedSubCompetencies={setSelectedSubCompetencies}
                   scenes={scenes}
                   setScenes={setScenes}
+                  tracks={tracks}
+                  setTracks={setTracks}
+                  onAddTrack={() => {
+                    // Switch to step 3 if not already there
+                    if (currentStep !== 3) setCurrentStep(3);
+                  }}
                 />
               </div>
             </ScrollArea>
-) : (
+          ) : (
             <>
               {/* Split-View: Code Editor (Left) + Preview (Right) when code editor is open */}
               {codeEditorOpen ? (
@@ -507,6 +555,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                   setScenes={setScenes}
                   subCompetencies={subCompetencies}
                   designSettings={designSettings}
+                  tracks={tracks}
+                  onScrollToTrack={(trackId) => setActiveTrackId(trackId)}
                 />
               )}
             </>
@@ -543,6 +593,29 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
               document.documentElement.style.setProperty('--brand-secondary', newSettings.secondary);
               document.documentElement.style.setProperty('--brand-background', newSettings.background);
             }}
+            // Multi-track curriculum props
+            tracks={tracks}
+            activeTrackId={activeTrackId}
+            onTrackClick={(trackId, sceneIndex) => {
+              setActiveTrackId(trackId);
+              setCurrentSceneIndex(sceneIndex);
+              setCurrentStep(4); // Switch to scenes step
+            }}
+            onRemoveTrack={(trackId) => {
+              const track = tracks.find(t => t.id === trackId);
+              if (!track) return;
+              // Remove all scenes associated with this track
+              setScenes(scenes.filter(s => s.trackId !== trackId));
+              setSelectedSubCompetencies(
+                selectedSubCompetencies.filter(id => !track.subCompetencyIds.includes(id))
+              );
+              setTracks(tracks.filter(t => t.id !== trackId).map((t, i) => ({ ...t, order: i + 1 })));
+            }}
+            onAddTrack={() => {
+              setCurrentStep(3); // Go to framework step to add new track
+            }}
+            showTrackNudge={isLastSceneOfTrack}
+            currentTrackInfo={currentTrackInfo}
           />
         </div>
       </div>

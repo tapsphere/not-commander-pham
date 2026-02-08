@@ -20,7 +20,7 @@ import {
   MessageSquare, Settings2, Eye, EyeOff, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
-import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES, createDefaultScene } from '../template-steps/types';
+import { DesignSettings, SceneData, SubCompetency, TemplateFormData, CompetencyTrack, INDUSTRIES, createDefaultScene } from '../template-steps/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ColorRemixPanel } from '../ColorRemixPanel';
@@ -45,6 +45,15 @@ interface StudioPropertiesSidebarProps {
   onToggleExpand?: () => void;
   // Global AI orchestration
   onApplyToAllScenes?: (designSettings: DesignSettings) => void;
+  // Multi-track curriculum props
+  tracks?: CompetencyTrack[];
+  activeTrackId?: string | null;
+  onTrackClick?: (trackId: string, sceneIndex: number) => void;
+  onRemoveTrack?: (trackId: string) => void;
+  onAddTrack?: () => void;
+  // Show add track nudge
+  showTrackNudge?: boolean;
+  currentTrackInfo?: { number: number; name: string } | null;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -170,6 +179,13 @@ export function StudioPropertiesSidebar({
   isExpanded = false,
   onToggleExpand,
   onApplyToAllScenes,
+  tracks = [],
+  activeTrackId,
+  onTrackClick,
+  onRemoveTrack,
+  onAddTrack,
+  showTrackNudge = false,
+  currentTrackInfo,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
