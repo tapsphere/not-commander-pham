@@ -184,8 +184,45 @@
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.2);
   }
 
-  /* Interactive hover states */
+/* Interactive hover states */
   .hover-lift {
     @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Monaco Editor Protected Block Styles
+   For Scientific Core, Telemetry, and TMA SDK sections
+═══════════════════════════════════════════════════════════════ */
+
+.protected-block-scientific {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  border-left: 3px solid rgba(239, 68, 68, 0.5) !important;
+}
+
+.protected-block-telemetry {
+  background-color: rgba(249, 115, 22, 0.08) !important;
+  border-left: 3px solid rgba(249, 115, 22, 0.5) !important;
+}
+
+.protected-block-tma {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+  border-left: 3px solid rgba(59, 130, 246, 0.5) !important;
+}
+
+.protected-glyph {
+  background-color: rgba(239, 68, 68, 0.3);
+  border-radius: 2px;
+}
+
+.dark .protected-block-scientific {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+}
+
+.dark .protected-block-telemetry {
+  background-color: rgba(249, 115, 22, 0.12) !important;
+}
+
+.dark .protected-block-tma {
+  background-color: rgba(59, 130, 246, 0.12) !important;
 }
