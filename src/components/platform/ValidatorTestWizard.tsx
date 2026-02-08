@@ -316,7 +316,7 @@ export function ValidatorTestWizard({
       case 'passed': return 'bg-green-500/10 border-green-500';
       case 'failed': return 'bg-red-500/10 border-red-500';
       case 'needs_review': return 'bg-yellow-500/10 border-yellow-500';
-      default: return 'bg-gray-800 border-gray-700';
+      default: return 'bg-muted border-border';
     }
   };
 
@@ -324,12 +324,12 @@ export function ValidatorTestWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-gray-900 border-gray-700 text-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl bg-background border-border text-foreground max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-white flex items-center gap-2">
+          <DialogTitle className="text-2xl text-foreground flex items-center gap-2">
             {template.template_type === 'ai_generated' ? '🤖' : '📤'} {template.name}
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogDescription className="text-muted-foreground">
             Validator Testing v3.1 - 8 Automated Checks
           </DialogDescription>
         </DialogHeader>
@@ -338,23 +338,23 @@ export function ValidatorTestWizard({
         <Progress value={progress} className="h-2" />
 
         {/* Template Info */}
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 space-y-2">
+        <div className="bg-muted/50 border border-border rounded-lg p-4 space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-400">Type:</span>
-            <span className="text-white">
+            <span className="text-muted-foreground">Type:</span>
+            <span className="text-foreground">
               {template.template_type === 'ai_generated' ? '🤖 AI Generated' : '📤 Custom Upload'}
             </span>
           </div>
           {subCompetency && (
             <>
               <div className="flex justify-between">
-                <span className="text-gray-400">Sub-Competency:</span>
-                <span className="text-white text-right">{subCompetency.statement}</span>
+                <span className="text-muted-foreground">Sub-Competency:</span>
+                <span className="text-foreground text-right">{subCompetency.statement}</span>
               </div>
               {subCompetency.action_cue && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Action Cue:</span>
-                  <span className="text-white text-right">{subCompetency.action_cue}</span>
+                  <span className="text-muted-foreground">Action Cue:</span>
+                  <span className="text-foreground text-right">{subCompetency.action_cue}</span>
                 </div>
               )}
             </>
@@ -363,23 +363,23 @@ export function ValidatorTestWizard({
 
         {/* Test Status */}
         {!testComplete && !testing && (
-          <div className="bg-gray-800 border-2 border-neon-green rounded-lg p-6 text-center space-y-4">
-            <h3 className="text-xl font-bold text-white">Ready to Run Automated Tests</h3>
+          <div className="bg-muted/50 border-2 border-primary/50 rounded-lg p-6 text-center space-y-4">
+            <h3 className="text-xl font-bold text-foreground">Ready to Run Automated Tests</h3>
             {template.template_type === 'ai_generated' && (
               <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-2">
-                <p className="text-blue-300 text-sm">
+                <p className="text-blue-600 dark:text-blue-300 text-sm">
                   ℹ️ No upload needed! Your game will be auto-generated from your prompt before testing.
                 </p>
               </div>
             )}
-            <p className="text-gray-400">
+            <p className="text-muted-foreground">
               This will run 8 comprehensive checks including scene structure, UX/UI integrity, 
               Telegram compliance, configuration validation, and more.
             </p>
             <Button
               onClick={handleRunAutomatedTests}
               disabled={testing}
-              className="gap-2 bg-neon-green text-black hover:bg-neon-green/80 text-lg py-6 px-8"
+              className="gap-2 text-lg py-6 px-8"
             >
               <PlayCircle className="w-6 h-6" />
               Run All 8 Automated Checks
@@ -388,10 +388,10 @@ export function ValidatorTestWizard({
         )}
 
         {testing && (
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
-            <div className="animate-spin h-12 w-12 border-4 border-neon-green border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-white font-semibold">Running automated tests...</p>
-            <p className="text-gray-400 text-sm">This may take a few moments</p>
+          <div className="bg-muted/50 border border-border rounded-lg p-6 text-center">
+            <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-foreground font-semibold">Running automated tests...</p>
+            <p className="text-muted-foreground text-sm">This may take a few moments</p>
           </div>
         )}
 
@@ -403,10 +403,10 @@ export function ValidatorTestWizard({
               <div className="flex items-center gap-3">
                 {getStatusIcon(overallStatus)}
                 <div>
-                  <h3 className="font-bold text-lg text-white">
+                  <h3 className="font-bold text-lg text-foreground">
                     Overall Status: {overallStatus.replace('_', ' ').toUpperCase()}
                   </h3>
-                  <p className="text-sm text-gray-300">
+                  <p className="text-sm text-muted-foreground">
                     {overallStatus === 'passed' 
                       ? '✅ All checks passed! Ready for publishing.' 
                       : overallStatus === 'failed'
@@ -419,7 +419,7 @@ export function ValidatorTestWizard({
 
             {/* Individual Check Results */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-white">Individual Check Results:</h4>
+              <h4 className="font-semibold text-foreground">Individual Check Results:</h4>
               {results.map((check) => (
                 <div
                   key={check.checkNumber}
@@ -432,15 +432,15 @@ export function ValidatorTestWizard({
                         <Badge variant="outline" className="text-xs">
                           Check {check.checkNumber}/8
                         </Badge>
-                        <h5 className="font-semibold text-white">{check.name}</h5>
+                        <h5 className="font-semibold text-foreground">{check.name}</h5>
                       </div>
-                      <p className="text-sm text-gray-300">{check.notes}</p>
+                      <p className="text-sm text-muted-foreground">{check.notes}</p>
                       {check.details && Object.keys(check.details).length > 0 && (
                         <details className="mt-2">
-                          <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-300">
+                          <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                             View details
                           </summary>
-                          <pre className="mt-2 text-xs bg-gray-950 p-2 rounded overflow-auto">
+                          <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-auto text-foreground">
                             {JSON.stringify(check.details, null, 2)}
                           </pre>
                         </details>
@@ -454,11 +454,10 @@ export function ValidatorTestWizard({
         )}
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
+        <div className="flex justify-end gap-3 pt-4 border-t border-border">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-gray-600"
           >
             {testComplete ? 'Close' : 'Cancel'}
           </Button>
@@ -468,7 +467,7 @@ export function ValidatorTestWizard({
                 onOpenChange(false);
                 onComplete();
               }}
-              className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+              className="gap-2"
             >
               <CheckCircle className="w-5 h-5" />
               Continue to Publish Options
@@ -477,7 +476,7 @@ export function ValidatorTestWizard({
           {testComplete && overallStatus !== 'passed' && (
             <Button
               onClick={handleRunAutomatedTests}
-              className="gap-2 bg-neon-green text-black hover:bg-neon-green/80"
+              className="gap-2"
             >
               <PlayCircle className="w-5 h-5" />
               Re-run Tests
