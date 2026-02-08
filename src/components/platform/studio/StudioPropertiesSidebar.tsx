@@ -907,6 +907,64 @@ export function StudioPropertiesSidebar({
 
     return (
       <div className="space-y-4">
+        {/* ===== LOCKED PLAYOPS FRAMEWORK SECTION (Read-Only DNA Fields) ===== */}
+        <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-amber-500/30 bg-amber-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 rounded-lg bg-amber-500/20">
+              <Lock className="h-4 w-4 text-amber-600" />
+            </div>
+            <span className={`text-sm font-semibold ${textColor}`}>Locked PlayOps Framework</span>
+          </div>
+          
+          <p className={`text-xs ${mutedColor} mb-3`}>
+            These fields are pulled from the Master DNA Library and are <strong className="text-amber-600">READ-ONLY</strong>.
+          </p>
+          
+          {/* Action Cue - FROM DATABASE */}
+          <div className="space-y-1.5 mb-3">
+            <div className="flex items-center gap-1.5">
+              <Lock className="h-2.5 w-2.5 text-amber-600" />
+              <Label className={`text-[10px] font-medium uppercase tracking-wide text-amber-600`}>Action Cue</Label>
+            </div>
+            <div className={`p-2.5 rounded-lg text-xs ${isDarkMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'} ${textColor}`}>
+              {currentSubCompetency?.action_cue || (
+                <span className="text-destructive italic">⚠️ Not defined in Master DNA</span>
+              )}
+            </div>
+          </div>
+          
+          {/* Interaction Type (Game Mechanic) - FROM DATABASE */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <Lock className="h-2.5 w-2.5 text-amber-600" />
+              <Label className={`text-[10px] font-medium uppercase tracking-wide text-amber-600`}>Interaction Type</Label>
+            </div>
+            <div className={`p-2.5 rounded-lg text-xs ${isDarkMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'} ${textColor}`}>
+              {currentSubCompetency?.game_mechanic || (
+                <span className="text-destructive italic">⚠️ Not defined in Master DNA</span>
+              )}
+            </div>
+          </div>
+          
+          {/* Additional locked fields */}
+          {currentSubCompetency?.game_loop && (
+            <div className="space-y-1.5 mt-3">
+              <div className="flex items-center gap-1.5">
+                <Lock className="h-2.5 w-2.5 text-amber-600" />
+                <Label className={`text-[10px] font-medium uppercase tracking-wide text-amber-600`}>Game Loop</Label>
+              </div>
+              <div className={`p-2.5 rounded-lg text-xs ${isDarkMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'} ${textColor}`}>
+                {currentSubCompetency.game_loop}
+              </div>
+            </div>
+          )}
+          
+          <p className={`text-[10px] mt-3 pt-2 border-t ${isDarkMode ? 'border-amber-500/20' : 'border-amber-200'} ${mutedColor} italic flex items-center gap-1`}>
+            <Shield className="h-3 w-3 text-amber-600" />
+            Data synced from Master DNA Sheet Tab 3, Column B
+          </p>
+        </div>
+
         {/* ===== VISION LOOP STATUS INDICATOR ===== */}
         {visionStatus !== 'idle' && (
           <div className={`p-3 rounded-xl border ${

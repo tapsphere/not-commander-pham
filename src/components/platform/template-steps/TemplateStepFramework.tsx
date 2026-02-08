@@ -5,8 +5,35 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultScene, createDefaultTrack } from './types';
-import { Lock, Plus, Layers, ChevronRight, Trash2 } from 'lucide-react';
+import { Lock, Plus, Layers, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { CompetencyAISearch } from './CompetencyAISearch';
+
+// Data Integrity validation - flags missing required DNA fields
+interface DataIntegrityError {
+  subCompetencyId: string;
+  statement: string;
+  missingFields: ('action_cue' | 'game_mechanic')[];
+}
+
+function validateSubCompetencyData(sub: SubCompetency): DataIntegrityError | null {
+  const missingFields: ('action_cue' | 'game_mechanic')[] = [];
+  
+  if (!sub.action_cue || sub.action_cue.trim() === '') {
+    missingFields.push('action_cue');
+  }
+  if (!sub.game_mechanic || sub.game_mechanic.trim() === '') {
+    missingFields.push('game_mechanic');
+  }
+  
+  if (missingFields.length > 0) {
+    return {
+      subCompetencyId: sub.id,
+      statement: sub.statement,
+      missingFields,
+    };
+  }
+  return null;
+}
 
 interface TemplateStepFrameworkProps {
   competencies: Competency[];
@@ -41,21 +68,42 @@ export function TemplateStepFramework({
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
 
+  // Check for data integrity errors in sub-competencies
+  const dataIntegrityErrors: DataIntegrityError[] = subCompetencies
+    .filter(sub => sub.competency_id === selectedCompetency)
+    .map(validateSubCompetencyData)
+    .filter((error): error is DataIntegrityError => error !== null);
+
   const handleSubCompetencyToggle = (subId: string, checked: boolean, trackId?: string) => {
+    const sub = subCompetencies.find(s => s.id === subId);
+    
+    // DATA INTEGRITY CHECK: Block selection if missing required fields
+    if (checked && sub) {
+      const error = validateSubCompetencyData(sub);
+      if (error) {
+        toast.error(
+          `Data Integrity Error: "${sub.statement}" is missing ${error.missingFields.join(' and ')}. Cannot create scene.`,
+          { duration: 5000 }
+        );
+        return;
+      }
+    }
+    
     if (checked) {
       if (selectedSubCompetencies.length < (tracks.length > 0 ? tracks.length * 6 : 6)) {
         const newSubs = [...selectedSubCompetencies, subId];
         setSelectedSubCompetencies(newSubs);
         
-        // Create a new scene for this sub-competency
-        const sub = subCompetencies.find(s => s.id === subId);
+        // Create a new scene for this sub-competency with DB data
         if (sub) {
           const activeTrack = trackId || (tracks.length > 0 ? tracks[tracks.length - 1]?.id : undefined);
           const newScene = createDefaultScene(subId, newSubs.length, activeTrack);
-          // Auto-populate question based on action_cue
+          
+          // AUTO-POPULATE from Master DNA columns
           newScene.question = sub.action_cue 
-            ? `${sub.action_cue}. Select the best approach:`
+            ? `${sub.action_cue}`
             : `Scene ${newSubs.length}: Make your choice`;
+          
           setScenes([...scenes, newScene]);
           
           // Update track's sub-competency list if using tracks
@@ -236,6 +284,31 @@ export function TemplateStepFramework({
             onHighlight={onHighlightCompetency}
           />
         </div>
+
+        {/* DATA INTEGRITY ERROR BANNER */}
+        {selectedCompetency && dataIntegrityErrors.length > 0 && (
+          <div className="bg-destructive/10 border-2 border-destructive/40 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <span className="font-semibold text-sm text-destructive">
+                Data Integrity Errors ({dataIntegrityErrors.length})
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              The following sub-competencies are missing required DNA fields and cannot be used:
+            </p>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {dataIntegrityErrors.map(error => (
+                <div key={error.subCompetencyId} className="bg-background p-2 rounded-lg border border-destructive/20">
+                  <p className="text-xs font-medium text-foreground truncate">{error.statement}</p>
+                  <p className="text-xs text-destructive">
+                    Missing: {error.missingFields.map(f => f === 'action_cue' ? 'Action Cue' : 'Game Mechanic').join(', ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Sub-Competency Selection - Only shows filtered results */}
         {selectedCompetency && filteredSubCompetencies.length > 0 && (
