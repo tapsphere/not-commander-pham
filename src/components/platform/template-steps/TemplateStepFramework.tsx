@@ -406,33 +406,64 @@ export function TemplateStepFramework({
                       </p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Locked Action Cue */}
+                    {/* V5 Scientific Profile - Full Constraint Visibility */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Locked Action Cue (Col E) */}
                       <div className="relative">
-                        <div className="absolute -top-2 left-2 px-1.5 bg-background">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
                           <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
                             <Lock className="h-2.5 w-2.5" />
                             ACTION CUE
                           </span>
                         </div>
-                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 pt-4">
-                          <p className="text-xs text-foreground leading-relaxed">
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground leading-relaxed">
                             {sub.action_cue || 'Not defined in framework'}
                           </p>
                         </div>
                       </div>
                       
-                      {/* Locked Mechanic */}
+                      {/* Locked Mechanic (Col F) */}
                       <div className="relative">
-                        <div className="absolute -top-2 left-2 px-1.5 bg-background">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
                           <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
                             <Lock className="h-2.5 w-2.5" />
                             MECHANIC
                           </span>
                         </div>
-                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 pt-4">
-                          <p className="text-xs text-foreground font-medium">
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground font-medium">
                             {sub.game_mechanic || 'Not defined'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Locked Physical Interaction (Col G) - MANDATORY for jitter tracking */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                          <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            PHYSICAL INTERACTION
+                          </span>
+                        </div>
+                        <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground">
+                            {sub.game_loop || 'Tap (default)'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Locked Time Gate (Col H) - Hard cutoff for Mastery */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                          <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            TIME GATE
+                          </span>
+                        </div>
+                        <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground font-medium">
+                            {sub.validator_type || '30s/45s/60s Standard'}
                           </p>
                         </div>
                       </div>
@@ -445,7 +476,7 @@ export function TemplateStepFramework({
             <div className="mt-4 pt-3 border-t border-amber-500/20">
               <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
                 <Lock className="h-3 w-3 text-amber-600" />
-                Action Cues and Game Mechanics are mandatory per C-BEN competency standards
+                V5 Scientific Profile: Action Cue (E) + Mechanic (F) + Physical Interaction (G) + Time Gate (H) — locked per C-BEN standards
               </p>
             </div>
           </div>
