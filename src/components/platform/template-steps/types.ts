@@ -23,6 +23,8 @@ export interface SceneData {
   // Visual choice rendering options
   displayMode?: 'text' | 'visual';       // Text buttons vs icon/image choices
   gridLayout?: '1x4' | '2x2' | '3x2';    // Layout: vertical list, 2x2 grid, or 3x2 grid
+  // Track assignment
+  trackId?: string;                       // Which competency track this scene belongs to
 }
 
 // Lucide icon names for visual choices (fashion/retail example set)
@@ -87,6 +89,21 @@ export interface Competency {
   is_active: boolean;
 }
 
+// Multi-Track Curriculum Types
+export interface CompetencyTrack {
+  id: string;
+  competencyId: string;
+  competencyName: string;
+  subCompetencyIds: string[];
+  order: number;           // Track order in the curriculum
+  createdAt: number;
+}
+
+export interface CurriculumState {
+  tracks: CompetencyTrack[];
+  activeTrackId: string | null;
+}
+
 export const DEFAULT_DESIGN_SETTINGS: DesignSettings = {
   primary: '#C8DBDB',
   secondary: '#6C8FA4',
@@ -132,7 +149,7 @@ export const VISUAL_THEMES = [
 
 export const TIME_LIMITS = [30, 45, 60] as const;
 
-export function createDefaultScene(subCompetencyId: string, sceneNumber: number): SceneData {
+export function createDefaultScene(subCompetencyId: string, sceneNumber: number, trackId?: string): SceneData {
   return {
     id: `scene-${sceneNumber}-${Date.now()}`,
     question: '',
@@ -144,6 +161,18 @@ export function createDefaultScene(subCompetencyId: string, sceneNumber: number)
     ],
     timeLimit: 60,
     subCompetencyId,
+    trackId,
+  };
+}
+
+export function createDefaultTrack(competencyId: string, competencyName: string, order: number): CompetencyTrack {
+  return {
+    id: `track-${order}-${Date.now()}`,
+    competencyId,
+    competencyName,
+    subCompetencyIds: [],
+    order,
+    createdAt: Date.now(),
   };
 }
 
