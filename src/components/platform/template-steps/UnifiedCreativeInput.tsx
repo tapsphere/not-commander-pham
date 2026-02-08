@@ -1,27 +1,28 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { 
   Sparkles, 
   Loader2,
-  Search,
-  Lightbulb,
   ArrowRight,
-  Lock
+  Lock,
+  Upload,
+  FileText,
+  X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Competency, SubCompetency, SceneData, createDefaultScene } from './types';
 
 // Fashion demo sample
 const FASHION_DEMO = {
-  placeholder: `High-end fashion brand teaching window merchandising. Focus: Mannequin depth-spacing and focal point lighting using Analytical Thinking standards... ✨ Try it out or tell me what skills you want?`,
+  placeholder: `Enter a theme (e.g. Fashion) or a specific skill (e.g. Emotional Intelligence)... ✨ Try it out?`,
   theme: 'High-end fashion brand teaching window merchandising',
   skill: 'Analytical Thinking',
 };
 
-// Skill keywords for Path B detection
+// Skill keywords for direct skill detection
 const SKILL_KEYWORDS = [
   'thinking', 'solving', 'intelligence', 'communication', 'clarity', 
   'creativity', 'leadership', 'fluency', 'digital', 'emotional',
@@ -35,7 +36,7 @@ interface UnifiedCreativeInputProps {
     competencyId: string,
     selectedSubIds: string[],
     scenes: SceneData[],
-    pathUsed: 'theme' | 'skill'
+    pathUsed: 'theme' | 'skill' | 'upload'
   ) => void;
   onManualFallback: () => void;
 }
@@ -46,35 +47,12 @@ export function UnifiedCreativeInput({
   onComplete,
   onManualFallback,
 }: UnifiedCreativeInputProps) {
-  const [inputValue, setInputValue] = useState(FASHION_DEMO.placeholder);
+  const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [detectedMode, setDetectedMode] = useState<'theme' | 'skill' | null>('theme');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Detect input mode based on content
-  useEffect(() => {
-    const input = inputValue.toLowerCase().trim();
-    
-    // If it's the placeholder or contains theme-like content
-    if (inputValue === FASHION_DEMO.placeholder || input.includes('brand') || input.includes('teaching') || input.includes('training')) {
-      setDetectedMode('theme');
-      return;
-    }
-    
-    // If it matches a skill keyword directly
-    const isSkillSearch = SKILL_KEYWORDS.some(keyword => 
-      input.includes(keyword) || 
-      competencies.some(c => c.name.toLowerCase().includes(input))
-    );
-    
-    if (isSkillSearch && input.length < 50) {
-      setDetectedMode('skill');
-    } else if (input.length > 20) {
-      setDetectedMode('theme');
-    } else {
-      setDetectedMode(null);
-    }
-  }, [inputValue, competencies]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const findMatchingCompetency = (searchText: string): Competency | null => {
     const input = searchText.toLowerCase();
@@ -94,39 +72,91 @@ export function UnifiedCreativeInput({
       }
     }
     
-    // Default to Analytical Thinking for theme mode
+    // Default to Analytical Thinking for demos
     return competencies.find(c => c.name.toLowerCase().includes('analytical')) || competencies[0];
   };
 
-  const handleSubmit = async () => {
-    if (!inputValue.trim()) {
-      toast.error('Please enter a theme or skill');
+  const isSkillSearch = (text: string): boolean => {
+    const input = text.toLowerCase().trim();
+    if (input.length > 60) return false; // Long text = theme
+    
+    return SKILL_KEYWORDS.some(keyword => input.includes(keyword)) || 
+      competencies.some(c => c.name.toLowerCase().includes(input));
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.includes('pdf')) {
+      toast.error('Please upload a PDF file');
       return;
     }
+
+    setUploadedFile(file);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await supabase.functions.invoke('parse-document', {
+        body: formData,
+      });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to parse document');
+      }
+
+      const extractedText = response.data.text;
+      
+      // Find matching competency from parsed content
+      const matchedCompetency = findMatchingCompetency(extractedText);
+      
+      if (!matchedCompetency) {
+        toast.error('Could not identify a competency from the document');
+        setUploadedFile(null);
+        return;
+      }
+
+      // Get 6 sub-competencies
+      const matchedSubs = subCompetencies
+        .filter(s => s.competency_id === matchedCompetency.id)
+        .slice(0, 6);
+
+      if (matchedSubs.length === 0) {
+        toast.error(`No sub-competencies found for "${matchedCompetency.name}"`);
+        setUploadedFile(null);
+        return;
+      }
+
+      // Create scenes with PDF context
+      const scenes = matchedSubs.map((sub, idx) => {
+        const scene = createDefaultScene(sub.id, idx + 1);
+        scene.question = `[From ${file.name}] ${sub.action_cue || sub.statement}`;
+        return scene;
+      });
+
+      toast.success(`Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
+      onComplete(matchedCompetency.id, matchedSubs.map(s => s.id), scenes, 'upload');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('Failed to parse PDF. Try entering a theme instead.');
+      setUploadedFile(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    // Demo trigger - empty input or placeholder
+    const isDemoTrigger = !inputValue.trim();
+    const searchText = isDemoTrigger ? FASHION_DEMO.theme : inputValue.trim();
 
     setIsProcessing(true);
 
     try {
-      // Determine the path based on detected mode
-      const isThemeMode = detectedMode === 'theme' || inputValue === FASHION_DEMO.placeholder;
-      
-      // Extract skill from input
-      let skillSearch = '';
-      let themeContext = '';
-      
-      if (isThemeMode) {
-        // Parse theme for skill reference
-        const analyticalMatch = inputValue.match(/analytical\s*thinking/i);
-        skillSearch = analyticalMatch ? 'Analytical Thinking' : 
-          inputValue.match(/(\w+\s+\w+)\s*standards?/i)?.[1] || 'Analytical Thinking';
-        themeContext = inputValue.replace(/✨.*$/, '').trim();
-      } else {
-        // Direct skill search
-        skillSearch = inputValue;
-      }
-
-      // Find matching competency
-      const matchedCompetency = findMatchingCompetency(skillSearch);
+      const isSkill = !isDemoTrigger && isSkillSearch(searchText);
+      const matchedCompetency = findMatchingCompetency(
+        isSkill ? searchText : (isDemoTrigger ? FASHION_DEMO.skill : searchText)
+      );
       
       if (!matchedCompetency) {
         toast.error('No matching competency found. Try a different search.');
@@ -134,22 +164,31 @@ export function UnifiedCreativeInput({
         return;
       }
 
-      // Get 6 sub-competencies for this competency
+      // Get 6 sub-competencies
       const matchedSubs = subCompetencies
         .filter(s => s.competency_id === matchedCompetency.id)
         .slice(0, 6);
 
       if (matchedSubs.length === 0) {
-        toast.error(`No sub-competencies found for "${matchedCompetency.name}".`);
+        toast.error(`No sub-competencies found for "${matchedCompetency.name}"`);
         onManualFallback();
         return;
       }
 
-      // Create scenes based on mode
       let scenes: SceneData[];
 
-      if (isThemeMode && themeContext) {
-        // Path A: Theme-based AI generation
+      if (isSkill) {
+        // Direct V5 definitions for skill search
+        scenes = matchedSubs.map((sub, idx) => {
+          const scene = createDefaultScene(sub.id, idx + 1);
+          scene.question = sub.action_cue || `Scene ${idx + 1}: ${sub.statement}`;
+          return scene;
+        });
+        toast.success(`Loaded ${scenes.length} V5 scenes for "${matchedCompetency.name}"`);
+      } else {
+        // Theme-based generation (demo or custom theme)
+        const themeContext = isDemoTrigger ? FASHION_DEMO.theme : searchText;
+        
         try {
           const response = await supabase.functions.invoke('generate-game', {
             body: {
@@ -170,7 +209,7 @@ export function UnifiedCreativeInput({
             const aiScene = response.data?.scenes?.[idx];
             
             scene.question = aiScene?.question || 
-              `[${themeContext.substring(0, 50)}...] ${sub.action_cue || 'Make your decision'}`;
+              `[${themeContext.substring(0, 40)}...] ${sub.action_cue || 'Make your decision'}`;
             
             if (aiScene?.choices) {
               scene.choices = scene.choices.map((choice, cidx) => ({
@@ -183,30 +222,22 @@ export function UnifiedCreativeInput({
           });
 
           toast.success(`Created ${scenes.length} themed scenes for "${matchedCompetency.name}"!`);
-        } catch (error) {
-          // Fallback without AI theming
+        } catch {
+          // Fallback without AI
           scenes = matchedSubs.map((sub, idx) => {
             const scene = createDefaultScene(sub.id, idx + 1);
             scene.question = `[${themeContext.substring(0, 30)}] ${sub.action_cue || 'Make your decision'}`;
             return scene;
           });
-          toast.success(`Created ${scenes.length} scenes (AI theming skipped)`);
+          toast.success(`Created ${scenes.length} scenes (AI skipped)`);
         }
-      } else {
-        // Path B: Direct V5 definitions
-        scenes = matchedSubs.map((sub, idx) => {
-          const scene = createDefaultScene(sub.id, idx + 1);
-          scene.question = sub.action_cue || `Scene ${idx + 1}: ${sub.statement}`;
-          return scene;
-        });
-        toast.success(`Loaded ${scenes.length} V5 scenes for "${matchedCompetency.name}"`);
       }
 
       onComplete(
         matchedCompetency.id, 
         matchedSubs.map(s => s.id), 
         scenes, 
-        isThemeMode ? 'theme' : 'skill'
+        isSkill ? 'skill' : 'theme'
       );
     } catch (error: any) {
       console.error('Submit error:', error);
@@ -218,21 +249,28 @@ export function UnifiedCreativeInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !isProcessing && !isUploading) {
       e.preventDefault();
       handleSubmit();
     }
   };
 
-  const handleTryDemo = () => {
-    setInputValue(FASHION_DEMO.placeholder);
-    toast.success('Fashion demo loaded! Press Enter to generate.');
-    textareaRef.current?.focus();
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
-  const handleClear = () => {
-    setInputValue('');
-    textareaRef.current?.focus();
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
+
+  const clearUpload = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -241,116 +279,108 @@ export function UnifiedCreativeInput({
       <div className="text-center mb-4">
         <div className="inline-flex items-center gap-2 mb-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Universal Start</h2>
+          <h2 className="text-xl font-semibold text-foreground">Smart Port</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Describe your training context or search for a skill — we'll build your 6-scene validator.
+          Enter a theme, search for a skill, or upload a PDF — we'll build your 6-scene validator.
         </p>
       </div>
 
-      {/* Creative Input */}
+      {/* Smart Port Input */}
       <div className="relative">
-        <Textarea
-          ref={textareaRef}
+        <Input
+          ref={inputRef}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={FASHION_DEMO.placeholder}
-          className="min-h-[120px] pr-24 text-sm bg-background border-2 border-border focus:border-primary/50 resize-none"
-          disabled={isProcessing}
+          className="pr-12 h-12 text-sm bg-background border-2 border-border focus:border-primary/50"
+          disabled={isProcessing || isUploading}
         />
         
-        {/* Mode indicator */}
-        <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
-          {detectedMode && (
-            <Badge 
-              variant="outline" 
-              className={`text-xs ${
-                detectedMode === 'theme' 
-                  ? 'border-emerald-500/50 text-emerald-600 bg-emerald-500/10' 
-                  : 'border-amber-500/50 text-amber-600 bg-amber-500/10'
-              }`}
-            >
-              {detectedMode === 'theme' ? '🎨 Theme Mode' : '🔍 Skill Mode'}
-            </Badge>
+        {/* Upload Icon Button */}
+        <button
+          type="button"
+          onClick={handleUploadClick}
+          disabled={isProcessing || isUploading}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50"
+          title="Upload PDF"
+        >
+          <Upload className="h-5 w-5 text-muted-foreground hover:text-primary" />
+        </button>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+
+      {/* Uploaded File Indicator */}
+      {uploadedFile && (
+        <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
+          <FileText className="h-4 w-4 text-primary" />
+          <span className="text-sm text-foreground flex-1 truncate">{uploadedFile.name}</span>
+          {isUploading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          ) : (
+            <button onClick={clearUpload} className="p-1 hover:bg-muted rounded">
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
           )}
         </div>
+      )}
 
-        {/* Clear button */}
-        {inputValue && inputValue !== FASHION_DEMO.placeholder && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="absolute bottom-3 right-3 text-xs text-muted-foreground hover:text-foreground"
-          >
-            Clear
-          </Button>
+      {/* Action Button */}
+      <Button
+        onClick={handleSubmit}
+        disabled={isProcessing || isUploading}
+        className="w-full"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Processing...
+          </>
+        ) : isUploading ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Parsing PDF...
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4 mr-2" />
+            {inputValue.trim() ? 'Generate 6 Scenes' : 'Try Fashion Demo'}
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </>
         )}
-      </div>
+      </Button>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-3">
-        <Button
-          onClick={handleSubmit}
-          disabled={!inputValue.trim() || isProcessing}
-          className="flex-1"
-        >
-          {isProcessing ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              {detectedMode === 'theme' ? 'Generating Scenes...' : 'Loading V5 Data...'}
-            </>
-          ) : (
-            <>
-              {detectedMode === 'theme' ? (
-                <Sparkles className="h-4 w-4 mr-2" />
-              ) : (
-                <Search className="h-4 w-4 mr-2" />
-              )}
-              {detectedMode === 'theme' ? 'Generate 6 Themed Scenes' : 'Load V5 Standard Scenes'}
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </>
-          )}
-        </Button>
-
-        {inputValue !== FASHION_DEMO.placeholder && (
-          <Button
-            variant="outline"
-            onClick={handleTryDemo}
-            className="shrink-0"
-          >
-            <Lightbulb className="h-4 w-4 mr-2 text-amber-500" />
-            Try Demo
-          </Button>
-        )}
-      </div>
-
-      {/* Quick skill shortcuts */}
+      {/* Quick Skills */}
       <div className="flex flex-wrap gap-2">
         <span className="text-xs text-muted-foreground mr-2">Quick skills:</span>
-        {['Analytical Thinking', 'Problem Solving', 'Communication'].map(skill => (
-          <Button
+        {['Analytical Thinking', 'Problem Solving', 'Emotional Intelligence'].map(skill => (
+          <Badge
             key={skill}
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs bg-muted/50 hover:bg-muted"
+            variant="outline"
+            className="cursor-pointer hover:bg-muted transition-colors"
             onClick={() => setInputValue(skill)}
           >
             {skill}
-          </Button>
+          </Badge>
         ))}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 text-xs text-muted-foreground"
+        <Badge
+          variant="outline"
+          className="cursor-pointer text-muted-foreground hover:bg-muted"
           onClick={onManualFallback}
         >
           Manual Select →
-        </Button>
+        </Badge>
       </div>
 
-      {/* V5 Lock indicator */}
+      {/* V5 Lock Indicator */}
       <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-4">
         <p className="text-xs text-muted-foreground flex items-start gap-2">
           <Lock className="h-3 w-3 text-primary mt-0.5 shrink-0" />
