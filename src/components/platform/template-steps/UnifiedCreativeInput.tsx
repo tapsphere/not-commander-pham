@@ -271,11 +271,11 @@ export function UnifiedCreativeInput({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center mb-2">
-        <div className="inline-flex items-center gap-2 mb-1">
-          <Sparkles className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-semibold text-foreground">Command Center</h2>
+      {/* Header - Command Center Hero */}
+      <div className="text-center mb-4">
+        <div className="inline-flex items-center gap-2 mb-2">
+          <Sparkles className="h-7 w-7 text-primary" />
+          <h2 className="text-2xl font-bold text-foreground">Command Center</h2>
         </div>
         <p className="text-sm text-muted-foreground max-w-lg mx-auto">
           Search & Build — enter a theme, type a skill, or upload a PDF. The AI handles the heavy lifting.

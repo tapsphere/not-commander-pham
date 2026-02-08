@@ -274,11 +274,11 @@ export function TemplateStepFramework({
       {/* MAIN FRAMEWORK UI */}
       {showMainUI && (
         <>
-          {/* Header */}
+          {/* Header - Command Center */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 mb-2">
               <Lock className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">Logic Framework</h2>
+              <h2 className="text-xl font-semibold text-foreground">Command Center</h2>
               {entryPath && (
                 <Badge variant="outline" className="text-xs capitalize">
                   via {entryPath}
