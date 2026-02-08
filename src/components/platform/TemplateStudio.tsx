@@ -47,6 +47,7 @@ function StudioContent({
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
@@ -424,8 +425,12 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
           )}
         </div>
 
-        {/* Right Properties Sidebar */}
-        <div className="w-80 flex-shrink-0">
+        {/* Right Properties Sidebar - Expandable */}
+        <div 
+          className={`flex-shrink-0 transition-all duration-300 ease-out ${
+            sidebarExpanded ? 'w-[560px]' : 'w-80'
+          }`}
+        >
           <StudioPropertiesSidebar
             currentStep={currentStep}
             currentSceneIndex={currentSceneIndex}
@@ -440,6 +445,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             setLogoFile={setLogoFile}
             mascotFile={mascotFile}
             setMascotFile={setMascotFile}
+            isExpanded={sidebarExpanded}
+            onToggleExpand={() => setSidebarExpanded(!sidebarExpanded)}
           />
         </div>
       </div>
