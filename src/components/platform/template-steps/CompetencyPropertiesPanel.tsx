@@ -156,32 +156,62 @@ export function CompetencyPropertiesPanel({
             </Badge>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-3">
             {relevantSubs.slice(0, 6).map((sub, idx) => {
               const isSelected = selectedSubCompetencies.includes(sub.id);
               return (
                 <div 
                   key={sub.id}
                   className={cn(
-                    "p-2 rounded-lg text-xs transition-colors",
+                    "p-3 rounded-lg text-xs transition-colors",
                     isSelected 
                       ? "bg-primary/10 border border-primary/30" 
                       : "bg-muted/30 border border-transparent"
                   )}
                 >
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-start gap-2 mb-2">
                     {isSelected && (
                       <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
                         {selectedSubCompetencies.indexOf(sub.id) + 1}
                       </span>
                     )}
                     <p className={cn(
-                      "line-clamp-2",
+                      "line-clamp-2 font-medium",
                       isSelected ? "text-foreground" : "text-muted-foreground"
                     )}>
                       {sub.statement}
                     </p>
                   </div>
+                  
+                  {/* V5 Scientific Profile - Show all 4 fields when selected */}
+                  {isSelected && (
+                    <div className="mt-2 space-y-1.5 pl-7">
+                      {sub.action_cue && (
+                        <div className="flex items-start gap-1.5">
+                          <span className="text-[9px] font-semibold text-amber-600 uppercase shrink-0 w-16">Action:</span>
+                          <span className="text-[10px] text-muted-foreground">{sub.action_cue}</span>
+                        </div>
+                      )}
+                      {sub.game_mechanic && (
+                        <div className="flex items-start gap-1.5">
+                          <span className="text-[9px] font-semibold text-amber-600 uppercase shrink-0 w-16">Mechanic:</span>
+                          <span className="text-[10px] text-muted-foreground">{sub.game_mechanic}</span>
+                        </div>
+                      )}
+                      {sub.game_loop && (
+                        <div className="flex items-start gap-1.5">
+                          <span className="text-[9px] font-semibold text-purple-600 uppercase shrink-0 w-16">Physical:</span>
+                          <span className="text-[10px] text-muted-foreground">{sub.game_loop}</span>
+                        </div>
+                      )}
+                      {sub.validator_type && (
+                        <div className="flex items-start gap-1.5">
+                          <span className="text-[9px] font-semibold text-rose-600 uppercase shrink-0 w-16">Time Gate:</span>
+                          <span className="text-[10px] text-muted-foreground">{sub.validator_type}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
