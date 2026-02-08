@@ -4,6 +4,7 @@ import { Clock, ChevronLeft, ChevronRight, Play, Trophy, Award, RotateCcw, Send 
 import { useStudioTheme } from './StudioThemeContext';
 import { MechanicPreview } from './MechanicPreview';
 import { ScrubSlider } from './mechanics/ScrubSlider';
+import { TelegramNativeOverlay, TelegramPreviewToggle } from './TelegramNativeOverlay';
 import { 
   performThreeWayStitch, 
   initializeBiometricTrace,
@@ -22,6 +23,9 @@ interface StudioCenterCanvasProps {
   mascotFile?: File | null;
   logoFile?: File | null;
   onSceneChange?: (index: number) => void;
+  // Telegram Mini App Preview
+  telegramPreviewEnabled?: boolean;
+  onTelegramPreviewToggle?: () => void;
 }
 
 // Industry-specific placeholders
@@ -50,6 +54,8 @@ export function StudioCenterCanvas({
   mascotFile,
   logoFile,
   onSceneChange,
+  telegramPreviewEnabled = false,
+  onTelegramPreviewToggle,
 }: StudioCenterCanvasProps) {
   const { isDarkMode } = useStudioTheme();
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
@@ -564,15 +570,21 @@ export function StudioCenterCanvas({
     return renderGameplayScreen();
   };
 
-  return (
+return (
     <div className="h-full flex flex-col items-center justify-center p-6">
-      {/* Scene type indicator */}
-      <div className="text-center mb-4">
+      {/* Scene type indicator + TMA Toggle */}
+      <div className="flex items-center justify-between w-full max-w-[340px] mb-4 px-2">
         <span className={`text-xs font-medium uppercase tracking-widest ${
           isDarkMode ? 'text-white/50' : 'text-slate-500'
         }`}>
           {currentSceneIndex === 0 ? 'Intro Screen' : currentSceneIndex === 7 ? 'Results Screen' : `Gameplay Scene ${currentSceneIndex}`}
         </span>
+        {onTelegramPreviewToggle && (
+          <TelegramPreviewToggle 
+            isEnabled={telegramPreviewEnabled} 
+            onToggle={onTelegramPreviewToggle} 
+          />
+        )}
       </div>
       
       {/* Mobile Frame */}
@@ -587,12 +599,30 @@ export function StudioCenterCanvas({
           fontFamily: designSettings.font,
         }}
       >
-        {/* Notch */}
-        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-xl z-10 ${
-          isDarkMode ? 'bg-slate-700' : 'bg-slate-300'
-        }`} />
+        {/* Telegram Native Overlay (when enabled) */}
+        <TelegramNativeOverlay
+          isEnabled={telegramPreviewEnabled}
+          headerColor={designSettings.background}
+          sceneIndex={currentSceneIndex}
+          showBackButton={currentSceneIndex >= 2 && currentSceneIndex <= 6}
+          showMainButton={currentSceneIndex === 7}
+          mainButtonText="SUBMIT PERFORMANCE"
+          mainButtonColor={designSettings.primary}
+          onBackClick={() => onSceneChange?.(Math.max(0, currentSceneIndex - 1))}
+          onMainButtonClick={() => toast.success('Performance submitted!')}
+        />
         
-        {renderScreen()}
+        {/* Notch (hidden in TMA mode) */}
+        {!telegramPreviewEnabled && (
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-xl z-10 ${
+            isDarkMode ? 'bg-slate-700' : 'bg-slate-300'
+          }`} />
+        )}
+        
+        {/* Content with safe area padding for TMA mode */}
+        <div className={telegramPreviewEnabled ? 'pt-[44px]' : ''}>
+          {renderScreen()}
+        </div>
       </div>
     </div>
   );

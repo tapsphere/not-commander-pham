@@ -49,6 +49,7 @@ function StudioContent({
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [telegramPreviewEnabled, setTelegramPreviewEnabled] = useState(true); // Default to TMA view
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
@@ -401,7 +402,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             <>
               {/* Center Canvas */}
               <div className="flex-1 overflow-hidden">
-                <StudioCenterCanvas
+<StudioCenterCanvas
                   currentSceneIndex={currentStep === 4 ? currentSceneIndex : 0}
                   formData={formData}
                   scenes={scenes}
@@ -409,6 +410,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                   subCompetencies={subCompetencies}
                   mascotFile={mascotFile}
                   logoFile={logoFile}
+                  telegramPreviewEnabled={telegramPreviewEnabled}
+                  onTelegramPreviewToggle={() => setTelegramPreviewEnabled(!telegramPreviewEnabled)}
                 />
               </div>
 
