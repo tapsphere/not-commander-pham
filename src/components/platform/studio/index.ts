@@ -6,6 +6,7 @@ export { StudioBrandStep } from './StudioBrandStep';
 export { StudioTemplateInfoStep } from './StudioTemplateInfoStep';
 export { MechanicPreview } from './MechanicPreview';
 export { StudioFilmstrip } from './StudioFilmstrip';
+export { StudioTrackRail } from './StudioTrackRail';
 export { StudioPropertiesSidebar } from './StudioPropertiesSidebar';
 export { StudioCenterCanvas } from './StudioCenterCanvas';
 export { StudioNavigator } from './StudioNavigator';
