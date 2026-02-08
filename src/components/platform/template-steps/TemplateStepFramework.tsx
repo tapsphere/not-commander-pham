@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Competency, SubCompetency, SceneData, createDefaultScene } from './types';
 import { Lock } from 'lucide-react';
+import { CompetencyAISearch } from './CompetencyAISearch';
 
 interface TemplateStepFrameworkProps {
   competencies: Competency[];
@@ -15,6 +16,7 @@ interface TemplateStepFrameworkProps {
   setSelectedSubCompetencies: (ids: string[]) => void;
   scenes: SceneData[];
   setScenes: (scenes: SceneData[]) => void;
+  onHighlightCompetency?: (competency: Competency | null) => void;
 }
 
 export function TemplateStepFramework({
@@ -26,6 +28,7 @@ export function TemplateStepFramework({
   setSelectedSubCompetencies,
   scenes,
   setScenes,
+  onHighlightCompetency,
 }: TemplateStepFrameworkProps) {
   const handleSubCompetencyToggle = (subId: string, checked: boolean) => {
     if (checked) {
@@ -54,7 +57,18 @@ export function TemplateStepFramework({
     }
   };
 
+  const handleClearAll = () => {
+    setSelectedCompetency('');
+    setSelectedSubCompetencies([]);
+    setScenes([]);
+  };
+
   const getSelectedSubData = (id: string) => subCompetencies.find(s => s.id === id);
+
+  // Filter sub-competencies to only show relevant ones for selected competency
+  const filteredSubCompetencies = selectedCompetency 
+    ? subCompetencies.filter(s => s.competency_id === selectedCompetency)
+    : [];
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -64,30 +78,27 @@ export function TemplateStepFramework({
           <h2 className="text-xl font-semibold text-foreground">Logic Framework</h2>
         </div>
         <p className="text-sm text-muted-foreground">
-          Select competencies from the PlayOps standard. Action Cues and Mechanics are locked.
+          Use AI search to find the competency that matches the skill you want to test.
         </p>
       </div>
 
-      {/* Competency Selection */}
+      {/* AI-Powered Competency Search */}
       <div className="space-y-4">
         <div className="bg-muted/50 border border-border rounded-xl p-4">
-          <Label htmlFor="competency" className="text-foreground font-medium">Select Competency *</Label>
-          <Select value={selectedCompetency} onValueChange={setSelectedCompetency}>
-            <SelectTrigger className="bg-background border-border mt-2 h-11">
-              <SelectValue placeholder="Choose a competency..." />
-            </SelectTrigger>
-            <SelectContent className="bg-background border-border z-[9999]">
-              {competencies.map((comp) => (
-                <SelectItem key={comp.id} value={comp.id}>
-                  {comp.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label className="text-foreground font-medium mb-3 block">
+            Find Your Competency *
+          </Label>
+          <CompetencyAISearch
+            competencies={competencies}
+            selectedCompetency={selectedCompetency}
+            onSelect={setSelectedCompetency}
+            onClearAll={handleClearAll}
+            onHighlight={onHighlightCompetency}
+          />
         </div>
 
-        {/* Sub-Competency Selection */}
-        {selectedCompetency && subCompetencies.length > 0 && (
+        {/* Sub-Competency Selection - Only shows filtered results */}
+        {selectedCompetency && filteredSubCompetencies.length > 0 && (
           <div className="bg-muted/50 border border-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <Label className="text-foreground font-medium">Select Sub-Competencies *</Label>
@@ -99,7 +110,7 @@ export function TemplateStepFramework({
               Each sub-competency creates one scene. Click in order (1-6 max).
             </p>
             <div className="space-y-2 max-h-52 overflow-y-auto bg-background border border-border rounded-lg p-3">
-              {subCompetencies.map((sub) => {
+              {filteredSubCompetencies.map((sub) => {
                 const isSelected = selectedSubCompetencies.includes(sub.id);
                 const orderIndex = selectedSubCompetencies.indexOf(sub.id);
                 
