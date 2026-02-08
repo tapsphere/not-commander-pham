@@ -109,27 +109,60 @@ export function useCompetencySearch() {
     return Array.from(depts);
   }, [competencies]);
 
+  // ===== INTENT SYNONYMS FOR SMART SEARCH =====
+  // Maps informal/natural language to competency name fragments
+  // This enables "smart" understanding while "strict" population
+  const INTENT_SYNONYMS: Record<string, string[]> = {
+    'analytical thinking': ['analyzing', 'analysis', 'data stuff', 'data analysis', 'analytics', 'examine', 'evaluate data'],
+    'critical reasoning': ['critical', 'reasoning', 'logic', 'logical', 'deduce', 'deduction'],
+    'problem solving': ['problem', 'solve', 'solution', 'troubleshoot', 'fix', 'resolve'],
+    'communication': ['communicate', 'talking', 'speaking', 'writing', 'presenting', 'client handling', 'customer service'],
+    'team connection': ['teamwork', 'collaboration', 'team', 'collaborate', 'group work'],
+    'adaptive mindset': ['adapt', 'flexible', 'resilience', 'change', 'pivot', 'agile'],
+    'creative thinking': ['creative', 'creativity', 'innovate', 'innovation', 'ideation', 'brainstorm'],
+    'emotional intelligence': ['empathy', 'emotions', 'eq', 'feelings', 'self-awareness'],
+    'ethical': ['ethics', 'integrity', 'moral', 'values', 'purpose'],
+    'coaching': ['mentor', 'mentorship', 'teach', 'guide', 'develop others'],
+    'initiative': ['proactive', 'self-starter', 'drive', 'motivation', 'ownership'],
+    'feedback': ['reflection', 'review', 'critique', 'improve', 'growth'],
+  };
+
   /**
-   * Fuzzy string matching - calculates similarity score
+   * Fuzzy string matching with intent detection - calculates similarity score
+   * Uses synonym mapping to understand user intent
    */
   const fuzzyMatch = useCallback((query: string, target: string): number => {
     const q = query.toLowerCase().trim();
     const t = target.toLowerCase().trim();
 
-    // Exact match
+    // Exact match - highest priority
     if (q === t) return 100;
+
+    // Check intent synonyms - if query matches a synonym, boost the target competency
+    for (const [competencyFragment, synonyms] of Object.entries(INTENT_SYNONYMS)) {
+      if (t.includes(competencyFragment)) {
+        // Check if query matches any synonym for this competency
+        if (synonyms.some(syn => q.includes(syn) || syn.includes(q))) {
+          return 95; // High score for intent match
+        }
+      }
+    }
 
     // Contains match
     if (t.includes(q)) return 80;
     if (q.includes(t)) return 70;
 
-    // Word overlap matching
+    // Word overlap matching with stemming awareness
     const queryWords = q.split(/\s+/).filter(w => w.length > 2);
     const targetWords = t.split(/\s+/).filter(w => w.length > 2);
     
     let matchCount = 0;
     queryWords.forEach(qw => {
-      if (targetWords.some(tw => tw.includes(qw) || qw.includes(tw))) {
+      // Check for partial/stem matches
+      if (targetWords.some(tw => 
+        tw.includes(qw) || qw.includes(tw) ||
+        tw.startsWith(qw.slice(0, 4)) || qw.startsWith(tw.slice(0, 4))
+      )) {
         matchCount++;
       }
     });
