@@ -17,6 +17,7 @@ import {
   StudioThemeProvider, 
   useStudioTheme, 
   StudioFilmstrip,
+  StudioTrackRail,
   StudioPropertiesSidebar,
   StudioCenterCanvas,
   StudioNavigator,
@@ -411,12 +412,13 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                 />
               </div>
 
-              {/* Bottom Filmstrip - only show on Scenes step */}
+              {/* Bottom Track Rail - show on Scenes step */}
               {currentStep === 4 && (
-                <StudioFilmstrip
+                <StudioTrackRail
                   currentSceneIndex={currentSceneIndex}
                   setCurrentSceneIndex={setCurrentSceneIndex}
                   scenes={scenes}
+                  setScenes={setScenes}
                   subCompetencies={subCompetencies}
                   designSettings={designSettings}
                 />
@@ -447,6 +449,14 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             setMascotFile={setMascotFile}
             isExpanded={sidebarExpanded}
             onToggleExpand={() => setSidebarExpanded(!sidebarExpanded)}
+            onApplyToAllScenes={(newSettings) => {
+              // Apply design settings globally - this syncs the brand look across all scenes
+              setDesignSettings(newSettings);
+              // Update CSS variables for immediate visual feedback
+              document.documentElement.style.setProperty('--brand-primary', newSettings.primary);
+              document.documentElement.style.setProperty('--brand-secondary', newSettings.secondary);
+              document.documentElement.style.setProperty('--brand-background', newSettings.background);
+            }}
           />
         </div>
       </div>

@@ -43,6 +43,8 @@ interface StudioPropertiesSidebarProps {
   // Expandable console props
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  // Global AI orchestration
+  onApplyToAllScenes?: (designSettings: DesignSettings) => void;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -94,6 +96,7 @@ export function StudioPropertiesSidebar({
   setMascotFile,
   isExpanded = false,
   onToggleExpand,
+  onApplyToAllScenes,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -177,11 +180,62 @@ export function StudioPropertiesSidebar({
   };
 
   // Scene AI Command - Pre-fill all scene fields based on prompt
+  // Supports both LOCAL (this scene only) and GLOBAL (whole track) commands
   const handleSceneAiCommand = async () => {
-    if (!currentScene || !sceneAiPrompt.trim()) return;
+    if (!sceneAiPrompt.trim()) return;
     
     setIsAiProcessing(true);
     const prompt = sceneAiPrompt.toLowerCase();
+    
+    // ===== GLOBAL ORCHESTRATION: Apply to entire track =====
+    const globalKeywords = ['whole track', 'all scenes', 'entire track', 'global', 'everywhere', 'themed'];
+    const isGlobalRequest = globalKeywords.some(keyword => prompt.includes(keyword));
+    
+    if (isGlobalRequest) {
+      // Extract brand theme from prompt
+      const brandNames = ['gucci', 'chanel', 'louis vuitton', 'hermes', 'prada', 'dior', 'versace', 'nike', 'apple', 'microsoft'];
+      const detectedBrand = brandNames.find(brand => prompt.includes(brand));
+      
+      // Brand-specific color palettes
+      const brandPalettes: Record<string, DesignSettings> = {
+        gucci: { ...designSettings, primary: '#2D4A3E', secondary: '#8B6914', accent: '#C7A341', background: '#FAF8F5', text: '#1A1A1A', highlight: '#FF0000' },
+        chanel: { ...designSettings, primary: '#000000', secondary: '#C9B037', accent: '#FFFFFF', background: '#F5F5F5', text: '#1A1A1A', highlight: '#C9B037' },
+        prada: { ...designSettings, primary: '#000000', secondary: '#1A1A1A', accent: '#FFFFFF', background: '#F0F0F0', text: '#000000', highlight: '#808080' },
+        nike: { ...designSettings, primary: '#FF6B35', secondary: '#111111', accent: '#FFFFFF', background: '#F5F5F5', text: '#111111', highlight: '#FF6B35' },
+        apple: { ...designSettings, primary: '#007AFF', secondary: '#F5F5F7', accent: '#34C759', background: '#FFFFFF', text: '#1D1D1F', highlight: '#007AFF' },
+      };
+      
+      if (detectedBrand && brandPalettes[detectedBrand]) {
+        const newSettings = brandPalettes[detectedBrand];
+        setDesignSettings(newSettings);
+        
+        // Apply to all scenes via callback
+        if (onApplyToAllScenes) {
+          onApplyToAllScenes(newSettings);
+        }
+        
+        toast.success(`🎨 "${detectedBrand.charAt(0).toUpperCase() + detectedBrand.slice(1)}" theme applied to entire track!`);
+        setIsAiProcessing(false);
+        setSceneAiPrompt('');
+        return;
+      }
+      
+      // Generic global color change
+      toast.info('Global theme applied! Brand colors synced across all scenes.');
+      if (onApplyToAllScenes) {
+        onApplyToAllScenes(designSettings);
+      }
+      setIsAiProcessing(false);
+      setSceneAiPrompt('');
+      return;
+    }
+    
+    // ===== LOCAL COMMANDS (require current scene) =====
+    if (!currentScene) {
+      toast.error('Select a gameplay scene to apply local commands');
+      setIsAiProcessing(false);
+      return;
+    }
     
     // ===== VISION LOOP: Match UI theme to uploaded product =====
     const visionKeywords = ['match', 'theme', 'product', 'this product', 'match the ui', 'match ui', 'palette from'];
@@ -813,16 +867,18 @@ export function StudioPropertiesSidebar({
           </div>
           
           <p className={`text-xs ${mutedColor} mb-3`}>
-            One sentence to pre-fill this scene. AI only affects local content—
-            <span className="text-amber-500 font-medium"> Global DNA is locked.</span>
+            Local commands affect this scene. Global commands style the entire track—
+            <span className="text-amber-500 font-medium"> DNA Layout is locked.</span>
           </p>
           
-          {/* Example Commands */}
+          {/* Example Commands - Local & Global */}
           <div className={`text-[10px] ${mutedColor} mb-2 space-y-0.5`}>
-            <p className="font-medium text-primary">Try commands like:</p>
+            <p className="font-medium text-primary">Local commands:</p>
             <p>• "Change choices to 4 vector icons: shoe, dress, hat, watch"</p>
             <p>• "Make my uploaded image 20% larger"</p>
-            <p>• "Pulse the selected choice when tapped"</p>
+            <p className="font-medium text-primary mt-1.5">Global commands:</p>
+            <p>• "Make the whole track Gucci-themed"</p>
+            <p>• "Apply luxury branding to all scenes"</p>
             {visionStatus === 'ready' && <p className="text-emerald-500">• "Match the UI theme to this product"</p>}
           </div>
           
@@ -832,7 +888,7 @@ export function StudioPropertiesSidebar({
             onChange={(e) => setSceneAiPrompt(e.target.value)}
             className={`resize-none ${inputBg} text-sm min-h-[100px]`}
             rows={4}
-            placeholder="Describe the brand lesson for this scene (e.g., A high-stakes retail scenario with neon pink accents)..."
+            placeholder="Describe the brand lesson for this scene or the entire track..."
           />
           
           {/* Large High-Contrast Command Button */}
@@ -1075,6 +1131,22 @@ export function StudioPropertiesSidebar({
                       document.documentElement.style.setProperty('--brand-background', zones.surface);
                     }}
                   />
+                  
+                  {/* Apply to All Scenes Button (Global Sync) */}
+                  {onApplyToAllScenes && (
+                    <Button
+                      onClick={() => {
+                        onApplyToAllScenes(designSettings);
+                        toast.success('🎨 Brand colors synced across all scenes!');
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2 border-primary/50 text-primary hover:bg-primary/10"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 mr-2" />
+                      Apply to All Scenes
+                    </Button>
+                  )}
                 </div>
 
                 {/* Locked Framework Data */}
