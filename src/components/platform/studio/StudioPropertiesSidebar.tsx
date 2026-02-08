@@ -95,6 +95,8 @@ export function StudioPropertiesSidebar({
   const [sceneAiPrompt, setSceneAiPrompt] = useState('');
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [colorZones, setColorZones] = useState<ColorZones | null>(null);
+  const [visionStatus, setVisionStatus] = useState<'idle' | 'analyzing' | 'ready'>('idle');
+  const [suggestedPalette, setSuggestedPalette] = useState<ColorZones | null>(null);
   
   // Store original scene data for reset functionality
   const originalScenesRef = useRef<Map<string, SceneData>>(new Map());
@@ -176,6 +178,107 @@ export function StudioPropertiesSidebar({
     setIsAiProcessing(true);
     const prompt = sceneAiPrompt.toLowerCase();
     
+    // ===== VISION LOOP: Match UI theme to uploaded product =====
+    const visionKeywords = ['match', 'theme', 'product', 'this product', 'match the ui', 'match ui', 'palette from'];
+    const isVisionRequest = visionKeywords.some(keyword => prompt.includes(keyword)) && suggestedPalette;
+    
+    if (isVisionRequest && suggestedPalette) {
+      // Apply the Vision Loop suggested palette
+      setColorZones(suggestedPalette);
+      setDesignSettings({
+        ...designSettings,
+        background: suggestedPalette.surface,
+        secondary: suggestedPalette.container,
+        primary: suggestedPalette.action,
+        text: suggestedPalette.typography,
+      });
+      
+      // Update CSS variables
+      document.documentElement.style.setProperty('--brand-surface', suggestedPalette.surface);
+      document.documentElement.style.setProperty('--brand-container', suggestedPalette.container);
+      document.documentElement.style.setProperty('--brand-action', suggestedPalette.action);
+      document.documentElement.style.setProperty('--brand-typography', suggestedPalette.typography);
+      
+      toast.success('🎨 UI theme matched to your product colors!');
+      setVisionStatus('idle');
+      setIsAiProcessing(false);
+      setSceneAiPrompt('');
+      return;
+    }
+    
+    // ===== CONVERSATIONAL STYLING: Asset-specific commands =====
+    const sizingKeywords = ['larger', 'bigger', 'smaller', 'size'];
+    const animationKeywords = ['pulse', 'glow', 'bounce', 'animate', 'highlight when selected'];
+    const isSizingRequest = sizingKeywords.some(keyword => prompt.includes(keyword));
+    const isAnimationRequest = animationKeywords.some(keyword => prompt.includes(keyword));
+    
+    if (isSizingRequest && currentScene.choices.some(c => c.imageUrl)) {
+      // Extract percentage from prompt (e.g., "20% larger")
+      const percentMatch = prompt.match(/(\d+)%/);
+      const percent = percentMatch ? parseInt(percentMatch[1]) : 15;
+      
+      // Find which asset is mentioned
+      const newChoices = currentScene.choices.map(choice => {
+        if (choice.imageUrl) {
+          const isReferenced = choice.imageLabel && 
+            choice.imageLabel.toLowerCase().split(' ').some(word => 
+              word.length > 2 && prompt.includes(word)
+            );
+          
+          if (isReferenced || prompt.includes('uploaded image') || prompt.includes('my image')) {
+            const direction = prompt.includes('smaller') ? 'smaller' : 'larger';
+            toast.success(`Asset "${choice.imageLabel}" styled ${percent}% ${direction}!`);
+            return { 
+              ...choice, 
+              // Store styling metadata (would be applied in VisualGrid)
+              imageStyle: { 
+                scale: direction === 'larger' ? 1 + (percent / 100) : 1 - (percent / 100) 
+              }
+            };
+          }
+        }
+        return choice;
+      });
+      
+      updateScene({ choices: newChoices as any });
+      setIsAiProcessing(false);
+      setSceneAiPrompt('');
+      return;
+    }
+    
+    if (isAnimationRequest && currentScene.choices.some(c => c.imageUrl)) {
+      // Determine animation type
+      let animationType = 'pulse';
+      if (prompt.includes('glow')) animationType = 'glow';
+      else if (prompt.includes('bounce')) animationType = 'bounce';
+      
+      const newChoices = currentScene.choices.map(choice => {
+        if (choice.imageUrl) {
+          const isReferenced = choice.imageLabel && 
+            choice.imageLabel.toLowerCase().split(' ').some(word => 
+              word.length > 2 && prompt.includes(word)
+            );
+          
+          if (isReferenced || prompt.includes('uploaded') || prompt.includes('selected')) {
+            toast.success(`"${animationType}" animation applied when selected!`);
+            return { 
+              ...choice, 
+              imageStyle: { 
+                ...((choice as any).imageStyle || {}),
+                animation: animationType 
+              }
+            };
+          }
+        }
+        return choice;
+      });
+      
+      updateScene({ choices: newChoices as any });
+      setIsAiProcessing(false);
+      setSceneAiPrompt('');
+      return;
+    }
+    
     // ===== VISUAL CHOICE DETECTION =====
     const visualKeywords = ['icon', 'icons', 'image', 'images', 'vector', 'vectors', 'visual', 'picture'];
     const gridKeywords = ['2x2', '3x2', 'grid', 'layout'];
@@ -197,20 +300,17 @@ export function StudioPropertiesSidebar({
       if (prompt.includes('3x2')) gridLayout = '3x2';
       else if (prompt.includes('1x4') || prompt.includes('vertical') || prompt.includes('list')) gridLayout = '1x4';
       
-      // Fill with detected icons or defaults
-      const iconChoices = detectedIcons.length >= 2 ? detectedIcons : [
-        { icon: 'Footprints', label: 'Shoes' },
-        { icon: 'Shirt', label: 'Dress' },
-        { icon: 'Crown', label: 'Hat' },
-        { icon: 'Watch', label: 'Watch' },
-      ];
+      // SMART PLACEHOLDERS: Use context-aware icons if none detected
+      const iconChoices = detectedIcons.length >= 2 
+        ? detectedIcons 
+        : generateSmartPlaceholders(sceneAiPrompt);
       
       // Create visual choices
       const newChoices = iconChoices.slice(0, gridLayout === '3x2' ? 6 : 4).map((item, idx) => ({
         id: `choice-visual-${Date.now()}-${idx}`,
         text: item.label,
-        isCorrect: idx === 0, // First is correct by default
-        brandAligned: false,
+        isCorrect: idx === 0, // First is correct by default (Science: hidden)
+        brandAligned: false,  // Brand alignment: visible to creator
         icon: item.icon,
         iconLabel: item.label,
       }));
@@ -222,14 +322,14 @@ export function StudioPropertiesSidebar({
         choices: newChoices,
       });
       
-      toast.success(`Visual grid applied! ${gridLayout} layout with ${newChoices.length} icons`);
+      toast.success(`Visual grid applied! ${gridLayout} layout with smart placeholders`);
       setIsAiProcessing(false);
       setSceneAiPrompt('');
       return;
     }
     
     // ===== COLOR CHANGE DETECTION =====
-    const colorKeywords = ['color', 'blue', 'red', 'green', 'purple', 'orange', 'pink', 'yellow', 'teal', 'cyan', 'magenta'];
+    const colorKeywords = ['color', 'blue', 'red', 'green', 'purple', 'orange', 'pink', 'yellow', 'teal', 'cyan', 'magenta', 'neon'];
     const isColorPrompt = colorKeywords.some(keyword => prompt.includes(keyword));
     
     if (isColorPrompt) {
@@ -242,6 +342,7 @@ export function StudioPropertiesSidebar({
       else if (prompt.includes('green')) { newColor = '#22c55e'; colorName = 'green'; }
       else if (prompt.includes('purple')) { newColor = '#a855f7'; colorName = 'purple'; }
       else if (prompt.includes('orange')) { newColor = '#f97316'; colorName = 'orange'; }
+      else if (prompt.includes('pink') && prompt.includes('neon')) { newColor = '#ff10f0'; colorName = 'neon pink'; }
       else if (prompt.includes('pink')) { newColor = '#ec4899'; colorName = 'pink'; }
       else if (prompt.includes('yellow')) { newColor = '#eab308'; colorName = 'yellow'; }
       else if (prompt.includes('teal') || prompt.includes('cyan')) { newColor = '#14b8a6'; colorName = 'teal'; }
@@ -274,8 +375,6 @@ export function StudioPropertiesSidebar({
     
     if (isBrandAlignmentRequest && currentScene.choices.some(c => c.imageUrl)) {
       // Find which uploaded asset is mentioned in the prompt
-      const uploadedChoices = currentScene.choices.filter(c => c.imageUrl);
-      
       let foundMatch = false;
       const newChoices = currentScene.choices.map(choice => {
         if (choice.imageUrl && choice.imageLabel) {
@@ -346,12 +445,70 @@ export function StudioPropertiesSidebar({
     updateScene({ choices: newChoices });
   };
 
-  // Handle image upload for a choice - convert to data URL for preview
-  const handleChoiceImageUpload = (choiceId: string, file: File) => {
+  // ===== VISION LOOP: Extract dominant colors from uploaded image =====
+  const extractColorsFromImage = (imageUrl: string): Promise<ColorZones> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(distributeColorsToZones(['#1a1a2e', '#16213e', '#0f3460', '#e94560']));
+          return;
+        }
+        
+        // Sample image at low resolution for color extraction
+        canvas.width = 50;
+        canvas.height = 50;
+        ctx.drawImage(img, 0, 0, 50, 50);
+        
+        const imageData = ctx.getImageData(0, 0, 50, 50).data;
+        const colorCounts: Record<string, number> = {};
+        
+        // Sample pixels and cluster colors
+        for (let i = 0; i < imageData.length; i += 16) { // Sample every 4th pixel
+          const r = imageData[i];
+          const g = imageData[i + 1];
+          const b = imageData[i + 2];
+          
+          // Quantize to reduce color count
+          const qr = Math.round(r / 32) * 32;
+          const qg = Math.round(g / 32) * 32;
+          const qb = Math.round(b / 32) * 32;
+          
+          const hex = `#${qr.toString(16).padStart(2, '0')}${qg.toString(16).padStart(2, '0')}${qb.toString(16).padStart(2, '0')}`;
+          colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+        }
+        
+        // Get top 4 colors sorted by frequency
+        const sortedColors = Object.entries(colorCounts)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 4)
+          .map(([color]) => color);
+        
+        // Ensure we have 4 colors
+        while (sortedColors.length < 4) {
+          sortedColors.push('#1a1a2e');
+        }
+        
+        resolve(distributeColorsToZones(sortedColors));
+      };
+      img.onerror = () => {
+        resolve(distributeColorsToZones(['#1a1a2e', '#16213e', '#0f3460', '#e94560']));
+      };
+      img.src = imageUrl;
+    });
+  };
+
+  // Handle image upload with Vision Loop analysis
+  const handleChoiceImageUpload = async (choiceId: string, file: File) => {
     if (!currentScene) return;
     
+    setVisionStatus('analyzing');
+    
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const imageUrl = e.target?.result as string;
       const imageLabel = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       
@@ -362,8 +519,84 @@ export function StudioPropertiesSidebar({
       );
       updateScene({ choices: newChoices, displayMode: 'visual', gridLayout: '2x2' });
       toast.success(`Asset uploaded for choice: ${imageLabel}`);
+      
+      // Vision Loop: Analyze image and suggest color palette
+      const extractedPalette = await extractColorsFromImage(imageUrl);
+      setSuggestedPalette(extractedPalette);
+      setVisionStatus('ready');
+      
+      toast.info('🎨 AI analyzed your asset! Try: "Match the UI theme to this product"', {
+        duration: 5000,
+      });
     };
     reader.readAsDataURL(file);
+  };
+  
+  // ===== SMART PLACEHOLDERS: Generate contextual icons for empty slots =====
+  const generateSmartPlaceholders = (prompt: string): { icon: string; label: string }[] => {
+    const promptLower = prompt.toLowerCase();
+    
+    // Industry-specific placeholder sets
+    const industryPlaceholders: Record<string, { icon: string; label: string }[]> = {
+      retail: [
+        { icon: 'ShoppingBag', label: 'Product' },
+        { icon: 'Gem', label: 'Premium' },
+        { icon: 'Star', label: 'Featured' },
+        { icon: 'Heart', label: 'Wishlist' },
+      ],
+      fashion: [
+        { icon: 'Footprints', label: 'Footwear' },
+        { icon: 'Shirt', label: 'Apparel' },
+        { icon: 'Crown', label: 'Accessory' },
+        { icon: 'Sparkles', label: 'Style' },
+      ],
+      finance: [
+        { icon: 'DollarSign', label: 'Budget' },
+        { icon: 'TrendingUp', label: 'Growth' },
+        { icon: 'PieChart', label: 'Portfolio' },
+        { icon: 'Target', label: 'Goal' },
+      ],
+      communication: [
+        { icon: 'MessageCircle', label: 'Message' },
+        { icon: 'Users', label: 'Team' },
+        { icon: 'Phone', label: 'Call' },
+        { icon: 'Mail', label: 'Email' },
+      ],
+      marketing: [
+        { icon: 'Megaphone', label: 'Campaign' },
+        { icon: 'BarChart3', label: 'Analytics' },
+        { icon: 'Target', label: 'Audience' },
+        { icon: 'Sparkles', label: 'Creative' },
+      ],
+    };
+    
+    // Detect industry from prompt or formData
+    const detectedIndustry = Object.keys(industryPlaceholders).find(industry => 
+      promptLower.includes(industry) || formData.industry?.toLowerCase().includes(industry)
+    );
+    
+    if (detectedIndustry) {
+      return industryPlaceholders[detectedIndustry];
+    }
+    
+    // Check for specific keywords
+    if (promptLower.includes('luxury') || promptLower.includes('premium') || promptLower.includes('brand')) {
+      return industryPlaceholders.fashion;
+    }
+    if (promptLower.includes('budget') || promptLower.includes('money') || promptLower.includes('invest')) {
+      return industryPlaceholders.finance;
+    }
+    if (promptLower.includes('team') || promptLower.includes('collaborate')) {
+      return industryPlaceholders.communication;
+    }
+    
+    // Default generic placeholders
+    return [
+      { icon: 'Circle', label: 'Option A' },
+      { icon: 'Square', label: 'Option B' },
+      { icon: 'Triangle', label: 'Option C' },
+      { icon: 'Star', label: 'Option D' },
+    ];
   };
 
   // Render Step-Based Properties
@@ -526,6 +759,40 @@ export function StudioPropertiesSidebar({
 
     return (
       <div className="space-y-4">
+        {/* ===== VISION LOOP STATUS INDICATOR ===== */}
+        {visionStatus !== 'idle' && (
+          <div className={`p-3 rounded-xl border ${
+            visionStatus === 'analyzing' 
+              ? 'border-amber-500/30 bg-amber-500/10' 
+              : 'border-emerald-500/30 bg-emerald-500/10'
+          }`}>
+            <div className="flex items-center gap-2">
+              {visionStatus === 'analyzing' ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                  <span className={`text-xs font-medium ${textColor}`}>Analyzing your asset...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-emerald-500" />
+                  <span className={`text-xs font-medium ${textColor}`}>AI palette ready!</span>
+                </>
+              )}
+            </div>
+            {visionStatus === 'ready' && suggestedPalette && (
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className={`text-[10px] ${mutedColor}`}>Try:</span>
+                <button
+                  onClick={() => setSceneAiPrompt('Match the UI theme to this product')}
+                  className="text-[10px] text-primary underline hover:no-underline"
+                >
+                  "Match the UI theme to this product"
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        
         {/* ===== LAYER 1: EXPANDED AI COMMAND CENTER (Primary Interface) ===== */}
         <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-primary/30 bg-primary/5' : 'border-primary/20 bg-primary/5'}`}>
           <div className="flex items-center gap-2 mb-3">
@@ -533,12 +800,26 @@ export function StudioPropertiesSidebar({
               <Wand2 className="h-4 w-4 text-primary" />
             </div>
             <span className={`text-sm font-semibold ${textColor}`}>Scene AI Command</span>
+            {visionStatus === 'ready' && (
+              <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-[9px]">
+                Vision Ready
+              </Badge>
+            )}
           </div>
           
           <p className={`text-xs ${mutedColor} mb-3`}>
             One sentence to pre-fill this scene. AI only affects local content—
             <span className="text-amber-500 font-medium"> Global DNA is locked.</span>
           </p>
+          
+          {/* Example Commands */}
+          <div className={`text-[10px] ${mutedColor} mb-2 space-y-0.5`}>
+            <p className="font-medium text-primary">Try commands like:</p>
+            <p>• "Change choices to 4 vector icons: shoe, dress, hat, watch"</p>
+            <p>• "Make my uploaded image 20% larger"</p>
+            <p>• "Pulse the selected choice when tapped"</p>
+            {visionStatus === 'ready' && <p className="text-emerald-500">• "Match the UI theme to this product"</p>}
+          </div>
           
           {/* Expanded Textarea - Min 4 rows */}
           <Textarea
