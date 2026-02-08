@@ -8,9 +8,10 @@ import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultSce
 import { Lock, Plus, Layers, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { CompetencyAISearch } from './CompetencyAISearch';
 import { EntryPortSelector } from './EntryPortSelector';
+import { UnifiedCreativeInput } from './UnifiedCreativeInput';
 
 // Track which entry path was used
-type EntryPath = 'upload' | 'manual' | 'combine' | null;
+type EntryPath = 'upload' | 'manual' | 'combine' | 'theme' | 'skill' | null;
 
 // Data Integrity validation - flags missing required DNA fields
 interface DataIntegrityError {
@@ -255,13 +256,15 @@ export function TemplateStepFramework({
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      {/* ENTRY PORT - Triple-Path Entry */}
+      {/* UNIFIED CREATIVE INPUT - Universal Start */}
       {showEntryPort && !selectedCompetency && (
-        <EntryPortSelector
+        <UnifiedCreativeInput
           competencies={competencies}
           subCompetencies={subCompetencies}
-          onPathComplete={handleEntryPortComplete}
-          onManualSelect={() => {
+          onComplete={(competencyId, selectedSubIds, newScenes, pathUsed) => {
+            handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed);
+          }}
+          onManualFallback={() => {
             setEntryPath('manual');
             setShowEntryPort(false);
           }}
