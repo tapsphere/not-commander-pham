@@ -24,6 +24,7 @@ import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES,
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ColorRemixPanel } from '../ColorRemixPanel';
+import { ChoiceEditorItem } from './ChoiceEditorItem';
 
 interface StudioPropertiesSidebarProps {
   currentSceneIndex: number;
@@ -267,6 +268,40 @@ export function StudioPropertiesSidebar({
       return;
     }
     
+    // ===== AI IMAGE LABELING - Link uploaded assets to Brand Alignment =====
+    const brandAlignmentKeywords = ['correct', 'brand answer', 'brand aligned', 'brand-aligned', 'make the', 'set the'];
+    const isBrandAlignmentRequest = brandAlignmentKeywords.some(keyword => prompt.includes(keyword));
+    
+    if (isBrandAlignmentRequest && currentScene.choices.some(c => c.imageUrl)) {
+      // Find which uploaded asset is mentioned in the prompt
+      const uploadedChoices = currentScene.choices.filter(c => c.imageUrl);
+      
+      let foundMatch = false;
+      const newChoices = currentScene.choices.map(choice => {
+        if (choice.imageUrl && choice.imageLabel) {
+          // Check if this asset's label is mentioned in the prompt
+          const labelWords = choice.imageLabel.toLowerCase().split(' ');
+          const isReferenced = labelWords.some(word => 
+            word.length > 2 && prompt.includes(word)
+          );
+          
+          if (isReferenced) {
+            foundMatch = true;
+            toast.success(`"${choice.imageLabel}" set as Brand-Aligned answer!`);
+            return { ...choice, brandAligned: true };
+          }
+        }
+        return choice;
+      });
+      
+      if (foundMatch) {
+        updateScene({ choices: newChoices });
+        setIsAiProcessing(false);
+        setSceneAiPrompt('');
+        return;
+      }
+    }
+    
     // ===== DEFAULT TEXT CONTENT PRE-FILL =====
     await new Promise(r => setTimeout(r, 1500));
     
@@ -303,12 +338,32 @@ export function StudioPropertiesSidebar({
     updateScene({ choices: newChoices });
   };
 
-  const updateChoice = (choiceId: string, updates: { text?: string; isCorrect?: boolean; brandAligned?: boolean }) => {
+  const updateChoice = (choiceId: string, updates: { text?: string; isCorrect?: boolean; brandAligned?: boolean; imageUrl?: string; imageLabel?: string }) => {
     if (!currentScene) return;
     const newChoices = currentScene.choices.map(c => 
       c.id === choiceId ? { ...c, ...updates } : c
     );
     updateScene({ choices: newChoices });
+  };
+
+  // Handle image upload for a choice - convert to data URL for preview
+  const handleChoiceImageUpload = (choiceId: string, file: File) => {
+    if (!currentScene) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      const imageLabel = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      
+      const newChoices = currentScene.choices.map(c => 
+        c.id === choiceId 
+          ? { ...c, imageUrl, imageLabel: imageLabel.slice(0, 20) }
+          : c
+      );
+      updateScene({ choices: newChoices, displayMode: 'visual', gridLayout: '2x2' });
+      toast.success(`Asset uploaded for choice: ${imageLabel}`);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Render Step-Based Properties
@@ -584,7 +639,7 @@ export function StudioPropertiesSidebar({
                   </div>
                 </div>
 
-                {/* Choice Editor Section */}
+                {/* Choice Editor Section with Asset Upload */}
                 <div className="space-y-3 pt-3 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -604,70 +659,24 @@ export function StudioPropertiesSidebar({
                   </div>
                   
                   <p className={`text-[10px] ${mutedColor}`}>
-                    ✓ = Scientific Correct (hidden) • 🏷️ = Brand-Aligned (visible)
+                    ✓ = Scientific Correct (hidden) • 🏷️ = Brand-Aligned • 📷 = Upload Asset
                   </p>
 
                   <div className="space-y-2">
                     {currentScene.choices.map((choice, idx) => (
-                      <div key={choice.id} className={`p-2.5 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-[10px] font-medium ${mutedColor}`}>#{idx + 1}</span>
-                          <Input
-                            value={choice.text}
-                            onChange={(e) => updateChoice(choice.id, { text: e.target.value })}
-                            className={`text-sm h-8 flex-1 ${inputBg}`}
-                            placeholder={`Choice ${idx + 1}...`}
-                          />
-                          <button
-                            onClick={() => removeChoice(choice.id)}
-                            disabled={currentScene.choices.length <= 2}
-                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-                              currentScene.choices.length <= 2 
-                                ? 'opacity-30 cursor-not-allowed' 
-                                : 'hover:bg-red-500/10 text-red-400'
-                            }`}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
-                        </div>
-                        
-                        {/* Alignment Checkboxes */}
-                        <div className="flex items-center gap-4 pl-4">
-                          {/* Scientific Correct (Hidden from creator in final UI, shown here for testing) */}
-                          <div className="flex items-center gap-1.5">
-                            <Checkbox
-                              id={`correct-${choice.id}`}
-                              checked={choice.isCorrect}
-                              onCheckedChange={(checked) => updateChoice(choice.id, { isCorrect: !!checked })}
-                              className="h-3.5 w-3.5"
-                            />
-                            <label 
-                              htmlFor={`correct-${choice.id}`} 
-                              className={`text-[10px] ${mutedColor} flex items-center gap-1`}
-                            >
-                              <EyeOff className="h-2.5 w-2.5" />
-                              Scientific
-                            </label>
-                          </div>
-                          
-                          {/* Brand-Aligned (Visible to creator) */}
-                          <div className="flex items-center gap-1.5">
-                            <Checkbox
-                              id={`brand-${choice.id}`}
-                              checked={choice.brandAligned || false}
-                              onCheckedChange={(checked) => updateChoice(choice.id, { brandAligned: !!checked })}
-                              className="h-3.5 w-3.5 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
-                            />
-                            <label 
-                              htmlFor={`brand-${choice.id}`} 
-                              className={`text-[10px] ${mutedColor} flex items-center gap-1`}
-                            >
-                              <Eye className="h-2.5 w-2.5" />
-                              Brand-Aligned
-                            </label>
-                          </div>
-                        </div>
-                      </div>
+                      <ChoiceEditorItem
+                        key={choice.id}
+                        choice={choice}
+                        idx={idx}
+                        isDarkMode={isDarkMode}
+                        inputBg={inputBg}
+                        textColor={textColor}
+                        mutedColor={mutedColor}
+                        canDelete={currentScene.choices.length > 2}
+                        onUpdate={(updates) => updateChoice(choice.id, updates)}
+                        onRemove={() => removeChoice(choice.id)}
+                        onImageUpload={(file) => handleChoiceImageUpload(choice.id, file)}
+                      />
                     ))}
                   </div>
                 </div>

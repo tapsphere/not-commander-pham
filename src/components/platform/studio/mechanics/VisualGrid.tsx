@@ -1,15 +1,17 @@
 /**
- * VisualGrid - Icon-Based Visual Choice Grid
+ * VisualGrid - Icon & Image Visual Choice Grid
  * 
  * DNA Library 3.1: "2x2 or 3x2 grid of glassmorphic icon cards"
+ * Supports hybrid mode: mix of uploaded images and vector icons
  * Icons respond to Brand Remix colors (stroke color = accent)
+ * Images get Apple-style treatment: center-fit, drop-shadow, rounded corners
  * Telemetry: Decision Latency (time from scene start to first tap)
  */
 
 import { useState, useRef, useEffect } from 'react';
 import { DesignSettings, ChoiceData, SceneData } from '../../template-steps/types';
 import * as LucideIcons from 'lucide-react';
-import { LucideIcon, CheckCircle } from 'lucide-react';
+import { LucideIcon, CheckCircle, ImageOff } from 'lucide-react';
 
 interface VisualGridProps {
   designSettings: DesignSettings;
@@ -100,6 +102,60 @@ function getIconComponent(iconName: string | undefined): LucideIcon {
   return LucideIcons.Circle;
 }
 
+// Apple-style image component with center-fit, shadow, and rounded corners
+function AppleStyleImage({ 
+  src, 
+  alt, 
+  isSelected,
+  accentColor,
+}: { 
+  src: string; 
+  alt: string;
+  isSelected: boolean;
+  accentColor: string;
+}) {
+  const [error, setError] = useState(false);
+  
+  if (error) {
+    return (
+      <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center">
+        <ImageOff className="h-6 w-6 text-slate-400" />
+      </div>
+    );
+  }
+  
+  return (
+    <div 
+      className="relative w-14 h-14 rounded-xl overflow-hidden transition-transform"
+      style={{
+        boxShadow: isSelected 
+          ? `0 8px 20px ${accentColor}40, 0 4px 8px rgba(0,0,0,0.15)`
+          : '0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08)',
+      }}
+    >
+      {/* Background removal simulation - transparent grid pattern */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-white"
+        style={{
+          backgroundImage: 'linear-gradient(45deg, #f8fafc 25%, transparent 25%), linear-gradient(-45deg, #f8fafc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f8fafc 75%), linear-gradient(-45deg, transparent 75%, #f8fafc 75%)',
+          backgroundSize: '8px 8px',
+          backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
+          opacity: 0.3,
+        }}
+      />
+      <img 
+        src={src} 
+        alt={alt}
+        onError={() => setError(true)}
+        className="absolute inset-0 w-full h-full object-contain p-1 drop-shadow-lg"
+        style={{
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+        }}
+      />
+    </div>
+  );
+}
+
 export function VisualGrid({
   designSettings,
   choices,
@@ -146,8 +202,9 @@ export function VisualGrid({
     <div className={`px-4 grid ${gridCols} gap-3`}>
       {displayChoices.map((choice, idx) => {
         const isSelected = selectedId === choice.id;
+        const hasImage = !!choice.imageUrl;
         const IconComponent = getIconComponent(choice.icon);
-        const label = choice.iconLabel || choice.text || `Option ${idx + 1}`;
+        const label = choice.imageLabel || choice.iconLabel || choice.text || `Option ${idx + 1}`;
         
         return (
           <button
@@ -182,27 +239,36 @@ export function VisualGrid({
               </div>
             )}
             
-            {/* Icon - Responds to Brand Remix colors */}
-            <div 
-              className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
-              style={{
-                backgroundColor: isSelected 
-                  ? `${designSettings.accent}20`
-                  : `${designSettings.text}08`,
-              }}
-            >
-              <IconComponent 
-                className="h-7 w-7 transition-colors"
-                style={{ 
-                  color: isSelected ? designSettings.accent : designSettings.primary,
-                  strokeWidth: 1.5,
-                }}
+            {/* Content: Image (priority) or Icon */}
+            {hasImage ? (
+              <AppleStyleImage 
+                src={choice.imageUrl!}
+                alt={label}
+                isSelected={isSelected}
+                accentColor={designSettings.accent}
               />
-            </div>
+            ) : (
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all"
+                style={{
+                  backgroundColor: isSelected 
+                    ? `${designSettings.accent}20`
+                    : `${designSettings.text}08`,
+                }}
+              >
+                <IconComponent 
+                  className="h-7 w-7 transition-colors"
+                  style={{ 
+                    color: isSelected ? designSettings.accent : designSettings.primary,
+                    strokeWidth: 1.5,
+                  }}
+                />
+              </div>
+            )}
             
             {/* Label */}
             <span 
-              className={`text-xs font-medium text-center leading-tight ${isGhostState && !choice.iconLabel && !choice.text ? 'opacity-40 italic' : ''}`}
+              className={`text-xs font-medium text-center leading-tight ${isGhostState && !choice.imageLabel && !choice.iconLabel && !choice.text ? 'opacity-40 italic' : ''}`}
               style={{ color: designSettings.text }}
             >
               {label}
