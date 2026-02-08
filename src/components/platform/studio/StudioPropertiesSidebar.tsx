@@ -17,7 +17,7 @@ import {
   Play, Trophy, Gamepad2, Lock, Plus, Trash2, Upload, 
   Sparkles, Palette, Box, FileText, Loader2, Target, Zap,
   AlertTriangle, RotateCcw, Wand2, Shield, ChevronDown,
-  MessageSquare, Settings2, Eye, EyeOff
+  MessageSquare, Settings2, Eye, EyeOff, ChevronsLeft, ChevronsRight
 } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { DesignSettings, SceneData, SubCompetency, TemplateFormData, INDUSTRIES, createDefaultScene } from '../template-steps/types';
@@ -40,6 +40,9 @@ interface StudioPropertiesSidebarProps {
   setLogoFile: (file: File | null) => void;
   mascotFile: File | null;
   setMascotFile: (file: File | null) => void;
+  // Expandable console props
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -89,6 +92,8 @@ export function StudioPropertiesSidebar({
   setLogoFile,
   mascotFile,
   setMascotFile,
+  isExpanded = false,
+  onToggleExpand,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -926,6 +931,11 @@ export function StudioPropertiesSidebar({
                     <div className="flex items-center gap-2">
                       <Target className="h-3.5 w-3.5 text-primary" />
                       <Label className={`text-xs font-medium ${textColor}`}>Choice Editor</Label>
+                      {isExpanded && (
+                        <Badge className="bg-blue-500/20 text-blue-500 border-blue-500/30 text-[9px]">
+                          2-Column Layout
+                        </Badge>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -943,7 +953,8 @@ export function StudioPropertiesSidebar({
                     ✓ = Scientific Correct (hidden) • 🏷️ = Brand-Aligned • 📷 = Upload Asset
                   </p>
 
-                  <div className="space-y-2">
+                  {/* Expanded: 2-column grid, Collapsed: vertical stack */}
+                  <div className={isExpanded ? 'grid grid-cols-2 gap-2' : 'space-y-2'}>
                     {currentScene.choices.map((choice, idx) => (
                       <ChoiceEditorItem
                         key={choice.id}
@@ -990,35 +1001,39 @@ export function StudioPropertiesSidebar({
                   </div>
                   
                   {/* 4-Zone Color Distribution Visualization */}
-                  <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'} space-y-2`}>
+                  <div className={`${isExpanded ? 'p-4' : 'p-3'} rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'} space-y-2`}>
                     <p className={`text-[10px] ${mutedColor} mb-2`}>
                       Multi-Zone distribution ensures readable, professional UI
                     </p>
                     
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className={`grid ${isExpanded ? 'grid-cols-4' : 'grid-cols-2'} gap-2`}>
                       <ZoneColorIndicator 
                         label="Surface" 
                         description="Background layer"
                         color={colorZones?.surface || designSettings.background}
                         isDarkMode={isDarkMode}
+                        isExpanded={isExpanded}
                       />
                       <ZoneColorIndicator 
                         label="Container" 
                         description="Glass cards"
                         color={colorZones?.container || designSettings.secondary}
                         isDarkMode={isDarkMode}
+                        isExpanded={isExpanded}
                       />
                       <ZoneColorIndicator 
                         label="Action" 
                         description="Buttons/Progress"
                         color={colorZones?.action || designSettings.primary}
                         isDarkMode={isDarkMode}
+                        isExpanded={isExpanded}
                       />
                       <ZoneColorIndicator 
                         label="Typography" 
                         description="Text contrast"
                         color={colorZones?.typography || designSettings.text}
                         isDarkMode={isDarkMode}
+                        isExpanded={isExpanded}
                       />
                     </div>
                   </div>
@@ -1079,17 +1094,6 @@ export function StudioPropertiesSidebar({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-
-        {/* ===== LAYER 3: RESET TO DEFAULT (Bottom) ===== */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleResetToDefault}
-          className="w-full border-amber-500/50 text-amber-600 hover:bg-amber-500/10 hover:border-amber-500"
-        >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Reset to Default
-        </Button>
         
         {/* ===== GLOBAL DNA VISUAL LABEL (Fixed Bottom) ===== */}
         <div className={`mt-4 p-3 rounded-lg ${isDarkMode ? 'bg-slate-800/80' : 'bg-slate-100'} border ${borderColor}`}>
@@ -1235,29 +1239,94 @@ export function StudioPropertiesSidebar({
   };
 
   return (
-    <div className={`h-full ${bgColor} border-l ${borderColor} backdrop-blur-xl flex flex-col`}>
-      {/* Sidebar Header */}
-      <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between`}>
-        <span className={`text-sm font-medium ${textColor}`}>
-          {currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 
-            ? 'Command Center' 
-            : 'Properties'
-          }
-        </span>
-        <Badge variant="outline" className="text-xs">
-          {currentStep === 4 
-            ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === 7 ? 'Results' : `Scene ${currentSceneIndex}`)
-            : `Step ${currentStep}`
-          }
-        </Badge>
-      </div>
-
-      {/* Sidebar Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-4">
-          {renderProperties()}
+    <div className={`h-full ${bgColor} border-l ${borderColor} backdrop-blur-xl flex relative`}>
+      {/* Expand/Collapse Toggle Handle */}
+      {onToggleExpand && (
+        <button
+          onClick={onToggleExpand}
+          className={`absolute -left-3 top-1/2 -translate-y-1/2 z-10 
+            w-6 h-12 rounded-l-lg flex items-center justify-center
+            transition-all duration-200 hover:scale-105
+            ${isDarkMode 
+              ? 'bg-slate-800 border border-white/10 hover:bg-slate-700' 
+              : 'bg-white border border-slate-200 hover:bg-slate-50 shadow-sm'
+            }`}
+          title={isExpanded ? 'Collapse Console' : 'Expand Console'}
+        >
+          {isExpanded ? (
+            <ChevronsRight className={`h-4 w-4 ${mutedColor}`} />
+          ) : (
+            <ChevronsLeft className={`h-4 w-4 ${mutedColor}`} />
+          )}
+        </button>
+      )}
+      
+      <div className="flex-1 flex flex-col">
+        {/* Sidebar Header */}
+        <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between`}>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${textColor}`}>
+              {currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 
+                ? 'Command Center' 
+                : 'Properties'
+              }
+            </span>
+            {isExpanded && (
+              <Badge className="bg-primary/20 text-primary border-primary/30 text-[9px]">
+                Expanded
+              </Badge>
+            )}
+          </div>
+          <Badge variant="outline" className="text-xs">
+            {currentStep === 4 
+              ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === 7 ? 'Results' : `Scene ${currentSceneIndex}`)
+              : `Step ${currentStep}`
+            }
+          </Badge>
         </div>
-      </ScrollArea>
+
+        {/* Sidebar Content */}
+        <ScrollArea className="flex-1">
+          <div className={`p-4 ${isExpanded ? 'pb-24' : 'pb-20'}`}>
+            {renderProperties()}
+          </div>
+        </ScrollArea>
+        
+        {/* Sticky Action Buttons */}
+        {currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 && currentScene && (
+          <div className={`
+            sticky bottom-0 left-0 right-0 
+            p-3 border-t ${borderColor}
+            ${isDarkMode ? 'bg-slate-900/95' : 'bg-white/95'}
+            backdrop-blur-xl
+          `}>
+            <div className={`flex gap-2 ${isExpanded ? 'flex-row' : 'flex-col'}`}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetToDefault}
+                className={`border-amber-500/50 text-amber-600 hover:bg-amber-500/10 ${isExpanded ? 'flex-1' : 'w-full'}`}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset to Default
+              </Button>
+              <Button
+                onClick={handleSceneAiCommand}
+                disabled={isAiProcessing || !sceneAiPrompt.trim()}
+                size="sm"
+                className={`bg-primary text-primary-foreground hover:bg-primary/90 ${isExpanded ? 'flex-1' : 'w-full'}`}
+              >
+                {isAiProcessing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                {isExpanded ? `Apply to Scene ${currentSceneIndex}` : 'Apply'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1307,25 +1376,27 @@ function ZoneColorIndicator({
   label, 
   description, 
   color, 
-  isDarkMode 
+  isDarkMode,
+  isExpanded = false,
 }: { 
   label: string; 
   description: string;
   color: string; 
   isDarkMode: boolean;
+  isExpanded?: boolean;
 }) {
   return (
-    <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-white'} border ${isDarkMode ? 'border-white/10' : 'border-slate-200'}`}>
+    <div className={`${isExpanded ? 'p-3' : 'p-2'} rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-white'} border ${isDarkMode ? 'border-white/10' : 'border-slate-200'}`}>
       <div className="flex items-center gap-2">
         <div 
-          className="w-5 h-5 rounded-md border border-black/10 flex-shrink-0"
+          className={`${isExpanded ? 'w-8 h-8' : 'w-5 h-5'} rounded-md border border-black/10 flex-shrink-0 transition-all`}
           style={{ backgroundColor: color }}
         />
         <div className="min-w-0">
-          <p className={`text-[10px] font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'} truncate`}>
+          <p className={`${isExpanded ? 'text-xs' : 'text-[10px]'} font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'} truncate`}>
             {label}
           </p>
-          <p className={`text-[9px] ${isDarkMode ? 'text-white/50' : 'text-slate-500'} truncate`}>
+          <p className={`${isExpanded ? 'text-[10px]' : 'text-[9px]'} ${isDarkMode ? 'text-white/50' : 'text-slate-500'} truncate`}>
             {description}
           </p>
         </div>
