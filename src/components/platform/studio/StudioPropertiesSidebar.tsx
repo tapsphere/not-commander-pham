@@ -41,9 +41,38 @@ interface StudioPropertiesSidebarProps {
   setMascotFile: (file: File | null) => void;
 }
 
-// XP Values from PlayOps Framework
+// XP Values from PlayOps Framework - LOCKED in Master DNA Library
 const XP_VALUES = { L1: 100, L2: 250, L3: 500 } as const;
 type XPLevel = keyof typeof XP_VALUES;
+
+// Multi-Zone Color Distribution for Smart Brand Remix
+interface ColorZones {
+  surface: string;      // Main background layer
+  container: string;    // Glassmorphic cards and stage area  
+  action: string;       // Primary buttons and progress bars
+  typography: string;   // Primary and secondary text contrast
+}
+
+// Smart color distribution algorithm for Multi-Zone Remix
+const distributeColorsToZones = (colors: string[]): ColorZones => {
+  // Sort colors by luminance to ensure proper contrast distribution
+  const getLuminance = (hex: string): number => {
+    const rgb = parseInt(hex.slice(1), 16);
+    const r = (rgb >> 16) & 0xff;
+    const g = (rgb >> 8) & 0xff;
+    const b = rgb & 0xff;
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  };
+  
+  const sortedByLuminance = [...colors].sort((a, b) => getLuminance(a) - getLuminance(b));
+  
+  return {
+    surface: sortedByLuminance[0],      // Darkest for background (or lightest in light mode)
+    container: sortedByLuminance[1],    // Second for cards/glass
+    action: sortedByLuminance[2],       // Third for buttons
+    typography: sortedByLuminance[3],   // Brightest for text contrast
+  };
+};
 
 export function StudioPropertiesSidebar({
   currentSceneIndex,
@@ -64,7 +93,7 @@ export function StudioPropertiesSidebar({
   const [isRemixing, setIsRemixing] = useState(false);
   const [sceneAiPrompt, setSceneAiPrompt] = useState('');
   const [isAiProcessing, setIsAiProcessing] = useState(false);
-  const [selectedXPLevel, setSelectedXPLevel] = useState<XPLevel>('L2');
+  const [colorZones, setColorZones] = useState<ColorZones | null>(null);
   
   // Store original scene data for reset functionality
   const originalScenesRef = useRef<Map<string, SceneData>>(new Map());
@@ -366,7 +395,7 @@ export function StudioPropertiesSidebar({
 
     return (
       <div className="space-y-4">
-        {/* ===== LAYER 1: SCENE AI COMMAND (Primary Interface) ===== */}
+        {/* ===== LAYER 1: EXPANDED AI COMMAND CENTER (Primary Interface) ===== */}
         <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-primary/30 bg-primary/5' : 'border-primary/20 bg-primary/5'}`}>
           <div className="flex items-center gap-2 mb-3">
             <div className="p-1.5 rounded-lg bg-primary/20">
@@ -377,21 +406,24 @@ export function StudioPropertiesSidebar({
           
           <p className={`text-xs ${mutedColor} mb-3`}>
             One sentence to pre-fill this scene. AI only affects local content—
-            <span className="text-amber-500 font-medium"> never Header, Footer, or Layout.</span>
+            <span className="text-amber-500 font-medium"> Global DNA is locked.</span>
           </p>
           
+          {/* Expanded Textarea - Min 4 rows */}
           <Textarea
             value={sceneAiPrompt}
             onChange={(e) => setSceneAiPrompt(e.target.value)}
-            className={`resize-none ${inputBg} text-sm`}
-            rows={2}
-            placeholder="e.g., Make this a high-stakes retail scenario with pink accents..."
+            className={`resize-none ${inputBg} text-sm min-h-[100px]`}
+            rows={4}
+            placeholder="Describe the brand lesson for this scene (e.g., A high-stakes retail scenario with neon pink accents)..."
           />
           
+          {/* Large High-Contrast Command Button */}
           <Button
             onClick={handleSceneAiCommand}
             disabled={isAiProcessing || !sceneAiPrompt.trim()}
-            className="w-full mt-3 bg-primary text-primary-foreground"
+            className="w-full mt-3 h-11 text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+            size="lg"
           >
             {isAiProcessing ? (
               <>
@@ -405,17 +437,6 @@ export function StudioPropertiesSidebar({
               </>
             )}
           </Button>
-          
-          {/* Global DNA Lock Indicator */}
-          <div className={`mt-3 p-2 rounded-lg ${isDarkMode ? 'bg-amber-500/10' : 'bg-amber-50'} border ${isDarkMode ? 'border-amber-500/20' : 'border-amber-200'}`}>
-            <div className="flex items-center gap-2">
-              <Shield className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-[10px] font-medium text-amber-600">Global DNA Locked</span>
-            </div>
-            <p className="text-[10px] text-amber-600/80 mt-1">
-              Header • Footer • 60Hz Telemetry • 30/50/20 Layout
-            </p>
-          </div>
         </div>
 
         {/* ===== LAYER 2: ADVANCED MANUAL CONTROLS (Collapsed by Default) ===== */}
@@ -463,23 +484,26 @@ export function StudioPropertiesSidebar({
                     />
                   </div>
                   
-                  {/* PXP Value Selector */}
+                  {/* PXP Value - LOCKED in Master DNA Library */}
                   <div className="space-y-1.5">
-                    <Label className={`text-xs ${mutedColor}`}>PXP Value</Label>
-                    <div className="flex gap-2">
-                      {(Object.keys(XP_VALUES) as XPLevel[]).map((level) => (
-                        <button
-                          key={level}
-                          onClick={() => setSelectedXPLevel(level)}
-                          className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                            selectedXPLevel === level
-                              ? 'bg-primary text-primary-foreground'
-                              : isDarkMode ? 'bg-white/5 text-white/70 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          {level}: {XP_VALUES[level]}
-                        </button>
-                      ))}
+                    <div className="flex items-center gap-2">
+                      <Label className={`text-xs ${mutedColor}`}>PXP Value</Label>
+                      <Lock className="h-2.5 w-2.5 text-amber-500" />
+                    </div>
+                    <div className={`p-2.5 rounded-lg ${isDarkMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
+                      <div className="flex justify-between items-center">
+                        <div className="flex gap-3">
+                          {(Object.keys(XP_VALUES) as XPLevel[]).map((level) => (
+                            <span key={level} className={`text-xs font-medium ${mutedColor}`}>
+                              {level}: {XP_VALUES[level]}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-amber-600 mt-1.5 flex items-center gap-1">
+                        <Shield className="h-2.5 w-2.5" />
+                        Locked in Master DNA Library - Performance Economy Integrity
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -592,12 +616,48 @@ export function StudioPropertiesSidebar({
                   </div>
                 </div>
 
-                {/* Color Remix */}
+                {/* Smart Brand Remix Engine - Multi-Zone Color Distribution */}
                 <div className="space-y-3 pt-3 border-t" style={{ borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
                   <div className="flex items-center gap-2">
                     <Palette className="h-3.5 w-3.5 text-primary" />
-                    <Label className={`text-xs ${textColor}`}>Brand Color Remix</Label>
+                    <Label className={`text-xs font-medium ${textColor}`}>Smart Brand Remix Engine</Label>
                   </div>
+                  
+                  {/* 4-Zone Color Distribution Visualization */}
+                  <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'} space-y-2`}>
+                    <p className={`text-[10px] ${mutedColor} mb-2`}>
+                      Multi-Zone distribution ensures readable, professional UI
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <ZoneColorIndicator 
+                        label="Surface" 
+                        description="Background layer"
+                        color={colorZones?.surface || designSettings.background}
+                        isDarkMode={isDarkMode}
+                      />
+                      <ZoneColorIndicator 
+                        label="Container" 
+                        description="Glass cards"
+                        color={colorZones?.container || designSettings.secondary}
+                        isDarkMode={isDarkMode}
+                      />
+                      <ZoneColorIndicator 
+                        label="Action" 
+                        description="Buttons/Progress"
+                        color={colorZones?.action || designSettings.primary}
+                        isDarkMode={isDarkMode}
+                      />
+                      <ZoneColorIndicator 
+                        label="Typography" 
+                        description="Text contrast"
+                        color={colorZones?.typography || designSettings.text}
+                        isDarkMode={isDarkMode}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Color Remix Panel with Multi-Zone Logic */}
                   <ColorRemixPanel
                     primaryColor={designSettings.primary}
                     secondaryColor={designSettings.secondary}
@@ -605,17 +665,33 @@ export function StudioPropertiesSidebar({
                     backgroundColor={designSettings.background}
                     isDarkMode={isDarkMode}
                     onRemix={(colors) => {
+                      // Apply Multi-Zone distribution algorithm
+                      const zones = distributeColorsToZones([
+                        colors.primary, 
+                        colors.secondary, 
+                        colors.accent, 
+                        colors.background
+                      ]);
+                      setColorZones(zones);
+                      
+                      // Map zones to design settings
                       setDesignSettings({ 
                         ...designSettings, 
-                        primary: colors.primary,
-                        secondary: colors.secondary,
-                        accent: colors.accent,
-                        background: colors.background
+                        background: zones.surface,
+                        secondary: zones.container,
+                        primary: zones.action,
+                        text: zones.typography
                       });
-                      document.documentElement.style.setProperty('--brand-primary', colors.primary);
-                      document.documentElement.style.setProperty('--brand-secondary', colors.secondary);
-                      document.documentElement.style.setProperty('--brand-accent', colors.accent);
-                      document.documentElement.style.setProperty('--brand-background', colors.background);
+                      
+                      // Update CSS variables for Live Mirror
+                      document.documentElement.style.setProperty('--brand-surface', zones.surface);
+                      document.documentElement.style.setProperty('--brand-container', zones.container);
+                      document.documentElement.style.setProperty('--brand-action', zones.action);
+                      document.documentElement.style.setProperty('--brand-typography', zones.typography);
+                      // Legacy support
+                      document.documentElement.style.setProperty('--brand-primary', zones.action);
+                      document.documentElement.style.setProperty('--brand-secondary', zones.container);
+                      document.documentElement.style.setProperty('--brand-background', zones.surface);
                     }}
                   />
                 </div>
@@ -648,6 +724,17 @@ export function StudioPropertiesSidebar({
           <RotateCcw className="h-4 w-4 mr-2" />
           Reset to Default
         </Button>
+        
+        {/* ===== GLOBAL DNA VISUAL LABEL (Fixed Bottom) ===== */}
+        <div className={`mt-4 p-3 rounded-lg ${isDarkMode ? 'bg-slate-800/80' : 'bg-slate-100'} border ${borderColor}`}>
+          <div className="flex items-center gap-2">
+            <Lock className="h-3.5 w-3.5 text-amber-500" />
+            <span className={`text-xs font-semibold ${textColor}`}>Global DNA Locked</span>
+          </div>
+          <p className={`text-[10px] ${mutedColor} mt-1.5 leading-relaxed`}>
+            Header • Footer • 60Hz Telemetry • 30/50/20 Layout are enforced.
+          </p>
+        </div>
       </div>
     );
   };
@@ -845,6 +932,38 @@ function LockedField({ label, value, isDarkMode }: { label: string; value: strin
       <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-white/80' : 'text-slate-700'}`}>
         {value || 'Not set'}
       </p>
+    </div>
+  );
+}
+
+// Multi-Zone Color Indicator Component
+function ZoneColorIndicator({ 
+  label, 
+  description, 
+  color, 
+  isDarkMode 
+}: { 
+  label: string; 
+  description: string;
+  color: string; 
+  isDarkMode: boolean;
+}) {
+  return (
+    <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-white'} border ${isDarkMode ? 'border-white/10' : 'border-slate-200'}`}>
+      <div className="flex items-center gap-2">
+        <div 
+          className="w-5 h-5 rounded-md border border-black/10 flex-shrink-0"
+          style={{ backgroundColor: color }}
+        />
+        <div className="min-w-0">
+          <p className={`text-[10px] font-semibold ${isDarkMode ? 'text-white' : 'text-slate-900'} truncate`}>
+            {label}
+          </p>
+          <p className={`text-[9px] ${isDarkMode ? 'text-white/50' : 'text-slate-500'} truncate`}>
+            {description}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
