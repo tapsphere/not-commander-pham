@@ -14,6 +14,11 @@
  * Apple Studio Aesthetic (Section 1):
  * - glass-card, glass-button classes
  * - Brand CSS variables (no hard-coded hex)
+ * 
+ * Telegram Mini App Preview (SDK 8.0+):
+ * - Native header bar with back button
+ * - Main button simulation
+ * - Safe area inset preview
  */
 
 import { SceneData, DesignSettings, SubCompetency, TemplateFormData } from '../template-steps/types';
@@ -29,6 +34,7 @@ import {
   UNIVERSAL_LAYOUT,
 } from './SceneAssembler';
 import { ScrubSlider } from './mechanics/ScrubSlider';
+import { TelegramNativeOverlay, TelegramPreviewToggle } from './TelegramNativeOverlay';
 
 interface StudioLiveMirrorProps {
   formData: TemplateFormData;
@@ -40,6 +46,9 @@ interface StudioLiveMirrorProps {
   mascotFile?: File | null;
   logoFile?: File | null;
   showScene0?: boolean;
+  // Telegram Mini App Preview
+  telegramPreviewEnabled?: boolean;
+  onTelegramPreviewToggle?: () => void;
 }
 
 // Default Scene 3 (Data Analysis) SubCompetency for demo
@@ -69,6 +78,8 @@ export function StudioLiveMirror({
   mascotFile,
   logoFile,
   showScene0 = false,
+  telegramPreviewEnabled = false,
+  onTelegramPreviewToggle,
 }: StudioLiveMirrorProps) {
   const { isDarkMode } = useStudioTheme();
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
@@ -143,17 +154,29 @@ export function StudioLiveMirror({
     );
   }
 
-  // Main Scene Preview with 30/50/20 Layout
+// Main Scene Preview with 30/50/20 Layout
   return (
     <div className="h-full flex flex-col items-center justify-start pt-4 overflow-hidden">
-      {/* Scene Label */}
-      <div className="text-center mb-3">
+      {/* Scene Label + TMA Toggle */}
+      <div className="flex items-center justify-between w-full px-4 mb-3">
         <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Scene 3 · Data Analysis · Default View
+          Scene 3 · Data Analysis
         </span>
+        {onTelegramPreviewToggle && (
+          <TelegramPreviewToggle 
+            isEnabled={telegramPreviewEnabled} 
+            onToggle={onTelegramPreviewToggle} 
+          />
+        )}
       </div>
       
-      <MobileFrame isDarkMode={isDarkMode}>
+      <MobileFrame 
+        isDarkMode={isDarkMode}
+        telegramMode={telegramPreviewEnabled}
+        headerColor={designSettings.background}
+        sceneIndex={currentSceneIndex}
+        onNavigateBack={() => setCurrentSceneIndex(Math.max(0, currentSceneIndex - 1))}
+      >
         <div 
           className="h-full flex flex-col overflow-hidden pt-6"
           onMouseDown={handleInteractionStart}
@@ -360,16 +383,28 @@ function Scene0Preview({
 }
 
 // ============================================================================
-// Mobile Frame Component - Apple Studio Aesthetic
+// Mobile Frame Component - Apple Studio Aesthetic + Telegram Native Preview
 // ============================================================================
+
+interface MobileFrameProps {
+  children: React.ReactNode;
+  isDarkMode: boolean;
+  telegramMode?: boolean;
+  headerColor?: string;
+  sceneIndex?: number;
+  onNavigateBack?: () => void;
+  onSubmit?: () => void;
+}
 
 function MobileFrame({ 
   children, 
-  isDarkMode 
-}: { 
-  children: React.ReactNode; 
-  isDarkMode: boolean;
-}) {
+  isDarkMode,
+  telegramMode = false,
+  headerColor = '#1C1C1D',
+  sceneIndex = 0,
+  onNavigateBack,
+  onSubmit,
+}: MobileFrameProps) {
   return (
     <div 
       className={`mx-auto w-[280px] h-[520px] rounded-[2.5rem] border-[10px] shadow-2xl overflow-hidden relative bg-background ${
@@ -378,12 +413,29 @@ function MobileFrame({
           : 'border-slate-300 shadow-slate-400/30'
       }`}
     >
-      {/* Notch */}
-      <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-xl z-10 ${
-        isDarkMode ? 'bg-slate-700' : 'bg-slate-300'
-      }`} />
+      {/* Telegram Native Overlay (when enabled) */}
+      <TelegramNativeOverlay
+        isEnabled={telegramMode}
+        headerColor={headerColor}
+        sceneIndex={sceneIndex}
+        showBackButton={sceneIndex >= 2}
+        showMainButton={sceneIndex === 7}
+        mainButtonText="SUBMIT PERFORMANCE"
+        onBackClick={onNavigateBack}
+        onMainButtonClick={onSubmit}
+      />
       
-      {children}
+      {/* Notch (hidden in TMA mode, replaced by Telegram header) */}
+      {!telegramMode && (
+        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 rounded-b-xl z-10 ${
+          isDarkMode ? 'bg-slate-700' : 'bg-slate-300'
+        }`} />
+      )}
+      
+      {/* Content with safe area padding for TMA mode */}
+      <div className={telegramMode ? 'pt-[44px] pb-0' : ''}>
+        {children}
+      </div>
     </div>
   );
 }
