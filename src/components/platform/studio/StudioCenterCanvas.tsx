@@ -417,6 +417,9 @@ export function StudioCenterCanvas({
                 setSelectedChoiceId(id);
               }
             }}
+            // Visual Choice Mode props
+            displayMode={currentScene?.displayMode}
+            gridLayout={currentScene?.gridLayout}
           />
         </div>
 

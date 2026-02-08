@@ -20,13 +20,30 @@ export interface SceneData {
   choices: ChoiceData[];
   timeLimit: 30 | 45 | 60;
   subCompetencyId: string;
+  // Visual choice rendering options
+  displayMode?: 'text' | 'visual';       // Text buttons vs icon/image choices
+  gridLayout?: '1x4' | '2x2' | '3x2';    // Layout: vertical list, 2x2 grid, or 3x2 grid
 }
+
+// Lucide icon names for visual choices (fashion/retail example set)
+export type VisualChoiceIcon = 
+  | 'Footprints' | 'Shirt' | 'Crown' | 'Watch'      // Accessories
+  | 'ShoppingBag' | 'Package' | 'Gift' | 'Gem'      // Shopping
+  | 'Sparkles' | 'Star' | 'Heart' | 'ThumbsUp'      // Reactions
+  | 'TrendingUp' | 'BarChart3' | 'PieChart' | 'Target' // Business
+  | 'Users' | 'MessageCircle' | 'Mail' | 'Phone'    // Communication
+  | 'CheckCircle' | 'XCircle' | 'AlertTriangle' | 'Info' // Status
+  | 'Zap' | 'Flame' | 'Sun' | 'Moon'                // Elements
+  | string;                                          // Allow custom icons
 
 export interface ChoiceData {
   id: string;
   text: string;
   isCorrect: boolean;       // Scientific correct answer (hidden from creator, used for proficiency scoring)
   brandAligned?: boolean;   // Brand-aligned answer (visible to creator, for alignment tracking)
+  // Visual choice fields
+  icon?: VisualChoiceIcon;  // Lucide icon name for visual mode
+  iconLabel?: string;       // Short label under the icon (e.g., "Shoes")
 }
 
 export interface DesignSettings {

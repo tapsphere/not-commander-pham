@@ -9,9 +9,13 @@
  * - State B: Option clicked → Highlight, save data, show Next
  * - State C: Same option clicked again → Deselect, clear data, hide Next
  * - State D: Different option clicked → Auto-deselect old, select new
+ * 
+ * Visual Choice Mode:
+ * - When displayMode='visual', renders VisualGrid with icons
+ * - Grid layout auto-switches based on gridLayout setting
  */
 
-import { DesignSettings, ChoiceData } from '../template-steps/types';
+import { DesignSettings, ChoiceData, SceneData } from '../template-steps/types';
 import { detectMechanicType, MechanicType } from './SceneAssembler';
 import { 
   ScrubSlider, 
@@ -20,6 +24,7 @@ import {
   DragConnect,
   PatternGrid,
   TradeoffMatrix,
+  VisualGrid,
 } from './mechanics';
 import { GripVertical, CheckCircle, Circle } from 'lucide-react';
 
@@ -31,12 +36,16 @@ interface MechanicPreviewProps {
   playerAction?: string | null;
   selectedChoiceId?: string | null;
   onChoiceSelect?: (choiceId: string | null) => void;
+  // Visual mode props
+  displayMode?: SceneData['displayMode'];
+  gridLayout?: SceneData['gridLayout'];
 }
 
 /**
  * Main MechanicPreview component
  * 
  * Maps Excel game_mechanic → DNA Library blueprint → Component
+ * OR renders VisualGrid when displayMode='visual'
  */
 export function MechanicPreview({
   mechanic,
@@ -46,7 +55,22 @@ export function MechanicPreview({
   playerAction,
   selectedChoiceId,
   onChoiceSelect,
+  displayMode,
+  gridLayout,
 }: MechanicPreviewProps) {
+  // Visual Mode Override: If scene is in visual mode, render VisualGrid
+  if (displayMode === 'visual') {
+    return (
+      <VisualGrid
+        designSettings={designSettings}
+        choices={choices}
+        gridLayout={gridLayout || '2x2'}
+        isGhostState={isGhostState}
+        onSelect={(choice) => onChoiceSelect?.(choice.id)}
+      />
+    );
+  }
+  
   // Step 1: Detect mechanic type using SceneAssembler logic
   const mechanicType = detectMechanicType(mechanic, playerAction);
   
