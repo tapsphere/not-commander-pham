@@ -142,42 +142,118 @@ export function StudioPropertiesSidebar({
     toast.success('Scene reset to DNA Library defaults');
   };
 
+  // Visual choice icon mapping for AI detection
+  const VISUAL_ICON_MAP: Record<string, { icon: string; label: string }> = {
+    shoe: { icon: 'Footprints', label: 'Shoes' },
+    shoes: { icon: 'Footprints', label: 'Shoes' },
+    dress: { icon: 'Shirt', label: 'Dress' },
+    shirt: { icon: 'Shirt', label: 'Shirt' },
+    hat: { icon: 'Crown', label: 'Hat' },
+    cap: { icon: 'Crown', label: 'Cap' },
+    watch: { icon: 'Watch', label: 'Watch' },
+    bag: { icon: 'ShoppingBag', label: 'Bag' },
+    gift: { icon: 'Gift', label: 'Gift' },
+    jewelry: { icon: 'Gem', label: 'Jewelry' },
+    chart: { icon: 'BarChart3', label: 'Chart' },
+    graph: { icon: 'TrendingUp', label: 'Graph' },
+    target: { icon: 'Target', label: 'Target' },
+    team: { icon: 'Users', label: 'Team' },
+    people: { icon: 'Users', label: 'People' },
+    message: { icon: 'MessageCircle', label: 'Message' },
+    email: { icon: 'Mail', label: 'Email' },
+    phone: { icon: 'Phone', label: 'Phone' },
+    star: { icon: 'Star', label: 'Star' },
+    heart: { icon: 'Heart', label: 'Heart' },
+    fire: { icon: 'Flame', label: 'Fire' },
+    sparkle: { icon: 'Sparkles', label: 'Sparkle' },
+  };
+
   // Scene AI Command - Pre-fill all scene fields based on prompt
   const handleSceneAiCommand = async () => {
     if (!currentScene || !sceneAiPrompt.trim()) return;
     
     setIsAiProcessing(true);
+    const prompt = sceneAiPrompt.toLowerCase();
     
-    // Check if the prompt is about color/style changes
-    const colorPrompt = sceneAiPrompt.toLowerCase();
+    // ===== VISUAL CHOICE DETECTION =====
+    const visualKeywords = ['icon', 'icons', 'image', 'images', 'vector', 'vectors', 'visual', 'picture'];
+    const gridKeywords = ['2x2', '3x2', 'grid', 'layout'];
+    const isVisualRequest = visualKeywords.some(keyword => prompt.includes(keyword));
+    const hasGridRequest = gridKeywords.some(keyword => prompt.includes(keyword));
+    
+    if (isVisualRequest) {
+      // Parse icon names from the prompt
+      const detectedIcons: { icon: string; label: string }[] = [];
+      
+      Object.keys(VISUAL_ICON_MAP).forEach(key => {
+        if (prompt.includes(key)) {
+          detectedIcons.push(VISUAL_ICON_MAP[key]);
+        }
+      });
+      
+      // Determine grid layout
+      let gridLayout: '1x4' | '2x2' | '3x2' = '2x2';
+      if (prompt.includes('3x2')) gridLayout = '3x2';
+      else if (prompt.includes('1x4') || prompt.includes('vertical') || prompt.includes('list')) gridLayout = '1x4';
+      
+      // Fill with detected icons or defaults
+      const iconChoices = detectedIcons.length >= 2 ? detectedIcons : [
+        { icon: 'Footprints', label: 'Shoes' },
+        { icon: 'Shirt', label: 'Dress' },
+        { icon: 'Crown', label: 'Hat' },
+        { icon: 'Watch', label: 'Watch' },
+      ];
+      
+      // Create visual choices
+      const newChoices = iconChoices.slice(0, gridLayout === '3x2' ? 6 : 4).map((item, idx) => ({
+        id: `choice-visual-${Date.now()}-${idx}`,
+        text: item.label,
+        isCorrect: idx === 0, // First is correct by default
+        brandAligned: false,
+        icon: item.icon,
+        iconLabel: item.label,
+      }));
+      
+      // Update scene with visual mode
+      updateScene({
+        displayMode: 'visual',
+        gridLayout,
+        choices: newChoices,
+      });
+      
+      toast.success(`Visual grid applied! ${gridLayout} layout with ${newChoices.length} icons`);
+      setIsAiProcessing(false);
+      setSceneAiPrompt('');
+      return;
+    }
+    
+    // ===== COLOR CHANGE DETECTION =====
     const colorKeywords = ['color', 'blue', 'red', 'green', 'purple', 'orange', 'pink', 'yellow', 'teal', 'cyan', 'magenta'];
-    const styleKeywords = ['style', 'theme', 'look', 'visual', 'aesthetic'];
-    const isColorPrompt = colorKeywords.some(keyword => colorPrompt.includes(keyword));
-    const isStylePrompt = styleKeywords.some(keyword => colorPrompt.includes(keyword));
+    const isColorPrompt = colorKeywords.some(keyword => prompt.includes(keyword));
     
     if (isColorPrompt) {
       // Parse color from prompt and apply to the appropriate design setting
       let newColor = designSettings.primary;
       let colorName = '';
       
-      if (colorPrompt.includes('blue')) { newColor = '#3b82f6'; colorName = 'blue'; }
-      else if (colorPrompt.includes('red')) { newColor = '#ef4444'; colorName = 'red'; }
-      else if (colorPrompt.includes('green')) { newColor = '#22c55e'; colorName = 'green'; }
-      else if (colorPrompt.includes('purple')) { newColor = '#a855f7'; colorName = 'purple'; }
-      else if (colorPrompt.includes('orange')) { newColor = '#f97316'; colorName = 'orange'; }
-      else if (colorPrompt.includes('pink')) { newColor = '#ec4899'; colorName = 'pink'; }
-      else if (colorPrompt.includes('yellow')) { newColor = '#eab308'; colorName = 'yellow'; }
-      else if (colorPrompt.includes('teal') || colorPrompt.includes('cyan')) { newColor = '#14b8a6'; colorName = 'teal'; }
-      else if (colorPrompt.includes('magenta')) { newColor = '#d946ef'; colorName = 'magenta'; }
+      if (prompt.includes('blue')) { newColor = '#3b82f6'; colorName = 'blue'; }
+      else if (prompt.includes('red')) { newColor = '#ef4444'; colorName = 'red'; }
+      else if (prompt.includes('green')) { newColor = '#22c55e'; colorName = 'green'; }
+      else if (prompt.includes('purple')) { newColor = '#a855f7'; colorName = 'purple'; }
+      else if (prompt.includes('orange')) { newColor = '#f97316'; colorName = 'orange'; }
+      else if (prompt.includes('pink')) { newColor = '#ec4899'; colorName = 'pink'; }
+      else if (prompt.includes('yellow')) { newColor = '#eab308'; colorName = 'yellow'; }
+      else if (prompt.includes('teal') || prompt.includes('cyan')) { newColor = '#14b8a6'; colorName = 'teal'; }
+      else if (prompt.includes('magenta')) { newColor = '#d946ef'; colorName = 'magenta'; }
       
       // Check what element to change (slider, button, accent, etc.)
-      if (colorPrompt.includes('slider') || colorPrompt.includes('accent')) {
+      if (prompt.includes('slider') || prompt.includes('accent')) {
         setDesignSettings({ ...designSettings, accent: newColor });
         toast.success(`Slider/accent color changed to ${colorName || newColor}`);
-      } else if (colorPrompt.includes('background') || colorPrompt.includes('bg')) {
+      } else if (prompt.includes('background') || prompt.includes('bg')) {
         setDesignSettings({ ...designSettings, background: newColor });
         toast.success(`Background color changed to ${colorName || newColor}`);
-      } else if (colorPrompt.includes('secondary')) {
+      } else if (prompt.includes('secondary')) {
         setDesignSettings({ ...designSettings, secondary: newColor });
         toast.success(`Secondary color changed to ${colorName || newColor}`);
       } else {
@@ -191,7 +267,7 @@ export function StudioPropertiesSidebar({
       return;
     }
     
-    // Simulate AI processing for content pre-fill
+    // ===== DEFAULT TEXT CONTENT PRE-FILL =====
     await new Promise(r => setTimeout(r, 1500));
     
     // AI-generated content based on prompt and context
@@ -199,7 +275,7 @@ export function StudioPropertiesSidebar({
     const actionCue = currentSubCompetency?.action_cue || '';
     
     // Generate contextual question and choices based on the prompt
-    const adjustedQuestion = sceneAiPrompt.includes('prefill') || sceneAiPrompt.includes('pre-fill')
+    const adjustedQuestion = prompt.includes('prefill') || prompt.includes('pre-fill')
       ? `Based on "${brandContext}" and the mission: "${actionCue}" - ${currentScene.question || 'How would you handle this situation?'}`
       : `${currentScene.question} (Adjusted for: ${sceneAiPrompt})`;
     

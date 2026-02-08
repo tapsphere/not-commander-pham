@@ -11,3 +11,4 @@ export { QuickTapButtons } from './QuickTapButtons';
 export { DragConnect } from './DragConnect';
 export { PatternGrid } from './PatternGrid';
 export { TradeoffMatrix } from './TradeoffMatrix';
+export { VisualGrid } from './VisualGrid';
