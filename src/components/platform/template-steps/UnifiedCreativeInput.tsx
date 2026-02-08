@@ -15,9 +15,9 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { Competency, SubCompetency, SceneData, createDefaultScene } from './types';
 
-// Fashion demo sample
+// Fashion demo sample - Active default content
 const FASHION_DEMO = {
-  placeholder: `Enter a theme (e.g. Fashion) or a specific skill (e.g. Emotional Intelligence)... ✨ Try it out?`,
+  activePrompt: `High-end fashion brand teaching window merchandising. Focus: Mannequin depth-spacing and focal point lighting using Analytical Thinking standards... ✨ Try it out?`,
   theme: 'High-end fashion brand teaching window merchandising',
   skill: 'Analytical Thinking',
 };
@@ -51,7 +51,7 @@ export function UnifiedCreativeInput({
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const findMatchingCompetency = (searchText: string): Competency | null => {
@@ -146,9 +146,10 @@ export function UnifiedCreativeInput({
   };
 
   const handleSubmit = async () => {
-    // Demo trigger - empty input or placeholder
-    const isDemoTrigger = !inputValue.trim();
-    const searchText = isDemoTrigger ? FASHION_DEMO.theme : inputValue.trim();
+    // Demo trigger - empty input, placeholder, or active prompt
+    const currentText = inputValue.trim();
+    const isDemoTrigger = !currentText || currentText === FASHION_DEMO.activePrompt;
+    const searchText = isDemoTrigger ? FASHION_DEMO.theme : currentText;
 
     setIsProcessing(true);
 
@@ -248,12 +249,7 @@ export function UnifiedCreativeInput({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isProcessing && !isUploading) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
+  // handleKeyDown moved inline to textarea for proper event handling
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -274,39 +270,50 @@ export function UnifiedCreativeInput({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 mb-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Smart Port</h2>
+      <div className="text-center mb-2">
+        <div className="inline-flex items-center gap-2 mb-1">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <h2 className="text-2xl font-semibold text-foreground">Command Center</h2>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Enter a theme, search for a skill, or upload a PDF — we'll build your 6-scene validator.
+        <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+          Search & Build — enter a theme, type a skill, or upload a PDF. The AI handles the heavy lifting.
         </p>
       </div>
 
-      {/* Smart Port Input */}
+      {/* Large Hero Command Box */}
       <div className="relative">
-        <Input
-          ref={inputRef}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={FASHION_DEMO.placeholder}
-          className="pr-12 h-12 text-sm bg-background border-2 border-border focus:border-primary/50"
+        <textarea
+          ref={textareaRef}
+          value={inputValue || FASHION_DEMO.activePrompt}
+          onChange={(e) => setInputValue(e.target.value === FASHION_DEMO.activePrompt ? '' : e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !isProcessing && !isUploading) {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+          onFocus={() => {
+            if (!inputValue) {
+              setInputValue('');
+            }
+          }}
+          placeholder={FASHION_DEMO.activePrompt}
+          className="w-full min-h-[80px] px-5 py-4 pr-16 text-lg leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
+          rows={2}
         />
         
-        {/* Upload Icon Button */}
+        {/* Large Upload Icon Button */}
         <button
           type="button"
           onClick={handleUploadClick}
           disabled={isProcessing || isUploading}
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50"
+          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-lg bg-muted/50 hover:bg-primary/10 border border-border hover:border-primary/30 transition-all duration-200 disabled:opacity-50 group"
           title="Upload PDF"
         >
-          <Upload className="h-5 w-5 text-muted-foreground hover:text-primary" />
+          <Upload className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
         </button>
         
         <input
@@ -337,23 +344,26 @@ export function UnifiedCreativeInput({
       <Button
         onClick={handleSubmit}
         disabled={isProcessing || isUploading}
-        className="w-full"
+        size="lg"
+        className="w-full h-12 text-base font-medium shadow-md hover:shadow-lg transition-shadow"
       >
         {isProcessing ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Processing...
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            Building Framework...
           </>
         ) : isUploading ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
             Parsing PDF...
           </>
         ) : (
           <>
-            <Sparkles className="h-4 w-4 mr-2" />
-            {inputValue.trim() ? 'Generate 6 Scenes' : 'Try Fashion Demo'}
-            <ArrowRight className="h-4 w-4 ml-2" />
+            <Sparkles className="h-5 w-5 mr-2" />
+            {inputValue.trim() && inputValue.trim() !== FASHION_DEMO.activePrompt 
+              ? 'Generate 6-Scene Framework' 
+              : 'Launch Fashion Demo'}
+            <ArrowRight className="h-5 w-5 ml-2" />
           </>
         )}
       </Button>
