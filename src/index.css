@@ -55,6 +55,13 @@
     --glass-bg: 0 0% 100% / 0.7;
     --glass-border: 0 0% 0% / 0.08;
     --glass-hover: 0 0% 0% / 0.04;
+
+    /* Compliance Mode tokens - Light */
+    --compliance-primary: 152 69% 31%; /* Forest Green */
+    --compliance-secondary: 152 56% 42%; /* Emerald */
+    --compliance-accent: 152 44% 52%;
+    --compliance-surface: 152 20% 96%;
+    --compliance-muted: 152 15% 88%;
   }
 
   /* Dark Mode - Midnight Slate Palette */
@@ -100,6 +107,13 @@
     --glass-bg: 0 0% 100% / 0.05;
     --glass-border: 0 0% 100% / 0.1;
     --glass-hover: 0 0% 100% / 0.08;
+
+    /* Compliance Mode tokens - Dark */
+    --compliance-primary: 152 69% 40%;
+    --compliance-secondary: 152 56% 50%;
+    --compliance-accent: 152 44% 58%;
+    --compliance-surface: 152 30% 12%;
+    --compliance-muted: 152 20% 18%;
   }
 }
 
