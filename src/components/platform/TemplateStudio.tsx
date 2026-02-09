@@ -131,6 +131,43 @@ function StudioContent({
     console.log('✨ VALERTI Demo Template silently injected into Steps 1 & 2');
   };
 
+  // v54.0: Factory Reset — Wipe all brand/track/scene data back to neutral studio
+  const handleFactoryReset = () => {
+    // Step 1: Reset design settings to neutral defaults
+    setDesignSettings({ ...DEFAULT_DESIGN_SETTINGS });
+    
+    // Step 1: Clear brand assets
+    setLogoFile(null);
+    setLogoUrl(null);
+    setMascotFile(null);
+    setCoverImageFile(null);
+    
+    // Step 2: Reset form data
+    setFormData({ ...DEFAULT_FORM_DATA });
+    
+    // Step 3: Clear competency selections
+    setSelectedCompetency('');
+    setSelectedSubCompetencies([]);
+    setTracks([]);
+    setActiveTrackId(null);
+    setPromptContext('');
+    
+    // Step 4: Clear all scenes and visual DNA
+    setScenes([]);
+    setGlobalStylePrompt('');
+    
+    // Reset demo override flag so it can be triggered again
+    setDemoOverrideApplied(false);
+    
+    // Clear CSS variables
+    document.documentElement.style.removeProperty('--brand-primary');
+    document.documentElement.style.removeProperty('--brand-secondary');
+    document.documentElement.style.removeProperty('--brand-background');
+    
+    toast.success('🔄 Factory Reset — Studio returned to neutral state');
+    console.log('🔄 v54.0 Factory Reset executed — all brand data cleared');
+  };
+
   // Calculate completed steps
   const completedSteps = useMemo(() => {
     const completed: number[] = [];
@@ -537,6 +574,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                   }}
                   onPromptChange={setPromptContext}
                   onDemoOverride={handleDemoOverride}
+                  onFactoryReset={handleFactoryReset}
                 />
               </div>
             </ScrollArea>

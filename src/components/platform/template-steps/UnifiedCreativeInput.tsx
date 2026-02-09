@@ -100,6 +100,8 @@ interface UnifiedCreativeInputProps {
   onManualFallback: () => void;
   // Demo Override callback (v27.0) - triggered when VALERTI keyword detected
   onDemoOverride?: (data: DemoOverrideData) => void;
+  // Factory Reset callback (v54.0) - triggered when empty prompt submitted
+  onFactoryReset?: () => void;
 }
 
 export function UnifiedCreativeInput({
@@ -108,6 +110,7 @@ export function UnifiedCreativeInput({
   onComplete,
   onManualFallback,
   onDemoOverride,
+  onFactoryReset,
 }: UnifiedCreativeInputProps) {
   // Use demo prompt as initial value, but track if user has modified it
   const [inputValue, setInputValue] = useState(VALERTI_DEMO.activePrompt);
@@ -493,6 +496,18 @@ export function UnifiedCreativeInput({
 
   const handleSubmit = async () => {
     const currentText = inputValue.trim();
+    
+    // v54.0: Factory Reset — empty prompt + Enter triggers global reset
+    if (!currentText && onFactoryReset) {
+      onFactoryReset();
+      setHasSubmittedOnce(false);
+      setMatchedCompetencyNames([]);
+      setLastAiCompetencyId(null);
+      setIsManualMode(false);
+      setUploadedFile(null);
+      return;
+    }
+    
     setIsProcessing(true);
 
     try {
