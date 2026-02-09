@@ -105,7 +105,7 @@ export function GlobalSceneStyler({
             disabled={isApplying || !globalStylePrompt.trim()}
             className="w-full h-10 text-sm font-semibold"
             style={{ 
-              backgroundColor: designSettings.primary,
+              backgroundColor: '#0D0D0D',
               color: '#FFFFFF',
             }}
           >

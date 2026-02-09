@@ -1812,7 +1812,7 @@ export function StudioPropertiesSidebar({
                 onClick={handleSceneAiCommand}
                 disabled={isAiProcessing || !sceneAiPrompt.trim()}
                 size="sm"
-                className={`bg-primary text-primary-foreground hover:bg-primary/90 ${isExpanded ? 'flex-1' : 'w-full'}`}
+                className={`bg-black text-white hover:bg-black/90 ${isExpanded ? 'flex-1' : 'w-full'}`}
               >
                 {isAiProcessing ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
