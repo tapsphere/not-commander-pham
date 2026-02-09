@@ -605,6 +605,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                   designSettings={designSettings}
                   tracks={tracks}
                   onScrollToTrack={(trackId) => setActiveTrackId(trackId)}
+                  isApplyingGlobal={isApplyingGlobal}
                 />
               )}
             </>

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { 
   Play, Trophy, Gamepad2, Lock, Plus, GripVertical, 
-  Layers, Sparkles, ChevronDown, ChevronUp, Minus
+  Layers, Sparkles, ChevronDown, ChevronUp, Minus, Loader2
 } from 'lucide-react';
 import { DesignSettings, SceneData, SubCompetency, CompetencyTrack, createDefaultScene } from '../template-steps/types';
 import { useStudioTheme } from './StudioThemeContext';
@@ -51,6 +51,8 @@ interface StudioTrackRailProps {
   flexOutroScenes?: TrackScene[];
   onAddFlexScene?: (position: 'intro' | 'outro') => void;
   onRemoveFlexScene?: (position: 'intro' | 'outro', index: number) => void;
+  // Global apply loading state
+  isApplyingGlobal?: boolean;
 }
 
 export function StudioTrackRail({
@@ -66,6 +68,7 @@ export function StudioTrackRail({
   flexOutroScenes = [],
   onAddFlexScene,
   onRemoveFlexScene,
+  isApplyingGlobal = false,
 }: StudioTrackRailProps) {
   const { isDarkMode } = useStudioTheme();
   const [isExpanded, setIsExpanded] = useState(true);
@@ -300,6 +303,8 @@ export function StudioTrackRail({
     const isDragOver = dragOverIndex === track.sceneDataIndex;
     const isGameplay = track.type === 'gameplay';
     const isLocked = track.subCompetency?.action_cue;
+    const hasBackgroundPrompt = isGameplay && track.sceneData?.backgroundPrompt?.trim();
+    const isLoadingScene = isApplyingGlobal && isGameplay && isConfigured;
 
     return (
       <div
@@ -345,12 +350,31 @@ export function StudioTrackRail({
             ${track.isFlexScene ? 'border-emerald-500/50' : ''}
           `}
           style={{
-            backgroundColor: designSettings.background,
+            background: hasBackgroundPrompt
+              ? `linear-gradient(135deg, ${designSettings.primary}30, ${designSettings.secondary}40, ${designSettings.accent}30)`
+              : designSettings.background,
             borderColor: isActive
               ? designSettings.primary
               : isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
           }}
         >
+          {/* Loading overlay during Apply to All */}
+          {isLoadingScene && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg"
+              style={{ backgroundColor: `${designSettings.primary}40` }}
+            >
+              <Loader2 className="h-4 w-4 animate-spin text-white" />
+            </div>
+          )}
+
+          {/* Background prompt indicator */}
+          {hasBackgroundPrompt && !isLoadingScene && (
+            <div className="absolute top-0 right-0 w-2 h-2 rounded-bl-md"
+              style={{ backgroundColor: designSettings.highlight }}
+              title="Background styled"
+            />
+          )}
+
           {/* Mini header bar */}
           <div
             className="w-full h-3 flex items-center justify-center"

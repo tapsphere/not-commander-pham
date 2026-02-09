@@ -227,7 +227,11 @@ export function StudioCenterCanvas({
         'Adjust the slider to filter the noise and reveal the optimal data threshold.';
       
       return (
-        <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: designSettings.background }}>
+        <div className="h-full flex flex-col overflow-hidden relative" style={{ 
+          background: currentScene?.backgroundPrompt?.trim()
+            ? `linear-gradient(135deg, ${designSettings.background}, ${designSettings.primary}20, ${designSettings.secondary}15, ${designSettings.accent}10)`
+            : designSettings.background
+        }}>
           {/* ═══════════════════════════════════════════════════════════════
               AERO STATUS BAR HEADER
               Left: PXP Counter | Center: 30s Timer | Right: Scene Progress
@@ -346,7 +350,11 @@ export function StudioCenterCanvas({
     // Default gameplay screen for other scenes (1, 2, 4, 5, 6)
     // Updated with Aero Studio Standard
     return (
-      <div className="h-full overflow-hidden flex flex-col" style={{ backgroundColor: designSettings.background }}>
+      <div className="h-full overflow-hidden flex flex-col relative" style={{ 
+        background: currentScene?.backgroundPrompt?.trim()
+          ? `linear-gradient(${135 + (currentSceneIndex * 15)}deg, ${designSettings.background}, ${designSettings.primary}20, ${designSettings.secondary}15, ${designSettings.accent}10)`
+          : designSettings.background
+      }}>
         {/* ═══════════════════════════════════════════════════════════════
             AERO STATUS BAR HEADER
             Left: PXP Counter | Center: 30s Timer | Right: Scene Progress
