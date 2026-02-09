@@ -543,21 +543,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             </ScrollArea>
           ) : (
             <>
-              {/* Global Scene Styler - shown on Step 4 */}
-              {currentStep === 4 && (
-                <GlobalSceneStyler
-                  globalStylePrompt={globalStylePrompt}
-                  onGlobalStyleChange={setGlobalStylePrompt}
-                  onApplyToAllScenes={() => {
-                    // Clear all per-scene overrides so they inherit global
-                    setScenes(scenes.map(s => ({ ...s, backgroundPrompt: '' })));
-                    toast.success('Global style applied to all scenes');
-                  }}
-                  scenes={scenes}
-                  designSettings={designSettings}
-                  brandName={formData.name || undefined}
-                />
-              )}
+              {/* Global Scene Styler moved to Right Properties Panel */}
               {/* Split-View: Code Editor (Left) + Preview (Right) when code editor is open */}
               {codeEditorOpen ? (
                 <div className="flex-1 flex overflow-hidden">
@@ -683,6 +669,11 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             promptContext={promptContext}
             onNavigateToStep={(step) => setCurrentStep(step)}
             globalStylePrompt={globalStylePrompt}
+            onGlobalStyleChange={setGlobalStylePrompt}
+            onApplyToAllScenes_global={() => {
+              setScenes(scenes.map(s => ({ ...s, backgroundPrompt: '' })));
+              toast.success('Global style applied to all scenes');
+            }}
           />
         </div>
       </div>
