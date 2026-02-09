@@ -394,7 +394,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
   const leftPanelStyles = 'bg-card border-r border-border';
 
   return (
-    <div className={`fixed inset-0 z-50 flex flex-col ${bgStyles}`}>
+    <div className={`fixed inset-0 z-50 flex flex-col overflow-hidden ${bgStyles}`}>
       {/* Top Header Bar */}
       <div className={`flex items-center justify-between px-4 py-3 ${headerStyles}`}>
         <div className="flex items-center gap-4">
