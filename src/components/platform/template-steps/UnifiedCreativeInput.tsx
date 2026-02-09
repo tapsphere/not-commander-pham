@@ -187,12 +187,16 @@ export function UnifiedCreativeInput({
       }
     }
 
-    // Track 2: Marketing/Growth → Growth Design
+    // Track 2: Marketing/Growth → Strategic Planning (mapped as "Growth Design" in UI)
     if (hasMarketing) {
+      // Find a suitable competency for marketing/growth focus
+      // Priority: Strategic Planning > Process Optimization > Data Interpretation
       const growthComp = competencies.find(c => 
-        c.name.toLowerCase().includes('growth')
+        c.name.toLowerCase().includes('strategic')
       ) || competencies.find(c => 
-        c.name.toLowerCase().includes('design')
+        c.name.toLowerCase().includes('process optimization')
+      ) || competencies.find(c => 
+        c.name.toLowerCase().includes('data interpretation')
       );
       
       if (growthComp) {
@@ -206,12 +210,13 @@ export function UnifiedCreativeInput({
         
         trackMappings.push({
           competencyId: growthComp.id,
-          competencyName: growthComp.name,
+          // Display as "Growth Design" in UI for consistency with prompt language
+          competencyName: 'Growth Design',
           subIds: matchedSubs.map(s => s.id),
           scenes,
           trackId,
         });
-        matchedNames.push(growthComp.name);
+        matchedNames.push('Growth Design');
       }
     }
 
