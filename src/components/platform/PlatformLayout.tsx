@@ -28,21 +28,9 @@ export const PlatformLayout = () => {
 
   const checkAuth = async () => {
     try {
-      const isDemoMode = localStorage.getItem('demoMode') === 'true';
-      if (isDemoMode) {
-        setLoading(false);
-        return;
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
+      await supabase.auth.getUser();
     } catch (error) {
-      console.error('Auth check failed:', error);
-      navigate('/auth');
+      console.warn('Auth check skipped:', error);
     } finally {
       setLoading(false);
     }
