@@ -1,16 +1,26 @@
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { LogOut, Layers, Store, TestTube, Moon, Sun } from 'lucide-react';
+import { LogOut, Layers, Store, Moon, Sun, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGlobalTheme } from '@/hooks/useGlobalTheme';
+
+/* ── Compliance Mode Context ── */
+interface ComplianceModeContextType {
+  isComplianceMode: boolean;
+  toggleComplianceMode: () => void;
+}
+const ComplianceModeContext = createContext<ComplianceModeContextType>({ isComplianceMode: false, toggleComplianceMode: () => {} });
+export const useComplianceMode = () => useContext(ComplianceModeContext);
 
 export const PlatformLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const [isComplianceMode, setIsComplianceMode] = useState(false);
   const { isDarkMode, toggleTheme } = useGlobalTheme();
+  const toggleComplianceMode = () => setIsComplianceMode(prev => !prev);
 
   useEffect(() => {
     checkAuth();
@@ -108,6 +118,18 @@ export const PlatformLayout = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Compliance Toggle */}
+            <Button
+              variant={isComplianceMode ? 'default' : 'ghost'}
+              size="sm"
+              onClick={toggleComplianceMode}
+              className={`gap-1.5 transition-colors ${isComplianceMode ? 'bg-[hsl(152,69%,31%)] hover:bg-[hsl(152,69%,26%)] text-white' : 'text-muted-foreground hover:text-foreground'}`}
+              title={isComplianceMode ? 'Switch to Talent Mode' : 'Switch to Compliance Mode'}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span className="text-xs">{isComplianceMode ? 'Compliance' : 'Audit'}</span>
+            </Button>
+
             <Button
               variant="ghost"
               size="sm"
@@ -127,9 +149,11 @@ export const PlatformLayout = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
-        <Outlet />
-      </main>
+      <ComplianceModeContext.Provider value={{ isComplianceMode, toggleComplianceMode }}>
+        <main className="container mx-auto px-6 py-8">
+          <Outlet />
+        </main>
+      </ComplianceModeContext.Provider>
     </div>
   );
 };
