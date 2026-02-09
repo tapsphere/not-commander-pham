@@ -14,6 +14,7 @@ interface StudioBrandStepProps {
   setMascotFile: (file: File | null) => void;
   logoFile: File | null;
   setLogoFile: (file: File | null) => void;
+  logoUrl?: string | null; // v31.0: URL-based logo for demo injection
 }
 
 const FONTS = [
@@ -82,6 +83,7 @@ export function StudioBrandStep({
   setMascotFile,
   logoFile,
   setLogoFile,
+  logoUrl,
 }: StudioBrandStepProps) {
   const { isDarkMode } = useStudioTheme();
 
@@ -149,6 +151,13 @@ export function StudioBrandStep({
                 <img 
                   src={URL.createObjectURL(logoFile)} 
                   alt="Logo preview" 
+                  className="h-16 w-16 object-contain"
+                />
+              ) : logoUrl ? (
+                // v31.0: Display URL-based logo from demo injection
+                <img 
+                  src={logoUrl} 
+                  alt="Demo logo" 
                   className="h-16 w-16 object-contain"
                 />
               ) : (

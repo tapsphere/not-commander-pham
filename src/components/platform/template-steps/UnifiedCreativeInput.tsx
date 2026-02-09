@@ -214,11 +214,8 @@ export function UnifiedCreativeInput({
         keyElement: VALERTI_DEMO_OVERRIDE.keyElement,
       });
       
-      // Show feedback animation
-      toast.success('✨ Valerti Demo Template Applied Across All Steps', {
-        description: 'Brand colors, logo, and role have been pre-filled.',
-        duration: 4000,
-      });
+      // v31.0: Silent injection - no toast shown, user discovers it naturally when navigating to Step 1
+      console.log('✨ VALERTI Demo Override triggered silently');
     }
     
     // Detect multiple competencies
