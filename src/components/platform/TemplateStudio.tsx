@@ -507,7 +507,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
 
         {/* Center Area: Canvas + Filmstrip (or Framework config) */}
-        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${canvasAreaStyles}`}>
+        <div className={`flex-1 flex flex-col min-w-0 ${canvasAreaStyles}`}>
           {currentStep === 3 ? (
             // Framework configuration takes full center when on step 3
             <ScrollArea className="flex-1">
