@@ -17,7 +17,8 @@ import {
   Play, Trophy, Gamepad2, Lock, Plus, Trash2, Upload, 
   Sparkles, Palette, Box, FileText, Loader2, Target, Zap,
   AlertTriangle, RotateCcw, Wand2, Shield, ChevronDown,
-  MessageSquare, Settings2, Eye, EyeOff, ChevronsLeft, ChevronsRight
+  MessageSquare, Settings2, Eye, EyeOff, ChevronsLeft, ChevronsRight,
+  Brain, TrendingUp, Clock, Gauge
 } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { DesignSettings, SceneData, SubCompetency, TemplateFormData, CompetencyTrack, INDUSTRIES, createDefaultScene } from '../template-steps/types';
@@ -25,6 +26,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ColorRemixPanel } from '../ColorRemixPanel';
 import { ChoiceEditorItem } from './ChoiceEditorItem';
+
+// Behavioral Science explanations for competencies (moved from ExpertAdvisorPanel)
+const COMPETENCY_INSIGHTS: Record<string, {
+  roleMapping: string;
+  cbenWhy: string;
+  icon: React.ElementType;
+  color: string;
+}> = {
+  'analytical thinking': {
+    roleMapping: 'Visual Pattern Recognition & Spatial Decision-Making',
+    cbenWhy: 'C-BEN standards identify Analytical Thinking as critical for roles requiring rapid visual assessment—reading boutique floor layouts, optimizing mannequin depth, and controlling focal lighting.',
+    icon: Eye,
+    color: 'amber',
+  },
+  'growth design': {
+    roleMapping: 'Conversion Optimization & Friction Reduction',
+    cbenWhy: 'Growth Design tests the ability to identify UI friction points, map referral loops, and optimize digital funnels—essential for VIP reservation management.',
+    icon: TrendingUp,
+    color: 'emerald',
+  },
+  'emotional intelligence': {
+    roleMapping: 'Interpersonal Dynamics & Empathy Calibration',
+    cbenWhy: 'Emotional Intelligence validates your ability to read social cues, manage high-stakes client relationships, and adapt communication style.',
+    icon: Brain,
+    color: 'purple',
+  },
+  'problem solving': {
+    roleMapping: 'Root Cause Analysis & Solution Architecture',
+    cbenWhy: 'Problem Solving tests systematic debugging—identifying root causes, evaluating solution tradeoffs, and executing under constraints.',
+    icon: Zap,
+    color: 'blue',
+  },
+};
+
+const DEFAULT_INSIGHT = {
+  roleMapping: 'Professional Skill Assessment',
+  cbenWhy: 'This competency is validated against C-BEN standards to ensure behavioral readiness for real-world application.',
+  icon: Target,
+  color: 'primary',
+};
 
 interface StudioPropertiesSidebarProps {
   currentSceneIndex: number;
@@ -54,6 +95,8 @@ interface StudioPropertiesSidebarProps {
   // Show add track nudge
   showTrackNudge?: boolean;
   currentTrackInfo?: { number: number; name: string } | null;
+  // Expert Advisor context (NEW)
+  promptContext?: string;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -186,6 +229,7 @@ export function StudioPropertiesSidebar({
   onAddTrack,
   showTrackNudge = false,
   currentTrackInfo,
+  promptContext = '',
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -1484,10 +1528,12 @@ export function StudioPropertiesSidebar({
       
       <div className="flex-1 flex flex-col">
         {/* Sidebar Header */}
-        <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between`}>
+        <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between sticky top-0 z-10 ${bgColor} backdrop-blur-xl`}>
           <div className="flex items-center gap-2">
             <span className={`text-sm font-medium ${textColor}`}>
-              {currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 
+              {currentStep === 3 && tracks.length > 0 
+                ? 'Expert Advisor'
+                : currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 
                 ? 'Command Center' 
                 : 'Properties'
               }
@@ -1509,6 +1555,88 @@ export function StudioPropertiesSidebar({
         {/* Sidebar Content */}
         <ScrollArea className="flex-1">
           <div className={`p-4 ${isExpanded ? 'pb-24' : 'pb-20'}`}>
+            {/* Expert Advisor Section - Show when tracks exist on Step 3 */}
+            {currentStep === 3 && tracks.length > 0 && (
+              <div className="space-y-4 mb-6">
+                {/* Why These Competencies Header */}
+                <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-primary/10' : 'bg-primary/5'} border ${isDarkMode ? 'border-primary/30' : 'border-primary/20'}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className={`text-sm font-semibold ${textColor}`}>✨ Why These Competencies?</span>
+                  </div>
+                  
+                  {/* Role Mapping */}
+                  <div className="mb-3">
+                    <p className={`text-xs ${mutedColor} mb-1`}>Targeting:</p>
+                    <p className={`text-sm font-medium ${textColor}`}>
+                      {promptContext.includes('Sales Associate') 
+                        ? 'Luxury Sales Excellence' 
+                        : promptContext.includes('Manager')
+                        ? 'Leadership & Execution'
+                        : 'Professional Behavioral Readiness'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Track-by-Track Explanations */}
+                {tracks.map((track, idx) => {
+                  const competencyKey = track.competencyName.toLowerCase();
+                  const insight = COMPETENCY_INSIGHTS[competencyKey] || DEFAULT_INSIGHT;
+                  const IconComponent = insight.icon;
+                  
+                  return (
+                    <div 
+                      key={track.id}
+                      className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <IconComponent className={`h-4 w-4 ${isDarkMode ? 'text-white/70' : 'text-slate-600'}`} />
+                        <span className={`text-sm font-semibold ${textColor}`}>{track.competencyName}</span>
+                        <Badge variant="outline" className="text-[10px] ml-auto">Track {idx + 1}</Badge>
+                      </div>
+                      <p className={`text-[11px] ${mutedColor} leading-relaxed`}>
+                        {insight.cbenWhy}
+                      </p>
+                      <div className={`mt-2 pt-2 border-t ${borderColor}`}>
+                        <p className={`text-[10px] ${mutedColor}`}>Role Application:</p>
+                        <p className={`text-xs font-medium ${textColor}`}>{insight.roleMapping}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Measurement Methodology */}
+                <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Gauge className="h-4 w-4 text-muted-foreground" />
+                    <span className={`text-xs font-semibold ${textColor}`}>What We Measure</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    <div className="text-center">
+                      <Zap className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+                      <p className={`text-[9px] ${textColor}`}>Speed</p>
+                    </div>
+                    <div className="text-center">
+                      <Target className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                      <p className={`text-[9px] ${textColor}`}>Precision</p>
+                    </div>
+                    <div className="text-center">
+                      <Clock className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-rose-400' : 'text-rose-500'}`} />
+                      <p className={`text-[9px] ${textColor}`}>60s Gate</p>
+                    </div>
+                  </div>
+                  <p className={`text-[10px] ${mutedColor}`}>
+                    Not a knowledge test—we measure <span className={textColor}>behavioral readiness</span> under pressure.
+                  </p>
+                </div>
+
+                {/* Divider before editable fields */}
+                <div className={`border-t ${borderColor} pt-4`}>
+                  <span className={`text-xs font-medium ${mutedColor}`}>Brand Identity Settings</span>
+                </div>
+              </div>
+            )}
+            
             {renderProperties()}
           </div>
         </ScrollArea>

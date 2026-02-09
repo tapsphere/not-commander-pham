@@ -8,7 +8,7 @@ import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultSce
 import { Lock, Plus, Layers, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { CompetencyAISearch } from './CompetencyAISearch';
 import { UnifiedCreativeInput } from './UnifiedCreativeInput';
-import { ExpertAdvisorPanel } from './ExpertAdvisorPanel';
+
 // Track which entry path was used
 type EntryPath = 'upload' | 'manual' | 'combine' | 'theme' | 'skill' | null;
 
@@ -53,6 +53,8 @@ interface TemplateStepFrameworkProps {
   tracks?: CompetencyTrack[];
   setTracks?: (tracks: CompetencyTrack[]) => void;
   onAddTrack?: () => void;
+  // Expert Advisor callback
+  onPromptChange?: (prompt: string) => void;
 }
 
 export function TemplateStepFramework({
@@ -68,6 +70,7 @@ export function TemplateStepFramework({
   tracks = [],
   setTracks,
   onAddTrack,
+  onPromptChange,
 }: TemplateStepFrameworkProps) {
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
@@ -176,9 +179,10 @@ export function TemplateStepFramework({
     setScenes(newScenes);
     setEntryPath(pathUsed);
     
-    // Store prompt context for Expert Advisor
+    // Store prompt context for Expert Advisor and notify parent
     if (usedPrompt) {
       setPromptContext(usedPrompt);
+      onPromptChange?.(usedPrompt);
     }
     
     // If we have tracks from the multi-track detection, use them
@@ -252,47 +256,39 @@ export function TemplateStepFramework({
     return subCompetencies.filter(s => s.competency_id === track.competencyId);
   };
 
-  // Extract brand context from prompt
-  const extractBrandContext = (prompt: string): string | undefined => {
-    const brandMatch = prompt.match(/Brand:\s*([^.–]+)/i);
-    return brandMatch ? brandMatch[1].trim() : undefined;
-  };
-
   return (
-    <div className="flex gap-6">
-      {/* LEFT COLUMN - Main Framework UI */}
-      <div className="flex-1 space-y-6 max-w-2xl">
-        {/* HEADER - C-BEN Framework */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <Lock className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">C-BEN Framework</h2>
-            {entryPath && (
-              <Badge variant="outline" className="text-xs capitalize">
-                via {entryPath}
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {selectedCompetency 
-              ? 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'
-              : 'Search & Build — enter a theme, type a skill, or upload a PDF.'}
-          </p>
+    <div className="space-y-6 max-w-3xl mx-auto">
+      {/* HEADER - C-BEN Framework */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-2 mb-2">
+          <Lock className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">C-BEN Framework</h2>
+          {entryPath && (
+            <Badge variant="outline" className="text-xs capitalize">
+              via {entryPath}
+            </Badge>
+          )}
         </div>
+        <p className="text-sm text-muted-foreground">
+          {selectedCompetency 
+            ? 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'
+            : 'Search & Build — enter a theme, type a skill, or upload a PDF.'}
+        </p>
+      </div>
 
-        {/* HERO SEARCH BOX - Always visible for edit & refresh */}
-        {showHeroBox && (
-          <UnifiedCreativeInput
-            competencies={competencies}
-            subCompetencies={subCompetencies}
-            onComplete={(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks, usedPrompt) => {
-              handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks, usedPrompt);
-            }}
-            onManualFallback={() => {
-              setEntryPath('manual');
-            }}
-          />
-        )}
+      {/* HERO SEARCH BOX - Always visible for edit & refresh */}
+      {showHeroBox && (
+        <UnifiedCreativeInput
+          competencies={competencies}
+          subCompetencies={subCompetencies}
+          onComplete={(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks, usedPrompt) => {
+            handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks, usedPrompt);
+          }}
+          onManualFallback={() => {
+            setEntryPath('manual');
+          }}
+        />
+      )}
 
         {/* MAIN FRAMEWORK UI - Curriculum Tracks + Sub-Competencies */}
 
@@ -565,8 +561,6 @@ export function TemplateStepFramework({
             </div>
           </div>
         )}
-        </div>
-
         {/* ADD ANOTHER COMPETENCY TRACK - Only at BOTTOM after tracks are generated */}
         {tracks.length > 0 && (
           <div ref={addTrackRef} className="pt-4 border-t border-border scroll-mt-4">
@@ -628,19 +622,6 @@ export function TemplateStepFramework({
           </div>
         )}
       </div>
-
-      {/* RIGHT COLUMN - Expert Advisor Panel */}
-      {tracks.length > 0 && (
-        <div className="w-80 shrink-0">
-          <div className="sticky top-4 bg-background border border-border rounded-xl p-4 shadow-sm">
-            <ExpertAdvisorPanel
-              tracks={tracks}
-              roleContext={promptContext}
-              brandContext={extractBrandContext(promptContext)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
