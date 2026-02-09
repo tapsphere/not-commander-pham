@@ -32,3 +32,6 @@ verify_jwt = true
 
 [functions.sync-v5-framework]
 verify_jwt = false
+
+[functions.distill-document]
+verify_jwt = false

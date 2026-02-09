@@ -107,6 +107,8 @@ interface StudioPropertiesSidebarProps {
   onGlobalStyleChange?: (prompt: string) => void;
   onApplyToAllScenes_global?: () => void;
   isApplyingGlobal?: boolean;
+  // Distillation result from PDF ingestion (v6.0)
+  distillationResult?: any;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -246,6 +248,7 @@ export function StudioPropertiesSidebar({
   onGlobalStyleChange,
   onApplyToAllScenes_global,
   isApplyingGlobal = false,
+  distillationResult,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -1662,7 +1665,7 @@ export function StudioPropertiesSidebar({
               className={`text-sm font-medium`}
               style={undefined}
             >
-              {currentStep === 3 && tracks.length > 0 
+              {currentStep === 3
                 ? 'C-BEN Expert Advisor'
                 : currentStep === 4 && isGameplayScene 
                 ? 'Command Center' 
@@ -1707,81 +1710,136 @@ export function StudioPropertiesSidebar({
               </div>
             )}
 
-            {/* Expert Advisor Section - Show when tracks exist on Step 3 */}
-            {currentStep === 3 && tracks.length > 0 && (
+            {/* Expert Advisor Section - Show on Step 3 (idle or active) */}
+            {currentStep === 3 && (
               <div className="space-y-4 mb-6">
-                {/* Why These Competencies Header */}
-                <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-primary/10' : 'bg-primary/5'} border ${isDarkMode ? 'border-primary/30' : 'border-primary/20'}`}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span className={`text-sm font-semibold ${textColor}`}>✨ Why These Competencies?</span>
-                  </div>
-                  
-                  {/* Role Mapping */}
-                  <div className="mb-3">
-                    <p className={`text-xs ${mutedColor} mb-1`}>Targeting:</p>
-                    <p className={`text-sm font-medium ${textColor}`}>
-                      {promptContext.includes('Sales Associate') 
-                        ? 'Luxury Sales Excellence' 
-                        : promptContext.includes('Manager')
-                        ? 'Leadership & Execution'
-                        : 'Professional Behavioral Readiness'}
+                {/* IDLE STATE: No tracks, no distillation */}
+                {tracks.length === 0 && !distillationResult && (
+                  <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                    <div className={`w-16 h-16 rounded-2xl ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor} flex items-center justify-center mb-4`}>
+                      <Brain className={`h-8 w-8 ${isDarkMode ? 'text-white/20' : 'text-muted-foreground/30'}`} />
+                    </div>
+                    <p className={`text-sm font-medium ${mutedColor} mb-1`}>System Ready</p>
+                    <p className={`text-xs ${isDarkMode ? 'text-white/30' : 'text-muted-foreground/60'} max-w-[220px]`}>
+                      Awaiting PDF ingestion or prompt to initiate Instructional Engineering.
                     </p>
                   </div>
-                </div>
+                )}
 
-                {/* Track-by-Track Explanations */}
-                {tracks.map((track, idx) => {
-                  const competencyKey = track.competencyName.toLowerCase();
-                  const insight = COMPETENCY_INSIGHTS[competencyKey] || DEFAULT_INSIGHT;
-                  const IconComponent = insight.icon;
-                  
-                  return (
-                    <div 
-                      key={track.id}
-                      className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor}`}
-                    >
+                {/* DISTILLATION RESULTS — Phase 1 AI Reasoning */}
+                {distillationResult && (
+                  <>
+                    <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-500/5 border-blue-500/20'} border`}>
                       <div className="flex items-center gap-2 mb-2">
-                        <IconComponent className={`h-4 w-4 ${isDarkMode ? 'text-white/70' : 'text-slate-600'}`} />
-                        <span className={`text-sm font-semibold ${textColor}`}>{track.competencyName}</span>
-                        <Badge variant="outline" className="text-[10px] ml-auto">Track {idx + 1}</Badge>
+                        <FileText className={`h-4 w-4 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+                        <span className={`text-xs font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} uppercase tracking-wide`}>Phase 1: Document Distilled</span>
                       </div>
-                      <p className={`text-[11px] ${mutedColor} leading-relaxed`}>
-                        {insight.cbenWhy}
+                      <p className={`text-xs font-medium ${textColor} mb-1`}>{distillationResult.filename}</p>
+                      <p className={`text-xs ${mutedColor} leading-relaxed`}>{distillationResult.documentSummary}</p>
+                    </div>
+
+                    <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/30'} border ${borderColor}`}>
+                      <p className={`text-[10px] font-semibold uppercase tracking-wide ${mutedColor} mb-1`}>🔬 Noise Filter Applied</p>
+                      <p className={`text-xs ${mutedColor} leading-relaxed`}>{distillationResult.technicalCoreExtracted}</p>
+                    </div>
+
+                    {distillationResult.macroLessons?.map((lesson: any, idx: number) => (
+                      <div key={idx} className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-background'} border ${borderColor} space-y-2`}>
+                        <div className="flex items-start justify-between">
+                          <p className={`text-xs font-semibold ${textColor} flex-1`}>{lesson.lessonName}</p>
+                          <Badge variant="outline" className="text-[10px] ml-2 shrink-0">{lesson.suggestedCompetency}</Badge>
+                        </div>
+                        <ul className="space-y-0.5">
+                          {lesson.condensedStandards?.slice(0, 3).map((std: string, i: number) => (
+                            <li key={i} className={`text-[10px] ${mutedColor} flex items-start gap-1`}>
+                              <span className="text-emerald-500 shrink-0">✓</span>
+                              <span>{std}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className={`${isDarkMode ? 'bg-primary/10' : 'bg-primary/5'} rounded-md p-2`}>
+                          <p className="text-[10px] text-primary font-medium">Why {lesson.suggestedCompetency}?</p>
+                          <p className={`text-[10px] ${mutedColor}`}>{lesson.rationale}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* ACTIVE STATE: Tracks exist */}
+                {tracks.length > 0 && (
+                  <>
+                    {/* Why These Competencies Header */}
+                    <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-primary/10' : 'bg-primary/5'} border ${isDarkMode ? 'border-primary/30' : 'border-primary/20'}`}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <span className={`text-sm font-semibold ${textColor}`}>✨ Why These Competencies?</span>
+                      </div>
+                      <div className="mb-3">
+                        <p className={`text-xs ${mutedColor} mb-1`}>Targeting:</p>
+                        <p className={`text-sm font-medium ${textColor}`}>
+                          {promptContext.includes('Sales Associate') 
+                            ? 'Luxury Sales Excellence' 
+                            : promptContext.includes('Manager')
+                            ? 'Leadership & Execution'
+                            : 'Professional Behavioral Readiness'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Track-by-Track Explanations */}
+                    {tracks.map((track, idx) => {
+                      const competencyKey = track.competencyName.toLowerCase();
+                      const insight = COMPETENCY_INSIGHTS[competencyKey] || DEFAULT_INSIGHT;
+                      const IconComponent = insight.icon;
+                      
+                      return (
+                        <div 
+                          key={track.id}
+                          className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor}`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <IconComponent className={`h-4 w-4 ${isDarkMode ? 'text-white/70' : 'text-slate-600'}`} />
+                            <span className={`text-sm font-semibold ${textColor}`}>{track.competencyName}</span>
+                            <Badge variant="outline" className="text-[10px] ml-auto">Track {idx + 1}</Badge>
+                          </div>
+                          <p className={`text-[11px] ${mutedColor} leading-relaxed`}>
+                            {insight.cbenWhy}
+                          </p>
+                          <div className={`mt-2 pt-2 border-t ${borderColor}`}>
+                            <p className={`text-[10px] ${mutedColor}`}>Role Application:</p>
+                            <p className={`text-xs font-medium ${textColor}`}>{insight.roleMapping}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Measurement Methodology */}
+                    <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Gauge className="h-4 w-4 text-muted-foreground" />
+                        <span className={`text-xs font-semibold ${textColor}`}>What We Measure</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="text-center">
+                          <Zap className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+                          <p className={`text-[9px] ${textColor}`}>Speed</p>
+                        </div>
+                        <div className="text-center">
+                          <Target className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+                          <p className={`text-[9px] ${textColor}`}>Precision</p>
+                        </div>
+                        <div className="text-center">
+                          <Clock className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-rose-400' : 'text-rose-500'}`} />
+                          <p className={`text-[9px] ${textColor}`}>60s Gate</p>
+                        </div>
+                      </div>
+                      <p className={`text-[10px] ${mutedColor}`}>
+                        Not a knowledge test—we measure <span className={textColor}>behavioral readiness</span> under pressure.
                       </p>
-                      <div className={`mt-2 pt-2 border-t ${borderColor}`}>
-                        <p className={`text-[10px] ${mutedColor}`}>Role Application:</p>
-                        <p className={`text-xs font-medium ${textColor}`}>{insight.roleMapping}</p>
-                      </div>
                     </div>
-                  );
-                })}
-
-                {/* Measurement Methodology */}
-                <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-muted/50'} border ${borderColor}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Gauge className="h-4 w-4 text-muted-foreground" />
-                    <span className={`text-xs font-semibold ${textColor}`}>What We Measure</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 mb-2">
-                    <div className="text-center">
-                      <Zap className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`} />
-                      <p className={`text-[9px] ${textColor}`}>Speed</p>
-                    </div>
-                    <div className="text-center">
-                      <Target className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
-                      <p className={`text-[9px] ${textColor}`}>Precision</p>
-                    </div>
-                    <div className="text-center">
-                      <Clock className={`h-3 w-3 mx-auto mb-1 ${isDarkMode ? 'text-rose-400' : 'text-rose-500'}`} />
-                      <p className={`text-[9px] ${textColor}`}>60s Gate</p>
-                    </div>
-                  </div>
-                  <p className={`text-[10px] ${mutedColor}`}>
-                    Not a knowledge test—we measure <span className={textColor}>behavioral readiness</span> under pressure.
-                  </p>
-                </div>
-
+                  </>
+                )}
               </div>
             )}
             

@@ -59,6 +59,8 @@ interface TemplateStepFrameworkProps {
   onDemoOverride?: (data: DemoOverrideData) => void;
   // Factory Reset callback (v54.0)
   onFactoryReset?: () => void;
+  // Distillation callback (v6.0)
+  onDistillationResult?: (result: any) => void;
 }
 
 export function TemplateStepFramework({
@@ -77,6 +79,7 @@ export function TemplateStepFramework({
   onPromptChange,
   onDemoOverride,
   onFactoryReset,
+  onDistillationResult,
 }: TemplateStepFrameworkProps) {
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
@@ -295,6 +298,7 @@ export function TemplateStepFramework({
           }}
           onDemoOverride={onDemoOverride}
           onFactoryReset={onFactoryReset}
+          onDistillationResult={onDistillationResult}
         />
       )}
 

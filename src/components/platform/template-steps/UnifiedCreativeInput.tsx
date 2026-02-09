@@ -74,6 +74,22 @@ interface TrackMapping {
   trackId: string;
 }
 
+// Distillation Result from AI (Phase 1 output)
+export interface MacroLesson {
+  lessonName: string;
+  condensedStandards: string[];
+  suggestedCompetency: string;
+  rationale: string;
+  actionCues: string[];
+}
+
+export interface DistillationResult {
+  documentSummary: string;
+  technicalCoreExtracted: string;
+  macroLessons: MacroLesson[];
+  filename: string;
+}
+
 // Demo Override callback type
 export interface DemoOverrideData {
   colors: typeof VALERTI_DEMO_OVERRIDE.colors;
@@ -88,7 +104,6 @@ export interface DemoOverrideData {
 interface UnifiedCreativeInputProps {
   competencies: Competency[];
   subCompetencies: SubCompetency[];
-  // Updated: Support multi-track completion with prompt context
   onComplete: (
     competencyId: string,
     selectedSubIds: string[],
@@ -98,10 +113,9 @@ interface UnifiedCreativeInputProps {
     usedPrompt?: string
   ) => void;
   onManualFallback: () => void;
-  // Demo Override callback (v27.0) - triggered when VALERTI keyword detected
   onDemoOverride?: (data: DemoOverrideData) => void;
-  // Factory Reset callback (v54.0) - triggered when empty prompt submitted
   onFactoryReset?: () => void;
+  onDistillationResult?: (result: DistillationResult) => void;
 }
 
 export function UnifiedCreativeInput({
@@ -111,6 +125,7 @@ export function UnifiedCreativeInput({
   onManualFallback,
   onDemoOverride,
   onFactoryReset,
+  onDistillationResult,
 }: UnifiedCreativeInputProps) {
   // Use demo prompt as initial value, but track if user has modified it
   const [inputValue, setInputValue] = useState(VALERTI_DEMO.activePrompt);
@@ -434,43 +449,84 @@ export function UnifiedCreativeInput({
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      // Phase 0: Extract text from PDF
+      toast.info('📄 Extracting document text...');
+      const formDataObj = new FormData();
+      formDataObj.append('file', file);
 
-      const response = await supabase.functions.invoke('parse-document', {
-        body: formData,
+      const parseResponse = await supabase.functions.invoke('parse-document', {
+        body: formDataObj,
       });
 
-      if (!response.data?.success) {
-        throw new Error(response.data?.error || 'Failed to parse document');
+      if (!parseResponse.data?.success) {
+        throw new Error(parseResponse.data?.error || 'Failed to parse document');
       }
 
-      const extractedText = response.data.text;
+      const extractedText = parseResponse.data.text;
       
-      const matchedCompetency = matchCompetencyFromPrompt(extractedText, competencies);
+      // Phase 1: AI Distillation Engine (Rules 1-3)
+      toast.info('🧠 Distilling Technical Core & clustering Macro-Lessons...');
+      
+      const distillResponse = await supabase.functions.invoke('distill-document', {
+        body: {
+          extractedText,
+          competencies: competencies.map(c => ({ name: c.name, cbe_category: c.cbe_category })),
+          filename: file.name,
+        },
+      });
+
+      if (distillResponse.error) {
+        throw new Error(distillResponse.error.message || 'Distillation failed');
+      }
+
+      const distillData = distillResponse.data;
+      
+      if (!distillData?.success || !distillData?.macroLessons?.length) {
+        throw new Error('AI could not identify lessons from this document');
+      }
+
+      // Notify Expert Advisor of distillation results
+      if (onDistillationResult) {
+        onDistillationResult({
+          documentSummary: distillData.documentSummary,
+          technicalCoreExtracted: distillData.technicalCoreExtracted,
+          macroLessons: distillData.macroLessons,
+          filename: file.name,
+        });
+      }
+
+      // Phase 2: Use first macro-lesson's suggested competency for 1-1-6 Blueprint
+      const firstLesson = distillData.macroLessons[0];
+      const suggestedName = firstLesson.suggestedCompetency.toLowerCase();
+      
+      const matchedCompetency = competencies.find(c => 
+        c.name.toLowerCase() === suggestedName ||
+        c.name.toLowerCase().includes(suggestedName) ||
+        suggestedName.includes(c.name.toLowerCase())
+      ) || matchCompetencyFromPrompt(extractedText, competencies);
       
       if (!matchedCompetency) {
-        toast.error('Could not identify a competency from the document');
+        toast.error('Could not map to a C-BEN competency');
         setUploadedFile(null);
         return;
       }
 
-      const matchedSubs = subCompetencies
-        .filter(s => s.competency_id === matchedCompetency.id)
-        .slice(0, 6);
-
-      if (matchedSubs.length === 0) {
-        toast.error(`No sub-competencies found for "${matchedCompetency.name}"`);
-        setUploadedFile(null);
-        return;
-      }
-
+      // 1-1-6 Structural Enforcement (Rule 5)
       const trackId = `track-1-${Date.now()}`;
-      const scenes = matchedSubs.map((sub, idx) => {
-        const scene = createDefaultScene(sub.id, idx + 1, trackId);
-        scene.question = `[From ${file.name}] ${sub.action_cue || sub.statement}`;
-        return scene;
-      });
+      const { matchedSubs, scenes } = populateScenesForCompetency(
+        matchedCompetency.id, 
+        `[${file.name}] ${firstLesson.lessonName}`, 
+        trackId
+      );
+
+      // Override scene questions with AI-generated action cues if available
+      if (firstLesson.actionCues && firstLesson.actionCues.length > 0) {
+        scenes.forEach((scene, idx) => {
+          if (firstLesson.actionCues[idx]) {
+            scene.question = firstLesson.actionCues[idx];
+          }
+        });
+      }
 
       const track: CompetencyTrack = {
         id: trackId,
@@ -481,13 +537,70 @@ export function UnifiedCreativeInput({
         createdAt: Date.now(),
       };
 
+      // Build additional tracks for remaining macro-lessons
+      const additionalTracks: CompetencyTrack[] = [track];
+      const allScenes = [...scenes];
+      const allSubIds = [...matchedSubs.map(s => s.id)];
+      const allMatchedNames = [matchedCompetency.name];
+
+      // Generate tracks for additional macro-lessons (up to 3 total)
+      for (let i = 1; i < Math.min(distillData.macroLessons.length, 3); i++) {
+        const lesson = distillData.macroLessons[i];
+        const lessonCompName = lesson.suggestedCompetency.toLowerCase();
+        const lessonComp = competencies.find(c =>
+          c.name.toLowerCase() === lessonCompName ||
+          c.name.toLowerCase().includes(lessonCompName) ||
+          lessonCompName.includes(c.name.toLowerCase())
+        );
+        
+        if (lessonComp && !allMatchedNames.includes(lessonComp.name)) {
+          const ltId = `track-${i + 1}-${Date.now()}`;
+          try {
+            const { matchedSubs: lSubs, scenes: lScenes } = populateScenesForCompetency(
+              lessonComp.id, `[${file.name}] ${lesson.lessonName}`, ltId
+            );
+            
+            if (lesson.actionCues?.length) {
+              lScenes.forEach((s, idx) => {
+                if (lesson.actionCues[idx]) s.question = lesson.actionCues[idx];
+              });
+            }
+
+            additionalTracks.push({
+              id: ltId,
+              competencyId: lessonComp.id,
+              competencyName: lessonComp.name,
+              subCompetencyIds: lSubs.map(s => s.id),
+              order: i + 1,
+              createdAt: Date.now(),
+            });
+            allScenes.push(...lScenes);
+            allSubIds.push(...lSubs.map(s => s.id));
+            allMatchedNames.push(lessonComp.name);
+          } catch {
+            // Skip if competency has no sub-competencies
+          }
+        }
+      }
+
       setHasSubmittedOnce(true);
-      setMatchedCompetencyNames([matchedCompetency.name]);
-      toast.success(`Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
-      onComplete(matchedCompetency.id, matchedSubs.map(s => s.id), scenes, 'upload', [track], `[From ${file.name}]`);
+      setMatchedCompetencyNames(allMatchedNames);
+      setLastAiCompetencyId(matchedCompetency.id);
+      
+      const lessonCount = distillData.macroLessons.length;
+      toast.success(`✓ Distilled ${lessonCount} Macro-Lessons → ${allMatchedNames.join(' + ')} (${allScenes.length} scenes)`);
+      
+      onComplete(
+        matchedCompetency.id, 
+        allSubIds, 
+        allScenes, 
+        'upload', 
+        additionalTracks, 
+        `[From ${file.name}] ${distillData.documentSummary}`
+      );
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error('Failed to parse PDF. Try entering a theme instead.');
+      toast.error(error.message || 'Failed to process PDF. Try entering a theme instead.');
       setUploadedFile(null);
     } finally {
       setIsUploading(false);

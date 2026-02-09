@@ -14,7 +14,7 @@ import {
   DEFAULT_FORM_DATA,
   DEFAULT_DESIGN_SETTINGS,
 } from './template-steps';
-import type { DemoOverrideData } from './template-steps';
+import type { DemoOverrideData, DistillationResult } from './template-steps';
 import { 
   StudioThemeProvider, 
   useStudioTheme, 
@@ -87,6 +87,7 @@ function StudioContent({
   const [promptContext, setPromptContext] = useState<string>('');
   const [demoOverrideApplied, setDemoOverrideApplied] = useState(false);
   const [globalStylePrompt, setGlobalStylePrompt] = useState('');
+  const [distillationResult, setDistillationResult] = useState<DistillationResult | null>(null);
 
   // Demo Override Handler v31.0 - Silently injects VALERTI template data into Step 1 & 2
   const handleDemoOverride = (data: DemoOverrideData) => {
@@ -155,6 +156,7 @@ function StudioContent({
     // Step 4: Clear all scenes and visual DNA
     setScenes([]);
     setGlobalStylePrompt('');
+    setDistillationResult(null);
     
     // Reset demo override flag so it can be triggered again
     setDemoOverrideApplied(false);
@@ -575,6 +577,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                   onPromptChange={setPromptContext}
                   onDemoOverride={handleDemoOverride}
                   onFactoryReset={handleFactoryReset}
+                  onDistillationResult={setDistillationResult}
                 />
               </div>
             </ScrollArea>
@@ -736,6 +739,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
               }, 2500);
             }}
             isApplyingGlobal={isApplyingGlobal}
+            distillationResult={distillationResult}
           />
         </div>
       </div>

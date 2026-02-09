@@ -6,7 +6,7 @@ export { CompetencyAISearch } from './CompetencyAISearch';
 export { CompetencyPropertiesPanel } from './CompetencyPropertiesPanel';
 export { EntryPortSelector } from './EntryPortSelector';
 export { UnifiedCreativeInput, VALERTI_DEMO_OVERRIDE } from './UnifiedCreativeInput';
-export type { DemoOverrideData } from './UnifiedCreativeInput';
+export type { DemoOverrideData, DistillationResult } from './UnifiedCreativeInput';
 export { ExpertAdvisorPanel } from './ExpertAdvisorPanel';
 export * from './types';
 export type { CompetencyTrack, CurriculumState } from './types';
