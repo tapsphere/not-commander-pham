@@ -23,7 +23,7 @@ import { matchCompetencyFromPrompt, populateSixScenes } from './RemakeEngine';
 
 // VALERTI SS26 Demo - Professional default content
 const VALERTI_DEMO = {
-  activePrompt: `Luxury Brand VALERTI – SS26 Global Launch: Ethereal Motion. Scenario: Merchandising Silk-Lace Footwear and Draped Evening Wear. Focus: Mannequin depth-spacing, Amber Haze focal lighting, and consumer eye-flow using Analytical Thinking standards. Create 6 scenes...`,
+  activePrompt: `Role: Luxury Sales Associate. Brand: VALERTI – SS26 'Ethereal Motion'. Scenario A: Merchandising the 'Silk-Lace Tech Runner' window using Analytical Thinking to optimize mannequin depth and Amber Haze focal lighting. Scenario B: Managing the SS26 digital reservation funnel using Growth Design to identify UI friction points and map VIP referral loops. Create 2 tracks of 6 scenes to measure behavioral readiness for this dual-hybrid role...`,
   theme: 'VALERTI SS26 Luxury Boutique Merchandising',
   skill: 'Analytical Thinking',
   visualBase: 'SS26 Luxury Boutique, 35mm film grain, Amber Haze lighting, ethereal motion',
