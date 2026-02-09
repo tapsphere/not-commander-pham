@@ -570,6 +570,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                       subCompetencies={subCompetencies}
                       mascotFile={mascotFile}
                       logoFile={logoFile}
+                      logoUrl={logoUrl}
                       telegramPreviewEnabled={telegramPreviewEnabled}
                       onTelegramPreviewToggle={() => setTelegramPreviewEnabled(!telegramPreviewEnabled)}
                     />
@@ -587,6 +588,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                       subCompetencies={subCompetencies}
                       mascotFile={mascotFile}
                       logoFile={logoFile}
+                      logoUrl={logoUrl}
                       telegramPreviewEnabled={telegramPreviewEnabled}
                       onTelegramPreviewToggle={() => setTelegramPreviewEnabled(!telegramPreviewEnabled)}
                     />

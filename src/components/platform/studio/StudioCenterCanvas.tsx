@@ -22,6 +22,7 @@ interface StudioCenterCanvasProps {
   subCompetencies: SubCompetency[];
   mascotFile?: File | null;
   logoFile?: File | null;
+  logoUrl?: string | null;
   onSceneChange?: (index: number) => void;
   // Telegram Mini App Preview
   telegramPreviewEnabled?: boolean;
@@ -53,6 +54,7 @@ export function StudioCenterCanvas({
   subCompetencies,
   mascotFile,
   logoFile,
+  logoUrl,
   onSceneChange,
   telegramPreviewEnabled = false,
   onTelegramPreviewToggle,
@@ -83,16 +85,18 @@ export function StudioCenterCanvas({
   const [verifiedSignals, setVerifiedSignals] = useState(0);
   const telemetrySamplesRef = useRef<TelemetrySample[]>([]);
 
-  // Create preview URL for logo
+  // Create preview URL for logo (File takes priority, then URL fallback)
   useEffect(() => {
     if (logoFile) {
       const url = URL.createObjectURL(logoFile);
       setLogoPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
+    } else if (logoUrl) {
+      setLogoPreviewUrl(logoUrl);
     } else {
       setLogoPreviewUrl(null);
     }
-  }, [logoFile]);
+  }, [logoFile, logoUrl]);
   
   // Reset selection when scene changes
   useEffect(() => {
@@ -127,7 +131,7 @@ export function StudioCenterCanvas({
   // Render Intro Screen (Scene 0)
   const renderIntroScreen = () => (
     <div 
-      className="h-full flex flex-col items-center justify-center p-6 text-center relative overflow-hidden"
+      className="h-full flex flex-col items-center pt-12 pb-6 px-6 text-center relative overflow-hidden"
       style={{ backgroundColor: designSettings.background }}
     >
       {/* Gradient background effect */}
@@ -172,11 +176,14 @@ export function StudioCenterCanvas({
       </h2>
       
       <p 
-        className={`text-sm opacity-70 mb-8 max-w-[200px] relative z-10 ${isGhostState ? 'opacity-30' : ''}`}
+        className={`text-sm opacity-70 mb-4 max-w-[200px] relative z-10 ${isGhostState ? 'opacity-30' : ''}`}
         style={{ color: designSettings.text }}
       >
         {displayDescription}
       </p>
+
+      {/* Spacer to push button down */}
+      <div className="flex-1 min-h-12" />
       
       <button
         className="px-10 py-3.5 rounded-xl font-semibold text-sm shadow-lg relative z-10"
