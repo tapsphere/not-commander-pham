@@ -27,12 +27,12 @@ const pipelineStages = [
 ];
 
 const skillHeatmap = [
-  { skill: 'Sequence Management', level: 94, status: 'elite' as const },
-  { skill: 'Anticipatory Service', level: 87, status: 'advancing' as const },
-  { skill: 'Crisis De-escalation', level: 72, status: 'developing' as const },
-  { skill: 'Brand Articulation', level: 81, status: 'advancing' as const },
-  { skill: 'Cognitive Load Mgmt', level: 65, status: 'developing' as const },
-  { skill: 'Refined Hospitality', level: 91, status: 'elite' as const },
+  { skill: 'Sequence Management', level: 94, status: 'elite' as const, category: 'technical' as const },
+  { skill: 'Anticipatory Service', level: 87, status: 'advancing' as const, category: 'hospitality' as const },
+  { skill: 'Crisis De-escalation', level: 72, status: 'developing' as const, category: 'technical' as const },
+  { skill: 'Brand Articulation', level: 81, status: 'advancing' as const, category: 'hospitality' as const },
+  { skill: 'Cognitive Load Mgmt', level: 65, status: 'developing' as const, category: 'technical' as const },
+  { skill: 'Refined Hospitality', level: 91, status: 'elite' as const, category: 'hospitality' as const },
 ];
 
 const aiShortlist = [
@@ -66,6 +66,7 @@ function PipelineFunnel() {
       {pipelineStages.map((stage, i) => {
         const widthPct = Math.max((stage.count / maxCount) * 100, 20);
         const isFirst = i === 0;
+        const isLast = i === pipelineStages.length - 1; // L3 Mastery = Gold
         return (
           <div key={stage.label} className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground w-40 shrink-0 text-right">{stage.label}</span>
@@ -76,10 +77,14 @@ function PipelineFunnel() {
                   width: `${widthPct}%`,
                   background: isFirst
                     ? 'hsl(var(--muted))'
+                    : isLast
+                    ? `linear-gradient(90deg, hsl(var(--talent-blue)), hsl(var(--talent-gold)))`
                     : `linear-gradient(90deg, hsl(var(--talent-blue-deep)), hsl(var(--talent-blue)))`,
                   boxShadow: isFirst
                     ? 'none'
-                    : '0 0 8px hsl(var(--talent-blue) / 0.3)',
+                    : isLast
+                    ? '0 0 10px hsl(var(--talent-gold) / 0.25)'
+                    : '0 0 8px hsl(var(--talent-blue) / 0.2)',
                 }}
               >
                 <span className="text-xs font-semibold text-foreground">{stage.count}</span>
@@ -95,36 +100,48 @@ function PipelineFunnel() {
 function SkillHeatmapGrid() {
   return (
     <div className="grid grid-cols-2 gap-2">
-      {skillHeatmap.map((s) => (
-        <div key={s.skill} className="glass-card p-3 rounded-xl transition-all duration-500">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium text-foreground truncate pr-2">{s.skill}</span>
-            <Badge
-              variant="secondary"
-              className={`text-[10px] px-1.5 py-0 shrink-0 ${
-                s.status === 'elite'
-                  ? 'bg-[hsl(var(--talent-gold)/0.2)] text-[hsl(var(--talent-gold))] border-[hsl(var(--talent-gold)/0.3)]'
-                  : 'bg-muted/60 text-muted-foreground border-transparent'
-              }`}
-              style={s.status === 'elite' ? { borderWidth: '1px' } : undefined}
-            >
-              {s.status === 'elite' ? '★ Mastery' : s.status === 'advancing' ? '↑ Adv' : '○ Dev'}
-            </Badge>
+      {skillHeatmap.map((s) => {
+        const isHospitality = s.category === 'hospitality';
+        const colorToken = isHospitality ? '--brand-purple' : '--talent-blue';
+        const deepToken = isHospitality ? '--brand-purple-light' : '--talent-blue-deep';
+
+        return (
+          <div key={s.skill} className="glass-card p-3 rounded-xl transition-all duration-500">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-foreground truncate pr-2">{s.skill}</span>
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 shrink-0"
+                style={
+                  s.status === 'elite'
+                    ? {
+                        backgroundColor: 'hsl(var(--talent-gold) / 0.2)',
+                        color: 'hsl(var(--talent-gold))',
+                        borderWidth: '1px',
+                        borderColor: 'hsl(var(--talent-gold) / 0.3)',
+                        boxShadow: '0 0 8px hsl(var(--talent-gold) / 0.15)',
+                      }
+                    : { backgroundColor: 'hsl(var(--muted) / 0.6)' }
+                }
+              >
+                {s.status === 'elite' ? '★ Mastery' : s.status === 'advancing' ? '↑ Adv' : '○ Dev'}
+              </Badge>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${s.level}%`,
+                  background: s.status === 'elite'
+                    ? `linear-gradient(90deg, hsl(var(${colorToken})), hsl(var(--talent-gold)))`
+                    : `linear-gradient(90deg, hsl(var(${deepToken})), hsl(var(${colorToken})))`,
+                }}
+              />
+            </div>
+            <span className="text-[10px] font-semibold text-muted-foreground mt-1 block">{s.level}%</span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${s.level}%`,
-                background: s.status === 'elite'
-                  ? `linear-gradient(90deg, hsl(var(--talent-blue)), hsl(var(--talent-gold)))`
-                  : `linear-gradient(90deg, hsl(var(--talent-blue-deep)), hsl(var(--talent-blue)))`,
-              }}
-            />
-          </div>
-          <span className="text-[10px] font-semibold text-muted-foreground mt-1 block">{s.level}%</span>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -188,7 +205,7 @@ function BrandAlignmentIndex() {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${t.score}%`,
-                background: `linear-gradient(90deg, hsl(var(--talent-blue-deep)), hsl(var(--talent-blue)))`,
+                background: `linear-gradient(90deg, hsl(var(--brand-purple)), hsl(var(--brand-purple-light)))`,
               }}
             />
           </div>
@@ -615,7 +632,7 @@ export default function Marketplace() {
           <Card className={`col-span-12 lg:col-span-4 glass-card ${morphicClass}`}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <Target className="w-4 h-4" style={{ color: 'hsl(var(--talent-blue))' }} />
+                <Target className="w-4 h-4" style={{ color: 'hsl(var(--brand-purple))' }} />
                 <CardTitle className="text-base">Brand DNA Alignment</CardTitle>
               </div>
               <p className="text-xs text-muted-foreground">Behavioral culture-fit tracking</p>
