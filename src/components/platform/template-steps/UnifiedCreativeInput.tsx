@@ -255,15 +255,13 @@ export function UnifiedCreativeInput({
       }
     }
 
-    // Track 2: Marketing/Growth → Problem Solving (displayed as "Growth Design" in UI)
-    // Note: We map to Problem Solving because it has 6 sub-competencies with full DNA data
+    // Track 2: Marketing/Growth → Growth Design (exists in DB with 6 sub-competencies)
     if (hasMarketing) {
-      // Find a competency with actual sub-competencies for marketing/growth focus
-      // Priority: Problem Solving (has 6 subs) > Creative Thinking (has 6 subs)
+      // Find the Growth Design competency directly from the database
       const growthComp = competencies.find(c => 
-        c.name.toLowerCase().includes('problem solving')
+        c.name.toLowerCase().includes('growth design')
       ) || competencies.find(c => 
-        c.name.toLowerCase().includes('creative thinking')
+        c.name.toLowerCase().includes('growth')
       );
       
       if (growthComp) {
@@ -277,13 +275,12 @@ export function UnifiedCreativeInput({
         
         trackMappings.push({
           competencyId: growthComp.id,
-          // Display as "Growth Design" in UI for consistency with prompt language
-          competencyName: 'Growth Design',
+          competencyName: growthComp.name,
           subIds: matchedSubs.map(s => s.id),
           scenes,
           trackId,
         });
-        matchedNames.push('Growth Design');
+        matchedNames.push(growthComp.name);
       }
     }
 
