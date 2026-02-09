@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { ColorRemixPanel } from '../ColorRemixPanel';
 import { ChoiceEditorItem } from './ChoiceEditorItem';
 import { SceneBackgroundPrompt } from './SceneBackgroundPrompt';
+import { GlobalSceneStyler } from './GlobalSceneStyler';
 
 // Behavioral Science explanations for competencies (moved from ExpertAdvisorPanel)
 const COMPETENCY_INSIGHTS: Record<string, {
@@ -103,6 +104,8 @@ interface StudioPropertiesSidebarProps {
   onNavigateToStep?: (step: number) => void;
   // Global style prompt for background inheritance
   globalStylePrompt?: string;
+  onGlobalStyleChange?: (prompt: string) => void;
+  onApplyToAllScenes_global?: () => void;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -239,6 +242,8 @@ export function StudioPropertiesSidebar({
   promptContext = '',
   onNavigateToStep,
   globalStylePrompt = '',
+  onGlobalStyleChange,
+  onApplyToAllScenes_global,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -1659,6 +1664,22 @@ export function StudioPropertiesSidebar({
         {/* Sidebar Content */}
         <ScrollArea className="flex-1">
           <div className={`p-4 ${isExpanded ? 'pb-24' : 'pb-20'}`}>
+            {/* Global Brand Style - Show at top of Step 4 */}
+            {currentStep === 4 && onGlobalStyleChange && (
+              <div className="mb-4">
+                <GlobalSceneStyler
+                  globalStylePrompt={globalStylePrompt}
+                  onGlobalStyleChange={onGlobalStyleChange}
+                  onApplyToAllScenes={() => {
+                    if (onApplyToAllScenes_global) onApplyToAllScenes_global();
+                  }}
+                  scenes={scenes}
+                  designSettings={designSettings}
+                  brandName={formData.name || undefined}
+                />
+              </div>
+            )}
+
             {/* Expert Advisor Section - Show when tracks exist on Step 3 */}
             {currentStep === 3 && tracks.length > 0 && (
               <div className="space-y-4 mb-6">
