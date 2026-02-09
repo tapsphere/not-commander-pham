@@ -289,21 +289,47 @@ export function UnifiedCreativeInput({
             }
           }}
           placeholder={FASHION_DEMO.activePrompt}
-          className="w-full min-h-[160px] px-6 py-5 pr-20 text-sm leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[160px] px-6 py-5 pr-44 text-sm leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
           rows={4}
         />
         
-        {/* Large Upload Icon Button */}
-        <button
-          type="button"
-          onClick={handleUploadClick}
-          disabled={isProcessing || isUploading}
-          className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-lg bg-muted/50 hover:bg-primary/10 border border-border hover:border-primary/30 transition-all duration-200 disabled:opacity-50 group"
-          title="Upload PDF"
-        >
-          <Upload className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-        </button>
+        {/* Right-side controls: Upload + Send */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-end gap-2">
+          {/* Send Button */}
+          <Button
+            onClick={handleSubmit}
+            disabled={isProcessing || isUploading}
+            className="px-4 py-2 gap-2"
+          >
+            {isProcessing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Send
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+          
+          {/* Try hint */}
+          <span className="text-xs text-muted-foreground italic">
+            (Want to try? Hit Send)
+          </span>
+          
+          {/* Upload Button */}
+          <button
+            type="button"
+            onClick={handleUploadClick}
+            disabled={isProcessing || isUploading}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-primary/10 border border-border hover:border-primary/30 transition-all duration-200 disabled:opacity-50 group text-xs"
+            title="Upload PDF or Training Materials"
+          >
+            <Upload className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            <span className="text-muted-foreground group-hover:text-primary">Upload PDF</span>
+          </button>
+        </div>
         
         <input
           ref={fileInputRef}
