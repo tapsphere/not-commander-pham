@@ -505,7 +505,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       </div>
 
       {/* Main 3-Pane Layout */}
-      <div className="flex-1 flex min-w-0">
+      <div className="flex-1 flex min-w-0 overflow-hidden">
         {/* Left Navigator Pane */}
         <div className={`w-56 flex-shrink-0 ${leftPanelStyles}`}>
           <StudioNavigator
