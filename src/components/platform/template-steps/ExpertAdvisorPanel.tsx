@@ -12,32 +12,32 @@ const COMPETENCY_INSIGHTS: Record<string, {
   color: string;
 }> = {
   'analytical thinking': {
-    roleMapping: 'Visual Pattern Recognition & Spatial Decision-Making',
-    cbenWhy: 'C-BEN standards identify Analytical Thinking as critical for roles requiring rapid visual assessment—reading boutique floor layouts, optimizing mannequin depth, and controlling focal lighting to guide consumer eye-flow.',
-    measurementFocus: 'We measure your ability to detect patterns, prioritize visual elements, and make spatial decisions under time pressure.',
+    roleMapping: 'Forensic Systems Audit & Pressure Vessel Analysis',
+    cbenWhy: 'C-BEN standards identify Analytical Thinking as critical for roles requiring forensic inspection of aircraft systems—validating 1,850 PSI oxygen cylinder integrity, verifying 15lb Halon discharge force, and interpreting multi-system fault cascades under FAA compliance.',
+    measurementFocus: 'We measure your ability to detect pressure anomalies, cross-reference technical tolerances, and make safety-critical judgments under time pressure.',
     icon: Eye,
     color: 'amber',
   },
-  'growth design': {
-    roleMapping: 'Conversion Optimization & Friction Reduction',
-    cbenWhy: 'Growth Design under C-BEN standards tests the ability to identify UI friction points, map referral loops, and optimize digital funnels—essential for VIP reservation management and customer journey acceleration.',
-    measurementFocus: 'We measure your speed in spotting conversion blockers and precision in recommending funnel improvements.',
-    icon: TrendingUp,
-    color: 'emerald',
+  'problem solving': {
+    roleMapping: 'Systematic Survival Logic & Emergency Deployment',
+    cbenWhy: 'Problem Solving under C-BEN standards tests systematic emergency response—executing 6-second slide deployment sequences, managing evacuation decision trees, and applying survival logic protocols across multi-scenario cabin emergencies.',
+    measurementFocus: 'We measure diagnostic speed in emergency triage and procedural accuracy under escalating cabin threat levels.',
+    icon: Zap,
+    color: 'blue',
   },
-  'emotional intelligence': {
-    roleMapping: 'Interpersonal Dynamics & Empathy Calibration',
-    cbenWhy: 'Emotional Intelligence in C-BEN frameworks validates your ability to read social cues, manage high-stakes client relationships, and adapt communication style to individual stakeholders.',
-    measurementFocus: 'We measure your recognition speed for emotional states and accuracy in selecting appropriate responses.',
+  'digital & ai fluency': {
+    roleMapping: 'VOCUS Retina Sync & Haptic Override Systems',
+    cbenWhy: 'Digital & AI Fluency validates mastery of next-gen cockpit-cabin interfaces—achieving 45-second VOCUS Retina Sync calibration, executing 800ms Haptic override commands, and interpreting real-time AI diagnostic feeds for in-flight anomaly detection.',
+    measurementFocus: 'We measure interface response latency, override execution precision, and digital system trust calibration.',
     icon: Brain,
     color: 'purple',
   },
-  'problem solving': {
-    roleMapping: 'Root Cause Analysis & Solution Architecture',
-    cbenWhy: 'Problem Solving competency tests systematic debugging—identifying root causes, evaluating solution tradeoffs, and executing under constraints. Critical for operational excellence.',
-    measurementFocus: 'We measure diagnostic speed and solution quality under escalating complexity.',
-    icon: Zap,
-    color: 'blue',
+  'adaptability & resilience': {
+    roleMapping: 'Alert Grace Protocol & Premium Service Under Pressure',
+    cbenWhy: 'Adaptability & Resilience in C-BEN frameworks tests the ability to maintain premium cabin standards under operational stress—executing 180-second wine aeration protocols, achieving 10mm linen alignment precision, and sustaining "Alert Grace" behavioral composure during turbulence and irregular operations.',
+    measurementFocus: 'We measure service precision maintenance, emotional regulation speed, and protocol adherence under disruption.',
+    icon: TrendingUp,
+    color: 'emerald',
   },
 };
 
@@ -93,13 +93,15 @@ export function ExpertAdvisorPanel({
   }
 
   // Extract role from prompt if available
-  const extractedRole = roleContext.includes('Sales Associate') 
-    ? 'Luxury Sales Associate'
-    : roleContext.includes('Manager')
-    ? 'Manager'
-    : roleContext.includes('Officer')
-    ? 'Safety Officer'
-    : 'Professional';
+  const extractedRole = roleContext.includes('PCL') || roleContext.includes('Cabin')
+    ? 'Premium Cabin Lead'
+    : roleContext.includes('Safety')
+    ? 'Safety Compliance Officer'
+    : roleContext.includes('Ground') || roleContext.includes('Ops')
+    ? 'Ground Ops Supervisor'
+    : roleContext.includes('Customer') || roleContext.includes('Experience')
+    ? 'Customer Experience Manager'
+    : 'Aero-Airways Crew Member';
 
   return (
     <div className="space-y-4">
@@ -189,7 +191,7 @@ export function ExpertAdvisorPanel({
             {brandContext && <span className="text-muted-foreground"> • {brandContext}</span>}
           </p>
           <p className="text-xs text-muted-foreground">
-            → Target Goal: <span className="text-foreground font-medium">High-Stakes VIP Management & Behavioral Readiness</span>
+            → Target Goal: <span className="text-foreground font-medium">Wide-Body Jet Safety & Premium Service Readiness</span>
           </p>
         </div>
       )}
