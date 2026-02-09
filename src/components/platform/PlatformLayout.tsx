@@ -28,9 +28,14 @@ export const PlatformLayout = () => {
 
   const checkAuth = async () => {
     try {
-      await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
     } catch (error) {
-      console.warn('Auth check skipped:', error);
+      console.error('Auth check failed:', error);
+      navigate('/auth');
     } finally {
       setLoading(false);
     }
