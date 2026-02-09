@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultScene, createDefaultTrack } from './types';
 import { Lock, Plus, Layers, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { CompetencyAISearch } from './CompetencyAISearch';
-import { EntryPortSelector } from './EntryPortSelector';
 import { UnifiedCreativeInput } from './UnifiedCreativeInput';
 
 // Track which entry path was used
@@ -73,7 +72,7 @@ export function TemplateStepFramework({
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
   const [entryPath, setEntryPath] = useState<EntryPath>(null);
-  const [showEntryPort, setShowEntryPort] = useState(true);
+  const [showHeroBox, setShowHeroBox] = useState(true);
   const addTrackRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to the Add Track section when it opens
@@ -82,13 +81,6 @@ export function TemplateStepFramework({
       addTrackRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [showAddTrackSearch]);
-
-  // Hide Entry Port once competency is selected
-  useEffect(() => {
-    if (selectedCompetency && selectedSubCompetencies.length > 0) {
-      setShowEntryPort(false);
-    }
-  }, [selectedCompetency, selectedSubCompetencies]);
 
   // Check for data integrity errors in sub-competencies
   const dataIntegrityErrors: DataIntegrityError[] = subCompetencies
@@ -164,36 +156,34 @@ export function TemplateStepFramework({
     if (setTracks) {
       setTracks([]);
     }
-    // Reset entry port
+    // Reset to show hero box
     setEntryPath(null);
-    setShowEntryPort(true);
+    setShowHeroBox(true);
   };
 
-  // Handle Entry Port completion from any path
+  // Handle Entry Port completion from UnifiedCreativeInput (now supports multi-track)
   const handleEntryPortComplete = (
     competencyId: string,
     selectedSubIds: string[],
     newScenes: SceneData[],
-    pathUsed: EntryPath
+    pathUsed: EntryPath,
+    additionalTracks?: CompetencyTrack[]
   ) => {
     setSelectedCompetency(competencyId);
     setSelectedSubCompetencies(selectedSubIds);
     setScenes(newScenes);
     setEntryPath(pathUsed);
-    setShowEntryPort(false);
-    setSelectedSubCompetencies(selectedSubIds);
-    setScenes(newScenes);
-    setEntryPath(pathUsed);
-    setShowEntryPort(false);
     
-    // Create initial track if using tracks
-    if (setTracks) {
+    // If we have tracks from the multi-track detection, use them
+    if (additionalTracks && additionalTracks.length > 0 && setTracks) {
+      setTracks(additionalTracks);
+    } else if (setTracks) {
+      // Fallback: Create single track
       const competency = competencies.find(c => c.id === competencyId);
       if (competency) {
         const firstTrack = createDefaultTrack(competencyId, competency.name, 1);
         firstTrack.subCompetencyIds = [...selectedSubIds];
         setTracks([firstTrack]);
-        // Update scenes with track ID
         setScenes(newScenes.map(s => ({ ...s, trackId: firstTrack.id })));
       }
     }
@@ -275,365 +265,353 @@ export function TemplateStepFramework({
         </p>
       </div>
 
-      {/* HERO SEARCH BOX - Integrated above framework lists */}
-      {!selectedCompetency && (
+      {/* HERO SEARCH BOX - Always visible for edit & refresh */}
+      {showHeroBox && (
         <UnifiedCreativeInput
           competencies={competencies}
           subCompetencies={subCompetencies}
-          onComplete={(competencyId, selectedSubIds, newScenes, pathUsed) => {
-            handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed);
+          onComplete={(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks) => {
+            handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks);
           }}
           onManualFallback={() => {
             setEntryPath('manual');
-            setShowEntryPort(false);
           }}
         />
       )}
 
-      {/* MAIN FRAMEWORK UI - Always visible (Curriculum Tracks + Sub-Competencies) */}
+      {/* MAIN FRAMEWORK UI - Curriculum Tracks + Sub-Competencies */}
 
       {/* Existing Tracks Summary (if multi-track) */}
-          {tracks.length > 0 && (
-            <div className="bg-muted/50 border border-border rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold text-foreground">Curriculum Tracks</span>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  {tracks.length} Track{tracks.length !== 1 ? 's' : ''} • {selectedSubCompetencies.length} Scenes
-                </Badge>
-              </div>
-              
-              <div className="space-y-2 mb-3">
-                {tracks.map((track, idx) => {
-                  const trackSubs = track.subCompetencyIds.length;
-                  return (
+      {tracks.length > 0 && (
+        <div className="bg-muted/50 border border-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">Curriculum Tracks</span>
+            </div>
+            <Badge variant="outline" className="text-xs">
+              {tracks.length} Track{tracks.length !== 1 ? 's' : ''} • {selectedSubCompetencies.length} Scenes
+            </Badge>
+          </div>
+          
+          <div className="space-y-2 mb-3">
+            {tracks.map((track, idx) => {
+              const trackSubs = track.subCompetencyIds.length;
+              return (
+                <div 
+                  key={track.id}
+                  className="flex items-center justify-between p-3 bg-background rounded-lg border border-border"
+                >
+                  <div className="flex items-center gap-3">
                     <div 
-                      key={track.id}
-                      className="flex items-center justify-between p-3 bg-background rounded-lg border border-border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm"
-                          style={{ 
-                            background: `linear-gradient(135deg, hsl(${(idx * 60) % 360}, 70%, 50%), hsl(${(idx * 60 + 30) % 360}, 70%, 40%))` 
-                          }}
-                        >
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{track.competencyName}</p>
-                          <p className="text-xs text-muted-foreground">{trackSubs}/6 sub-competencies</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          Scenes {(idx * 6) + 1}-{(idx + 1) * 6}
-                        </Badge>
-                        {tracks.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                            onClick={() => handleRemoveTrack(track.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* AI-Powered Competency Search */}
-          <div className="space-y-4">
-            <div className="bg-muted/50 border border-border rounded-xl p-4">
-              <Label className="text-foreground font-medium mb-3 block">
-                {tracks.length > 0 ? 'Add Sub-Competencies to Current Track' : 'Find Your Competency'} *
-              </Label>
-              <CompetencyAISearch
-                competencies={competencies}
-                selectedCompetency={selectedCompetency}
-                onSelect={setSelectedCompetency}
-                onClearAll={handleClearAll}
-                onHighlight={onHighlightCompetency}
-              />
-            </div>
-
-            {/* DATA INTEGRITY ERROR BANNER */}
-            {selectedCompetency && dataIntegrityErrors.length > 0 && (
-              <div className="bg-destructive/10 border-2 border-destructive/40 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
-                  <span className="font-semibold text-sm text-destructive">
-                    Data Integrity Errors ({dataIntegrityErrors.length})
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  The following sub-competencies are missing required DNA fields and cannot be used:
-                </p>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {dataIntegrityErrors.map(error => (
-                    <div key={error.subCompetencyId} className="bg-background p-2 rounded-lg border border-destructive/20">
-                      <p className="text-xs font-medium text-foreground truncate">{error.statement}</p>
-                      <p className="text-xs text-destructive">
-                        Missing: {error.missingFields.map(f => f === 'action_cue' ? 'Action Cue' : 'Game Mechanic').join(', ')}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Sub-Competency Selection */}
-            {selectedCompetency && filteredSubCompetencies.length > 0 && (
-              <div className="bg-muted/50 border border-border rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <Label className="text-foreground font-medium">Select Sub-Competencies *</Label>
-                  <Badge variant="outline" className="text-xs">
-                    {selectedSubCompetencies.length}/{tracks.length > 0 ? tracks.length * 6 : 6} selected
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Each sub-competency creates one scene. Click in order (1-6 per track max).
-                </p>
-                <div className="space-y-2 max-h-52 overflow-y-auto bg-background border border-border rounded-lg p-3">
-                  {filteredSubCompetencies.map((sub) => {
-                    const isSelected = selectedSubCompetencies.includes(sub.id);
-                    const orderIndex = selectedSubCompetencies.indexOf(sub.id);
-                    const activeTrackId = tracks.length > 0 ? tracks[tracks.length - 1]?.id : undefined;
-                    
-                    return (
-                      <div 
-                        key={sub.id} 
-                        className={`flex items-start space-x-3 p-3 rounded-lg transition-all cursor-pointer ${
-                          isSelected 
-                            ? 'bg-primary/10 border border-primary/40 shadow-sm' 
-                            : 'hover:bg-muted border border-transparent'
-                        }`}
-                        onClick={() => handleSubCompetencyToggle(sub.id, !isSelected, activeTrackId)}
-                      >
-                        <Checkbox
-                          id={sub.id}
-                          checked={isSelected}
-                          onCheckedChange={(checked) => handleSubCompetencyToggle(sub.id, !!checked, activeTrackId)}
-                          className="mt-0.5"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <label htmlFor={sub.id} className="text-sm font-medium cursor-pointer text-foreground">
-                              {sub.statement}
-                            </label>
-                            {isSelected && (
-                              <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
-                                Scene {orderIndex + 1}
-                              </Badge>
-                            )}
-                          </div>
-                          {isSelected && sub.action_cue && (
-                            <p className="text-xs text-muted-foreground truncate">
-                              {sub.action_cue}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Locked Framework Display */}
-            {selectedSubCompetencies.length > 0 && (
-              <div className="bg-amber-500/5 border-2 border-amber-500/30 rounded-xl p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-1.5 bg-amber-500/20 rounded-lg">
-                    <Lock className="h-4 w-4 text-amber-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-foreground">
-                      Locked PlayOps Framework
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      These fields are pulled from the C-BEN standard and cannot be edited
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  {selectedSubCompetencies.map((subId, idx) => {
-                    const sub = getSelectedSubData(subId);
-                    if (!sub) return null;
-                    
-                    return (
-                      <div 
-                        key={sub.id} 
-                        className="bg-background rounded-lg p-4 border border-border"
-                      >
-                        <div className="flex items-center gap-2 mb-3">
-                          <div 
-                            className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center"
-                          >
-                            {idx + 1}
-                          </div>
-                          <p className="font-medium text-sm text-foreground flex-1 truncate">
-                            {sub.statement}
-                          </p>
-                        </div>
-                        
-                        {/* V5 Scientific Profile */}
-                        <div className="grid grid-cols-2 gap-2">
-                          {/* Action Cue */}
-                          <div className="relative">
-                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                              <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
-                                <Lock className="h-2.5 w-2.5" />
-                                ACTION CUE
-                              </span>
-                            </div>
-                            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
-                              <p className="text-[11px] text-foreground leading-relaxed">
-                                {sub.action_cue || 'Not defined in framework'}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Mechanic */}
-                          <div className="relative">
-                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                              <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
-                                <Lock className="h-2.5 w-2.5" />
-                                MECHANIC
-                              </span>
-                            </div>
-                            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
-                              <p className="text-[11px] text-foreground font-medium">
-                                {sub.game_mechanic || 'Not defined'}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Physical Interaction (Col G) - READ-ONLY */}
-                          <div className="relative">
-                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                              <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
-                                <Lock className="h-2.5 w-2.5" />
-                                MOBILE INTERACTION
-                              </span>
-                            </div>
-                            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
-                              <p className="text-[11px] text-foreground">
-                                {sub.game_loop || 'Tap (default)'}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Time Gate (Col H) - READ-ONLY */}
-                          <div className="relative">
-                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                              <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
-                                <Lock className="h-2.5 w-2.5" />
-                                TIME GATE
-                              </span>
-                            </div>
-                            <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
-                              <p className="text-[11px] text-foreground font-medium">
-                                {sub.validator_type || '30s/45s/60s Standard'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                <div className="mt-4 pt-3 border-t border-amber-500/20">
-                  <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
-                    <Lock className="h-3 w-3 text-amber-600" />
-                    V5 Scientific Profile: Action Cue (E) + Mechanic (F) + Mobile Interaction (G) + Time Gate (H) — locked per C-BEN standards
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* ADD ANOTHER COMPETENCY TRACK */}
-            <div ref={addTrackRef} className="pt-4 border-t border-border scroll-mt-4">
-              {showAddTrackSearch ? (
-                <div className="bg-emerald-500/5 border-2 border-dashed border-emerald-500/40 rounded-xl p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Plus className="h-4 w-4 text-emerald-500" />
-                      <span className="text-sm font-semibold text-foreground">Add New Competency Track</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setShowAddTrackSearch(false);
-                        setNewTrackCompetency('');
+                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm"
+                      style={{ 
+                        background: `linear-gradient(135deg, hsl(${(idx * 60) % 360}, 70%, 50%), hsl(${(idx * 60 + 30) % 360}, 70%, 40%))` 
                       }}
                     >
-                      Cancel
-                    </Button>
-                  </div>
-                  
-                  <CompetencyAISearch
-                    competencies={competencies}
-                    selectedCompetency={newTrackCompetency}
-                    onSelect={(id) => {
-                      setNewTrackCompetency(id);
-                    }}
-                    onClearAll={() => setNewTrackCompetency('')}
-                  />
-                  
-                  {newTrackCompetency && (
-                    <Button 
-                      onClick={handleAddNewTrack}
-                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Track {tracks.length + 1}: {competencies.find(c => c.id === newTrackCompetency)?.name}
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  className="w-full h-14 border-2 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 transition-all"
-                  onClick={() => {
-                    if (selectedCompetency && selectedSubCompetencies.length > 0 && setTracks) {
-                      if (tracks.length === 0) {
-                        const competency = competencies.find(c => c.id === selectedCompetency);
-                        if (competency) {
-                          const firstTrack = createDefaultTrack(selectedCompetency, competency.name, 1);
-                          firstTrack.subCompetencyIds = [...selectedSubCompetencies];
-                          setTracks([firstTrack]);
-                          setScenes(scenes.map(s => ({ ...s, trackId: firstTrack.id })));
-                        }
-                      }
-                    }
-                    setShowAddTrackSearch(true);
-                  }}
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="flex items-center gap-2">
-                      <Plus className="h-5 w-5 text-primary" />
-                      <span className="font-semibold text-primary">Add Another Competency Track</span>
+                      {idx + 1}
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      Build multi-track learning journeys for comprehensive skill assessment
-                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{track.competencyName}</p>
+                      <p className="text-xs text-muted-foreground">{trackSubs}/6 sub-competencies</p>
+                    </div>
                   </div>
-                </Button>
-              )}
-            </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      Scenes {(idx * 6) + 1}-{(idx + 1) * 6}
+                    </Badge>
+                    {tracks.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        onClick={() => handleRemoveTrack(track.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
+      )}
+
+      {/* AI-Powered Competency Search */}
+      <div className="space-y-4">
+        <div className="bg-muted/50 border border-border rounded-xl p-4">
+          <Label className="text-foreground font-medium mb-3 block">
+            {tracks.length > 0 ? 'Add Sub-Competencies to Current Track' : 'Find Your Competency'} *
+          </Label>
+          <CompetencyAISearch
+            competencies={competencies}
+            selectedCompetency={selectedCompetency}
+            onSelect={setSelectedCompetency}
+            onClearAll={handleClearAll}
+            onHighlight={onHighlightCompetency}
+          />
+        </div>
+
+        {/* DATA INTEGRITY ERROR BANNER */}
+        {selectedCompetency && dataIntegrityErrors.length > 0 && (
+          <div className="bg-destructive/10 border-2 border-destructive/40 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <span className="font-semibold text-sm text-destructive">
+                Data Integrity Errors ({dataIntegrityErrors.length})
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              The following sub-competencies are missing required DNA fields and cannot be used:
+            </p>
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {dataIntegrityErrors.map(error => (
+                <div key={error.subCompetencyId} className="bg-background p-2 rounded-lg border border-destructive/20">
+                  <p className="text-xs font-medium text-foreground truncate">{error.statement}</p>
+                  <p className="text-xs text-destructive">
+                    Missing: {error.missingFields.map(f => f === 'action_cue' ? 'Action Cue' : 'Game Mechanic').join(', ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sub-Competency Selection */}
+        {selectedCompetency && filteredSubCompetencies.length > 0 && (
+          <div className="bg-muted/50 border border-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-foreground font-medium">Select Sub-Competencies *</Label>
+              <Badge variant="outline" className="text-xs">
+                {selectedSubCompetencies.length}/{tracks.length > 0 ? tracks.length * 6 : 6} selected
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              Each sub-competency creates one scene. Click in order (1-6 per track max).
+            </p>
+            <div className="space-y-2 max-h-52 overflow-y-auto bg-background border border-border rounded-lg p-3">
+              {filteredSubCompetencies.map((sub) => {
+                const isSelected = selectedSubCompetencies.includes(sub.id);
+                const orderIndex = selectedSubCompetencies.indexOf(sub.id);
+                const activeTrackId = tracks.length > 0 ? tracks[tracks.length - 1]?.id : undefined;
+                
+                return (
+                  <div 
+                    key={sub.id} 
+                    className={`flex items-start space-x-3 p-3 rounded-lg transition-all cursor-pointer ${
+                      isSelected 
+                        ? 'bg-primary/10 border border-primary/40 shadow-sm' 
+                        : 'hover:bg-muted border border-transparent'
+                    }`}
+                    onClick={() => handleSubCompetencyToggle(sub.id, !isSelected, activeTrackId)}
+                  >
+                    <Checkbox
+                      id={sub.id}
+                      checked={isSelected}
+                      onCheckedChange={(checked) => handleSubCompetencyToggle(sub.id, !!checked, activeTrackId)}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <label htmlFor={sub.id} className="text-sm font-medium cursor-pointer text-foreground">
+                          {sub.statement}
+                        </label>
+                        {isSelected && (
+                          <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
+                            Scene {orderIndex + 1}
+                          </Badge>
+                        )}
+                      </div>
+                      {isSelected && sub.action_cue && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {sub.action_cue}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Locked Framework Display */}
+        {selectedSubCompetencies.length > 0 && (
+          <div className="bg-amber-500/5 border-2 border-amber-500/30 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 bg-amber-500/20 rounded-lg">
+                <Lock className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm text-foreground">
+                  Locked PlayOps Framework
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  These fields are pulled from the C-BEN standard and cannot be edited
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              {selectedSubCompetencies.map((subId, idx) => {
+                const sub = getSelectedSubData(subId);
+                if (!sub) return null;
+                
+                return (
+                  <div 
+                    key={sub.id} 
+                    className="bg-background rounded-lg p-4 border border-border"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <div 
+                        className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center"
+                      >
+                        {idx + 1}
+                      </div>
+                      <p className="font-medium text-sm text-foreground flex-1 truncate">
+                        {sub.statement}
+                      </p>
+                    </div>
+                    
+                    {/* V5 Scientific Profile */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Action Cue */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                          <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            ACTION CUE
+                          </span>
+                        </div>
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground leading-relaxed">
+                            {sub.action_cue || 'Not defined in framework'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Mechanic */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                          <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            MECHANIC
+                          </span>
+                        </div>
+                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground font-medium">
+                            {sub.game_mechanic || 'Not defined'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Physical Interaction (Col G) - READ-ONLY */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                          <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            MOBILE INTERACTION
+                          </span>
+                        </div>
+                        <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground">
+                            {sub.game_loop || 'Tap (default)'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Time Gate (Col H) - READ-ONLY */}
+                      <div className="relative">
+                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                          <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
+                            <Lock className="h-2.5 w-2.5" />
+                            TIME GATE
+                          </span>
+                        </div>
+                        <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
+                          <p className="text-[11px] text-foreground font-medium">
+                            {sub.validator_type || '30s/45s/60s Standard'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div className="mt-4 pt-3 border-t border-amber-500/20">
+              <p className="text-xs text-muted-foreground italic flex items-center gap-1.5">
+                <Lock className="h-3 w-3 text-amber-600" />
+                V5 Scientific Profile: Action Cue (E) + Mechanic (F) + Mobile Interaction (G) + Time Gate (H) — locked per C-BEN standards
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ADD ANOTHER COMPETENCY TRACK - Only at BOTTOM after tracks are generated */}
+        {tracks.length > 0 && (
+          <div ref={addTrackRef} className="pt-4 border-t border-border scroll-mt-4">
+            {showAddTrackSearch ? (
+              <div className="bg-emerald-500/5 border-2 border-dashed border-emerald-500/40 rounded-xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-4 w-4 text-emerald-500" />
+                    <span className="text-sm font-semibold text-foreground">Add New Competency Track</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowAddTrackSearch(false);
+                      setNewTrackCompetency('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                
+                <CompetencyAISearch
+                  competencies={competencies}
+                  selectedCompetency={newTrackCompetency}
+                  onSelect={(id) => {
+                    setNewTrackCompetency(id);
+                  }}
+                  onClearAll={() => setNewTrackCompetency('')}
+                />
+                
+                {newTrackCompetency && (
+                  <Button 
+                    onClick={handleAddNewTrack}
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Track {tracks.length + 1}: {competencies.find(c => c.id === newTrackCompetency)?.name}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full h-14 border-2 border-dashed border-primary/40 hover:border-primary hover:bg-primary/5 transition-all"
+                onClick={() => setShowAddTrackSearch(true)}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-5 w-5 text-primary" />
+                    <span className="font-semibold text-primary">Add Another Competency Track</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    Build multi-track learning journeys for comprehensive skill assessment
+                  </span>
+                </div>
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

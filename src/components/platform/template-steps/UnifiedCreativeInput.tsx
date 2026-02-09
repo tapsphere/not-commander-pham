@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { Competency, SubCompetency, SceneData, createDefaultScene } from './types';
+import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultScene, createDefaultTrack } from './types';
 import { matchCompetencyFromPrompt, populateSixScenes } from './RemakeEngine';
 
 // VALERTI SS26 Demo - Professional default content
@@ -35,14 +35,25 @@ const FASHION_KEYWORDS = ['fashion', 'merchandising', 'retail', 'window', 'manne
 // Track 2: Marketing/Growth → Growth Design
 const MARKETING_KEYWORDS = ['marketing', 'conversion', 'growth', 'a/b test', 'funnel', 'ui friction', 'referral', 'retention', 'activation', 'onboarding', 'churn', 'engagement'];
 
+// Multi-Track mapping result
+interface TrackMapping {
+  competencyId: string;
+  competencyName: string;
+  subIds: string[];
+  scenes: SceneData[];
+  trackId: string;
+}
+
 interface UnifiedCreativeInputProps {
   competencies: Competency[];
   subCompetencies: SubCompetency[];
+  // Updated: Support multi-track completion
   onComplete: (
     competencyId: string,
     selectedSubIds: string[],
     scenes: SceneData[],
-    pathUsed: 'theme' | 'skill' | 'upload'
+    pathUsed: 'theme' | 'skill' | 'upload',
+    additionalTracks?: CompetencyTrack[]
   ) => void;
   onManualFallback: () => void;
 }
@@ -60,7 +71,7 @@ export function UnifiedCreativeInput({
   const [isManualMode, setIsManualMode] = useState(false);
   const [lastAiCompetencyId, setLastAiCompetencyId] = useState<string | null>(null);
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
-  const [matchedCompetencyName, setMatchedCompetencyName] = useState<string | null>(null);
+  const [matchedCompetencyNames, setMatchedCompetencyNames] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,7 +94,7 @@ export function UnifiedCreativeInput({
   };
 
   // Core function to populate scenes for a given competency
-  const populateScenesForCompetency = (competencyId: string, theme: string) => {
+  const populateScenesForCompetency = (competencyId: string, theme: string, trackId?: string) => {
     const matchedCompetency = competencies.find(c => c.id === competencyId);
     if (!matchedCompetency) {
       throw new Error('Competency not found');
@@ -108,7 +119,7 @@ export function UnifiedCreativeInput({
     }
 
     // Populate 6 scenes with V5 mechanics locked
-    const scenes = populateSixScenes(subCompetencies, competencyId, theme);
+    const scenes = populateSixScenes(subCompetencies, competencyId, theme, trackId);
 
     // Ensure we always have 6 scenes
     if (scenes.length !== 6) {
@@ -125,70 +136,134 @@ export function UnifiedCreativeInput({
     return { matchedCompetency, matchedSubs, scenes };
   };
 
-  // Smart semantic matching using RemakeEngine with Track 1/Track 2 logic
-  const executeSemanticMapping = async (promptText: string): Promise<void> => {
-    // Determine the theme to use
+  // Multi-Competency Detection Engine v13.0
+  const detectMultipleCompetencies = (promptText: string): { hasFashion: boolean; hasMarketing: boolean } => {
     const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
     const searchTheme = isDemoOrEmpty ? VALERTI_DEMO.theme : promptText;
     
-    // Step 1: Find the best-match competency using keyword triggers
-    let matchedCompetency: Competency | null = null;
+    return {
+      hasFashion: isDemoOrEmpty || isFashionPrompt(searchTheme),
+      hasMarketing: isMarketingPrompt(searchTheme),
+    };
+  };
+
+  // Smart semantic matching with multi-track support
+  const executeSemanticMapping = async (promptText: string): Promise<void> => {
+    const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
+    const searchTheme = isDemoOrEmpty ? VALERTI_DEMO.theme : promptText;
     
-    if (isDemoOrEmpty || isFashionPrompt(searchTheme)) {
-      // Track 1: Fashion/VALERTI → Analytical Thinking
-      matchedCompetency = competencies.find(c => 
+    // Detect multiple competencies
+    const { hasFashion, hasMarketing } = detectMultipleCompetencies(promptText);
+    const trackMappings: TrackMapping[] = [];
+    const matchedNames: string[] = [];
+
+    // Track 1: Fashion/VALERTI → Analytical Thinking
+    if (hasFashion) {
+      const analyticalComp = competencies.find(c => 
         c.name.toLowerCase().includes('analytical')
       ) || competencies[0];
-    } else if (isMarketingPrompt(searchTheme)) {
-      // Track 2: Marketing/Growth → Growth Design
-      matchedCompetency = competencies.find(c => 
+      
+      if (analyticalComp) {
+        const trackId = `track-1-${Date.now()}`;
+        const { matchedSubs, scenes } = populateScenesForCompetency(analyticalComp.id, searchTheme, trackId);
+        
+        // Apply Fashion visual styling
+        scenes.forEach((scene, idx) => {
+          scene.backgroundPrompt = `${VALERTI_DEMO.visualBase}, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
+        });
+        
+        trackMappings.push({
+          competencyId: analyticalComp.id,
+          competencyName: analyticalComp.name,
+          subIds: matchedSubs.map(s => s.id),
+          scenes,
+          trackId,
+        });
+        matchedNames.push(analyticalComp.name);
+      }
+    }
+
+    // Track 2: Marketing/Growth → Growth Design
+    if (hasMarketing) {
+      const growthComp = competencies.find(c => 
         c.name.toLowerCase().includes('growth')
       ) || competencies.find(c => 
         c.name.toLowerCase().includes('design')
-      ) || competencies[0];
-    } else {
-      // Fallback: Semantic match for other themes
-      matchedCompetency = matchCompetencyFromPrompt(searchTheme, competencies);
-    }
-    
-    if (!matchedCompetency) {
-      throw new Error('No matching competency found. Please try a different prompt.');
+      );
+      
+      if (growthComp) {
+        const trackId = `track-${trackMappings.length + 1}-${Date.now()}`;
+        const { matchedSubs, scenes } = populateScenesForCompetency(growthComp.id, searchTheme, trackId);
+        
+        // Apply Marketing visual styling
+        scenes.forEach((scene, idx) => {
+          scene.backgroundPrompt = `Modern SaaS dashboard, clean UI, gradient accents, data visualization, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
+        });
+        
+        trackMappings.push({
+          competencyId: growthComp.id,
+          competencyName: growthComp.name,
+          subIds: matchedSubs.map(s => s.id),
+          scenes,
+          trackId,
+        });
+        matchedNames.push(growthComp.name);
+      }
     }
 
-    // Store AI's competency choice for "Smart Select" revert
-    setLastAiCompetencyId(matchedCompetency.id);
+    // Fallback: If no matches, use semantic matching for single track
+    if (trackMappings.length === 0) {
+      const matchedCompetency = matchCompetencyFromPrompt(searchTheme, competencies);
+      
+      if (!matchedCompetency) {
+        throw new Error('No matching competency found. Please try a different prompt.');
+      }
+
+      const trackId = `track-1-${Date.now()}`;
+      const { matchedSubs, scenes } = populateScenesForCompetency(matchedCompetency.id, searchTheme, trackId);
+      
+      trackMappings.push({
+        competencyId: matchedCompetency.id,
+        competencyName: matchedCompetency.name,
+        subIds: matchedSubs.map(s => s.id),
+        scenes,
+        trackId,
+      });
+      matchedNames.push(matchedCompetency.name);
+    }
+
+    // Store results
+    setLastAiCompetencyId(trackMappings[0].competencyId);
     setIsManualMode(false);
     setHasSubmittedOnce(true);
-    setMatchedCompetencyName(matchedCompetency.name);
+    setMatchedCompetencyNames(matchedNames);
+    // NOTE: Do NOT clear inputValue - keep text persistent
 
-    const { matchedSubs, scenes } = populateScenesForCompetency(matchedCompetency.id, searchTheme);
+    // Build tracks array for multi-track support
+    const additionalTracks: CompetencyTrack[] = trackMappings.map((tm, idx) => ({
+      id: tm.trackId,
+      competencyId: tm.competencyId,
+      competencyName: tm.competencyName,
+      subCompetencyIds: tm.subIds,
+      order: idx + 1,
+      createdAt: Date.now(),
+    }));
+
+    // Combine all scenes with their track IDs
+    const allScenes = trackMappings.flatMap(tm => tm.scenes);
+    const allSubIds = trackMappings.flatMap(tm => tm.subIds);
     
-    // Enhance scenes with visual styling based on track
-    if (isDemoOrEmpty || isFashionPrompt(searchTheme)) {
-      // Track 1: Fashion visual styling
-      scenes.forEach((scene, idx) => {
-        scene.backgroundPrompt = `${VALERTI_DEMO.visualBase}, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
-      });
-    } else if (isMarketingPrompt(searchTheme)) {
-      // Track 2: Marketing/Growth visual styling
-      scenes.forEach((scene, idx) => {
-        scene.backgroundPrompt = `Modern SaaS dashboard, clean UI, gradient accents, data visualization, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
-      });
-    }
+    // Success! 
+    const trackNames = matchedNames.join(' + ');
+    toast.success(`✓ Mapped to "${trackNames}" with ${allScenes.length} scenes`);
     
-    // Success! Call onComplete with the mapped data
-    toast.success(`✓ Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
+    // Call onComplete with first track's competencyId and all data
     onComplete(
-      matchedCompetency.id,
-      matchedSubs.map(s => s.id),
-      scenes,
-      isDemoOrEmpty ? 'theme' : 'skill'
-    );
-    onComplete(
-      matchedCompetency.id,
-      matchedSubs.map(s => s.id),
-      scenes,
-      isDemoOrEmpty ? 'theme' : 'skill'
+      trackMappings[0].competencyId,
+      allSubIds,
+      allScenes,
+      isDemoOrEmpty ? 'theme' : 'skill',
+      additionalTracks
     );
   };
 
@@ -199,17 +274,28 @@ export function UnifiedCreativeInput({
     const theme = isDemoOrEmpty ? VALERTI_DEMO.theme : currentText;
 
     try {
-      const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(competencyId, theme);
+      const trackId = `track-1-${Date.now()}`;
+      const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(competencyId, theme, trackId);
       setIsManualMode(true);
       setHasSubmittedOnce(true);
-      setMatchedCompetencyName(matchedCompetency.name);
+      setMatchedCompetencyNames([matchedCompetency.name]);
+      
+      const track: CompetencyTrack = {
+        id: trackId,
+        competencyId: matchedCompetency.id,
+        competencyName: matchedCompetency.name,
+        subCompetencyIds: matchedSubs.map(s => s.id),
+        order: 1,
+        createdAt: Date.now(),
+      };
       
       toast.success(`✓ Switched to "${matchedCompetency.name}" with ${scenes.length} scenes`);
       onComplete(
         matchedCompetency.id,
         matchedSubs.map(s => s.id),
         scenes,
-        'skill'
+        'skill',
+        [track]
       );
     } catch (error: any) {
       toast.error(error.message || 'Failed to load competency');
@@ -219,7 +305,6 @@ export function UnifiedCreativeInput({
   // Revert to AI's smart selection
   const handleSmartSelectRevert = () => {
     if (!lastAiCompetencyId) {
-      // No previous AI selection, run semantic mapping again
       handleSubmit();
       return;
     }
@@ -229,15 +314,26 @@ export function UnifiedCreativeInput({
     const theme = isDemoOrEmpty ? VALERTI_DEMO.theme : currentText;
 
     try {
-      const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(lastAiCompetencyId, theme);
+      const trackId = `track-1-${Date.now()}`;
+      const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(lastAiCompetencyId, theme, trackId);
       setIsManualMode(false);
+      
+      const track: CompetencyTrack = {
+        id: trackId,
+        competencyId: matchedCompetency.id,
+        competencyName: matchedCompetency.name,
+        subCompetencyIds: matchedSubs.map(s => s.id),
+        order: 1,
+        createdAt: Date.now(),
+      };
       
       toast.success(`✓ Reverted to AI suggestion: "${matchedCompetency.name}"`);
       onComplete(
         matchedCompetency.id,
         matchedSubs.map(s => s.id),
         scenes,
-        'skill'
+        'skill',
+        [track]
       );
     } catch (error: any) {
       toast.error(error.message || 'Failed to revert');
@@ -267,7 +363,6 @@ export function UnifiedCreativeInput({
 
       const extractedText = response.data.text;
       
-      // Find matching competency from parsed content using RemakeEngine
       const matchedCompetency = matchCompetencyFromPrompt(extractedText, competencies);
       
       if (!matchedCompetency) {
@@ -276,7 +371,6 @@ export function UnifiedCreativeInput({
         return;
       }
 
-      // Get 6 sub-competencies
       const matchedSubs = subCompetencies
         .filter(s => s.competency_id === matchedCompetency.id)
         .slice(0, 6);
@@ -287,15 +381,26 @@ export function UnifiedCreativeInput({
         return;
       }
 
-      // Create scenes with PDF context
+      const trackId = `track-1-${Date.now()}`;
       const scenes = matchedSubs.map((sub, idx) => {
-        const scene = createDefaultScene(sub.id, idx + 1);
+        const scene = createDefaultScene(sub.id, idx + 1, trackId);
         scene.question = `[From ${file.name}] ${sub.action_cue || sub.statement}`;
         return scene;
       });
 
+      const track: CompetencyTrack = {
+        id: trackId,
+        competencyId: matchedCompetency.id,
+        competencyName: matchedCompetency.name,
+        subCompetencyIds: matchedSubs.map(s => s.id),
+        order: 1,
+        createdAt: Date.now(),
+      };
+
+      setHasSubmittedOnce(true);
+      setMatchedCompetencyNames([matchedCompetency.name]);
       toast.success(`Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
-      onComplete(matchedCompetency.id, matchedSubs.map(s => s.id), scenes, 'upload');
+      onComplete(matchedCompetency.id, matchedSubs.map(s => s.id), scenes, 'upload', [track]);
     } catch (error: any) {
       console.error('Upload error:', error);
       toast.error('Failed to parse PDF. Try entering a theme instead.');
@@ -311,6 +416,7 @@ export function UnifiedCreativeInput({
 
     try {
       await executeSemanticMapping(currentText);
+      // NOTE: Text stays in the box after Send (persistent)
     } catch (error: any) {
       console.error('Submit error:', error);
       toast.error(error.message || 'Failed to process. Try manual selection.');
@@ -320,7 +426,6 @@ export function UnifiedCreativeInput({
     }
   };
 
-  // Clear input to start over
   const handleClearInput = () => {
     setInputValue('');
     setUploadedFile(null);
@@ -433,13 +538,24 @@ export function UnifiedCreativeInput({
         />
       </div>
 
-      {/* Matched Competency Result Indicator */}
-      {hasSubmittedOnce && matchedCompetencyName && !isManualMode && (
+      {/* Multi-Competency Mapping Banner */}
+      {hasSubmittedOnce && matchedCompetencyNames.length > 0 && !isManualMode && (
         <div className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/30 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
           <span className="text-sm text-foreground">
-            We've mapped this to: <span className="font-semibold text-primary">{matchedCompetencyName}</span>
+            ✨ We've mapped this to:{' '}
+            {matchedCompetencyNames.map((name, idx) => (
+              <span key={name}>
+                <span className="font-semibold text-primary">{name}</span>
+                {idx < matchedCompetencyNames.length - 1 && ' + '}
+              </span>
+            ))}
           </span>
+          {matchedCompetencyNames.length > 1 && (
+            <Badge variant="secondary" className="ml-auto text-xs">
+              {matchedCompetencyNames.length} Tracks
+            </Badge>
+          )}
         </div>
       )}
 
@@ -467,37 +583,45 @@ export function UnifiedCreativeInput({
             key={skill}
             variant="outline"
             className="cursor-pointer hover:bg-muted transition-colors"
-            onClick={() => setInputValue(skill)}
+            onClick={() => {
+              const comp = competencies.find(c => 
+                c.name.toLowerCase() === skill.toLowerCase()
+              );
+              if (comp) {
+                handleManualSelect(comp.id);
+              }
+            }}
           >
             {skill}
           </Badge>
         ))}
         
-        {/* Manual Select Dropdown / Smart Select Toggle */}
-        {isManualMode ? (
-          <Badge
-            variant="outline"
-            className="cursor-pointer text-primary hover:bg-primary/10 border-primary/30"
-            onClick={handleSmartSelectRevert}
-          >
-            ← Smart Select
-          </Badge>
-        ) : (
-          <Select onValueChange={handleManualSelect}>
-            <SelectTrigger className="h-6 w-auto px-2 py-0 text-xs border-dashed bg-transparent hover:bg-muted">
-              <span className="text-muted-foreground">Manual Select →</span>
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {sortedCompetencies.map(comp => (
-                <SelectItem key={comp.id} value={comp.id} className="text-sm">
-                  {comp.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        {/* Manual/Smart Toggle */}
+        <div className="ml-auto">
+          {isManualMode ? (
+            <button
+              onClick={handleSmartSelectRevert}
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+            >
+              ← Smart Select
+            </button>
+          ) : hasSubmittedOnce ? (
+            <Select onValueChange={handleManualSelect}>
+              <SelectTrigger className="h-7 text-xs w-auto gap-1 border-dashed">
+                <span className="text-muted-foreground">Manual Select →</span>
+                <ChevronDown className="h-3 w-3" />
+              </SelectTrigger>
+              <SelectContent>
+                {sortedCompetencies.map(comp => (
+                  <SelectItem key={comp.id} value={comp.id} className="text-xs">
+                    {comp.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
+        </div>
       </div>
-
     </div>
   );
 }
