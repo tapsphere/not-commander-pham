@@ -42,6 +42,11 @@
 
     --radius: 0.75rem;
 
+    /* Talent Mode — Coalescing Blue */
+    --talent-blue: 217 91% 60%;
+    --talent-blue-deep: 220 80% 46%;
+    --talent-gold: 42 44% 63%; /* Mastery Gold #C0B283 */
+
     /* Studio-specific tokens */
     --studio-bg: 240 5% 97%;
     --studio-surface: 0 0% 100%;
@@ -56,10 +61,12 @@
     --glass-border: 0 0% 0% / 0.08;
     --glass-hover: 0 0% 0% / 0.04;
 
-    /* Compliance Mode tokens - Light */
-    --compliance-primary: 152 69% 31%; /* Forest Green */
-    --compliance-secondary: 152 56% 42%; /* Emerald */
-    --compliance-accent: 152 44% 52%;
+    /* Compliance Mode tokens - Light (4-tier green) */
+    --compliance-sage: 140 20% 72%;       /* Tier 1: Soft Sage */
+    --compliance-emerald: 152 56% 42%;    /* Tier 2: True Emerald */
+    --compliance-primary: 152 69% 31%;    /* Tier 3: Forest Deep */
+    --compliance-secondary: 152 56% 42%;
+    --compliance-accent: 160 60% 60%;     /* Tier 4: Glowing Mint */
     --compliance-surface: 152 20% 96%;
     --compliance-muted: 152 15% 88%;
   }
@@ -94,6 +101,11 @@
     --input: 0 0% 100% / 0.12;
     --ring: 0 0% 100%;
 
+    /* Talent Mode — Coalescing Blue (Dark) */
+    --talent-blue: 217 91% 65%;
+    --talent-blue-deep: 220 80% 55%;
+    --talent-gold: 42 44% 63%;
+
     /* Studio-specific tokens - Dark */
     --studio-bg: 220 14% 6%;
     --studio-surface: 217 33% 17%;
@@ -108,10 +120,12 @@
     --glass-border: 0 0% 100% / 0.1;
     --glass-hover: 0 0% 100% / 0.08;
 
-    /* Compliance Mode tokens - Dark */
+    /* Compliance Mode tokens - Dark (4-tier green, boosted luminosity) */
+    --compliance-sage: 140 25% 55%;
+    --compliance-emerald: 152 56% 50%;
     --compliance-primary: 152 69% 40%;
     --compliance-secondary: 152 56% 50%;
-    --compliance-accent: 152 44% 58%;
+    --compliance-accent: 160 65% 65%;
     --compliance-surface: 152 30% 12%;
     --compliance-muted: 152 20% 18%;
   }
@@ -165,7 +179,12 @@
 
   /* Glassmorphism utilities */
   .glass-card {
-    @apply bg-card/50 backdrop-blur-xl border border-border rounded-2xl;
+    @apply bg-card/50 backdrop-blur-[25px] rounded-2xl;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-card {
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
   }
 
   .glass-button {
