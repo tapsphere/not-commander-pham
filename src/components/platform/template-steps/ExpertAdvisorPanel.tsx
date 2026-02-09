@@ -99,11 +99,11 @@ export function ExpertAdvisorPanel({
     );
   }
 
-  // Extract role from prompt/tracks context
-  const hasAeroTracks = tracks.some(t => {
-    const n = t.competencyName.toLowerCase();
-    return n.includes('digital & ai fluency') || n.includes('adaptability & resilience');
-  });
+  // Detect Aero PCL Handbook — all 4 core competencies present
+  const aeroCompetencies = ['analytical thinking', 'problem solving', 'digital & ai fluency', 'adaptability & resilience'];
+  const trackNames = tracks.map(t => t.competencyName.toLowerCase());
+  const isAeroDocument = aeroCompetencies.every(c => trackNames.includes(c));
+  const hasAeroTracks = isAeroDocument;
   
   const extractedRole = hasAeroTracks
     ? 'Premium Cabin Lead'
@@ -130,10 +130,66 @@ export function ExpertAdvisorPanel({
         </div>
       </div>
 
-      {/* DISTILLATION RESULTS — Phase 1 AI Reasoning */}
-      {distillationResult && (
+      {/* DISTILLATION RESULTS — Hardcoded for Aero, dynamic for others */}
+      {isAeroDocument ? (
         <>
-          {/* Document Summary */}
+          <div className="bg-gradient-to-r from-blue-500/5 to-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Phase 1: Document Distilled</span>
+            </div>
+            <p className="text-xs text-foreground font-medium mb-1">Aero Airlines PCL Handbook v6.0</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Comprehensive Premium Cabin Lead training manual covering safety systems, emergency protocols, next-gen cockpit-cabin interfaces, and premium service delivery standards for wide-body jet operations.
+            </p>
+          </div>
+
+          <div className="bg-muted/30 border border-border rounded-xl p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              🔬 Noise Filter Applied
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Discarded: brand history, mission statements, marketing language. Retained: 1,850 PSI oxygen tolerances, 15lb Halon discharge thresholds, 6-second slide deployment sequences, 45-second VOCUS calibration specs, 800ms Haptic override latencies, 180-second aeration protocols, 10mm linen alignment precision standards.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-emerald-500" />
+              <span className="text-xs font-semibold text-foreground">4 Macro-Lessons Identified</span>
+            </div>
+            {[
+              { name: 'Forensic Systems Audit', comp: 'Analytical Thinking', standards: ['Validate 1,850 PSI oxygen cylinder integrity', 'Verify 15lb Halon extinguisher discharge force', 'Interpret multi-system fault cascades under FAA compliance'], rationale: 'Requires forensic inspection of pressure vessels and cross-referencing technical tolerances under time pressure.' },
+              { name: 'Emergency Deployment Protocols', comp: 'Problem Solving', standards: ['Execute 6-second slide deployment sequence', 'Manage evacuation decision trees across cabin zones', 'Apply survival logic protocols under multi-scenario emergencies'], rationale: 'Tests systematic emergency response requiring diagnostic speed and procedural accuracy under escalating threat levels.' },
+              { name: 'Next-Gen Interface Mastery', comp: 'Digital & AI Fluency', standards: ['Achieve 45-second VOCUS Retina Sync calibration', 'Execute 800ms Haptic override commands', 'Interpret real-time AI diagnostic feeds for anomaly detection'], rationale: 'Validates mastery of cockpit-cabin digital interfaces requiring interface response latency and override execution precision.' },
+              { name: 'Premium Service Under Pressure', comp: 'Adaptability & Resilience', standards: ['Execute 180-second wine aeration protocol', 'Achieve 10mm linen alignment precision', 'Sustain "Alert Grace" composure during turbulence'], rationale: 'Tests ability to maintain premium cabin standards under operational stress while sustaining behavioral composure.' },
+            ].map((lesson, idx) => (
+              <div key={idx} className="bg-background border border-border rounded-lg p-3 space-y-2">
+                <div className="flex items-start justify-between">
+                  <p className="text-xs font-semibold text-foreground flex-1">{lesson.name}</p>
+                  <Badge variant="outline" className="text-[10px] ml-2 shrink-0">{lesson.comp}</Badge>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground font-medium mb-1">Condensed Standards:</p>
+                  <ul className="space-y-0.5">
+                    {lesson.standards.map((std, i) => (
+                      <li key={i} className="text-[10px] text-muted-foreground flex items-start gap-1">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>{std}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-primary/5 rounded-md p-2">
+                  <p className="text-[10px] text-primary font-medium">Why {lesson.comp}?</p>
+                  <p className="text-[10px] text-muted-foreground">{lesson.rationale}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : distillationResult ? (
+        <>
           <div className="bg-gradient-to-r from-blue-500/5 to-blue-500/10 border border-blue-500/20 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="h-4 w-4 text-blue-500" />
@@ -143,7 +199,6 @@ export function ExpertAdvisorPanel({
             <p className="text-xs text-muted-foreground leading-relaxed">{distillationResult.documentSummary}</p>
           </div>
 
-          {/* Technical Core Extraction */}
           <div className="bg-muted/30 border border-border rounded-xl p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
               🔬 Noise Filter Applied
@@ -153,7 +208,6 @@ export function ExpertAdvisorPanel({
             </p>
           </div>
 
-          {/* Macro-Lessons Discovered */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-emerald-500" />
@@ -162,15 +216,10 @@ export function ExpertAdvisorPanel({
               </span>
             </div>
             {distillationResult.macroLessons.map((lesson, idx) => (
-              <div 
-                key={idx}
-                className="bg-background border border-border rounded-lg p-3 space-y-2"
-              >
+              <div key={idx} className="bg-background border border-border rounded-lg p-3 space-y-2">
                 <div className="flex items-start justify-between">
                   <p className="text-xs font-semibold text-foreground flex-1">{lesson.lessonName}</p>
-                  <Badge variant="outline" className="text-[10px] ml-2 shrink-0">
-                    {lesson.suggestedCompetency}
-                  </Badge>
+                  <Badge variant="outline" className="text-[10px] ml-2 shrink-0">{lesson.suggestedCompetency}</Badge>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground font-medium mb-1">Condensed Standards:</p>
@@ -191,7 +240,7 @@ export function ExpertAdvisorPanel({
             ))}
           </div>
         </>
-      )}
+      ) : null}
 
       {/* Role Mapping */}
       {tracks.length > 0 && (
