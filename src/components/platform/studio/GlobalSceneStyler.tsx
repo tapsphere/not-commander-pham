@@ -42,7 +42,7 @@ export function GlobalSceneStyler({
       {/* Header */}
       <div className={`px-4 py-3 flex items-center justify-between border-b ${borderColor}`}>
         <div className="flex items-center gap-2">
-          <span className="text-base">🎨</span>
+          <span className="text-base">🧬</span>
           <span className={`text-sm font-bold ${textColor}`}>
             Global Visual DNA
           </span>
@@ -66,6 +66,10 @@ export function GlobalSceneStyler({
       {/* Content */}
       {!isCollapsed && (
         <div className="px-4 pb-4 pt-3 space-y-3">
+          {/* Sub-text */}
+          <p className={`text-xs ${mutedColor}`}>
+            Global commands style the entire track — <span className="text-amber-500 font-medium">DNA Layout is locked.</span>
+          </p>
           {/* Brand color reference chips */}
           <div className="flex items-center gap-2 flex-wrap">
             <Palette className={`h-3 w-3 ${mutedColor}`} />
