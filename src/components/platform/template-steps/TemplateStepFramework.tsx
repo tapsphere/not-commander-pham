@@ -394,23 +394,138 @@ export function TemplateStepFramework({
           </div>
         )}
 
-        {/* Sub-Competency Selection */}
-        {selectedCompetency && filteredSubCompetencies.length > 0 && (
+        {/* Sub-Competency Selection - Per Track */}
+        {tracks.length > 0 ? (
+          // Multi-track mode: Show separate selection sections per track
+          <div className="space-y-4">
+            {tracks.map((track, trackIndex) => {
+              const trackSubs = subCompetencies.filter(s => s.competency_id === track.competencyId);
+              const trackSelectedCount = track.subCompetencyIds.length;
+              const trackOffset = trackIndex * 6;
+              const trackColor = trackIndex === 0 ? 'amber' : trackIndex === 1 ? 'emerald' : 'blue';
+              
+              return (
+                <div 
+                  key={track.id}
+                  className={`border-2 rounded-xl p-4 ${
+                    trackIndex === 0 
+                      ? 'bg-amber-500/5 border-amber-500/30' 
+                      : trackIndex === 1 
+                      ? 'bg-emerald-500/5 border-emerald-500/30'
+                      : 'bg-blue-500/5 border-blue-500/30'
+                  }`}
+                >
+                  {/* Track Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold text-white text-xs ${
+                          trackIndex === 0 
+                            ? 'bg-amber-500' 
+                            : trackIndex === 1 
+                            ? 'bg-emerald-500'
+                            : 'bg-blue-500'
+                        }`}
+                      >
+                        T{trackIndex + 1}
+                      </div>
+                      <Label className="text-foreground font-medium">
+                        {track.competencyName}
+                      </Label>
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${
+                        trackIndex === 0 
+                          ? 'border-amber-500/50 text-amber-700 dark:text-amber-400' 
+                          : trackIndex === 1 
+                          ? 'border-emerald-500/50 text-emerald-700 dark:text-emerald-400'
+                          : 'border-blue-500/50 text-blue-700 dark:text-blue-400'
+                      }`}
+                    >
+                      {trackSelectedCount}/6 • Scenes {trackOffset + 1}–{trackOffset + 6}
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Select up to 6 sub-competencies for Track {trackIndex + 1}.
+                  </p>
+                  
+                  <div className="space-y-2 max-h-40 overflow-y-auto bg-background/50 border border-border rounded-lg p-3">
+                    {trackSubs.map((sub) => {
+                      const isSelected = track.subCompetencyIds.includes(sub.id);
+                      const positionInTrack = track.subCompetencyIds.indexOf(sub.id) + 1;
+                      const globalSceneNumber = trackOffset + positionInTrack;
+                      
+                      return (
+                        <div 
+                          key={sub.id} 
+                          className={`flex items-start space-x-3 p-3 rounded-lg transition-all cursor-pointer ${
+                            isSelected 
+                              ? trackIndex === 0
+                                ? 'bg-amber-500/10 border border-amber-500/40 shadow-sm'
+                                : trackIndex === 1
+                                ? 'bg-emerald-500/10 border border-emerald-500/40 shadow-sm'
+                                : 'bg-blue-500/10 border border-blue-500/40 shadow-sm'
+                              : 'hover:bg-muted border border-transparent'
+                          }`}
+                          onClick={() => handleSubCompetencyToggle(sub.id, !isSelected, track.id)}
+                        >
+                          <Checkbox
+                            id={`${track.id}-${sub.id}`}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleSubCompetencyToggle(sub.id, !!checked, track.id)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <label htmlFor={`${track.id}-${sub.id}`} className="text-sm font-medium cursor-pointer text-foreground">
+                                {sub.statement}
+                              </label>
+                              {isSelected && (
+                                <Badge 
+                                  className={`text-xs shrink-0 ${
+                                    trackIndex === 0 
+                                      ? 'bg-amber-500 text-white' 
+                                      : trackIndex === 1 
+                                      ? 'bg-emerald-500 text-white'
+                                      : 'bg-blue-500 text-white'
+                                  }`}
+                                >
+                                  Scene {globalSceneNumber}
+                                </Badge>
+                              )}
+                            </div>
+                            {isSelected && sub.action_cue && (
+                              <p className="text-xs text-muted-foreground truncate">
+                                {sub.action_cue}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : selectedCompetency && filteredSubCompetencies.length > 0 ? (
+          // Single competency fallback (no tracks yet)
           <div className="bg-muted/50 border border-border rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <Label className="text-foreground font-medium">Select Sub-Competencies *</Label>
               <Badge variant="outline" className="text-xs">
-                {selectedSubCompetencies.length}/{tracks.length > 0 ? tracks.length * 6 : 6} selected
+                {selectedSubCompetencies.length}/6 selected
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              Each sub-competency creates one scene. Click in order (1-6 per track max).
+              Each sub-competency creates one scene. Click in order (1-6 max).
             </p>
             <div className="space-y-2 max-h-52 overflow-y-auto bg-background border border-border rounded-lg p-3">
               {filteredSubCompetencies.map((sub) => {
                 const isSelected = selectedSubCompetencies.includes(sub.id);
                 const orderIndex = selectedSubCompetencies.indexOf(sub.id);
-                const activeTrackId = tracks.length > 0 ? tracks[tracks.length - 1]?.id : undefined;
                 
                 return (
                   <div 
@@ -420,12 +535,12 @@ export function TemplateStepFramework({
                         ? 'bg-primary/10 border border-primary/40 shadow-sm' 
                         : 'hover:bg-muted border border-transparent'
                     }`}
-                    onClick={() => handleSubCompetencyToggle(sub.id, !isSelected, activeTrackId)}
+                    onClick={() => handleSubCompetencyToggle(sub.id, !isSelected)}
                   >
                     <Checkbox
                       id={sub.id}
                       checked={isSelected}
-                      onCheckedChange={(checked) => handleSubCompetencyToggle(sub.id, !!checked, activeTrackId)}
+                      onCheckedChange={(checked) => handleSubCompetencyToggle(sub.id, !!checked)}
                       className="mt-0.5"
                     />
                     <div className="flex-1 min-w-0">
@@ -433,23 +548,11 @@ export function TemplateStepFramework({
                         <label htmlFor={sub.id} className="text-sm font-medium cursor-pointer text-foreground">
                           {sub.statement}
                         </label>
-                        {isSelected && (() => {
-                          // Calculate track-relative scene number for the badge
-                          const subTrack = tracks.find(t => t.subCompetencyIds.includes(sub.id));
-                          const trackIndex = subTrack ? tracks.indexOf(subTrack) : 0;
-                          const trackOffset = trackIndex * 6;
-                          const positionInTrack = subTrack 
-                            ? subTrack.subCompetencyIds.indexOf(sub.id) + 1
-                            : orderIndex + 1;
-                          const globalSceneNumber = trackOffset + positionInTrack;
-                          
-                          return (
-                            <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
-                              Scene {globalSceneNumber}
-                              {tracks.length > 1 && subTrack && ` (T${trackIndex + 1})`}
-                            </Badge>
-                          );
-                        })()}
+                        {isSelected && (
+                          <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
+                            Scene {orderIndex + 1}
+                          </Badge>
+                        )}
                       </div>
                       {isSelected && sub.action_cue && (
                         <p className="text-xs text-muted-foreground truncate">
@@ -462,7 +565,7 @@ export function TemplateStepFramework({
               })}
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Locked Framework Display */}
         {selectedSubCompetencies.length > 0 && (
