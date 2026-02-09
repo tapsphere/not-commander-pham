@@ -46,11 +46,11 @@ export const VALERTI_DEMO_OVERRIDE = {
     primary: '#008C45',    // Italian Green
     secondary: '#D81920', // Italian Red
     accent: '#FFBF00',    // Amber Gold
-    background: '#1A1A2E', // Deep luxury dark
-    highlight: '#FFBF00', // Amber highlight
+    background: '#000000', // Onyx
+    highlight: '#FFBF00', // Amber Haze
     text: '#FFFFFF',      // White text on dark
   },
-  logoUrl: '/demo/animals/tpowa-logo.webp', // VALERTI Heart Logo
+  logoUrl: '/demo/valerti-logo.png', // VALERTI Heart Logo
   // Step 2: Role & Info
   name: 'VALERTI',
   description: 'SS26 "Ethereal Motion" Luxury Training',

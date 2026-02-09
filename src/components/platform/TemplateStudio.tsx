@@ -657,6 +657,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             showTrackNudge={isLastSceneOfTrack}
             currentTrackInfo={currentTrackInfo}
             promptContext={promptContext}
+            onNavigateToStep={(step) => setCurrentStep(step)}
           />
         </div>
       </div>
