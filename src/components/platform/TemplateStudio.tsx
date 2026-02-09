@@ -80,6 +80,7 @@ function StudioContent({
   // Multi-track curriculum state
   const [tracks, setTracks] = useState<CompetencyTrack[]>([]);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
+  const [promptContext, setPromptContext] = useState<string>('');
 
   // Calculate completed steps
   const completedSteps = useMemo(() => {
@@ -485,6 +486,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                     // Switch to step 3 if not already there
                     if (currentStep !== 3) setCurrentStep(3);
                   }}
+                  onPromptChange={setPromptContext}
                 />
               </div>
             </ScrollArea>
@@ -611,6 +613,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             }}
             showTrackNudge={isLastSceneOfTrack}
             currentTrackInfo={currentTrackInfo}
+            promptContext={promptContext}
           />
         </div>
       </div>
