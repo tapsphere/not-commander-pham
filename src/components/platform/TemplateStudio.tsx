@@ -496,7 +496,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       </div>
 
       {/* Main 3-Pane Layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-w-0">
         {/* Left Navigator Pane */}
         <div className={`w-56 flex-shrink-0 ${leftPanelStyles}`}>
           <StudioNavigator
@@ -507,7 +507,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
 
         {/* Center Area: Canvas + Filmstrip (or Framework config) */}
-        <div className={`flex-1 flex flex-col ${canvasAreaStyles}`}>
+        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${canvasAreaStyles}`}>
           {currentStep === 3 ? (
             // Framework configuration takes full center when on step 3
             <ScrollArea className="flex-1">
