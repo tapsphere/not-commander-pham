@@ -14,6 +14,7 @@ import {
   DEFAULT_FORM_DATA,
   DEFAULT_DESIGN_SETTINGS,
 } from './template-steps';
+import type { DemoOverrideData } from './template-steps';
 import { 
   StudioThemeProvider, 
   useStudioTheme, 
@@ -81,6 +82,37 @@ function StudioContent({
   const [tracks, setTracks] = useState<CompetencyTrack[]>([]);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [promptContext, setPromptContext] = useState<string>('');
+  const [demoOverrideApplied, setDemoOverrideApplied] = useState(false);
+
+  // Demo Override Handler v27.0 - Injects VALERTI template data into Step 1 & 2
+  const handleDemoOverride = (data: DemoOverrideData) => {
+    // Prevent re-override if user has manually edited after initial override
+    if (demoOverrideApplied) return;
+    
+    // Override Step 1: Brand colors
+    setDesignSettings(prev => ({
+      ...prev,
+      primary: data.colors.primary,
+      secondary: data.colors.secondary,
+      accent: data.colors.accent,
+      background: data.colors.background,
+      highlight: data.colors.highlight,
+      text: data.colors.text,
+    }));
+    
+    // Override Step 2: Info fields
+    setFormData(prev => ({
+      ...prev,
+      name: data.name,
+      description: data.description,
+      roleScenario: data.roleScenario,
+      industry: data.industry,
+      keyElement: data.keyElement,
+    }));
+    
+    // Mark demo override as applied (prevents re-triggering)
+    setDemoOverrideApplied(true);
+  };
 
   // Calculate completed steps
   const completedSteps = useMemo(() => {
@@ -487,6 +519,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                     if (currentStep !== 3) setCurrentStep(3);
                   }}
                   onPromptChange={setPromptContext}
+                  onDemoOverride={handleDemoOverride}
                 />
               </div>
             </ScrollArea>
