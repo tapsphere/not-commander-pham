@@ -329,31 +329,6 @@ export function UnifiedCreativeInput({
         </div>
       )}
 
-      {/* Action Button */}
-      <Button
-        onClick={handleSubmit}
-        disabled={isProcessing || isUploading}
-        size="lg"
-        className="w-full h-12 text-base font-medium shadow-md hover:shadow-lg transition-shadow"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Building Framework...
-          </>
-        ) : isUploading ? (
-          <>
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Parsing PDF...
-          </>
-        ) : (
-          <>
-            <Sparkles className="h-5 w-5 mr-2" />
-            Build 6-Scene Framework
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </>
-        )}
-      </Button>
 
       {/* Quick Skills */}
       <div className="flex flex-wrap gap-2">
