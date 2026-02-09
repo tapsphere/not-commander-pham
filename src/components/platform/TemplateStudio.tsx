@@ -604,7 +604,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
 
         {/* Right Properties Sidebar - Expandable */}
         <div 
-          className={`flex-shrink-0 transition-all duration-300 ease-out relative overflow-visible ${
+          className={`flex-shrink-0 transition-all duration-300 ease-out relative h-full overflow-hidden ${
             sidebarExpanded ? 'w-[560px]' : 'w-80'
           }`}
         >
