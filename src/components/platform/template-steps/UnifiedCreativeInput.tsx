@@ -30,27 +30,27 @@ const DEMO_SUGGESTIONS = [
   { label: 'Fintech Product Lead', prompt: 'Role: Product Manager. Context: Optimizing user onboarding flow and A/B testing conversion funnels for a mobile banking app.' },
 ];
 
-// VALERTI SS26 Demo - Professional default content
+// VALERTI SS26 Demo - Quiet Luxury Italian Maison
 const VALERTI_DEMO = {
-  activePrompt: `Role: Luxury Sales Associate. Brand: VALERTI – SS26 'Ethereal Motion'. Scenario A: Merchandising the 'Silk-Lace Tech Runner' window using Analytical Thinking to optimize mannequin depth and Amber Haze focal lighting. Scenario B: Managing the SS26 digital reservation funnel using Growth Design to identify UI friction points and map VIP referral loops. Create 2 tracks of 6 scenes to measure behavioral readiness for this dual-hybrid role...`,
+  activePrompt: `Role: Luxury Sales Associate. Brand: VALERTI – SS26 'Ethereal Motion'. Scenario A: Merchandising the 'Silk-Lace Tech Runner' window using Analytical Thinking to optimize mannequin depth and warm ambient lighting. Scenario B: Managing the SS26 digital reservation funnel using Growth Design to identify UI friction points and map VIP referral loops. Create 2 tracks of 6 scenes to measure behavioral readiness for this dual-hybrid role...`,
   theme: 'VALERTI SS26 Luxury Boutique Merchandising',
   skill: 'Analytical Thinking',
-  visualBase: 'SS26 Luxury Boutique, 35mm film grain, Amber Haze lighting, ethereal motion',
+  visualBase: 'Cinematic 35mm vignette, Milanese luxury showroom, arched architecture, natural stone, warm lighting, heavy bokeh',
 };
 
-// VALERTI Demo Override - Template Injection v27.0
+// VALERTI Demo Override - Template Injection v46.0 (Quiet Luxury)
 // When detected, this overrides Step 1 & 2 with demo brand data
 export const VALERTI_DEMO_OVERRIDE = {
-  // Step 1: Brand visuals
+  // Step 1: Brand visuals — Quiet Luxury Italian Maison palette
   colors: {
-    primary: '#008C45',    // Italian Green
-    secondary: '#D81920', // Italian Red
-    accent: '#FFBF00',    // Amber Gold
-    background: '#000000', // Onyx
-    highlight: '#FFBF00', // Amber Haze
-    text: '#FFFFFF',      // White text on dark
+    primary: '#C0B283',    // Champagne Gold
+    secondary: '#5B4A3F',  // Walnut / Container
+    accent: '#C0B283',     // Champagne Gold
+    background: '#F2F1EF', // Surface (Warm Linen)
+    highlight: '#C0B283',  // Champagne Gold
+    text: '#0D0D0D',       // Typography (Near Black)
   },
-  logoUrl: '/demo/valerti-logo.png', // VALERTI Heart Logo
+  logoUrl: '/demo/valerti-wire-logo.png', // VALERTI Wire-Sculpture Logo
   // Step 2: Role & Info
   name: 'VALERTI',
   description: 'SS26 "Ethereal Motion" Luxury Training',
@@ -236,9 +236,17 @@ export function UnifiedCreativeInput({
         const trackId = `track-1-${Date.now()}`;
         const { matchedSubs, scenes } = populateScenesForCompetency(analyticalComp.id, searchTheme, trackId);
         
-        // Apply Fashion visual styling
+        // Apply Quiet Luxury visual styling — Cinematic 35mm with minimalist subjects
+        const SCENE_SUBJECTS = [
+          'One sculptural mannequin in neutral silk drapery',
+          'A single tech-runner shoe on a floating marble shelf',
+          'A minimalist gold garment rack with one hanging item',
+          'A single leather portfolio case on a polished stone counter',
+          'One delicate perfume bottle with amber liquid on brushed brass',
+          'A single evening clutch displayed in an arched alcove',
+        ];
         scenes.forEach((scene, idx) => {
-          scene.backgroundPrompt = `${VALERTI_DEMO.visualBase}, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
+          scene.backgroundPrompt = `${VALERTI_DEMO.visualBase}. ${SCENE_SUBJECTS[idx % SCENE_SUBJECTS.length]}`;
         });
         
         trackMappings.push({

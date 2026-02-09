@@ -351,7 +351,7 @@ export function StudioTrackRail({
           `}
           style={{
             background: hasBackgroundPrompt
-              ? `linear-gradient(${120 + ((track.sceneDataIndex || 0) * 30)}deg, ${designSettings.primary}, ${designSettings.secondary} 50%, ${designSettings.background})`
+              ? `radial-gradient(ellipse at 50% 40%, ${designSettings.background} 10%, ${designSettings.secondary}25 60%, ${designSettings.background} 100%)`
               : designSettings.background,
             borderColor: isActive
               ? designSettings.primary
