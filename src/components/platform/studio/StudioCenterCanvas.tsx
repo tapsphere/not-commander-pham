@@ -182,11 +182,11 @@ export function StudioCenterCanvas({
         {displayDescription}
       </p>
 
-      {/* Spacer to push button down */}
-      <div className="flex-1 min-h-12" />
+      {/* Spacer to push button above swatches */}
+      <div className="flex-1 min-h-8" />
       
       <button
-        className="px-10 py-3.5 rounded-xl font-semibold text-sm shadow-lg relative z-10"
+        className="px-10 py-3.5 rounded-xl font-semibold text-sm shadow-lg relative z-10 mb-8"
         style={{
           backgroundColor: designSettings.primary,
           color: designSettings.background,

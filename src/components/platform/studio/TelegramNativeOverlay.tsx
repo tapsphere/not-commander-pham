@@ -75,7 +75,7 @@ export function TelegramNativeOverlay({
         
         {/* Center: App Name */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <span className="text-sm font-semibold text-white">
+          <span className="text-sm font-semibold text-black">
             PlayOps
           </span>
         </div>
