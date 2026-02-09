@@ -229,7 +229,7 @@ export function StudioCenterCanvas({
       return (
         <div className="h-full flex flex-col overflow-hidden relative" style={{ 
           background: currentScene?.backgroundPrompt?.trim()
-            ? `linear-gradient(160deg, ${designSettings.background} 0%, ${designSettings.primary}90 40%, ${designSettings.secondary}80 70%, ${designSettings.background} 100%)`
+            ? `radial-gradient(ellipse at 50% 40%, ${designSettings.background} 0%, ${designSettings.secondary}18 55%, ${designSettings.background} 80%), linear-gradient(to bottom, ${designSettings.background}, ${designSettings.secondary}10)`
             : designSettings.background
         }}>
           {/* ═══════════════════════════════════════════════════════════════
@@ -352,7 +352,7 @@ export function StudioCenterCanvas({
     return (
       <div className="h-full overflow-hidden flex flex-col relative" style={{ 
         background: currentScene?.backgroundPrompt?.trim()
-          ? `linear-gradient(${140 + (currentSceneIndex * 20)}deg, ${designSettings.background} 0%, ${designSettings.primary}90 35%, ${designSettings.accent}70 65%, ${designSettings.background} 100%)`
+          ? `radial-gradient(ellipse at 50% 35%, ${designSettings.background} 0%, ${designSettings.secondary}15 50%, ${designSettings.background} 85%), linear-gradient(to bottom, ${designSettings.background}, ${designSettings.secondary}08)`
           : designSettings.background
       }}>
         {/* ═══════════════════════════════════════════════════════════════

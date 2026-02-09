@@ -122,9 +122,9 @@ function StudioContent({
     // Mark demo override as applied (prevents re-triggering)
     setDemoOverrideApplied(true);
     
-    // Set global style prompt with VALERTI brand references
+    // Set global style prompt with Quiet Luxury Italian Maison references
     setGlobalStylePrompt(
-      `Cinematic 35mm film grain, luxury boutique interior for ${data.name} SS26, 'Amber Haze' focal lighting with warm golden glows. Architectural accents in Heritage Green (${data.colors.primary}) and Valerti Red (${data.colors.secondary}) on polished marble and brushed gold surfaces. Sophisticated, high-end atmosphere, soft bokeh background.`
+      `Cinematic 35mm vignette, Milanese luxury showroom for ${data.name} SS26. Arched architecture, natural stone floors, warm ambient lighting with heavy bokeh. Champagne Gold (${data.colors.primary}) accents on Walnut (${data.colors.secondary}) surfaces. Linen-white walls, minimal props, one physical subject per scene. Quiet luxury, Italian maison aesthetic.`
     );
     
     // v31.0: Silent injection - no toast shown, user discovers it naturally when navigating
