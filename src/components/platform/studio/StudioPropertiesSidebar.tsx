@@ -98,6 +98,8 @@ interface StudioPropertiesSidebarProps {
   currentTrackInfo?: { number: number; name: string } | null;
   // Expert Advisor context (NEW)
   promptContext?: string;
+  // Navigation callback for "Synced from Step 1" badge
+  onNavigateToStep?: (step: number) => void;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -232,6 +234,7 @@ export function StudioPropertiesSidebar({
   showTrackNudge = false,
   currentTrackInfo,
   promptContext = '',
+  onNavigateToStep,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -1533,56 +1536,24 @@ export function StudioPropertiesSidebar({
           )}
         </div>
 
-        {/* EDITABLE VISUAL IDENTITY SECTION */}
-        <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-card border border-border' : 'bg-white border border-slate-200'}`}>
-          <SectionHeader icon={Palette} label="Visual Identity (Editable)" isDarkMode={isDarkMode} />
+        {/* Brand Identity Synced Badge - Links back to Step 1 */}
+        <button
+          onClick={() => {
+            if (onNavigateToStep) onNavigateToStep(1);
           
-          <div className="space-y-3 mt-3">
-            {/* Brand Name */}
-            <div className="space-y-1.5">
-              <Label className={`text-xs ${mutedColor}`}>Brand Name</Label>
-              <Input
-                value={formData.name || 'VALERTI'}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={`h-9 ${inputBg}`}
-                placeholder="Brand Name"
-              />
-            </div>
-
-            {/* Primary Colors */}
-            <div className="space-y-1.5">
-              <Label className={`text-xs ${mutedColor}`}>Primary Colors</Label>
-              <div className="flex gap-2">
-                <ColorPicker
-                  label=""
-                  value={designSettings.primary}
-                  onChange={(v) => setDesignSettings({ ...designSettings, primary: v })}
-                  isDarkMode={isDarkMode}
-                />
-                <ColorPicker
-                  label=""
-                  value={designSettings.secondary}
-                  onChange={(v) => setDesignSettings({ ...designSettings, secondary: v })}
-                  isDarkMode={isDarkMode}
-                />
-              </div>
-              <p className={`text-[10px] ${mutedColor}`}>
-                Default: #008C45, #D81920 (Italian heritage)
-              </p>
-            </div>
-
-            {/* Season */}
-            <div className="space-y-1.5">
-              <Label className={`text-xs ${mutedColor}`}>Season</Label>
-              <Input
-                value={formData.description?.includes('SS26') ? 'SS26' : formData.description?.split(' ')[0] || 'SS26'}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value + ' Collection' })}
-                className={`h-9 ${inputBg}`}
-                placeholder="SS26"
-              />
-            </div>
+          }}
+          className={`w-full p-3 rounded-xl border-2 border-dashed transition-all hover:scale-[1.01] cursor-pointer ${
+            isDarkMode ? 'border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10' : 'border-emerald-500/20 bg-emerald-50 hover:bg-emerald-100'
+          }`}
+        >
+          <div className="flex items-center gap-2 justify-center">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+            <span className={`text-xs font-medium ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              ✨ Brand Identity Synced from Step 1
+            </span>
           </div>
-        </div>
+          <p className={`text-[10px] mt-1 ${mutedColor}`}>Click to edit colors & logo in Brand step</p>
+        </button>
 
         {/* Scene Count Summary */}
         {scenes.length > 0 && (
@@ -1650,7 +1621,7 @@ export function StudioPropertiesSidebar({
           <div className="flex items-center gap-2">
             <span className={`text-sm font-medium ${textColor}`}>
               {currentStep === 3 && tracks.length > 0 
-                ? 'Expert Advisor'
+                ? 'C-BEN Expert Advisor'
                 : currentStep === 4 && isGameplayScene 
                 ? 'Command Center' 
                 : 'Properties'
@@ -1748,10 +1719,6 @@ export function StudioPropertiesSidebar({
                   </p>
                 </div>
 
-                {/* Divider before editable fields */}
-                <div className={`border-t ${borderColor} pt-4`}>
-                  <span className={`text-xs font-medium ${mutedColor}`}>Brand Identity Settings</span>
-                </div>
               </div>
             )}
             
