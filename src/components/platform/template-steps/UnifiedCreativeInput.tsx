@@ -250,46 +250,14 @@ export function UnifiedCreativeInput({
             }
           }}
           placeholder={FASHION_DEMO.activePrompt}
-          className="w-full min-h-[140px] px-5 py-4 pr-32 text-sm leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[180px] px-5 py-4 pb-14 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
-          rows={4}
+          rows={5}
         />
         
-        {/* Right-side controls: Compact Send + Clear + Upload */}
-        <div className="absolute right-3 top-3 flex flex-col items-end gap-2">
-          {/* Compact Send Button (Icon only) */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground italic whitespace-nowrap">
-              (Want to try? Hit Send)
-            </span>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isProcessing || isUploading}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all shadow-md"
-              title="Send"
-            >
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-          
-          {/* Clear Button (only show when there's custom input) */}
-          {inputValue && inputValue !== FASHION_DEMO.activePrompt && (
-            <button
-              type="button"
-              onClick={handleClearInput}
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-            >
-              <X className="h-3 w-3" />
-              Clear
-            </button>
-          )}
-          
-          {/* Upload Button */}
+        {/* Bottom bar: Upload left, Clear center, Send right */}
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+          {/* Left: Upload Button */}
           <button
             type="button"
             onClick={handleUploadClick}
@@ -300,6 +268,40 @@ export function UnifiedCreativeInput({
             <Upload className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
             <span className="text-muted-foreground group-hover:text-primary">Upload PDF</span>
           </button>
+          
+          {/* Center: Clear Button (only show when there's custom input) */}
+          <div className="flex-1 flex justify-center">
+            {inputValue && inputValue !== FASHION_DEMO.activePrompt && (
+              <button
+                type="button"
+                onClick={handleClearInput}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                Clear
+              </button>
+            )}
+          </div>
+          
+          {/* Right: Compact Send Button + Hint */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground italic hidden sm:inline">
+              (Hit Send)
+            </span>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isProcessing || isUploading}
+              className="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all shadow-sm"
+              title="Send"
+            >
+              {isProcessing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Send className="h-3.5 w-3.5" />
+              )}
+            </button>
+          </div>
         </div>
         
         <input
