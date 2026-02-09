@@ -1457,6 +1457,204 @@ export function StudioPropertiesSidebar({
     </div>
   );
 
+  // ====== FRAMEWORK PROPERTIES (v22.0 - Dual-Track & Locked PlayOps) ======
+  const renderFrameworkProperties = () => {
+    // Extract role/brand from prompt context
+    const promptLower = promptContext.toLowerCase();
+    const detectedRole = promptLower.includes('sales associate') ? 'Luxury Sales Associate' 
+      : promptLower.includes('manager') ? 'Team Manager'
+      : promptLower.includes('analyst') ? 'Business Analyst'
+      : 'Professional Role';
+    
+    const detectedBrand = promptLower.includes('valerti') ? 'VALERTI'
+      : promptLower.includes('ss26') ? 'SS26 Collection'
+      : 'Brand Experience';
+    
+    // Get mapped competency names from tracks
+    const mappedCompetencyNames = tracks.map(t => t.competencyName);
+    const hasAnalytical = mappedCompetencyNames.some(n => n.toLowerCase().includes('analytical'));
+    const hasGrowth = mappedCompetencyNames.some(n => n.toLowerCase().includes('growth'));
+
+    return (
+      <div className="space-y-4">
+        {/* LOCKED PLAYOPS FRAMEWORK SECTION */}
+        <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-amber-500/30 bg-amber-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-1.5 rounded-lg bg-amber-500/20">
+              <Lock className="h-4 w-4 text-amber-600" />
+            </div>
+            <span className={`text-sm font-semibold ${textColor}`}>Locked PlayOps Framework</span>
+          </div>
+          
+          {/* Mapped Competencies Display */}
+          {tracks.length > 0 ? (
+            <div className="space-y-3">
+              <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-background/50' : 'bg-white'} border ${borderColor}`}>
+                <p className={`text-xs font-medium ${mutedColor} mb-2`}>Mapped to:</p>
+                <div className="flex flex-wrap gap-2">
+                  {hasAnalytical && (
+                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
+                      <Eye className="h-3 w-3 mr-1" />
+                      Analytical Thinking (Visual)
+                    </Badge>
+                  )}
+                  {hasGrowth && (
+                    <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Growth Design (Digital)
+                    </Badge>
+                  )}
+                  {!hasAnalytical && !hasGrowth && mappedCompetencyNames.map((name, idx) => (
+                    <Badge key={idx} variant="secondary" className="bg-primary/10 text-primary border-primary/30">
+                      <Target className="h-3 w-3 mr-1" />
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
+              <p className={`text-[10px] ${mutedColor} leading-relaxed`}>
+                <Lock className="h-2.5 w-2.5 inline mr-1 text-amber-600" />
+                These fields are pulled from the <strong className="text-amber-600">C-BEN standard</strong> and cannot be edited.
+              </p>
+            </div>
+          ) : (
+            <p className={`text-sm ${mutedColor}`}>
+              Hit <strong>Send</strong> on your prompt to map competencies.
+            </p>
+          )}
+        </div>
+
+        {/* ✨ WHY THESE COMPETENCIES? - Expert Advisor Logic */}
+        {tracks.length > 0 && (
+          <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-slate-800/50 border border-white/10' : 'bg-slate-50 border border-slate-200'}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className={`text-sm font-semibold ${textColor}`}>✨ Why these Competencies?</span>
+            </div>
+
+            {/* Role-to-Behavior Mapping */}
+            <div className={`p-3 rounded-lg mb-3 ${isDarkMode ? 'bg-primary/5 border border-primary/20' : 'bg-primary/5 border border-primary/20'}`}>
+              <p className={`text-xs font-medium ${textColor} mb-1`}>Targeting: {detectedRole} Excellence</p>
+              <p className={`text-[11px] ${mutedColor}`}>
+                For <strong>{detectedBrand}</strong>, we're measuring behavioral readiness across {tracks.length} competency dimension{tracks.length !== 1 ? 's' : ''}.
+              </p>
+            </div>
+
+            {/* Competency-specific insights */}
+            <div className="space-y-2">
+              {hasAnalytical && (
+                <div className={`p-2.5 rounded-lg ${isDarkMode ? 'bg-amber-500/5 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Eye className="h-3.5 w-3.5 text-amber-600" />
+                    <span className={`text-xs font-semibold text-amber-600`}>Analytical Thinking</span>
+                  </div>
+                  <p className={`text-[10px] ${mutedColor} leading-relaxed`}>
+                    {COMPETENCY_INSIGHTS['analytical thinking']?.cbenWhy || 'C-BEN standard for visual pattern recognition.'}
+                  </p>
+                </div>
+              )}
+              
+              {hasGrowth && (
+                <div className={`p-2.5 rounded-lg ${isDarkMode ? 'bg-emerald-500/5 border border-emerald-500/20' : 'bg-emerald-50 border border-emerald-200'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+                    <span className={`text-xs font-semibold text-emerald-600`}>Growth Design</span>
+                  </div>
+                  <p className={`text-[10px] ${mutedColor} leading-relaxed`}>
+                    {COMPETENCY_INSIGHTS['growth design']?.cbenWhy || 'C-BEN standard for conversion optimization.'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Measurement Methodology */}
+            <div className={`mt-3 pt-3 border-t ${isDarkMode ? 'border-white/10' : 'border-slate-200'}`}>
+              <p className={`text-[10px] font-semibold ${mutedColor} mb-2`}>Measurement Methodology:</p>
+              <div className="flex gap-2">
+                <Badge variant="outline" className="text-[9px] py-0.5 px-1.5 bg-transparent">
+                  <Gauge className="h-2.5 w-2.5 mr-1" />
+                  Cognitive Speed
+                </Badge>
+                <Badge variant="outline" className="text-[9px] py-0.5 px-1.5 bg-transparent">
+                  <Target className="h-2.5 w-2.5 mr-1" />
+                  Precision
+                </Badge>
+                <Badge variant="outline" className="text-[9px] py-0.5 px-1.5 bg-transparent">
+                  <Clock className="h-2.5 w-2.5 mr-1" />
+                  60s Gate
+                </Badge>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EDITABLE VISUAL IDENTITY SECTION */}
+        <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-card border border-border' : 'bg-white border border-slate-200'}`}>
+          <SectionHeader icon={Palette} label="Visual Identity (Editable)" isDarkMode={isDarkMode} />
+          
+          <div className="space-y-3 mt-3">
+            {/* Brand Name */}
+            <div className="space-y-1.5">
+              <Label className={`text-xs ${mutedColor}`}>Brand Name</Label>
+              <Input
+                value={formData.name || 'VALERTI'}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={`h-9 ${inputBg}`}
+                placeholder="Brand Name"
+              />
+            </div>
+
+            {/* Primary Colors */}
+            <div className="space-y-1.5">
+              <Label className={`text-xs ${mutedColor}`}>Primary Colors</Label>
+              <div className="flex gap-2">
+                <ColorPicker
+                  label=""
+                  value={designSettings.primary}
+                  onChange={(v) => setDesignSettings({ ...designSettings, primary: v })}
+                  isDarkMode={isDarkMode}
+                />
+                <ColorPicker
+                  label=""
+                  value={designSettings.secondary}
+                  onChange={(v) => setDesignSettings({ ...designSettings, secondary: v })}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+              <p className={`text-[10px] ${mutedColor}`}>
+                Default: #008C45, #D81920 (Italian heritage)
+              </p>
+            </div>
+
+            {/* Season */}
+            <div className="space-y-1.5">
+              <Label className={`text-xs ${mutedColor}`}>Season</Label>
+              <Input
+                value={formData.description?.includes('SS26') ? 'SS26' : formData.description?.split(' ')[0] || 'SS26'}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value + ' Collection' })}
+                className={`h-9 ${inputBg}`}
+                placeholder="SS26"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Scene Count Summary */}
+        {scenes.length > 0 && (
+          <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-100'} border ${borderColor}`}>
+            <div className="flex items-center justify-between">
+              <span className={`text-xs font-medium ${textColor}`}>Total Scenes</span>
+              <Badge variant="secondary" className="text-xs">
+                {scenes.length} scenes across {tracks.length} track{tracks.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Decide what to render based on step and scene
   const renderProperties = () => {
     // If viewing filmstrip scenes, show scene-specific properties
@@ -1473,31 +1671,7 @@ export function StudioPropertiesSidebar({
       case 2:
         return renderInfoProperties();
       case 3:
-        return (
-          <div className="space-y-4">
-            <SectionHeader icon={Lock} label="Framework" isDarkMode={isDarkMode} />
-            <p className={`text-sm ${mutedColor}`}>
-              Configure the C-BEN framework in the left panel. Selected competencies will appear here.
-            </p>
-            {scenes.length > 0 && (
-              <div className="space-y-2">
-                <Label className={mutedColor}>Active Scenes ({scenes.length})</Label>
-                {scenes.map((scene, idx) => {
-                  const sub = subCompetencies.find(s => s.id === scene.subCompetencyId);
-                  return (
-                    <div 
-                      key={scene.id}
-                      className={`p-3 rounded-lg ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}
-                    >
-                      <p className={`text-sm font-medium ${textColor}`}>Scene {idx + 1}</p>
-                      <p className={`text-xs ${mutedColor} truncate`}>{sub?.statement}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
+        return renderFrameworkProperties();
       default:
         return null;
     }
