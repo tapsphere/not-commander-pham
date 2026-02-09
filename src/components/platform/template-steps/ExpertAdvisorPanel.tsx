@@ -39,6 +39,13 @@ const COMPETENCY_INSIGHTS: Record<string, {
     icon: TrendingUp,
     color: 'emerald',
   },
+  'growth design': {
+    roleMapping: 'Operational Growth & Continuous Improvement',
+    cbenWhy: 'Growth Design under C-BEN standards validates the ability to identify operational improvement opportunities, optimize passenger experience funnels, and drive measurable service quality metrics across cabin operations.',
+    measurementFocus: 'We measure strategic identification of growth levers, conversion of service touchpoints, and data-driven optimization under operational constraints.',
+    icon: TrendingUp,
+    color: 'emerald',
+  },
 };
 
 // Default fallback for competencies not in the map

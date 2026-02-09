@@ -15,11 +15,15 @@ const COMPETENCY_KEYWORDS: Record<string, string[]> = {
   'analytical thinking': [
     'analysis', 'analytical', 'thinking', 'data', 'pattern', 'logic', 'reasoning',
     'evaluate', 'assess', 'diagnose', 'investigate', 'research', 'study',
-    'fashion', 'merchandising', 'retail', 'display', 'window'
+    'fashion', 'merchandising', 'retail', 'display', 'window',
+    'forensic', 'audit', 'psi', 'oxygen', 'halon', 'pressure', 'inspection',
+    'cylinder', 'vessel', 'tolerance', 'compliance', 'faa', 'safety check'
   ],
   'problem solving': [
     'problem', 'solving', 'solution', 'fix', 'resolve', 'troubleshoot',
-    'debug', 'repair', 'optimize', 'improve', 'enhance'
+    'debug', 'repair', 'optimize', 'improve', 'enhance',
+    'emergency', 'evacuation', 'survival', 'slide', 'deployment', 'triage',
+    'cabin emergency', 'threat', 'incident', 'systematic'
   ],
   'emotional intelligence': [
     'emotional', 'intelligence', 'empathy', 'feelings', 'relationship',
@@ -33,9 +37,25 @@ const COMPETENCY_KEYWORDS: Record<string, string[]> = {
     'decision', 'making', 'choose', 'judgment', 'evaluate', 'risk',
     'strategy', 'planning', 'priority', 'trade-off'
   ],
+  'digital & ai fluency': [
+    'digital', 'technology', 'software', 'coding', 'programming',
+    'automation', 'AI', 'machine', 'computer', 'cyber',
+    'vocus', 'retina', 'sync', 'haptic', 'override', 'interface',
+    'cockpit', 'diagnostic', 'sensor', 'calibration', 'latency'
+  ],
   'digital fluency': [
     'digital', 'technology', 'software', 'coding', 'programming',
     'automation', 'AI', 'machine', 'computer', 'cyber'
+  ],
+  'adaptability & resilience': [
+    'adaptability', 'resilience', 'adapt', 'flexible', 'agile',
+    'pressure', 'stress', 'composure', 'grace', 'turbulence',
+    'aeration', 'linen', 'premium', 'service', 'alert grace',
+    'irregular operations', 'disruption', 'cabin service'
+  ],
+  'growth design': [
+    'growth', 'funnel', 'conversion', 'marketing', 'acquisition',
+    'retention', 'viral', 'referral', 'onboarding', 'engagement'
   ],
 };
 
