@@ -54,20 +54,21 @@ const App = () => (
             {/* Platform Routes (Creators & Brands) */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/platform" element={<PlatformLayout />}>
-              <Route index element={<Navigate to="/platform/marketplace" replace />} />
+              <Route index element={<Navigate to="/platform/dashboard" replace />} />
+              <Route path="dashboard" element={<Marketplace />} />
               <Route path="creator" element={<CreatorDashboard />} />
               <Route path="creator-demo" element={<CreatorDemo />} />
               <Route path="creator/profile-edit" element={<BrandProfileEdit />} />
               <Route path="brand" element={<BrandDashboard />} />
               <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
               <Route path="brand/demo-generator" element={<DemoGenerator />} />
-              <Route path="marketplace" element={<Marketplace />} />
+              <Route path="marketplace" element={<Navigate to="/platform/dashboard" replace />} />
               <Route path="template/:templateId" element={<TemplateDetail />} />
               <Route path="validator-test" element={<ValidatorTest />} />
               <Route path="testing-guide" element={<TestingGuide />} />
               <Route path="play/:templateId" element={<PlayValidator />} />
               <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
-              <Route path="*" element={<Navigate to="/platform/marketplace" replace />} />
+              <Route path="*" element={<Navigate to="/platform/dashboard" replace />} />
             </Route>
             
             {/* Public Brand Profile */}

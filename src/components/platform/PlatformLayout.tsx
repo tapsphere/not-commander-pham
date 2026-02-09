@@ -87,13 +87,22 @@ export const PlatformLayout = () => {
             
             <nav className="flex gap-2">
               <Button
+                variant={location.pathname === '/platform/dashboard' ? 'default' : 'ghost'}
+                onClick={() => navigate('/platform/dashboard')}
+                className="gap-2"
+                size="sm"
+              >
+                <Store className="w-4 h-4" />
+                Dashboard
+              </Button>
+              <Button
                 variant={location.pathname.includes('/creator') ? 'default' : 'ghost'}
                 onClick={() => navigate('/platform/creator')}
                 className="gap-2"
                 size="sm"
               >
                 <Layers className="w-4 h-4" />
-                Templates
+                Studio
               </Button>
               <Button
                 variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
@@ -103,15 +112,6 @@ export const PlatformLayout = () => {
               >
                 <TestTube className="w-4 h-4" />
                 Test
-              </Button>
-              <Button
-                variant={location.pathname === '/platform/marketplace' ? 'default' : 'ghost'}
-                onClick={() => navigate('/platform/marketplace')}
-                className="gap-2"
-                size="sm"
-              >
-                <Store className="w-4 h-4" />
-                Gallery
               </Button>
             </nav>
           </div>
