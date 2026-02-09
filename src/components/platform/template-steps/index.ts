@@ -6,5 +6,6 @@ export { CompetencyAISearch } from './CompetencyAISearch';
 export { CompetencyPropertiesPanel } from './CompetencyPropertiesPanel';
 export { EntryPortSelector } from './EntryPortSelector';
 export { UnifiedCreativeInput } from './UnifiedCreativeInput';
+export { ExpertAdvisorPanel } from './ExpertAdvisorPanel';
 export * from './types';
 export type { CompetencyTrack, CurriculumState } from './types';
