@@ -106,6 +106,7 @@ interface StudioPropertiesSidebarProps {
   globalStylePrompt?: string;
   onGlobalStyleChange?: (prompt: string) => void;
   onApplyToAllScenes_global?: () => void;
+  isApplyingGlobal?: boolean;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -244,6 +245,7 @@ export function StudioPropertiesSidebar({
   globalStylePrompt = '',
   onGlobalStyleChange,
   onApplyToAllScenes_global,
+  isApplyingGlobal = false,
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -1686,6 +1688,7 @@ export function StudioPropertiesSidebar({
                   scenes={scenes}
                   designSettings={designSettings}
                   brandName={formData.name || undefined}
+                  isApplying={isApplyingGlobal}
                 />
               </div>
             )}
