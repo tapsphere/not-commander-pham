@@ -33,8 +33,8 @@ const AERO_ROLE_IMAGES: Record<string, string> = {
   'cargo': aeroLogistics,
   'safety': aeroSafety,
   'compliance': aeroSafety,
-  'customer experience': aeroPCL,
-  'brand ambassador': aeroPCL,
+  'customer experience': aeroCXM,
+  'brand ambassador': aeroCXM,
 };
 
 /** Get the best matching Aero role image for a given name/role string */
