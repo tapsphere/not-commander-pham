@@ -832,7 +832,17 @@ export function StudioPropertiesSidebar({
             ${isDarkMode ? 'border-white/20 hover:border-white/40' : 'border-slate-300 hover:border-slate-400'}
           `}>
             {logoFile ? (
-              <span className={`text-sm ${textColor}`}>{logoFile.name}</span>
+              <img 
+                src={URL.createObjectURL(logoFile)} 
+                alt="Logo preview" 
+                className="h-16 w-16 object-contain"
+              />
+            ) : logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="Demo logo" 
+                className="h-16 w-16 object-contain"
+              />
             ) : (
               <>
                 <Upload className={`h-4 w-4 ${mutedColor}`} />

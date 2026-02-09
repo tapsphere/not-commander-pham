@@ -139,59 +139,26 @@ export const ColorRemixPanel = ({
     // ===== THE SHUFFLE RULE =====
     // Generate a proper 4-color palette, not just rearrange 1 color
     
-    // Step 1: Sort colors by luminance
-    const sortedByLuminance = [...brandColors].sort((a, b) => getLuminance(a) - getLuminance(b));
+    // Step 1: Shuffle the brand colors into a random order
+    const shuffled = [...brandColors].sort(() => Math.random() - 0.5);
     
-    // Step 2: Sort colors by vibrance (for action color selection)
-    const sortedByVibrance = [...brandColors].sort((a, b) => getVibrance(b) - getVibrance(a));
+    // Step 2: Assign each shuffled color to a zone
+    let surface = shuffled[0];
+    let action = shuffled[1];
+    let container = shuffled[2];
+    const remaining = shuffled[3];
     
-    // Step 3: Pick Surface (background) - prioritize dark/neutral colors
-    // Randomly pick from the 2 darkest or 2 lightest depending on theme mode
-    const darkColors = sortedByLuminance.slice(0, 2);
-    const lightColors = sortedByLuminance.slice(2, 4);
-    
-    const surface = isDarkMode
-      ? darkColors[Math.floor(Math.random() * darkColors.length)]
-      : lightColors[Math.floor(Math.random() * lightColors.length)];
-    
-    // Step 4: Pick Action (buttons) - must have HIGH CONTRAST against surface
-    // Choose the most vibrant color that has good contrast
-    let action = sortedByVibrance[0];
-    const minContrast = 4.5; // WCAG AA standard
-    
-    for (const color of sortedByVibrance) {
-      const contrast = getContrastRatio(color, surface);
-      if (contrast >= minContrast && color !== surface) {
-        action = color;
-        break;
-      }
+    // Step 3: Ensure action has contrast against surface; swap if needed
+    if (getContrastRatio(action, surface) < 3) {
+      // Swap action with the color that has best contrast against surface
+      const candidates = [action, container, remaining].sort(
+        (a, b) => getContrastRatio(b, surface) - getContrastRatio(a, surface)
+      );
+      action = candidates[0];
+      container = candidates[1];
     }
     
-    // If no color has good contrast, force a high-contrast action color
-    if (getContrastRatio(action, surface) < minContrast || action === surface) {
-      // Generate a contrasting action color
-      action = isDark(surface) ? '#FFFFFF' : '#1A1A1A';
-      // Or pick the color with maximum contrast from available
-      const maxContrastColor = brandColors
-        .filter(c => c !== surface)
-        .sort((a, b) => getContrastRatio(b, surface) - getContrastRatio(a, surface))[0];
-      if (maxContrastColor && getContrastRatio(maxContrastColor, surface) > getContrastRatio(action, surface)) {
-        action = maxContrastColor;
-      }
-    }
-    
-    // Step 5: Pick Container - glassmorphic frosted version of surface
-    const remainingColors = brandColors.filter(c => c !== surface && c !== action);
-    let container = remainingColors.length > 0 
-      ? remainingColors[Math.floor(Math.random() * remainingColors.length)]
-      : adjustColorForContainer(surface, isDarkMode);
-    
-    // Ensure container is distinct from surface
-    if (container === surface) {
-      container = adjustColorForContainer(surface, isDarkMode);
-    }
-    
-    // Step 6: Auto-calculate Typography for optimal contrast
+    // Step 4: Auto-calculate Typography for optimal contrast
     const typography = getContrastTextColor(surface);
     
     // Store the new zone colors
@@ -202,7 +169,7 @@ export const ColorRemixPanel = ({
     const newColors = {
       primary: action,
       secondary: container,
-      accent: remainingColors.find(c => c !== container) || accentColor,
+      accent: remaining || accentColor,
       background: surface
     };
     
