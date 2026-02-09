@@ -28,17 +28,21 @@ export const PlatformLayout = () => {
 
   const checkAuth = async () => {
     try {
-      // Allow public access — don't redirect to auth
       const isDemoMode = localStorage.getItem('demoMode') === 'true';
       if (isDemoMode) {
         setLoading(false);
         return;
       }
 
-      // Silently check auth but don't force redirect
-      await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
     } catch (error) {
-      console.warn('Auth check skipped:', error);
+      console.error('Auth check failed:', error);
+      navigate('/auth');
     } finally {
       setLoading(false);
     }
