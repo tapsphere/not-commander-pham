@@ -498,6 +498,15 @@ export default function Marketplace() {
         creatorMap.get(key)?.games.push({ id: template.id, name: template.name, preview_image: template.preview_image });
       });
 
+      // Aero-Airways role assignments for creators without profile names
+      const aeroRoles = [
+        { name: 'Premium Cabin Lead', image: aeroPCL },
+        { name: 'Ground Ops Supervisor', image: aeroOCC },
+        { name: 'Safety Compliance Officer', image: aeroSafety },
+        { name: 'Customer Experience Mgr', image: aeroLogistics },
+      ];
+      let aeroIndex = 0;
+
       const creatorsWithProfiles = await Promise.all(
         Array.from(creatorMap.values()).map(async ({ creator_id, games }) => {
           if (!creator_id) {
@@ -506,7 +515,17 @@ export default function Marketplace() {
           }
           const { data: profile } = await supabase.from('profiles').select('full_name, bio').eq('user_id', creator_id).single();
           const fg = games[0];
-          return { creator_id, creator_name: profile?.full_name || 'Unknown Creator', creator_bio: profile?.bio, featured_game_image: fg?.preview_image, featured_game_name: fg?.name, featured_game_id: fg?.id, total_games: games.length };
+          const isUnknown = !profile?.full_name || profile.full_name === 'Unknown Creator';
+          const aeroRole = isUnknown ? aeroRoles[aeroIndex++ % aeroRoles.length] : null;
+          return {
+            creator_id,
+            creator_name: isUnknown ? aeroRole!.name : profile!.full_name,
+            creator_bio: profile?.bio,
+            featured_game_image: isUnknown ? aeroRole!.image : fg?.preview_image,
+            featured_game_name: fg?.name,
+            featured_game_id: fg?.id,
+            total_games: games.length,
+          };
         })
       );
       setCreators(creatorsWithProfiles);
