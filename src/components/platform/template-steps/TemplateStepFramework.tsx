@@ -429,11 +429,23 @@ export function TemplateStepFramework({
                         <label htmlFor={sub.id} className="text-sm font-medium cursor-pointer text-foreground">
                           {sub.statement}
                         </label>
-                        {isSelected && (
-                          <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
-                            Scene {orderIndex + 1}
-                          </Badge>
-                        )}
+                        {isSelected && (() => {
+                          // Calculate track-relative scene number for the badge
+                          const subTrack = tracks.find(t => t.subCompetencyIds.includes(sub.id));
+                          const trackIndex = subTrack ? tracks.indexOf(subTrack) : 0;
+                          const trackOffset = trackIndex * 6;
+                          const positionInTrack = subTrack 
+                            ? subTrack.subCompetencyIds.indexOf(sub.id) + 1
+                            : orderIndex + 1;
+                          const globalSceneNumber = trackOffset + positionInTrack;
+                          
+                          return (
+                            <Badge className="text-xs bg-primary text-primary-foreground shrink-0">
+                              Scene {globalSceneNumber}
+                              {tracks.length > 1 && subTrack && ` (T${trackIndex + 1})`}
+                            </Badge>
+                          );
+                        })()}
                       </div>
                       {isSelected && sub.action_cue && (
                         <p className="text-xs text-muted-foreground truncate">
@@ -470,6 +482,16 @@ export function TemplateStepFramework({
                 const sub = getSelectedSubData(subId);
                 if (!sub) return null;
                 
+                // Calculate track-relative scene number
+                // Find which track this sub-competency belongs to
+                const subTrack = tracks.find(t => t.subCompetencyIds.includes(subId));
+                const trackIndex = subTrack ? tracks.indexOf(subTrack) : 0;
+                const trackOffset = trackIndex * 6; // Each track has 6 scenes
+                const positionInTrack = subTrack 
+                  ? subTrack.subCompetencyIds.indexOf(subId) + 1
+                  : idx + 1;
+                const globalSceneNumber = trackOffset + positionInTrack;
+                
                 return (
                   <div 
                     key={sub.id} 
@@ -479,8 +501,13 @@ export function TemplateStepFramework({
                       <div 
                         className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center"
                       >
-                        {idx + 1}
+                        {globalSceneNumber}
                       </div>
+                      {tracks.length > 1 && subTrack && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                          T{trackIndex + 1}
+                        </Badge>
+                      )}
                       <p className="font-medium text-sm text-foreground flex-1 truncate">
                         {sub.statement}
                       </p>
