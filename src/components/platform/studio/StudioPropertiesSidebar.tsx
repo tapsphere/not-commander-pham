@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { ColorRemixPanel } from '../ColorRemixPanel';
 import { ChoiceEditorItem } from './ChoiceEditorItem';
+import { SceneBackgroundPrompt } from './SceneBackgroundPrompt';
 
 // Behavioral Science explanations for competencies (moved from ExpertAdvisorPanel)
 const COMPETENCY_INSIGHTS: Record<string, {
@@ -100,6 +101,8 @@ interface StudioPropertiesSidebarProps {
   promptContext?: string;
   // Navigation callback for "Synced from Step 1" badge
   onNavigateToStep?: (step: number) => void;
+  // Global style prompt for background inheritance
+  globalStylePrompt?: string;
 }
 
 // XP Values from PlayOps Framework - LOCKED in Master DNA Library
@@ -235,6 +238,7 @@ export function StudioPropertiesSidebar({
   currentTrackInfo,
   promptContext = '',
   onNavigateToStep,
+  globalStylePrompt = '',
 }: StudioPropertiesSidebarProps) {
   const { isDarkMode } = useStudioTheme();
   const [isRemixing, setIsRemixing] = useState(false);
@@ -1054,6 +1058,17 @@ export function StudioPropertiesSidebar({
           </div>
         )}
         
+        {/* ===== SCENE BACKGROUND PROMPT (Inherits Global Style) ===== */}
+        <div className="mb-3">
+          <SceneBackgroundPrompt
+            sceneIndex={currentSceneIndex}
+            backgroundPrompt={currentScene.backgroundPrompt}
+            globalStylePrompt={globalStylePrompt}
+            onBackgroundPromptChange={(prompt) => updateScene({ backgroundPrompt: prompt })}
+            onClearOverride={() => updateScene({ backgroundPrompt: '' })}
+          />
+        </div>
+
         {/* ===== LAYER 1: EXPANDED AI COMMAND CENTER (Primary Interface) ===== */}
         <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-primary/30 bg-primary/5' : 'border-primary/20 bg-primary/5'}`}>
           <div className="flex items-center gap-2 mb-3">

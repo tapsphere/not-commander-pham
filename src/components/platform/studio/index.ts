@@ -14,6 +14,8 @@ export { TelegramNativeOverlay, TelegramPreviewToggle } from './TelegramNativeOv
 export { StudioLiveCodeEditor } from './StudioLiveCodeEditor';
 export { CurriculumMapTab } from './CurriculumMapTab';
 export { AddTrackNudge } from './AddTrackNudge';
+export { GlobalSceneStyler } from './GlobalSceneStyler';
+export { SceneBackgroundPrompt } from './SceneBackgroundPrompt';
 
 // Scene Layout - 30/50/20 UX Constraints (DNA Library Section 5)
 export { SceneLayout, ContextZone, InteractionZone } from './SceneLayout';

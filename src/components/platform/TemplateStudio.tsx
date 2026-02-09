@@ -26,6 +26,7 @@ import {
   StudioLiveCodeEditor,
   CurriculumMapTab,
   AddTrackNudge,
+  GlobalSceneStyler,
 } from './studio';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -84,6 +85,9 @@ function StudioContent({
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [promptContext, setPromptContext] = useState<string>('');
   const [demoOverrideApplied, setDemoOverrideApplied] = useState(false);
+  const [globalStylePrompt, setGlobalStylePrompt] = useState(
+    'Cinematic 35mm luxury boutique, Amber Haze lighting, warm depth-of-field backgrounds.'
+  );
 
   // Demo Override Handler v31.0 - Silently injects VALERTI template data into Step 1 & 2
   const handleDemoOverride = (data: DemoOverrideData) => {
@@ -118,6 +122,11 @@ function StudioContent({
     
     // Mark demo override as applied (prevents re-triggering)
     setDemoOverrideApplied(true);
+    
+    // Set global style prompt with VALERTI brand references
+    setGlobalStylePrompt(
+      `Cinematic 35mm luxury boutique, Amber Haze lighting, ${data.name} Green (${data.colors.primary}) and Red (${data.colors.secondary}) accents.`
+    );
     
     // v31.0: Silent injection - no toast shown, user discovers it naturally when navigating
     console.log('✨ VALERTI Demo Template silently injected into Steps 1 & 2');
@@ -534,6 +543,21 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             </ScrollArea>
           ) : (
             <>
+              {/* Global Scene Styler - shown on Step 4 */}
+              {currentStep === 4 && (
+                <GlobalSceneStyler
+                  globalStylePrompt={globalStylePrompt}
+                  onGlobalStyleChange={setGlobalStylePrompt}
+                  onApplyToAllScenes={() => {
+                    // Clear all per-scene overrides so they inherit global
+                    setScenes(scenes.map(s => ({ ...s, backgroundPrompt: '' })));
+                    toast.success('Global style applied to all scenes');
+                  }}
+                  scenes={scenes}
+                  designSettings={designSettings}
+                  brandName={formData.name || undefined}
+                />
+              )}
               {/* Split-View: Code Editor (Left) + Preview (Right) when code editor is open */}
               {codeEditorOpen ? (
                 <div className="flex-1 flex overflow-hidden">
@@ -658,6 +682,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             currentTrackInfo={currentTrackInfo}
             promptContext={promptContext}
             onNavigateToStep={(step) => setCurrentStep(step)}
+            globalStylePrompt={globalStylePrompt}
           />
         </div>
       </div>
