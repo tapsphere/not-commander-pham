@@ -43,9 +43,13 @@
     --radius: 0.75rem;
 
     /* Talent Mode — Coalescing Blue */
-    --talent-blue: 217 91% 60%;
-    --talent-blue-deep: 220 80% 46%;
-    --talent-gold: 42 44% 63%; /* Mastery Gold #C0B283 */
+    --talent-blue: 211 100% 50%;       /* #007AFF Logic Blue */
+    --talent-blue-deep: 215 90% 40%;
+    --talent-gold: 42 44% 63%;         /* Mastery Gold #C0B283 */
+
+    /* Brand DNA — Amethyst Purple (Rich Ink in Light) */
+    --brand-purple: 282 59% 37%;       /* #8E44AD deep */
+    --brand-purple-light: 282 50% 50%;
 
     /* Studio-specific tokens */
     --studio-bg: 240 5% 97%;
@@ -101,10 +105,14 @@
     --input: 0 0% 100% / 0.12;
     --ring: 0 0% 100%;
 
-    /* Talent Mode — Coalescing Blue (Dark) */
-    --talent-blue: 217 91% 65%;
-    --talent-blue-deep: 220 80% 55%;
-    --talent-gold: 42 44% 63%;
+    /* Talent Mode — Coalescing Blue (Dark, high luminance) */
+    --talent-blue: 211 100% 60%;
+    --talent-blue-deep: 215 90% 52%;
+    --talent-gold: 42 44% 68%;
+
+    /* Brand DNA — Amethyst Purple (High luminance in Dark) */
+    --brand-purple: 282 59% 58%;
+    --brand-purple-light: 282 50% 68%;
 
     /* Studio-specific tokens - Dark */
     --studio-bg: 220 14% 6%;
@@ -179,12 +187,14 @@
 
   /* Glassmorphism utilities */
   .glass-card {
-    @apply bg-card/50 backdrop-blur-[25px] rounded-2xl;
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    @apply bg-card/50 rounded-2xl;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 0.5px solid rgba(0, 0, 0, 0.05);
   }
 
   .dark .glass-card {
-    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
   }
 
   .glass-button {
