@@ -20,6 +20,7 @@ import aeroPCL from '@/assets/aero/premium-cabin-lead.jpg';
 import aeroOCC from '@/assets/aero/operations-control-center.jpg';
 import aeroLogistics from '@/assets/aero/logistics-cargo-supervisor.jpg';
 import aeroSafety from '@/assets/aero/safety-compliance-officer.jpg';
+import aeroCXM from '@/assets/aero/customer-experience-mgr.jpg';
 
 /** Maps role keywords to Aero-Airways imagery */
 const AERO_ROLE_IMAGES: Record<string, string> = {
@@ -503,7 +504,7 @@ export default function Marketplace() {
         { name: 'Premium Cabin Lead', image: aeroPCL },
         { name: 'Ground Ops Supervisor', image: aeroOCC },
         { name: 'Safety Compliance Officer', image: aeroSafety },
-        { name: 'Customer Experience Mgr', image: aeroLogistics },
+        { name: 'Customer Experience Mgr', image: aeroCXM },
       ];
       let aeroIndex = 0;
 
@@ -528,8 +529,12 @@ export default function Marketplace() {
           };
         })
       );
-      setCreators(creatorsWithProfiles);
-      setFilteredCreators(creatorsWithProfiles);
+      // Filter out PlayOps samples and limit to 4 Aero-Airways roles
+      const filtered = creatorsWithProfiles
+        .filter(c => c.creator_id !== 'playops-sample')
+        .slice(0, 4);
+      setCreators(filtered);
+      setFilteredCreators(filtered);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
