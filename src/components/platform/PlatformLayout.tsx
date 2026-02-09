@@ -28,14 +28,9 @@ export const PlatformLayout = () => {
 
   const checkAuth = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
+      await supabase.auth.getUser();
     } catch (error) {
-      console.error('Auth check failed:', error);
-      navigate('/auth');
+      // Silent — no redirect needed
     } finally {
       setLoading(false);
     }
