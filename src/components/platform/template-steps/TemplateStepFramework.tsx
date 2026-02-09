@@ -271,7 +271,7 @@ export function TemplateStepFramework({
         </div>
         <p className="text-sm text-muted-foreground">
           {selectedCompetency 
-            ? 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'
+            ? 'Leading Competency-Based Skills Globally'
             : 'Search & Build — enter a theme, type a skill, or upload a PDF.'}
         </p>
       </div>
