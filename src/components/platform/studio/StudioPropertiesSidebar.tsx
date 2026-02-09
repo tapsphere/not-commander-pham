@@ -248,7 +248,13 @@ export function StudioPropertiesSidebar({
   const mutedColor = isDarkMode ? 'text-white/60' : 'text-slate-600';
   const inputBg = isDarkMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200';
 
-  const currentScene = currentSceneIndex > 0 && currentSceneIndex < 7 
+  // Calculate max gameplay scene index based on tracks (or default 6 for single track)
+  const totalGameplayScenes = tracks.length > 0 ? tracks.length * 6 : scenes.length || 6;
+  const resultsSceneIndex = totalGameplayScenes + 1; // Results is always after all gameplay scenes
+  
+  // Determine if we're viewing a gameplay scene (between intro and results)
+  const isGameplayScene = currentSceneIndex > 0 && currentSceneIndex < resultsSceneIndex;
+  const currentScene = isGameplayScene 
     ? scenes[currentSceneIndex - 1] 
     : null;
   const currentSubCompetency = currentScene 
@@ -1596,7 +1602,7 @@ export function StudioPropertiesSidebar({
     // If viewing filmstrip scenes, show scene-specific properties
     if (currentStep === 4) {
       if (currentSceneIndex === 0) return renderIntroProperties();
-      if (currentSceneIndex === 7) return renderResultsProperties();
+      if (currentSceneIndex === resultsSceneIndex) return renderResultsProperties();
       return renderGameplayProperties();
     }
     
@@ -1643,7 +1649,7 @@ export function StudioPropertiesSidebar({
             <span className={`text-sm font-medium ${textColor}`}>
               {currentStep === 3 && tracks.length > 0 
                 ? 'Expert Advisor'
-                : currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 
+                : currentStep === 4 && isGameplayScene 
                 ? 'Command Center' 
                 : 'Properties'
               }
@@ -1656,7 +1662,7 @@ export function StudioPropertiesSidebar({
           </div>
           <Badge variant="outline" className="text-xs">
             {currentStep === 4 
-              ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === 7 ? 'Results' : `Scene ${currentSceneIndex}`)
+              ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === resultsSceneIndex ? 'Results' : `Scene ${currentSceneIndex}`)
               : `Step ${currentStep}`
             }
           </Badge>
@@ -1752,7 +1758,7 @@ export function StudioPropertiesSidebar({
         </ScrollArea>
         
         {/* Sticky Action Buttons */}
-        {currentStep === 4 && currentSceneIndex > 0 && currentSceneIndex < 7 && currentScene && (
+        {currentStep === 4 && isGameplayScene && currentScene && (
           <div className={`
             sticky bottom-0 left-0 right-0 
             p-3 border-t ${borderColor}
