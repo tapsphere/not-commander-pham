@@ -15,6 +15,36 @@ import {
 import { toast } from 'sonner';
 import { useComplianceMode } from '@/components/platform/PlatformLayout';
 
+// Aero-Airways professional role imagery
+import aeroPCL from '@/assets/aero/premium-cabin-lead.jpg';
+import aeroOCC from '@/assets/aero/operations-control-center.jpg';
+import aeroLogistics from '@/assets/aero/logistics-cargo-supervisor.jpg';
+import aeroSafety from '@/assets/aero/safety-compliance-officer.jpg';
+
+/** Maps role keywords to Aero-Airways imagery */
+const AERO_ROLE_IMAGES: Record<string, string> = {
+  'premium cabin lead': aeroPCL,
+  'cabin lead': aeroPCL,
+  'ground ops': aeroOCC,
+  'operations': aeroOCC,
+  'control': aeroOCC,
+  'logistics': aeroLogistics,
+  'cargo': aeroLogistics,
+  'safety': aeroSafety,
+  'compliance': aeroSafety,
+  'customer experience': aeroPCL,
+  'brand ambassador': aeroPCL,
+};
+
+/** Get the best matching Aero role image for a given name/role string */
+function getAeroImage(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const [keyword, img] of Object.entries(AERO_ROLE_IMAGES)) {
+    if (lower.includes(keyword)) return img;
+  }
+  return null;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SHARED DATA
    ═══════════════════════════════════════════════════════════════ */
@@ -152,6 +182,7 @@ function ComplianceTicker() {
       {complianceItems.map((c) => (
         <div key={c.role} className="flex items-center justify-between glass-card p-2.5 rounded-lg transition-all duration-500">
           <div className="flex items-center gap-2">
+            {(() => { const img = getAeroImage(c.role); return img ? <img src={img} alt={c.role} className="w-6 h-6 rounded-md object-cover shrink-0" /> : null; })()}
             {c.status === 'valid' && <CheckCircle2 className="w-3.5 h-3.5" style={{ color: 'hsl(var(--talent-blue))' }} />}
             {c.status === 'expiring' && <Clock className="w-3.5 h-3.5 text-muted-foreground" />}
             {c.status === 'flagged' && <AlertTriangle className="w-3.5 h-3.5 text-destructive" />}
@@ -172,7 +203,10 @@ function AIShortlistPanel() {
       {aiShortlist.map((c) => (
         <div key={c.name} className="glass-card p-3 rounded-xl transition-all duration-500">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-semibold text-foreground">{c.name}</span>
+            <div className="flex items-center gap-2">
+              {(() => { const img = getAeroImage(c.role); return img ? <img src={img} alt={c.role} className="w-7 h-7 rounded-full object-cover shrink-0" /> : null; })()}
+              <span className="text-sm font-semibold text-foreground">{c.name}</span>
+            </div>
             <Badge variant="secondary" className="text-[10px] bg-muted/60 text-muted-foreground">{c.match}% match</Badge>
           </div>
           <span className="text-xs text-muted-foreground block mb-1.5">{c.role}</span>
@@ -711,11 +745,14 @@ export default function Marketplace() {
                             alt={creator.creator_name || 'Creator'}
                             className="w-full h-full object-cover"
                           />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-accent/30">
-                            <span className="text-3xl text-muted-foreground">{creator.creator_name?.charAt(0) || '?'}</span>
-                          </div>
-                        )}
+                        ) : (() => {
+                          const aeroImg = getAeroImage(creator.creator_name || '') || getAeroImage(creator.featured_game_name || '');
+                          return aeroImg ? (
+                            <img src={aeroImg} alt={creator.creator_name || 'Role'} className="w-full h-full object-cover" />
+                          ) : (
+                            <img src={[aeroPCL, aeroOCC, aeroLogistics, aeroSafety][Math.abs((creator.creator_name || '').length) % 4]} alt="Aero Role" className="w-full h-full object-cover" />
+                          );
+                        })()}
                       </div>
                       <div className="p-3">
                         <h3 className="font-medium text-sm text-foreground truncate">{creator.creator_name}</h3>
