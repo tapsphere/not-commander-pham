@@ -181,6 +181,10 @@ export function TemplateStepFramework({
     setScenes(newScenes);
     setEntryPath(pathUsed);
     setShowEntryPort(false);
+    setSelectedSubCompetencies(selectedSubIds);
+    setScenes(newScenes);
+    setEntryPath(pathUsed);
+    setShowEntryPort(false);
     
     // Create initial track if using tracks
     if (setTracks) {

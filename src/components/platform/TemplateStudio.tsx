@@ -124,7 +124,7 @@ function StudioContent({
     return track ? { number: trackIndex + 1, name: track.competencyName } : null;
   }, [currentSceneIndex, tracks, selectedCompetency, competencies]);
 
-  // Fetch competencies on mount
+  // Fetch competencies and ALL sub-competencies on mount
   useEffect(() => {
     const fetchCompetencies = async () => {
       const { data, error } = await supabase
@@ -138,23 +138,11 @@ function StudioContent({
       }
     };
     
-    fetchCompetencies();
-  }, []);
-
-  // Fetch sub-competencies when competency changes
-  useEffect(() => {
-    if (!selectedCompetency) {
-      setSubCompetencies([]);
-      setSelectedSubCompetencies([]);
-      setScenes([]);
-      return;
-    }
-
-    const fetchSubCompetencies = async () => {
+    // Fetch ALL sub-competencies upfront for the UnifiedCreativeInput Smart Reveal
+    const fetchAllSubCompetencies = async () => {
       const { data, error } = await supabase
         .from('sub_competencies')
         .select('*')
-        .eq('competency_id', selectedCompetency)
         .order('display_order', { nullsFirst: false });
       
       if (!error && data) {
@@ -162,8 +150,15 @@ function StudioContent({
       }
     };
     
-    fetchSubCompetencies();
-  }, [selectedCompetency]);
+    fetchCompetencies();
+    fetchAllSubCompetencies();
+  }, []);
+
+  // Filter sub-competencies when competency selection changes (for display purposes)
+  const filteredSubCompetencies = useMemo(() => {
+    if (!selectedCompetency) return [];
+    return subCompetencies.filter(s => s.competency_id === selectedCompetency);
+  }, [selectedCompetency, subCompetencies]);
 
   // Initialize with template data if editing
   useEffect(() => {
