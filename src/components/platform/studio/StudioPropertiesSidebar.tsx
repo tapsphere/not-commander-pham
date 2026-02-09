@@ -1594,16 +1594,16 @@ export function StudioPropertiesSidebar({
 
   return (
     <div className={`h-full ${bgColor} border-l ${borderColor} backdrop-blur-xl flex relative`}>
-      {/* Expand/Collapse Toggle Handle */}
+      {/* Expand/Collapse Toggle Handle - inside border, not outside */}
       {onToggleExpand && (
         <button
           onClick={onToggleExpand}
-          className={`absolute -left-3 top-1/2 -translate-y-1/2 z-10 
-            w-6 h-12 rounded-l-lg flex items-center justify-center
+          className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 
+            w-6 h-16 rounded-r-lg flex items-center justify-center
             transition-all duration-200 hover:scale-105
             ${isDarkMode 
-              ? 'bg-slate-800 border border-white/10 hover:bg-slate-700' 
-              : 'bg-white border border-slate-200 hover:bg-slate-50 shadow-sm'
+              ? 'bg-slate-800 border border-l-0 border-white/10 hover:bg-slate-700' 
+              : 'bg-white border border-l-0 border-slate-200 hover:bg-slate-50 shadow-sm'
             }`}
           title={isExpanded ? 'Collapse Console' : 'Expand Console'}
         >
