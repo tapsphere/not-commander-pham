@@ -21,15 +21,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { Competency, SubCompetency, SceneData, createDefaultScene } from './types';
 import { matchCompetencyFromPrompt, populateSixScenes } from './RemakeEngine';
 
-// Fashion demo sample - Active default content
-const FASHION_DEMO = {
-  activePrompt: `High-end fashion brand teaching window merchandising. Focus: Mannequin depth-spacing and focal point lighting using Analytical Thinking standards... ✨ Try it out?`,
-  theme: 'High-end fashion brand teaching window merchandising',
+// VALERTI SS26 Demo - Professional default content
+const VALERTI_DEMO = {
+  activePrompt: `Luxury Brand VALERTI – SS26 Global Launch: Ethereal Motion. Scenario: Merchandising Silk-Lace Footwear and Draped Evening Wear. Focus: Mannequin depth-spacing, Amber Haze focal lighting, and consumer eye-flow using Analytical Thinking standards. Create 6 scenes...`,
+  theme: 'VALERTI SS26 Luxury Boutique Merchandising',
   skill: 'Analytical Thinking',
+  visualBase: 'SS26 Luxury Boutique, 35mm film grain, Amber Haze lighting, ethereal motion',
 };
 
 // Keywords that trigger Fashion/Analytical Thinking mapping
-const FASHION_KEYWORDS = ['fashion', 'merchandising', 'retail', 'window', 'mannequin', 'display', 'lighting'];
+const FASHION_KEYWORDS = ['fashion', 'merchandising', 'retail', 'window', 'mannequin', 'display', 'lighting', 'valerti', 'luxury', 'boutique', 'silk', 'evening wear', 'footwear'];
 
 interface UnifiedCreativeInputProps {
   competencies: Competency[];
@@ -55,6 +56,7 @@ export function UnifiedCreativeInput({
   const [isUploading, setIsUploading] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
   const [lastAiCompetencyId, setLastAiCompetencyId] = useState<string | null>(null);
+  const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,11 +65,11 @@ export function UnifiedCreativeInput({
     a.name.localeCompare(b.name)
   );
 
-  // Check if prompt matches Fashion/Analytical Thinking criteria
+  // Check if prompt matches Fashion/Luxury/VALERTI criteria
   const isFashionPrompt = (text: string): boolean => {
     const input = text.toLowerCase();
     return FASHION_KEYWORDS.some(keyword => input.includes(keyword)) ||
-           input.includes(FASHION_DEMO.theme.toLowerCase().substring(0, 20));
+           input.includes(VALERTI_DEMO.theme.toLowerCase().substring(0, 20));
   };
 
   // Core function to populate scenes for a given competency
@@ -116,14 +118,14 @@ export function UnifiedCreativeInput({
   // Smart semantic matching using RemakeEngine
   const executeSemanticMapping = async (promptText: string): Promise<void> => {
     // Determine the theme to use
-    const isDemoOrEmpty = !promptText.trim() || promptText === FASHION_DEMO.activePrompt;
-    const searchTheme = isDemoOrEmpty ? FASHION_DEMO.theme : promptText;
+    const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
+    const searchTheme = isDemoOrEmpty ? VALERTI_DEMO.theme : promptText;
     
     // Step 1: Find the best-match competency
     let matchedCompetency: Competency | null = null;
     
     if (isDemoOrEmpty || isFashionPrompt(searchTheme)) {
-      // Fashion prompt → Analytical Thinking
+      // Fashion/VALERTI prompt → Analytical Thinking
       matchedCompetency = competencies.find(c => 
         c.name.toLowerCase().includes('analytical')
       ) || competencies[0];
@@ -139,8 +141,16 @@ export function UnifiedCreativeInput({
     // Store AI's competency choice for "Smart Select" revert
     setLastAiCompetencyId(matchedCompetency.id);
     setIsManualMode(false);
+    setHasSubmittedOnce(true);
 
     const { matchedSubs, scenes } = populateScenesForCompetency(matchedCompetency.id, searchTheme);
+    
+    // Enhance scenes with VALERTI visual styling if using fashion demo
+    if (isDemoOrEmpty || isFashionPrompt(searchTheme)) {
+      scenes.forEach((scene, idx) => {
+        scene.backgroundPrompt = `${VALERTI_DEMO.visualBase}, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
+      });
+    }
     
     // Success! Call onComplete with the mapped data
     toast.success(`✓ Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
@@ -155,12 +165,13 @@ export function UnifiedCreativeInput({
   // Handle manual competency selection from dropdown
   const handleManualSelect = (competencyId: string) => {
     const currentText = inputValue.trim();
-    const isDemoOrEmpty = !currentText || currentText === FASHION_DEMO.activePrompt;
-    const theme = isDemoOrEmpty ? FASHION_DEMO.theme : currentText;
+    const isDemoOrEmpty = !currentText || currentText === VALERTI_DEMO.activePrompt;
+    const theme = isDemoOrEmpty ? VALERTI_DEMO.theme : currentText;
 
     try {
       const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(competencyId, theme);
       setIsManualMode(true);
+      setHasSubmittedOnce(true);
       
       toast.success(`✓ Switched to "${matchedCompetency.name}" with ${scenes.length} scenes`);
       onComplete(
@@ -183,8 +194,8 @@ export function UnifiedCreativeInput({
     }
 
     const currentText = inputValue.trim();
-    const isDemoOrEmpty = !currentText || currentText === FASHION_DEMO.activePrompt;
-    const theme = isDemoOrEmpty ? FASHION_DEMO.theme : currentText;
+    const isDemoOrEmpty = !currentText || currentText === VALERTI_DEMO.activePrompt;
+    const theme = isDemoOrEmpty ? VALERTI_DEMO.theme : currentText;
 
     try {
       const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(lastAiCompetencyId, theme);
@@ -311,8 +322,8 @@ export function UnifiedCreativeInput({
       <div className="relative">
         <textarea
           ref={textareaRef}
-          value={inputValue || FASHION_DEMO.activePrompt}
-          onChange={(e) => setInputValue(e.target.value === FASHION_DEMO.activePrompt ? '' : e.target.value)}
+          value={inputValue || VALERTI_DEMO.activePrompt}
+          onChange={(e) => setInputValue(e.target.value === VALERTI_DEMO.activePrompt ? '' : e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && !isProcessing && !isUploading) {
               e.preventDefault();
@@ -324,7 +335,7 @@ export function UnifiedCreativeInput({
               setInputValue('');
             }
           }}
-          placeholder={FASHION_DEMO.activePrompt}
+          placeholder={VALERTI_DEMO.activePrompt}
           className="w-full min-h-[180px] px-5 py-4 pb-14 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
           rows={5}
@@ -346,7 +357,7 @@ export function UnifiedCreativeInput({
           
           {/* Center: Clear Button (only show when there's custom input) */}
           <div className="flex-1 flex justify-center">
-            {inputValue && inputValue !== FASHION_DEMO.activePrompt && (
+            {inputValue && inputValue !== VALERTI_DEMO.activePrompt && (
               <button
                 type="button"
                 onClick={handleClearInput}
@@ -358,11 +369,14 @@ export function UnifiedCreativeInput({
             )}
           </div>
           
-          {/* Right: Compact Send Button + Hint */}
+          {/* Right: Floating Hint + Send Button */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground italic hidden sm:inline">
-              (Hit Send)
-            </span>
+            {/* Floating Hint - disappears after first send */}
+            {!hasSubmittedOnce && (
+              <span className="text-xs text-primary/70 font-medium animate-pulse hidden sm:inline">
+                ✨ Try it out?
+              </span>
+            )}
             <button
               type="button"
               onClick={handleSubmit}
