@@ -289,9 +289,9 @@ export function UnifiedCreativeInput({
             }
           }}
           placeholder={FASHION_DEMO.activePrompt}
-          className="w-full min-h-[80px] px-5 py-4 pr-16 text-lg leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[160px] px-6 py-5 pr-20 text-sm leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
-          rows={2}
+          rows={4}
         />
         
         {/* Large Upload Icon Button */}
