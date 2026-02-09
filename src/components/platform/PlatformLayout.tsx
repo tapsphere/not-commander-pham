@@ -28,42 +28,17 @@ export const PlatformLayout = () => {
 
   const checkAuth = async () => {
     try {
-      // Check for demo mode
+      // Allow public access — don't redirect to auth
       const isDemoMode = localStorage.getItem('demoMode') === 'true';
-      
       if (isDemoMode) {
         setLoading(false);
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
-
-      const { data: rolesData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-
-      if (roleError) {
-        console.error('Role fetch error:', roleError);
-        toast.error('Failed to load user roles');
-        navigate('/auth');
-        return;
-      }
-
-      if (!rolesData || rolesData.length === 0) {
-        toast.error('No role assigned. Please sign up again.');
-        navigate('/auth');
-        return;
-      }
+      // Silently check auth but don't force redirect
+      await supabase.auth.getUser();
     } catch (error) {
-      console.error('Auth check failed:', error);
-      toast.error('Authentication failed');
-      navigate('/auth');
+      console.warn('Auth check skipped:', error);
     } finally {
       setLoading(false);
     }
