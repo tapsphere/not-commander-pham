@@ -79,7 +79,7 @@ export function ExpertAdvisorPanel({
           <Sparkles className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold text-sm text-foreground">Expert Advisor</h3>
+          <h3 className="font-semibold text-sm text-foreground">C-BEN Expert Advisor</h3>
           <p className="text-xs text-muted-foreground">Behavioral Science Validation</p>
         </div>
       </div>
