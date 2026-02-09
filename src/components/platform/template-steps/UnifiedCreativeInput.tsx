@@ -4,12 +4,19 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { 
   Loader2,
-  Lock,
   Upload,
   FileText,
   X,
-  Send
+  Send,
+  ChevronDown
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Competency, SubCompetency, SceneData, createDefaultScene } from './types';
 import { matchCompetencyFromPrompt, populateSixScenes } from './RemakeEngine';
@@ -46,14 +53,64 @@ export function UnifiedCreativeInput({
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [lastAiCompetencyId, setLastAiCompetencyId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sort competencies alphabetically for the dropdown
+  const sortedCompetencies = [...competencies].sort((a, b) => 
+    a.name.localeCompare(b.name)
+  );
 
   // Check if prompt matches Fashion/Analytical Thinking criteria
   const isFashionPrompt = (text: string): boolean => {
     const input = text.toLowerCase();
     return FASHION_KEYWORDS.some(keyword => input.includes(keyword)) ||
            input.includes(FASHION_DEMO.theme.toLowerCase().substring(0, 20));
+  };
+
+  // Core function to populate scenes for a given competency
+  const populateScenesForCompetency = (competencyId: string, theme: string) => {
+    const matchedCompetency = competencies.find(c => c.id === competencyId);
+    if (!matchedCompetency) {
+      throw new Error('Competency not found');
+    }
+
+    // Get exactly 6 sub-competencies for this competency
+    const matchedSubs = subCompetencies
+      .filter(s => s.competency_id === competencyId)
+      .slice(0, 6);
+
+    if (matchedSubs.length === 0) {
+      throw new Error(`No sub-competencies found for "${matchedCompetency.name}".`);
+    }
+
+    // Ensure we have exactly 6 (pad if needed)
+    while (matchedSubs.length < 6 && subCompetencies.length > 0) {
+      const existingSub = matchedSubs[matchedSubs.length - 1] || subCompetencies[0];
+      matchedSubs.push({
+        ...existingSub,
+        id: `padded-${matchedSubs.length}-${Date.now()}`,
+      });
+    }
+
+    // Populate 6 scenes with V5 mechanics locked
+    const scenes = populateSixScenes(subCompetencies, competencyId, theme);
+
+    // Ensure we always have 6 scenes
+    if (scenes.length !== 6) {
+      while (scenes.length < 6) {
+        const lastScene = scenes[scenes.length - 1];
+        scenes.push({
+          ...lastScene,
+          id: `padded-scene-${scenes.length + 1}-${Date.now()}`,
+          question: `[${theme.substring(0, 30)}] Scene ${scenes.length + 1}`,
+        });
+      }
+    }
+
+    return { matchedCompetency, matchedSubs, scenes };
   };
 
   // Smart semantic matching using RemakeEngine
@@ -78,44 +135,12 @@ export function UnifiedCreativeInput({
     if (!matchedCompetency) {
       throw new Error('No matching competency found. Please try a different prompt.');
     }
-    
-    // Step 2: Get exactly 6 sub-competencies for this competency
-    const matchedSubs = subCompetencies
-      .filter(s => s.competency_id === matchedCompetency!.id)
-      .slice(0, 6);
-    
-    if (matchedSubs.length === 0) {
-      throw new Error(`No sub-competencies found for "${matchedCompetency.name}". Please select a different skill.`);
-    }
-    
-    // Ensure we have exactly 6 (pad if needed)
-    while (matchedSubs.length < 6 && subCompetencies.length > 0) {
-      const existingSub = matchedSubs[matchedSubs.length - 1] || subCompetencies[0];
-      matchedSubs.push({
-        ...existingSub,
-        id: `padded-${matchedSubs.length}-${Date.now()}`,
-      });
-    }
-    
-    // Step 3: Populate 6 scenes with V5 mechanics locked
-    const scenes = populateSixScenes(
-      subCompetencies,
-      matchedCompetency.id,
-      searchTheme
-    );
-    
-    // Ensure we always have 6 scenes
-    if (scenes.length !== 6) {
-      console.warn(`Scene count mismatch: got ${scenes.length}, expected 6. Padding...`);
-      while (scenes.length < 6) {
-        const lastScene = scenes[scenes.length - 1];
-        scenes.push({
-          ...lastScene,
-          id: `padded-scene-${scenes.length + 1}-${Date.now()}`,
-          question: `[${searchTheme.substring(0, 30)}] Scene ${scenes.length + 1}`,
-        });
-      }
-    }
+
+    // Store AI's competency choice for "Smart Select" revert
+    setLastAiCompetencyId(matchedCompetency.id);
+    setIsManualMode(false);
+
+    const { matchedSubs, scenes } = populateScenesForCompetency(matchedCompetency.id, searchTheme);
     
     // Success! Call onComplete with the mapped data
     toast.success(`✓ Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
@@ -125,6 +150,56 @@ export function UnifiedCreativeInput({
       scenes,
       isDemoOrEmpty ? 'theme' : 'skill'
     );
+  };
+
+  // Handle manual competency selection from dropdown
+  const handleManualSelect = (competencyId: string) => {
+    const currentText = inputValue.trim();
+    const isDemoOrEmpty = !currentText || currentText === FASHION_DEMO.activePrompt;
+    const theme = isDemoOrEmpty ? FASHION_DEMO.theme : currentText;
+
+    try {
+      const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(competencyId, theme);
+      setIsManualMode(true);
+      
+      toast.success(`✓ Switched to "${matchedCompetency.name}" with ${scenes.length} scenes`);
+      onComplete(
+        matchedCompetency.id,
+        matchedSubs.map(s => s.id),
+        scenes,
+        'skill'
+      );
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to load competency');
+    }
+  };
+
+  // Revert to AI's smart selection
+  const handleSmartSelectRevert = () => {
+    if (!lastAiCompetencyId) {
+      // No previous AI selection, run semantic mapping again
+      handleSubmit();
+      return;
+    }
+
+    const currentText = inputValue.trim();
+    const isDemoOrEmpty = !currentText || currentText === FASHION_DEMO.activePrompt;
+    const theme = isDemoOrEmpty ? FASHION_DEMO.theme : currentText;
+
+    try {
+      const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(lastAiCompetencyId, theme);
+      setIsManualMode(false);
+      
+      toast.success(`✓ Reverted to AI suggestion: "${matchedCompetency.name}"`);
+      onComplete(
+        matchedCompetency.id,
+        matchedSubs.map(s => s.id),
+        scenes,
+        'skill'
+      );
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to revert');
+    }
   };
 
   const handleFileUpload = async (file: File) => {
@@ -329,8 +404,8 @@ export function UnifiedCreativeInput({
       )}
 
 
-      {/* Quick Skills */}
-      <div className="flex flex-wrap gap-2">
+      {/* Quick Skills + Manual/Smart Toggle */}
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-muted-foreground mr-2">Quick skills:</span>
         {['Analytical Thinking', 'Problem Solving', 'Emotional Intelligence'].map(skill => (
           <Badge
@@ -342,13 +417,30 @@ export function UnifiedCreativeInput({
             {skill}
           </Badge>
         ))}
-        <Badge
-          variant="outline"
-          className="cursor-pointer text-muted-foreground hover:bg-muted"
-          onClick={onManualFallback}
-        >
-          Manual Select →
-        </Badge>
+        
+        {/* Manual Select Dropdown / Smart Select Toggle */}
+        {isManualMode ? (
+          <Badge
+            variant="outline"
+            className="cursor-pointer text-primary hover:bg-primary/10 border-primary/30"
+            onClick={handleSmartSelectRevert}
+          >
+            ← Smart Select
+          </Badge>
+        ) : (
+          <Select onValueChange={handleManualSelect}>
+            <SelectTrigger className="h-6 w-auto px-2 py-0 text-xs border-dashed bg-transparent hover:bg-muted">
+              <span className="text-muted-foreground">Manual Select →</span>
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {sortedCompetencies.map(comp => (
+                <SelectItem key={comp.id} value={comp.id} className="text-sm">
+                  {comp.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
     </div>
