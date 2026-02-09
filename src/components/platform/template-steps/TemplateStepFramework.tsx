@@ -354,20 +354,22 @@ export function TemplateStepFramework({
           </div>
         )}
 
-        {/* AI-Powered Competency Search */}
+        {/* AI-Powered Competency Search - Only show when no tracks exist yet */}
         <div className="space-y-4">
-        <div className="bg-muted/50 border border-border rounded-xl p-4">
-          <Label className="text-foreground font-medium mb-3 block">
-            {tracks.length > 0 ? 'Add Sub-Competencies to Current Track' : 'Find Your Competency'} *
-          </Label>
-          <CompetencyAISearch
-            competencies={competencies}
-            selectedCompetency={selectedCompetency}
-            onSelect={setSelectedCompetency}
-            onClearAll={handleClearAll}
-            onHighlight={onHighlightCompetency}
-          />
-        </div>
+        {tracks.length === 0 && (
+          <div className="bg-muted/50 border border-border rounded-xl p-4">
+            <Label className="text-foreground font-medium mb-3 block">
+              Find Your Competency *
+            </Label>
+            <CompetencyAISearch
+              competencies={competencies}
+              selectedCompetency={selectedCompetency}
+              onSelect={setSelectedCompetency}
+              onClearAll={handleClearAll}
+              onHighlight={onHighlightCompetency}
+            />
+          </div>
+        )}
 
         {/* DATA INTEGRITY ERROR BANNER */}
         {selectedCompetency && dataIntegrityErrors.length > 0 && (
