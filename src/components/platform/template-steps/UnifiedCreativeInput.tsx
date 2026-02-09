@@ -481,7 +481,7 @@ export function UnifiedCreativeInput({
         </div>
         <div className="flex-1">
           <p className="text-sm font-medium text-foreground">
-            DEMO MODE: Try generating your own high-end luxury curriculum
+            DEMO MODE: Try generating your own curriculum
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             Type a brand and role below, or click a suggestion to see the AI mapping in action
