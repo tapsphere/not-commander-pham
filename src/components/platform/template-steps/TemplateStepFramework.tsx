@@ -596,7 +596,7 @@ export function TemplateStepFramework({
                                   </div>
                                 </div>
                                 
-                                {/* Physical Interaction (Col G) */}
+                                {/* Mobile Interaction (Col G) - uses validator_type for interaction */}
                                 <div className="relative">
                                   <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
                                     <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
@@ -606,12 +606,12 @@ export function TemplateStepFramework({
                                   </div>
                                   <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
                                     <p className="text-[11px] text-foreground">
-                                      {sub.game_loop || 'Tap (default)'}
+                                      {sub.validator_type || 'Tap (default)'}
                                     </p>
                                   </div>
                                 </div>
                                 
-                                {/* Time Gate (Col H) */}
+                                {/* Time Gate (Col H) - uses game_loop for timing */}
                                 <div className="relative">
                                   <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
                                     <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
@@ -621,7 +621,7 @@ export function TemplateStepFramework({
                                   </div>
                                   <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
                                     <p className="text-[11px] text-foreground font-medium">
-                                      {sub.validator_type || '30s/45s/60s Standard'}
+                                      {sub.game_loop || '30s/45s/60s Standard'}
                                     </p>
                                   </div>
                                 </div>
@@ -701,7 +701,7 @@ export function TemplateStepFramework({
                             </div>
                             <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
                               <p className="text-[11px] text-foreground">
-                                {sub.game_loop || 'Tap (default)'}
+                                {sub.validator_type || 'Tap (default)'}
                               </p>
                             </div>
                           </div>
@@ -715,7 +715,7 @@ export function TemplateStepFramework({
                             </div>
                             <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
                               <p className="text-[11px] text-foreground font-medium">
-                                {sub.validator_type || '30s/45s/60s Standard'}
+                                {sub.game_loop || '30s/45s/60s Standard'}
                               </p>
                             </div>
                           </div>
