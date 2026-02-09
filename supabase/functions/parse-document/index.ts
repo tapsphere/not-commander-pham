@@ -23,7 +23,21 @@ serve(async (req) => {
       );
     }
 
+    const MAX_SIZE = 15 * 1024 * 1024; // 15 MB limit for base64 in memory
     console.log('Parsing document:', file.name, 'Type:', file.type, 'Size:', file.size);
+
+    if (file.size > MAX_SIZE) {
+      console.warn('File too large for in-memory processing:', file.size);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum supported size is 15 MB. Please compress or split the PDF and try again.`,
+          content: '',
+          filename: file.name 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Convert file to base64 for AI processing
     const arrayBuffer = await file.arrayBuffer();
