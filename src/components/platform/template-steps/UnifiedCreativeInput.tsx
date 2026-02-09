@@ -136,6 +136,8 @@ export function UnifiedCreativeInput({
   const [lastAiCompetencyId, setLastAiCompetencyId] = useState<string | null>(null);
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
   const [matchedCompetencyNames, setMatchedCompetencyNames] = useState<string[]>([]);
+  const [heroMode, setHeroMode] = useState<'smart' | 'upload'>('smart');
+  const [isDragOver, setIsDragOver] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -706,82 +708,160 @@ export function UnifiedCreativeInput({
         )}
       </div>
 
-      {/* Large Hero Command Box - The Focal Point */}
+      {/* Toggle: Smart Select vs Upload Materials */}
+      <div className="flex items-center gap-1 p-1 bg-muted/50 border border-border rounded-lg w-fit">
+        <button
+          type="button"
+          onClick={() => setHeroMode('smart')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+            heroMode === 'smart'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          }`}
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Smart Select
+        </button>
+        <button
+          type="button"
+          onClick={() => setHeroMode('upload')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+            heroMode === 'upload'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          }`}
+        >
+          <Upload className="h-3.5 w-3.5" />
+          Upload Materials
+        </button>
+      </div>
+
+      {/* Hero Box: Smart Select (textarea) or Upload (drop zone) */}
       <div className="relative">
-        <textarea
-          ref={textareaRef}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey && !isProcessing && !isUploading) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
-          placeholder="Enter your training theme, scenario, or skill focus..."
-          className="w-full min-h-[234px] px-5 py-4 pb-16 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isProcessing || isUploading}
-          rows={7}
-        />
-        
-        {/* Bottom bar: Upload left, Clear center, Magic Build right */}
-        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-          {/* Left: Upload Button */}
-          <button
-            type="button"
-            onClick={handleUploadClick}
-            disabled={isProcessing || isUploading}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 hover:bg-primary/10 border border-border hover:border-primary/30 transition-all duration-200 disabled:opacity-50 group text-xs"
-            title="Upload PDF or Training Materials"
-          >
-            <Upload className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-muted-foreground group-hover:text-primary">Upload PDF/ZIP</span>
-          </button>
-          
-          {/* Center: Clear Button (only show when there's text and it's not empty) */}
-          <div className="flex-1 flex justify-center">
-            {inputValue.trim() && (
-              <button
-                type="button"
-                onClick={handleClearInput}
-                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-              >
-                <X className="h-3 w-3" />
-                Clear
-              </button>
-            )}
-          </div>
-          
-          {/* Right: Magic Build Button */}
-          <div className="flex items-center gap-2">
-            {/* Hint bubble - disappears after first send */}
-            {!hasSubmittedOnce && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
-                <Zap className="w-3 h-3 text-primary" />
-                <span className="text-xs text-primary font-medium">Try it out!</span>
-              </div>
-            )}
-            <Button
-              type="button"
-              onClick={handleSubmit}
+        {heroMode === 'smart' ? (
+          <>
+            <textarea
+              ref={textareaRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !isProcessing && !isUploading) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+              }}
+              placeholder="Enter your training theme, scenario, or skill focus..."
+              className="w-full min-h-[234px] px-5 py-4 pb-16 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isProcessing || isUploading}
-              size="sm"
-              className="gap-1.5 px-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Building...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Magic Build
-                </>
-              )}
-            </Button>
+              rows={7}
+            />
+            
+            {/* Bottom bar: Clear left, Magic Build right */}
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+              {/* Left: Clear Button */}
+              <div>
+                {inputValue.trim() && (
+                  <button
+                    type="button"
+                    onClick={handleClearInput}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                    Clear
+                  </button>
+                )}
+              </div>
+              
+              {/* Right: Magic Build Button */}
+              <div className="flex items-center gap-2">
+                {/* Hint bubble - disappears after first send */}
+                {!hasSubmittedOnce && (
+                  <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
+                    <Zap className="w-3 h-3 text-primary" />
+                    <span className="text-xs text-primary font-medium">Try it out!</span>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isProcessing || isUploading}
+                  size="sm"
+                  className="gap-1.5 px-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Building...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Magic Build
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Upload Drop Zone */
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragOver(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) handleFileUpload(file);
+            }}
+            onClick={handleUploadClick}
+            className={`w-full min-h-[234px] flex flex-col items-center justify-center gap-4 px-5 py-8 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
+              isDragOver
+                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                : isUploading
+                ? 'border-primary/40 bg-primary/5'
+                : 'border-border bg-muted/30 hover:border-primary/40 hover:bg-muted/50'
+            }`}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                <div className="text-center">
+                  <p className="text-sm font-medium text-foreground">Processing document...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Extracting content & mapping competencies</p>
+                </div>
+              </>
+            ) : uploadedFile ? (
+              <>
+                <FileText className="h-10 w-10 text-primary" />
+                <div className="text-center">
+                  <p className="text-sm font-medium text-foreground">{uploadedFile.name}</p>
+                  <p className="text-xs text-muted-foreground mt-1">File uploaded successfully</p>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); clearUpload(); }}
+                    className="mt-2 text-xs text-destructive hover:underline"
+                  >
+                    Remove & upload another
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-2xl bg-muted/70 border border-border flex items-center justify-center">
+                  <Upload className="h-8 w-8 text-muted-foreground/70" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-foreground">
+                    Drop your PDF or ZIP here
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    or click to browse · max 15 MB
+                  </p>
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        )}
         
         <input
           ref={fileInputRef}
@@ -836,20 +916,7 @@ export function UnifiedCreativeInput({
         </div>
       )}
 
-      {/* Uploaded File Indicator */}
-      {uploadedFile && (
-        <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
-          <FileText className="h-4 w-4 text-primary" />
-          <span className="text-sm text-foreground flex-1 truncate">{uploadedFile.name}</span>
-          {isUploading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          ) : (
-            <button onClick={clearUpload} className="p-1 hover:bg-muted rounded">
-              <X className="h-4 w-4 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-      )}
+      {/* Upload indicator now integrated into the upload drop zone */}
 
 
       {/* Quick Skills + Manual/Smart Toggle */}
