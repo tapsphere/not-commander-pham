@@ -57,6 +57,8 @@ interface TemplateStepFrameworkProps {
   onPromptChange?: (prompt: string) => void;
   // Demo Override callback (v27.0)
   onDemoOverride?: (data: DemoOverrideData) => void;
+  // Factory Reset callback (v54.0)
+  onFactoryReset?: () => void;
 }
 
 export function TemplateStepFramework({
@@ -74,6 +76,7 @@ export function TemplateStepFramework({
   onAddTrack,
   onPromptChange,
   onDemoOverride,
+  onFactoryReset,
 }: TemplateStepFrameworkProps) {
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
@@ -291,6 +294,7 @@ export function TemplateStepFramework({
             setEntryPath('manual');
           }}
           onDemoOverride={onDemoOverride}
+          onFactoryReset={onFactoryReset}
         />
       )}
 
