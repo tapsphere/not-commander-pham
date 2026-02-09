@@ -184,6 +184,12 @@ export function UnifiedCreativeInput({
       scenes,
       isDemoOrEmpty ? 'theme' : 'skill'
     );
+    onComplete(
+      matchedCompetency.id,
+      matchedSubs.map(s => s.id),
+      scenes,
+      isDemoOrEmpty ? 'theme' : 'skill'
+    );
   };
 
   // Handle manual competency selection from dropdown
