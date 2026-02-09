@@ -351,16 +351,6 @@ export function UnifiedCreativeInput({
         </Badge>
       </div>
 
-      {/* V5 Lock Indicator */}
-      <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mt-4">
-        <p className="text-xs text-muted-foreground flex items-start gap-2">
-          <Lock className="h-3 w-3 text-primary mt-0.5 shrink-0" />
-          <span>
-            <strong>V5 Scientific Lock:</strong> Mobile Interactions (Col G) and Time Gates (Col H) 
-            are read-only in the Scene Builder, ensuring C-BEN compliance.
-          </span>
-        </p>
-      </div>
     </div>
   );
 }
