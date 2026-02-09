@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
-import { Brain, Target, Gauge, Clock, Sparkles, TrendingUp, Eye, Zap } from 'lucide-react';
+import { Brain, Target, Gauge, Clock, Sparkles, TrendingUp, Eye, Zap, FileText, BookOpen, CheckCircle2 } from 'lucide-react';
 import { CompetencyTrack } from './types';
+import type { DistillationResult } from './UnifiedCreativeInput';
 
 // Behavioral Science explanations for competencies
 const COMPETENCY_INSIGHTS: Record<string, {
@@ -53,15 +54,42 @@ interface ExpertAdvisorPanelProps {
   tracks: CompetencyTrack[];
   roleContext?: string;
   brandContext?: string;
+  distillationResult?: DistillationResult | null;
 }
 
 export function ExpertAdvisorPanel({
   tracks,
   roleContext = 'Professional',
   brandContext,
+  distillationResult,
 }: ExpertAdvisorPanelProps) {
-  if (tracks.length === 0) {
-    return null;
+  // IDLE STATE: No tracks and no distillation
+  if (tracks.length === 0 && !distillationResult) {
+    return (
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-2 pb-3 border-b border-border">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-sm text-foreground">C-BEN Expert Advisor</h3>
+            <p className="text-xs text-muted-foreground">Behavioral Science Validation</p>
+          </div>
+        </div>
+
+        {/* Idle Message */}
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-muted/50 border border-border flex items-center justify-center mb-4">
+            <Brain className="h-8 w-8 text-muted-foreground/50" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground mb-1">System Ready</p>
+          <p className="text-xs text-muted-foreground/70 max-w-[220px]">
+            Awaiting PDF ingestion or prompt to initiate Instructional Engineering.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Extract role from prompt if available
@@ -69,6 +97,8 @@ export function ExpertAdvisorPanel({
     ? 'Luxury Sales Associate'
     : roleContext.includes('Manager')
     ? 'Manager'
+    : roleContext.includes('Officer')
+    ? 'Safety Officer'
     : 'Professional';
 
   return (
@@ -84,20 +114,85 @@ export function ExpertAdvisorPanel({
         </div>
       </div>
 
+      {/* DISTILLATION RESULTS — Phase 1 AI Reasoning */}
+      {distillationResult && (
+        <>
+          {/* Document Summary */}
+          <div className="bg-gradient-to-r from-blue-500/5 to-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              <span className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Phase 1: Document Distilled</span>
+            </div>
+            <p className="text-xs text-foreground font-medium mb-1">{distillationResult.filename}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{distillationResult.documentSummary}</p>
+          </div>
+
+          {/* Technical Core Extraction */}
+          <div className="bg-muted/30 border border-border rounded-xl p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              🔬 Noise Filter Applied
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {distillationResult.technicalCoreExtracted}
+            </p>
+          </div>
+
+          {/* Macro-Lessons Discovered */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-emerald-500" />
+              <span className="text-xs font-semibold text-foreground">
+                {distillationResult.macroLessons.length} Macro-Lessons Identified
+              </span>
+            </div>
+            {distillationResult.macroLessons.map((lesson, idx) => (
+              <div 
+                key={idx}
+                className="bg-background border border-border rounded-lg p-3 space-y-2"
+              >
+                <div className="flex items-start justify-between">
+                  <p className="text-xs font-semibold text-foreground flex-1">{lesson.lessonName}</p>
+                  <Badge variant="outline" className="text-[10px] ml-2 shrink-0">
+                    {lesson.suggestedCompetency}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground font-medium mb-1">Condensed Standards:</p>
+                  <ul className="space-y-0.5">
+                    {lesson.condensedStandards.slice(0, 3).map((std, i) => (
+                      <li key={i} className="text-[10px] text-muted-foreground flex items-start gap-1">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>{std}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-primary/5 rounded-md p-2">
+                  <p className="text-[10px] text-primary font-medium">Why {lesson.suggestedCompetency}?</p>
+                  <p className="text-[10px] text-muted-foreground">{lesson.rationale}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Role Mapping */}
-      <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Target className="h-4 w-4 text-primary" />
-          <span className="text-xs font-semibold text-primary uppercase tracking-wide">Role Mapping</span>
+      {tracks.length > 0 && (
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Role Mapping</span>
+          </div>
+          <p className="text-sm text-foreground font-medium mb-1">
+            {extractedRole}
+            {brandContext && <span className="text-muted-foreground"> • {brandContext}</span>}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            → Target Goal: <span className="text-foreground font-medium">High-Stakes VIP Management & Behavioral Readiness</span>
+          </p>
         </div>
-        <p className="text-sm text-foreground font-medium mb-1">
-          {extractedRole}
-          {brandContext && <span className="text-muted-foreground"> • {brandContext}</span>}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          → Target Goal: <span className="text-foreground font-medium">High-Stakes VIP Management & Behavioral Readiness</span>
-        </p>
-      </div>
+      )}
 
       {/* Track-by-Track C-BEN Explanations */}
       {tracks.map((track, idx) => {
@@ -158,35 +253,37 @@ export function ExpertAdvisorPanel({
       })}
 
       {/* Measurement Methodology */}
-      <div className="bg-muted/50 border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Gauge className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-semibold text-foreground uppercase tracking-wide">What We Measure</span>
+      {tracks.length > 0 && (
+        <div className="bg-muted/50 border border-border rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Gauge className="h-4 w-4 text-muted-foreground" />
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">What We Measure</span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="text-center p-2 bg-background rounded-lg border border-border">
+              <Zap className="h-4 w-4 text-amber-500 mx-auto mb-1" />
+              <p className="text-[10px] font-medium text-foreground">Cognitive Speed</p>
+              <p className="text-[9px] text-muted-foreground">Decision Velocity</p>
+            </div>
+            <div className="text-center p-2 bg-background rounded-lg border border-border">
+              <Target className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
+              <p className="text-[10px] font-medium text-foreground">Precision</p>
+              <p className="text-[9px] text-muted-foreground">Answer Accuracy</p>
+            </div>
+            <div className="text-center p-2 bg-background rounded-lg border border-border">
+              <Clock className="h-4 w-4 text-rose-500 mx-auto mb-1" />
+              <p className="text-[10px] font-medium text-foreground">Time Gate</p>
+              <p className="text-[9px] text-muted-foreground">60s Pressure</p>
+            </div>
+          </div>
+          
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            This isn't a knowledge test—we're measuring <span className="text-foreground font-medium">behavioral readiness</span> under 
+            real-world time pressure. Each scene runs a 60-second gate to validate execution precision.
+          </p>
         </div>
-        
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="text-center p-2 bg-background rounded-lg border border-border">
-            <Zap className="h-4 w-4 text-amber-500 mx-auto mb-1" />
-            <p className="text-[10px] font-medium text-foreground">Cognitive Speed</p>
-            <p className="text-[9px] text-muted-foreground">Decision Velocity</p>
-          </div>
-          <div className="text-center p-2 bg-background rounded-lg border border-border">
-            <Target className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
-            <p className="text-[10px] font-medium text-foreground">Precision</p>
-            <p className="text-[9px] text-muted-foreground">Answer Accuracy</p>
-          </div>
-          <div className="text-center p-2 bg-background rounded-lg border border-border">
-            <Clock className="h-4 w-4 text-rose-500 mx-auto mb-1" />
-            <p className="text-[10px] font-medium text-foreground">Time Gate</p>
-            <p className="text-[9px] text-muted-foreground">60s Pressure</p>
-          </div>
-        </div>
-        
-        <p className="text-[10px] text-muted-foreground leading-relaxed">
-          This isn't a knowledge test—we're measuring <span className="text-foreground font-medium">behavioral readiness</span> under 
-          real-world time pressure. Each scene runs a 60-second gate to validate execution precision.
-        </p>
-      </div>
+      )}
 
       {/* C-BEN Standard Footer */}
       <div className="flex items-center justify-center gap-2 pt-2">
