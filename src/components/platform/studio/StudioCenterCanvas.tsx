@@ -229,7 +229,7 @@ export function StudioCenterCanvas({
       return (
         <div className="h-full flex flex-col overflow-hidden relative" style={{ 
           background: currentScene?.backgroundPrompt?.trim()
-            ? `linear-gradient(135deg, ${designSettings.background}, ${designSettings.primary}20, ${designSettings.secondary}15, ${designSettings.accent}10)`
+            ? `linear-gradient(160deg, ${designSettings.background} 0%, ${designSettings.primary}90 40%, ${designSettings.secondary}80 70%, ${designSettings.background} 100%)`
             : designSettings.background
         }}>
           {/* ═══════════════════════════════════════════════════════════════
@@ -352,7 +352,7 @@ export function StudioCenterCanvas({
     return (
       <div className="h-full overflow-hidden flex flex-col relative" style={{ 
         background: currentScene?.backgroundPrompt?.trim()
-          ? `linear-gradient(${135 + (currentSceneIndex * 15)}deg, ${designSettings.background}, ${designSettings.primary}20, ${designSettings.secondary}15, ${designSettings.accent}10)`
+          ? `linear-gradient(${140 + (currentSceneIndex * 20)}deg, ${designSettings.background} 0%, ${designSettings.primary}90 35%, ${designSettings.accent}70 65%, ${designSettings.background} 100%)`
           : designSettings.background
       }}>
         {/* ═══════════════════════════════════════════════════════════════
