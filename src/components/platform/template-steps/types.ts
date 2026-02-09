@@ -25,6 +25,8 @@ export interface SceneData {
   gridLayout?: '1x4' | '2x2' | '3x2';    // Layout: vertical list, 2x2 grid, or 3x2 grid
   // Track assignment
   trackId?: string;                       // Which competency track this scene belongs to
+  // Visual generation
+  backgroundPrompt?: string;              // AI prompt for background image generation
 }
 
 // Lucide icon names for visual choices (fashion/retail example set)
