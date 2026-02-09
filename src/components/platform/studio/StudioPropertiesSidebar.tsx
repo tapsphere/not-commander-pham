@@ -1652,10 +1652,19 @@ export function StudioPropertiesSidebar({
       )}
       
       <div className="flex-1 flex flex-col">
-        {/* Sidebar Header */}
-        <div className={`px-4 py-3 border-b ${borderColor} flex items-center justify-between sticky top-0 z-10 ${bgColor} backdrop-blur-xl`}>
+        {/* Sidebar Header - uses brand accent on Step 4 */}
+        <div 
+          className={`px-4 py-3 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl`}
+          style={currentStep === 4 ? {
+            backgroundColor: `${designSettings.background}F0`,
+            borderBottomColor: `${designSettings.primary}40`,
+          } : undefined}
+        >
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${textColor}`}>
+            <span 
+              className={`text-sm font-medium`}
+              style={currentStep === 4 ? { color: designSettings.text } : undefined}
+            >
               {currentStep === 3 && tracks.length > 0 
                 ? 'C-BEN Expert Advisor'
                 : currentStep === 4 && isGameplayScene 
@@ -1669,7 +1678,14 @@ export function StudioPropertiesSidebar({
               </Badge>
             )}
           </div>
-          <Badge variant="outline" className="text-xs">
+          <Badge 
+            variant="outline" 
+            className="text-xs"
+            style={currentStep === 4 ? { 
+              borderColor: `${designSettings.primary}60`,
+              color: designSettings.primary,
+            } : undefined}
+          >
             {currentStep === 4 
               ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === resultsSceneIndex ? 'Results' : `Scene ${currentSceneIndex}`)
               : `Step ${currentStep}`
@@ -1783,10 +1799,14 @@ export function StudioPropertiesSidebar({
         {currentStep === 4 && isGameplayScene && currentScene && (
           <div className={`
             sticky bottom-0 left-0 right-0 
-            p-3 border-t ${borderColor}
-            ${isDarkMode ? 'bg-slate-900/95' : 'bg-white/95'}
+            p-3 border-t
             backdrop-blur-xl
-          `}>
+          `}
+          style={currentStep === 4 ? {
+            backgroundColor: `${designSettings.background}F0`,
+            borderTopColor: `${designSettings.primary}30`,
+          } : undefined}
+        >
             <div className={`flex gap-2 ${isExpanded ? 'flex-row' : 'flex-col'}`}>
               <Button
                 variant="outline"
