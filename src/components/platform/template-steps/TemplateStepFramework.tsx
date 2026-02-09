@@ -251,9 +251,6 @@ export function TemplateStepFramework({
     return subCompetencies.filter(s => s.competency_id === track.competencyId);
   };
 
-  // Show Entry Port or Main Framework UI
-  const showMainUI = !showEntryPort || entryPath === 'manual' || selectedCompetency;
-
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       {/* HEADER - Logic Framework */}
@@ -274,7 +271,7 @@ export function TemplateStepFramework({
         </p>
       </div>
 
-      {/* HERO SEARCH BOX - Integrated into Layout */}
+      {/* HERO SEARCH BOX - Integrated above framework lists */}
       {!selectedCompetency && (
         <UnifiedCreativeInput
           competencies={competencies}
@@ -289,11 +286,9 @@ export function TemplateStepFramework({
         />
       )}
 
-      {/* MAIN FRAMEWORK UI - Always visible structure */}
-      {showMainUI && (
-        <>
+      {/* MAIN FRAMEWORK UI - Always visible (Curriculum Tracks + Sub-Competencies) */}
 
-          {/* Existing Tracks Summary (if multi-track) */}
+      {/* Existing Tracks Summary (if multi-track) */}
           {tracks.length > 0 && (
             <div className="bg-muted/50 border border-border rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
@@ -635,8 +630,6 @@ export function TemplateStepFramework({
               )}
             </div>
           </div>
-        </>
-      )}
-    </div>
+        </div>
   );
 }
