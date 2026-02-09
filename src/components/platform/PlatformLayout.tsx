@@ -91,8 +91,8 @@ export const PlatformLayout = () => {
       <header className="border-b border-border bg-card/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <h1 className="text-xl font-semibold text-foreground">
-              Studio
+            <h1 className="text-xl font-semibold text-foreground tracking-wide">
+              PLAYOPS
             </h1>
             
             <nav className="flex gap-2">
