@@ -99,8 +99,15 @@ export function ExpertAdvisorPanel({
     );
   }
 
-  // Extract role from prompt if available
-  const extractedRole = roleContext.includes('PCL') || roleContext.includes('Cabin')
+  // Extract role from prompt/tracks context
+  const hasAeroTracks = tracks.some(t => {
+    const n = t.competencyName.toLowerCase();
+    return n.includes('digital & ai fluency') || n.includes('adaptability & resilience');
+  });
+  
+  const extractedRole = hasAeroTracks
+    ? 'Premium Cabin Lead'
+    : roleContext.includes('PCL') || roleContext.includes('Cabin')
     ? 'Premium Cabin Lead'
     : roleContext.includes('Safety')
     ? 'Safety Compliance Officer'
@@ -198,7 +205,9 @@ export function ExpertAdvisorPanel({
             {brandContext && <span className="text-muted-foreground"> • {brandContext}</span>}
           </p>
           <p className="text-xs text-muted-foreground">
-            → Target Goal: <span className="text-foreground font-medium">Wide-Body Jet Safety & Premium Service Readiness</span>
+            → Target Goal: <span className="text-foreground font-medium">
+              {hasAeroTracks ? 'Wide-Body Jet Safety & Premium Service Readiness' : 'Professional Behavioral Readiness'}
+            </span>
           </p>
         </div>
       )}
