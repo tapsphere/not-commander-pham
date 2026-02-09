@@ -499,103 +499,160 @@ export function UnifiedCreativeInput({
         });
       }
 
-      // Phase 2: Use first macro-lesson's suggested competency for 1-1-6 Blueprint
-      const firstLesson = distillData.macroLessons[0];
-      const suggestedName = firstLesson.suggestedCompetency.toLowerCase();
-      
-      const matchedCompetency = competencies.find(c => 
-        c.name.toLowerCase() === suggestedName ||
-        c.name.toLowerCase().includes(suggestedName) ||
-        suggestedName.includes(c.name.toLowerCase())
-      ) || matchCompetencyFromPrompt(extractedText, competencies);
-      
-      if (!matchedCompetency) {
-        toast.error('Could not map to a C-BEN competency');
-        setUploadedFile(null);
-        return;
+      // Phase 2: Aero PCL Detection — Force 4 mandatory tracks for aviation content
+      const AERO_KEYWORDS = ['psi', 'halon', 'vocus', 'retina', 'haptic', 'aeration', 'linen', 'cabin', 'evacuation', 'slide deployment', 'oxygen cylinder', 'wide-body', 'turbulence', 'pcl', 'premium cabin', 'cockpit', 'faa', 'pre-flight'];
+      const lowerText = extractedText.toLowerCase();
+      const aeroKeywordHits = AERO_KEYWORDS.filter(kw => lowerText.includes(kw)).length;
+      const isAeroDocument = aeroKeywordHits >= 3;
+
+      if (isAeroDocument) {
+        console.log(`✈️ Aero PCL Handbook detected (${aeroKeywordHits} keyword hits). Forcing 4-track layout.`);
       }
 
-      // 1-1-6 Structural Enforcement (Rule 5)
-      const trackId = `track-1-${Date.now()}`;
-      const { matchedSubs, scenes } = populateScenesForCompetency(
-        matchedCompetency.id, 
-        `[${file.name}] ${firstLesson.lessonName}`, 
-        trackId
-      );
+      // The 4 mandatory Aero competencies (in order)
+      const AERO_COMPETENCY_NAMES = [
+        'analytical thinking',
+        'problem solving',
+        'digital & ai fluency',
+        'adaptability & resilience',
+      ];
 
-      // Override scene questions with AI-generated action cues if available
-      if (firstLesson.actionCues && firstLesson.actionCues.length > 0) {
-        scenes.forEach((scene, idx) => {
-          if (firstLesson.actionCues[idx]) {
-            scene.question = firstLesson.actionCues[idx];
-          }
-        });
-      }
+      const additionalTracks: CompetencyTrack[] = [];
+      const allScenes: SceneData[] = [];
+      const allSubIds: string[] = [];
+      const allMatchedNames: string[] = [];
 
-      const track: CompetencyTrack = {
-        id: trackId,
-        competencyId: matchedCompetency.id,
-        competencyName: matchedCompetency.name,
-        subCompetencyIds: matchedSubs.map(s => s.id),
-        order: 1,
-        createdAt: Date.now(),
-      };
+      if (isAeroDocument) {
+        // Force all 4 Aero competencies regardless of AI output
+        for (let i = 0; i < AERO_COMPETENCY_NAMES.length; i++) {
+          const targetName = AERO_COMPETENCY_NAMES[i];
+          const comp = competencies.find(c => c.name.toLowerCase() === targetName);
+          if (!comp) continue;
 
-      // Build additional tracks for remaining macro-lessons
-      const additionalTracks: CompetencyTrack[] = [track];
-      const allScenes = [...scenes];
-      const allSubIds = [...matchedSubs.map(s => s.id)];
-      const allMatchedNames = [matchedCompetency.name];
-
-      // Generate tracks for additional macro-lessons (up to 3 total)
-      for (let i = 1; i < Math.min(distillData.macroLessons.length, 3); i++) {
-        const lesson = distillData.macroLessons[i];
-        const lessonCompName = lesson.suggestedCompetency.toLowerCase();
-        const lessonComp = competencies.find(c =>
-          c.name.toLowerCase() === lessonCompName ||
-          c.name.toLowerCase().includes(lessonCompName) ||
-          lessonCompName.includes(c.name.toLowerCase())
-        );
-        
-        if (lessonComp && !allMatchedNames.includes(lessonComp.name)) {
           const ltId = `track-${i + 1}-${Date.now()}`;
           try {
+            const lessonForTrack = distillData.macroLessons.find(
+              (l: MacroLesson) => l.suggestedCompetency.toLowerCase().includes(targetName.split(' ')[0])
+            ) || distillData.macroLessons[i] || distillData.macroLessons[0];
+
             const { matchedSubs: lSubs, scenes: lScenes } = populateScenesForCompetency(
-              lessonComp.id, `[${file.name}] ${lesson.lessonName}`, ltId
+              comp.id, `[${file.name}] ${lessonForTrack.lessonName}`, ltId
             );
-            
-            if (lesson.actionCues?.length) {
+
+            if (lessonForTrack.actionCues?.length) {
               lScenes.forEach((s, idx) => {
-                if (lesson.actionCues[idx]) s.question = lesson.actionCues[idx];
+                if (lessonForTrack.actionCues[idx]) s.question = lessonForTrack.actionCues[idx];
               });
             }
 
             additionalTracks.push({
               id: ltId,
-              competencyId: lessonComp.id,
-              competencyName: lessonComp.name,
+              competencyId: comp.id,
+              competencyName: comp.name,
               subCompetencyIds: lSubs.map(s => s.id),
               order: i + 1,
               createdAt: Date.now(),
             });
             allScenes.push(...lScenes);
             allSubIds.push(...lSubs.map(s => s.id));
-            allMatchedNames.push(lessonComp.name);
+            allMatchedNames.push(comp.name);
           } catch {
             // Skip if competency has no sub-competencies
           }
         }
-      }
+      } else {
+        // Standard flow: Use AI-suggested competencies from macro-lessons
+        const firstLesson = distillData.macroLessons[0];
+        const suggestedName = firstLesson.suggestedCompetency.toLowerCase();
+        
+        const matchedCompetency = competencies.find(c => 
+          c.name.toLowerCase() === suggestedName ||
+          c.name.toLowerCase().includes(suggestedName) ||
+          suggestedName.includes(c.name.toLowerCase())
+        ) || matchCompetencyFromPrompt(extractedText, competencies);
+        
+        if (!matchedCompetency) {
+          toast.error('Could not map to a C-BEN competency');
+          setUploadedFile(null);
+          return;
+        }
 
+        const trackId = `track-1-${Date.now()}`;
+        const { matchedSubs, scenes } = populateScenesForCompetency(
+          matchedCompetency.id, 
+          `[${file.name}] ${firstLesson.lessonName}`, 
+          trackId
+        );
+
+        if (firstLesson.actionCues?.length) {
+          scenes.forEach((scene, idx) => {
+            if (firstLesson.actionCues[idx]) scene.question = firstLesson.actionCues[idx];
+          });
+        }
+
+        additionalTracks.push({
+          id: trackId,
+          competencyId: matchedCompetency.id,
+          competencyName: matchedCompetency.name,
+          subCompetencyIds: matchedSubs.map(s => s.id),
+          order: 1,
+          createdAt: Date.now(),
+        });
+        allScenes.push(...scenes);
+        allSubIds.push(...matchedSubs.map(s => s.id));
+        allMatchedNames.push(matchedCompetency.name);
+
+        // Generate tracks for additional macro-lessons (up to 4 total)
+        for (let i = 1; i < Math.min(distillData.macroLessons.length, 4); i++) {
+          const lesson = distillData.macroLessons[i];
+          const lessonCompName = lesson.suggestedCompetency.toLowerCase();
+          const lessonComp = competencies.find(c =>
+            c.name.toLowerCase() === lessonCompName ||
+            c.name.toLowerCase().includes(lessonCompName) ||
+            lessonCompName.includes(c.name.toLowerCase())
+          );
+          
+          if (lessonComp && !allMatchedNames.includes(lessonComp.name)) {
+            const ltId = `track-${i + 1}-${Date.now()}`;
+            try {
+              const { matchedSubs: lSubs, scenes: lScenes } = populateScenesForCompetency(
+                lessonComp.id, `[${file.name}] ${lesson.lessonName}`, ltId
+              );
+              
+              if (lesson.actionCues?.length) {
+                lScenes.forEach((s, idx) => {
+                  if (lesson.actionCues[idx]) s.question = lesson.actionCues[idx];
+                });
+              }
+
+              additionalTracks.push({
+                id: ltId,
+                competencyId: lessonComp.id,
+                competencyName: lessonComp.name,
+                subCompetencyIds: lSubs.map(s => s.id),
+                order: i + 1,
+                createdAt: Date.now(),
+              });
+              allScenes.push(...lScenes);
+              allSubIds.push(...lSubs.map(s => s.id));
+              allMatchedNames.push(lessonComp.name);
+            } catch {
+              // Skip if competency has no sub-competencies
+            }
+          }
+        }
+      }
+      const primaryCompetencyId = additionalTracks[0]?.competencyId || competencies[0]?.id;
+      
       setHasSubmittedOnce(true);
       setMatchedCompetencyNames(allMatchedNames);
-      setLastAiCompetencyId(matchedCompetency.id);
+      setLastAiCompetencyId(primaryCompetencyId);
       
       const lessonCount = distillData.macroLessons.length;
       toast.success(`✓ Distilled ${lessonCount} Macro-Lessons → ${allMatchedNames.join(' + ')} (${allScenes.length} scenes)`);
       
       onComplete(
-        matchedCompetency.id, 
+        primaryCompetencyId, 
         allSubIds, 
         allScenes, 
         'upload', 
