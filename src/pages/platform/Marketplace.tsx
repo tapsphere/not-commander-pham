@@ -296,26 +296,88 @@ function LogicLatencyGauge() {
 }
 
 function ICVTracker() {
-  const icvScore = 88;
+  const icvScore = 88.4;
+  const threshold = 85;
+  const isAboveThreshold = icvScore >= threshold;
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Data Overlay — Top Row */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">In-Country Value</span>
-        <span className="text-2xl font-bold text-foreground">{icvScore}%</span>
+        <span className="text-xs font-bold text-foreground tracking-wide" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          In-Country Value Score
+        </span>
+        <span
+          className="text-2xl font-bold text-foreground tracking-tighter"
+          style={{ fontFamily: '"SF Mono", "Fira Code", "Cascadia Code", monospace' }}
+        >
+          {icvScore.toFixed(1)}%
+        </span>
       </div>
-      <div className="relative w-full h-48 rounded-xl overflow-hidden" style={{ backgroundColor: 'hsl(var(--compliance-sage) / 0.15)' }}>
+
+      {/* Regulatory Progress Track */}
+      <div
+        className="relative w-full h-8 rounded-lg overflow-hidden"
+        style={{
+          backdropFilter: 'blur(25px)',
+          border: '0.5px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'hsl(var(--compliance-sage) / 0.12)',
+          boxShadow: isAboveThreshold
+            ? '0 0 20px hsl(var(--compliance-accent) / 0.15), inset 0 1px 0 rgba(255,255,255,0.05)'
+            : '0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
+      >
+        {/* Fill bar with liquid pulse */}
         <div
-          className="absolute bottom-0 left-0 right-0 rounded-xl transition-all duration-1000"
+          className="absolute inset-y-0 left-0 rounded-lg"
           style={{
-            height: `${icvScore}%`,
-            background: `linear-gradient(to top, hsl(var(--compliance-primary)), hsl(var(--compliance-accent)))`,
+            width: `${icvScore}%`,
+            background: isAboveThreshold
+              ? 'linear-gradient(90deg, #004D40, #00C853, #00FFAB)'
+              : 'linear-gradient(90deg, #BF8A30, #C0B283)',
+            transition: 'width 1.2s cubic-bezier(0.4,0,0.2,1)',
           }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground drop-shadow-sm">{icvScore}%</span>
+        >
+          {/* Liquid pulse overlay */}
+          <div
+            className="absolute inset-0 rounded-lg"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)',
+              backgroundSize: '200% 100%',
+              animation: 'liquidPulse 2.5s ease-in-out infinite',
+            }}
+          />
+        </div>
+
+        {/* Threshold marker at 85% */}
+        <div
+          className="absolute top-0 bottom-0 flex flex-col items-center z-10"
+          style={{ left: `${threshold}%`, transform: 'translateX(-50%)' }}
+        >
+          <div
+            className="w-[1px] h-full"
+            style={{
+              background: 'hsl(var(--talent-gold))',
+              boxShadow: '0 0 4px hsl(var(--talent-gold) / 0.5)',
+            }}
+          />
+        </div>
+
+        {/* Threshold label */}
+        <div
+          className="absolute -top-5 text-center z-10"
+          style={{ left: `${threshold}%`, transform: 'translateX(-50%)' }}
+        >
+          <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">
+            National Requirement
+          </span>
         </div>
       </div>
-      <p className="text-[10px] text-muted-foreground text-center">National Target: 75% | Current: <span className="font-semibold">{icvScore}%</span></p>
+
+      {/* Bottom sub-text */}
+      <p className="text-[10px] text-muted-foreground">
+        Verified against <span className="font-semibold text-foreground">v2.1</span> Local Content Regulations
+      </p>
     </div>
   );
 }

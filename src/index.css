@@ -223,6 +223,12 @@
   }
 }
 
+/* Liquid Pulse animation for ICV bar */
+@keyframes liquidPulse {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Monaco Editor Protected Block Styles
    For Scientific Core, Telemetry, and TMA SDK sections
