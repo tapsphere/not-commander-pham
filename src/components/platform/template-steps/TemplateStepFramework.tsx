@@ -8,7 +8,7 @@ import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultSce
 import { Lock, Plus, Layers, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { CompetencyAISearch } from './CompetencyAISearch';
 import { UnifiedCreativeInput } from './UnifiedCreativeInput';
-
+import { ExpertAdvisorPanel } from './ExpertAdvisorPanel';
 // Track which entry path was used
 type EntryPath = 'upload' | 'manual' | 'combine' | 'theme' | 'skill' | null;
 
@@ -73,6 +73,7 @@ export function TemplateStepFramework({
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
   const [entryPath, setEntryPath] = useState<EntryPath>(null);
   const [showHeroBox, setShowHeroBox] = useState(true);
+  const [promptContext, setPromptContext] = useState<string>('');
   const addTrackRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to the Add Track section when it opens
@@ -167,12 +168,18 @@ export function TemplateStepFramework({
     selectedSubIds: string[],
     newScenes: SceneData[],
     pathUsed: EntryPath,
-    additionalTracks?: CompetencyTrack[]
+    additionalTracks?: CompetencyTrack[],
+    usedPrompt?: string
   ) => {
     setSelectedCompetency(competencyId);
     setSelectedSubCompetencies(selectedSubIds);
     setScenes(newScenes);
     setEntryPath(pathUsed);
+    
+    // Store prompt context for Expert Advisor
+    if (usedPrompt) {
+      setPromptContext(usedPrompt);
+    }
     
     // If we have tracks from the multi-track detection, use them
     if (additionalTracks && additionalTracks.length > 0 && setTracks) {
@@ -245,102 +252,110 @@ export function TemplateStepFramework({
     return subCompetencies.filter(s => s.competency_id === track.competencyId);
   };
 
+  // Extract brand context from prompt
+  const extractBrandContext = (prompt: string): string | undefined => {
+    const brandMatch = prompt.match(/Brand:\s*([^.–]+)/i);
+    return brandMatch ? brandMatch[1].trim() : undefined;
+  };
+
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      {/* HEADER - C-BEN Framework */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 mb-2">
-          <Lock className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">C-BEN Framework</h2>
-          {entryPath && (
-            <Badge variant="outline" className="text-xs capitalize">
-              via {entryPath}
-            </Badge>
-          )}
+    <div className="flex gap-6">
+      {/* LEFT COLUMN - Main Framework UI */}
+      <div className="flex-1 space-y-6 max-w-2xl">
+        {/* HEADER - C-BEN Framework */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 mb-2">
+            <Lock className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">C-BEN Framework</h2>
+            {entryPath && (
+              <Badge variant="outline" className="text-xs capitalize">
+                via {entryPath}
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {selectedCompetency 
+              ? 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'
+              : 'Search & Build — enter a theme, type a skill, or upload a PDF.'}
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {selectedCompetency 
-            ? 'Your V5 structure is loaded. Fine-tune scenes in the Scene Builder.'
-            : 'Search & Build — enter a theme, type a skill, or upload a PDF.'}
-        </p>
-      </div>
 
-      {/* HERO SEARCH BOX - Always visible for edit & refresh */}
-      {showHeroBox && (
-        <UnifiedCreativeInput
-          competencies={competencies}
-          subCompetencies={subCompetencies}
-          onComplete={(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks) => {
-            handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks);
-          }}
-          onManualFallback={() => {
-            setEntryPath('manual');
-          }}
-        />
-      )}
+        {/* HERO SEARCH BOX - Always visible for edit & refresh */}
+        {showHeroBox && (
+          <UnifiedCreativeInput
+            competencies={competencies}
+            subCompetencies={subCompetencies}
+            onComplete={(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks, usedPrompt) => {
+              handleEntryPortComplete(competencyId, selectedSubIds, newScenes, pathUsed, additionalTracks, usedPrompt);
+            }}
+            onManualFallback={() => {
+              setEntryPath('manual');
+            }}
+          />
+        )}
 
-      {/* MAIN FRAMEWORK UI - Curriculum Tracks + Sub-Competencies */}
+        {/* MAIN FRAMEWORK UI - Curriculum Tracks + Sub-Competencies */}
 
-      {/* Existing Tracks Summary (if multi-track) */}
-      {tracks.length > 0 && (
-        <div className="bg-muted/50 border border-border rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Curriculum Tracks</span>
+        {/* Existing Tracks Summary (if multi-track) */}
+        {tracks.length > 0 && (
+          <div className="bg-muted/50 border border-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Curriculum Tracks</span>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {tracks.length} Track{tracks.length !== 1 ? 's' : ''} • {selectedSubCompetencies.length} Scenes
+              </Badge>
             </div>
-            <Badge variant="outline" className="text-xs">
-              {tracks.length} Track{tracks.length !== 1 ? 's' : ''} • {selectedSubCompetencies.length} Scenes
-            </Badge>
-          </div>
-          
-          <div className="space-y-2 mb-3">
-            {tracks.map((track, idx) => {
-              const trackSubs = track.subCompetencyIds.length;
-              return (
-                <div 
-                  key={track.id}
-                  className="flex items-center justify-between p-3 bg-background rounded-lg border border-border"
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm"
-                      style={{ 
-                        background: `linear-gradient(135deg, hsl(${(idx * 60) % 360}, 70%, 50%), hsl(${(idx * 60 + 30) % 360}, 70%, 40%))` 
-                      }}
-                    >
-                      {idx + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{track.competencyName}</p>
-                      <p className="text-xs text-muted-foreground">{trackSubs}/6 sub-competencies</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      Scenes {(idx * 6) + 1}-{(idx + 1) * 6}
-                    </Badge>
-                    {tracks.length > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        onClick={() => handleRemoveTrack(track.id)}
+            
+            <div className="space-y-2 mb-3">
+              {tracks.map((track, idx) => {
+                const trackSubs = track.subCompetencyIds.length;
+                return (
+                  <div 
+                    key={track.id}
+                    className="flex items-center justify-between p-3 bg-background rounded-lg border border-border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm"
+                        style={{ 
+                          background: `linear-gradient(135deg, hsl(${(idx * 60) % 360}, 70%, 50%), hsl(${(idx * 60 + 30) % 360}, 70%, 40%))` 
+                        }}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{track.competencyName}</p>
+                        <p className="text-xs text-muted-foreground">{trackSubs}/6 sub-competencies</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        Scenes {(idx * 6) + 1}-{(idx + 1) * 6}
+                      </Badge>
+                      {tracks.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleRemoveTrack(track.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* AI-Powered Competency Search */}
-      <div className="space-y-4">
+        {/* AI-Powered Competency Search */}
+        <div className="space-y-4">
         <div className="bg-muted/50 border border-border rounded-xl p-4">
           <Label className="text-foreground font-medium mb-3 block">
             {tracks.length > 0 ? 'Add Sub-Competencies to Current Track' : 'Find Your Competency'} *
@@ -550,6 +565,7 @@ export function TemplateStepFramework({
             </div>
           </div>
         )}
+        </div>
 
         {/* ADD ANOTHER COMPETENCY TRACK - Only at BOTTOM after tracks are generated */}
         {tracks.length > 0 && (
@@ -612,6 +628,19 @@ export function TemplateStepFramework({
           </div>
         )}
       </div>
+
+      {/* RIGHT COLUMN - Expert Advisor Panel */}
+      {tracks.length > 0 && (
+        <div className="w-80 shrink-0">
+          <div className="sticky top-4 bg-background border border-border rounded-xl p-4 shadow-sm">
+            <ExpertAdvisorPanel
+              tracks={tracks}
+              roleContext={promptContext}
+              brandContext={extractBrandContext(promptContext)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

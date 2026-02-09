@@ -47,13 +47,14 @@ interface TrackMapping {
 interface UnifiedCreativeInputProps {
   competencies: Competency[];
   subCompetencies: SubCompetency[];
-  // Updated: Support multi-track completion
+  // Updated: Support multi-track completion with prompt context
   onComplete: (
     competencyId: string,
     selectedSubIds: string[],
     scenes: SceneData[],
     pathUsed: 'theme' | 'skill' | 'upload',
-    additionalTracks?: CompetencyTrack[]
+    additionalTracks?: CompetencyTrack[],
+    usedPrompt?: string
   ) => void;
   onManualFallback: () => void;
 }
@@ -260,13 +261,14 @@ export function UnifiedCreativeInput({
     const trackNames = matchedNames.join(' + ');
     toast.success(`✓ Mapped to "${trackNames}" with ${allScenes.length} scenes`);
     
-    // Call onComplete with first track's competencyId and all data
+    // Call onComplete with first track's competencyId and all data, including the used prompt
     onComplete(
       trackMappings[0].competencyId,
       allSubIds,
       allScenes,
       isDemoOrEmpty ? 'theme' : 'skill',
-      additionalTracks
+      additionalTracks,
+      searchTheme
     );
   };
 
@@ -298,7 +300,8 @@ export function UnifiedCreativeInput({
         matchedSubs.map(s => s.id),
         scenes,
         'skill',
-        [track]
+        [track],
+        theme
       );
     } catch (error: any) {
       toast.error(error.message || 'Failed to load competency');
@@ -336,7 +339,8 @@ export function UnifiedCreativeInput({
         matchedSubs.map(s => s.id),
         scenes,
         'skill',
-        [track]
+        [track],
+        theme
       );
     } catch (error: any) {
       toast.error(error.message || 'Failed to revert');
@@ -403,7 +407,7 @@ export function UnifiedCreativeInput({
       setHasSubmittedOnce(true);
       setMatchedCompetencyNames([matchedCompetency.name]);
       toast.success(`Mapped to "${matchedCompetency.name}" with ${scenes.length} scenes`);
-      onComplete(matchedCompetency.id, matchedSubs.map(s => s.id), scenes, 'upload', [track]);
+      onComplete(matchedCompetency.id, matchedSubs.map(s => s.id), scenes, 'upload', [track], `[From ${file.name}]`);
     } catch (error: any) {
       console.error('Upload error:', error);
       toast.error('Failed to parse PDF. Try entering a theme instead.');
