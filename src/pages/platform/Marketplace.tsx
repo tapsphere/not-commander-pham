@@ -739,18 +739,23 @@ export default function Marketplace() {
                       className="glass-card overflow-hidden transition-all duration-300 cursor-pointer hover-lift rounded-xl"
                     >
                       <div className="relative aspect-[2/1] bg-muted">
-                        {creator.featured_game_image ? (
-                          <img
-                            src={creator.featured_game_image.startsWith('/') ? creator.featured_game_image.slice(1) : creator.featured_game_image}
-                            alt={creator.creator_name || 'Creator'}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (() => {
+                        {(() => {
+                          // Always prefer Aero-Airways imagery for unknown/placeholder creators
+                          const isUnknown = !creator.creator_name || creator.creator_name === 'Unknown Creator';
                           const aeroImg = getAeroImage(creator.creator_name || '') || getAeroImage(creator.featured_game_name || '');
-                          return aeroImg ? (
-                            <img src={aeroImg} alt={creator.creator_name || 'Role'} className="w-full h-full object-cover" />
-                          ) : (
-                            <img src={[aeroPCL, aeroOCC, aeroLogistics, aeroSafety][Math.abs((creator.creator_name || '').length) % 4]} alt="Aero Role" className="w-full h-full object-cover" />
+                          const fallbackAero = [aeroPCL, aeroOCC, aeroLogistics, aeroSafety][Math.abs((creator.creator_name || '').length + (creator.creator_id || '').length) % 4];
+
+                          if (isUnknown || !creator.featured_game_image) {
+                            return <img src={aeroImg || fallbackAero} alt={creator.featured_game_name || 'Aero Role'} className="w-full h-full object-cover" />;
+                          }
+
+                          return (
+                            <img
+                              src={creator.featured_game_image.startsWith('/') ? creator.featured_game_image.slice(1) : creator.featured_game_image}
+                              alt={creator.creator_name || 'Creator'}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).src = aeroImg || fallbackAero; }}
+                            />
                           );
                         })()}
                       </div>
