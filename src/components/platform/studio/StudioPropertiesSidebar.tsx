@@ -29,7 +29,7 @@ import { ChoiceEditorItem } from './ChoiceEditorItem';
 import { SceneBackgroundPrompt } from './SceneBackgroundPrompt';
 import { GlobalSceneStyler } from './GlobalSceneStyler';
 
-// Behavioral Science explanations for competencies (moved from ExpertAdvisorPanel)
+// Behavioral Science explanations for competencies — Aero PCL Handbook v6.0
 const COMPETENCY_INSIGHTS: Record<string, {
   roleMapping: string;
   cbenWhy: string;
@@ -37,28 +37,40 @@ const COMPETENCY_INSIGHTS: Record<string, {
   color: string;
 }> = {
   'analytical thinking': {
-    roleMapping: 'Visual Pattern Recognition & Spatial Decision-Making',
-    cbenWhy: 'C-BEN standards identify Analytical Thinking as critical for roles requiring rapid visual assessment—reading boutique floor layouts, optimizing mannequin depth, and controlling focal lighting.',
+    roleMapping: 'Forensic Systems Audit & Pressure Vessel Analysis',
+    cbenWhy: 'C-BEN standards identify Analytical Thinking as critical for roles requiring forensic inspection of aircraft systems—validating 1,850 PSI oxygen cylinder integrity, verifying 15lb Halon discharge force, and interpreting multi-system fault cascades under FAA compliance.',
     icon: Eye,
     color: 'amber',
   },
+  'problem solving': {
+    roleMapping: 'Systematic Survival Logic & Emergency Deployment',
+    cbenWhy: 'Problem Solving under C-BEN standards tests systematic emergency response—executing 6-second slide deployment sequences, managing evacuation decision trees, and applying survival logic protocols across multi-scenario cabin emergencies.',
+    icon: Zap,
+    color: 'blue',
+  },
+  'digital & ai fluency': {
+    roleMapping: 'VOCUS Retina Sync & Haptic Override Systems',
+    cbenWhy: 'Digital & AI Fluency validates mastery of next-gen cockpit-cabin interfaces—achieving 45-second VOCUS Retina Sync calibration, executing 800ms Haptic override commands, and interpreting real-time AI diagnostic feeds for in-flight anomaly detection.',
+    icon: Brain,
+    color: 'purple',
+  },
+  'adaptability & resilience': {
+    roleMapping: 'Alert Grace Protocol & Premium Service Under Pressure',
+    cbenWhy: 'Adaptability & Resilience in C-BEN frameworks tests the ability to maintain premium cabin standards under operational stress—executing 180-second wine aeration protocols, achieving 10mm linen alignment precision, and sustaining "Alert Grace" behavioral composure during turbulence and irregular operations.',
+    icon: TrendingUp,
+    color: 'emerald',
+  },
   'growth design': {
-    roleMapping: 'Conversion Optimization & Friction Reduction',
-    cbenWhy: 'Growth Design tests the ability to identify UI friction points, map referral loops, and optimize digital funnels—essential for VIP reservation management.',
+    roleMapping: 'Operational Growth & Continuous Improvement',
+    cbenWhy: 'Growth Design under C-BEN standards validates the ability to identify operational improvement opportunities, optimize passenger experience funnels, and drive measurable service quality metrics across cabin operations.',
     icon: TrendingUp,
     color: 'emerald',
   },
   'emotional intelligence': {
     roleMapping: 'Interpersonal Dynamics & Empathy Calibration',
-    cbenWhy: 'Emotional Intelligence validates your ability to read social cues, manage high-stakes client relationships, and adapt communication style.',
+    cbenWhy: 'Emotional Intelligence validates your ability to read social cues, manage high-stakes client relationships, and adapt communication style under pressure.',
     icon: Brain,
     color: 'purple',
-  },
-  'problem solving': {
-    roleMapping: 'Root Cause Analysis & Solution Architecture',
-    cbenWhy: 'Problem Solving tests systematic debugging—identifying root causes, evaluating solution tradeoffs, and executing under constraints.',
-    icon: Zap,
-    color: 'blue',
   },
 };
 
