@@ -440,8 +440,10 @@ export function UnifiedCreativeInput({
   };
 
   const handleFileUpload = async (file: File) => {
-    if (!file.type.includes('pdf')) {
-      toast.error('Please upload a PDF file');
+    const isPdf = file.type.includes('pdf');
+    const isZip = file.type === 'application/zip' || file.type === 'application/x-zip-compressed' || file.name.toLowerCase().endsWith('.zip');
+    if (!isPdf && !isZip) {
+      toast.error('Please upload a PDF or ZIP file');
       return;
     }
 
@@ -733,7 +735,7 @@ export function UnifiedCreativeInput({
             title="Upload PDF or Training Materials"
           >
             <Upload className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-muted-foreground group-hover:text-primary">Upload PDF</span>
+            <span className="text-muted-foreground group-hover:text-primary">Upload PDF/ZIP</span>
           </button>
           
           {/* Center: Clear Button (only show when there's text and it's not empty) */}
@@ -784,7 +786,7 @@ export function UnifiedCreativeInput({
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf"
+          accept=".pdf,.zip"
           onChange={handleFileChange}
           className="hidden"
         />
