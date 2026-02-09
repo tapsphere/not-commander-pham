@@ -687,20 +687,14 @@ export function UnifiedCreativeInput({
 
       {/* Dynamic Status Indicator */}
       <div className="flex items-center gap-2">
-        <Badge 
-          variant="outline" 
-          className={`text-xs px-2 py-0.5 ${
-            isManualMode 
-              ? 'bg-muted border-border text-muted-foreground' 
-              : 'bg-primary/10 border-primary/30 text-primary'
-          }`}
-        >
-          {isManualMode ? (
-            <>Via Manual</>
-          ) : (
-            <><Sparkles className="w-3 h-3 mr-1 inline" />Powered by Smart Select</>
-          )}
-        </Badge>
+        {isManualMode && (
+          <Badge 
+            variant="outline" 
+            className="text-xs px-2 py-0.5 bg-muted border-border text-muted-foreground"
+          >
+            Via Manual
+          </Badge>
+        )}
         {hasSubmittedOnce && matchedCompetencyNames.length > 0 && (
           <span className="text-xs text-muted-foreground">
             → {matchedCompetencyNames.join(' + ')}
