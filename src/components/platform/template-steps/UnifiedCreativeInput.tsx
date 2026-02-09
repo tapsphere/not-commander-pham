@@ -29,8 +29,11 @@ const VALERTI_DEMO = {
   visualBase: 'SS26 Luxury Boutique, 35mm film grain, Amber Haze lighting, ethereal motion',
 };
 
-// Keywords that trigger Fashion/Analytical Thinking mapping
+// Track 1: Fashion/Valerti → Analytical Thinking
 const FASHION_KEYWORDS = ['fashion', 'merchandising', 'retail', 'window', 'mannequin', 'display', 'lighting', 'valerti', 'luxury', 'boutique', 'silk', 'evening wear', 'footwear'];
+
+// Track 2: Marketing/Growth → Growth Design
+const MARKETING_KEYWORDS = ['marketing', 'conversion', 'growth', 'a/b test', 'funnel', 'ui friction', 'referral', 'retention', 'activation', 'onboarding', 'churn', 'engagement'];
 
 interface UnifiedCreativeInputProps {
   competencies: Competency[];
@@ -57,6 +60,7 @@ export function UnifiedCreativeInput({
   const [isManualMode, setIsManualMode] = useState(false);
   const [lastAiCompetencyId, setLastAiCompetencyId] = useState<string | null>(null);
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
+  const [matchedCompetencyName, setMatchedCompetencyName] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,11 +69,17 @@ export function UnifiedCreativeInput({
     a.name.localeCompare(b.name)
   );
 
-  // Check if prompt matches Fashion/Luxury/VALERTI criteria
+  // Check if prompt matches Fashion/Luxury/VALERTI criteria (Track 1)
   const isFashionPrompt = (text: string): boolean => {
     const input = text.toLowerCase();
     return FASHION_KEYWORDS.some(keyword => input.includes(keyword)) ||
            input.includes(VALERTI_DEMO.theme.toLowerCase().substring(0, 20));
+  };
+
+  // Check if prompt matches Marketing/Growth criteria (Track 2)
+  const isMarketingPrompt = (text: string): boolean => {
+    const input = text.toLowerCase();
+    return MARKETING_KEYWORDS.some(keyword => input.includes(keyword));
   };
 
   // Core function to populate scenes for a given competency
@@ -115,22 +125,29 @@ export function UnifiedCreativeInput({
     return { matchedCompetency, matchedSubs, scenes };
   };
 
-  // Smart semantic matching using RemakeEngine
+  // Smart semantic matching using RemakeEngine with Track 1/Track 2 logic
   const executeSemanticMapping = async (promptText: string): Promise<void> => {
     // Determine the theme to use
     const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
     const searchTheme = isDemoOrEmpty ? VALERTI_DEMO.theme : promptText;
     
-    // Step 1: Find the best-match competency
+    // Step 1: Find the best-match competency using keyword triggers
     let matchedCompetency: Competency | null = null;
     
     if (isDemoOrEmpty || isFashionPrompt(searchTheme)) {
-      // Fashion/VALERTI prompt → Analytical Thinking
+      // Track 1: Fashion/VALERTI → Analytical Thinking
       matchedCompetency = competencies.find(c => 
         c.name.toLowerCase().includes('analytical')
       ) || competencies[0];
+    } else if (isMarketingPrompt(searchTheme)) {
+      // Track 2: Marketing/Growth → Growth Design
+      matchedCompetency = competencies.find(c => 
+        c.name.toLowerCase().includes('growth')
+      ) || competencies.find(c => 
+        c.name.toLowerCase().includes('design')
+      ) || competencies[0];
     } else {
-      // Semantic match for other themes
+      // Fallback: Semantic match for other themes
       matchedCompetency = matchCompetencyFromPrompt(searchTheme, competencies);
     }
     
@@ -142,13 +159,20 @@ export function UnifiedCreativeInput({
     setLastAiCompetencyId(matchedCompetency.id);
     setIsManualMode(false);
     setHasSubmittedOnce(true);
+    setMatchedCompetencyName(matchedCompetency.name);
 
     const { matchedSubs, scenes } = populateScenesForCompetency(matchedCompetency.id, searchTheme);
     
-    // Enhance scenes with VALERTI visual styling if using fashion demo
+    // Enhance scenes with visual styling based on track
     if (isDemoOrEmpty || isFashionPrompt(searchTheme)) {
+      // Track 1: Fashion visual styling
       scenes.forEach((scene, idx) => {
         scene.backgroundPrompt = `${VALERTI_DEMO.visualBase}, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
+      });
+    } else if (isMarketingPrompt(searchTheme)) {
+      // Track 2: Marketing/Growth visual styling
+      scenes.forEach((scene, idx) => {
+        scene.backgroundPrompt = `Modern SaaS dashboard, clean UI, gradient accents, data visualization, scene ${idx + 1}: ${scene.question.substring(0, 50)}`;
       });
     }
     
@@ -172,6 +196,7 @@ export function UnifiedCreativeInput({
       const { matchedCompetency, matchedSubs, scenes } = populateScenesForCompetency(competencyId, theme);
       setIsManualMode(true);
       setHasSubmittedOnce(true);
+      setMatchedCompetencyName(matchedCompetency.name);
       
       toast.success(`✓ Switched to "${matchedCompetency.name}" with ${scenes.length} scenes`);
       onComplete(
@@ -401,6 +426,16 @@ export function UnifiedCreativeInput({
           className="hidden"
         />
       </div>
+
+      {/* Matched Competency Result Indicator */}
+      {hasSubmittedOnce && matchedCompetencyName && !isManualMode && (
+        <div className="flex items-center gap-2 p-3 bg-primary/10 border border-primary/30 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+          <span className="text-sm text-foreground">
+            We've mapped this to: <span className="font-semibold text-primary">{matchedCompetencyName}</span>
+          </span>
+        </div>
+      )}
 
       {/* Uploaded File Indicator */}
       {uploadedFile && (
