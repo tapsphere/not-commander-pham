@@ -1655,15 +1655,12 @@ export function StudioPropertiesSidebar({
         {/* Sidebar Header - uses brand accent on Step 4 */}
         <div 
           className={`px-4 py-3 border-b flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl`}
-          style={currentStep === 4 ? {
-            backgroundColor: `${designSettings.background}F0`,
-            borderBottomColor: `${designSettings.primary}40`,
-          } : undefined}
+          style={undefined}
         >
           <div className="flex items-center gap-2">
             <span 
               className={`text-sm font-medium`}
-              style={currentStep === 4 ? { color: designSettings.text } : undefined}
+              style={undefined}
             >
               {currentStep === 3 && tracks.length > 0 
                 ? 'C-BEN Expert Advisor'
@@ -1681,10 +1678,7 @@ export function StudioPropertiesSidebar({
           <Badge 
             variant="outline" 
             className="text-xs"
-            style={currentStep === 4 ? { 
-              borderColor: `${designSettings.primary}60`,
-              color: designSettings.primary,
-            } : undefined}
+            style={undefined}
           >
             {currentStep === 4 
               ? (currentSceneIndex === 0 ? 'Intro' : currentSceneIndex === resultsSceneIndex ? 'Results' : `Scene ${currentSceneIndex}`)
@@ -1802,10 +1796,7 @@ export function StudioPropertiesSidebar({
             p-3 border-t
             backdrop-blur-xl
           `}
-          style={currentStep === 4 ? {
-            backgroundColor: `${designSettings.background}F0`,
-            borderTopColor: `${designSettings.primary}30`,
-          } : undefined}
+          style={undefined}
         >
             <div className={`flex gap-2 ${isExpanded ? 'flex-row' : 'flex-col'}`}>
               <Button
