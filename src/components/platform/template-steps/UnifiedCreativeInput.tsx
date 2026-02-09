@@ -7,8 +7,10 @@ import {
   Upload,
   FileText,
   X,
-  Send,
-  ChevronDown
+  Sparkles,
+  ChevronDown,
+  Zap,
+  Lightbulb
 } from 'lucide-react';
 import {
   Select,
@@ -20,6 +22,13 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultScene, createDefaultTrack } from './types';
 import { matchCompetencyFromPrompt, populateSixScenes } from './RemakeEngine';
+
+// Demo Mode Suggestions - Clickable quick-start prompts
+const DEMO_SUGGESTIONS = [
+  { label: 'Luxury Boutique Floor Manager', prompt: 'Role: Luxury Sales Associate. Brand: VALERTI – SS26 "Ethereal Motion". Merchandising window displays and managing digital reservations for high-net-worth clients.' },
+  { label: 'Aviation Safety Officer', prompt: 'Role: Aviation Safety Officer. Context: Pre-flight inspection and emergency protocol training for commercial airline crew.' },
+  { label: 'Fintech Product Lead', prompt: 'Role: Product Manager. Context: Optimizing user onboarding flow and A/B testing conversion funnels for a mobile banking app.' },
+];
 
 // VALERTI SS26 Demo - Professional default content
 const VALERTI_DEMO = {
@@ -465,6 +474,47 @@ export function UnifiedCreativeInput({
 
   return (
     <div className="space-y-4">
+      {/* Demo Mode Banner */}
+      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-500/20">
+          <Lightbulb className="w-4 h-4 text-amber-500" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-foreground">
+            DEMO MODE: Try generating your own high-end luxury curriculum
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Type a brand and role below, or click a suggestion to see the AI mapping in action
+          </p>
+        </div>
+        <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-600 text-xs">
+          Try It Out
+        </Badge>
+      </div>
+
+      {/* Dynamic Status Indicator */}
+      <div className="flex items-center gap-2">
+        <Badge 
+          variant="outline" 
+          className={`text-xs px-2 py-0.5 ${
+            isManualMode 
+              ? 'bg-muted border-border text-muted-foreground' 
+              : 'bg-primary/10 border-primary/30 text-primary'
+          }`}
+        >
+          {isManualMode ? (
+            <>Via Manual</>
+          ) : (
+            <><Sparkles className="w-3 h-3 mr-1 inline" />Powered by Smart Select</>
+          )}
+        </Badge>
+        {hasSubmittedOnce && matchedCompetencyNames.length > 0 && (
+          <span className="text-xs text-muted-foreground">
+            → {matchedCompetencyNames.join(' + ')}
+          </span>
+        )}
+      </div>
+
       {/* Large Hero Command Box - The Focal Point */}
       <div className="relative">
         <textarea
@@ -478,12 +528,12 @@ export function UnifiedCreativeInput({
             }
           }}
           placeholder="Enter your training theme, scenario, or skill focus..."
-          className="w-full min-h-[180px] px-5 py-4 pb-14 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[180px] px-5 py-4 pb-16 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
           rows={5}
         />
         
-        {/* Bottom bar: Upload left, Clear center, Send right */}
+        {/* Bottom bar: Upload left, Clear center, Magic Build right */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
           {/* Left: Upload Button */}
           <button
@@ -511,27 +561,34 @@ export function UnifiedCreativeInput({
             )}
           </div>
           
-          {/* Right: Floating Hint + Send Button */}
+          {/* Right: Magic Build Button */}
           <div className="flex items-center gap-2">
-            {/* Floating Hint - disappears after first send */}
+            {/* Hint bubble - disappears after first send */}
             {!hasSubmittedOnce && (
-              <span className="text-xs text-primary/70 font-medium animate-pulse hidden sm:inline">
-                ✨ Try it out?
-              </span>
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
+                <Zap className="w-3 h-3 text-primary" />
+                <span className="text-xs text-primary font-medium">Try it out!</span>
+              </div>
             )}
-            <button
+            <Button
               type="button"
               onClick={handleSubmit}
               disabled={isProcessing || isUploading}
-              className="w-7 h-7 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all shadow-sm"
-              title="Send"
+              size="sm"
+              className="gap-1.5 px-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
             >
               {isProcessing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Building...
+                </>
               ) : (
-                <Send className="h-3.5 w-3.5" />
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Magic Build
+                </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -543,6 +600,29 @@ export function UnifiedCreativeInput({
           className="hidden"
         />
       </div>
+
+      {/* Ghost Text Suggestions - Clickable Quick Demos */}
+      {!hasSubmittedOnce && !inputValue.trim() && (
+        <div className="flex flex-wrap gap-2 p-3 bg-muted/30 border border-dashed border-border rounded-lg">
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5 mr-1">
+            <Lightbulb className="w-3 h-3" />
+            Try:
+          </span>
+          {DEMO_SUGGESTIONS.map((suggestion) => (
+            <button
+              key={suggestion.label}
+              onClick={() => {
+                setInputValue(suggestion.prompt);
+                // Auto-focus the textarea
+                textareaRef.current?.focus();
+              }}
+              className="text-xs px-2.5 py-1 bg-background border border-border rounded-full hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all duration-200"
+            >
+              {suggestion.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Multi-Competency Mapping Banner */}
       {hasSubmittedOnce && matchedCompetencyNames.length > 0 && !isManualMode && (
@@ -582,19 +662,24 @@ export function UnifiedCreativeInput({
 
 
       {/* Quick Skills + Manual/Smart Toggle */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground mr-2">Quick skills:</span>
-        {['Analytical Thinking', 'Problem Solving', 'Emotional Intelligence'].map(skill => (
+      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/50">
+        <span className="text-xs text-muted-foreground mr-1">Quick skills:</span>
+        {['Analytical Thinking', 'Growth Design', 'Problem Solving'].map(skill => (
           <Badge
             key={skill}
             variant="outline"
-            className="cursor-pointer hover:bg-muted transition-colors"
+            className="cursor-pointer hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-colors"
             onClick={() => {
+              // For Growth Design, map to the actual competency in DB
+              const searchName = skill === 'Growth Design' ? 'growth design' : skill.toLowerCase();
               const comp = competencies.find(c => 
-                c.name.toLowerCase() === skill.toLowerCase()
+                c.name.toLowerCase() === searchName || 
+                c.name.toLowerCase().includes(searchName)
               );
               if (comp) {
                 handleManualSelect(comp.id);
+              } else {
+                toast.error(`Competency "${skill}" not found. Run V5 Sync first.`);
               }
             }}
           >
@@ -602,22 +687,23 @@ export function UnifiedCreativeInput({
           </Badge>
         ))}
         
-        {/* Manual/Smart Toggle */}
-        <div className="ml-auto">
+        {/* Manual/Smart Toggle - Always visible */}
+        <div className="ml-auto flex items-center gap-2">
           {isManualMode ? (
             <button
               onClick={handleSmartSelectRevert}
-              className="text-xs text-primary hover:underline flex items-center gap-1"
+              className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
             >
+              <Sparkles className="w-3 h-3" />
               ← Smart Select
             </button>
-          ) : hasSubmittedOnce ? (
+          ) : (
             <Select onValueChange={handleManualSelect}>
-              <SelectTrigger className="h-7 text-xs w-auto gap-1 border-dashed">
+              <SelectTrigger className="h-7 text-xs w-auto gap-1 border-dashed hover:border-primary/50">
                 <span className="text-muted-foreground">Manual Select →</span>
                 <ChevronDown className="h-3 w-3" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[300px]">
                 {sortedCompetencies.map(comp => (
                   <SelectItem key={comp.id} value={comp.id} className="text-xs">
                     {comp.name}
@@ -625,7 +711,7 @@ export function UnifiedCreativeInput({
                 ))}
               </SelectContent>
             </Select>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
