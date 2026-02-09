@@ -528,9 +528,9 @@ export function UnifiedCreativeInput({
             }
           }}
           placeholder="Enter your training theme, scenario, or skill focus..."
-          className="w-full min-h-[180px] px-5 py-4 pb-16 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[234px] px-5 py-4 pb-16 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
-          rows={5}
+          rows={7}
         />
         
         {/* Bottom bar: Upload left, Clear center, Magic Build right */}
