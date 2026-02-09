@@ -135,7 +135,7 @@ function StudioContent({
   // Calculate completed steps
   const completedSteps = useMemo(() => {
     const completed: number[] = [];
-    if (logoFile || designSettings.primary !== DEFAULT_DESIGN_SETTINGS.primary) completed.push(1);
+    if (logoFile || logoUrl || designSettings.primary !== DEFAULT_DESIGN_SETTINGS.primary) completed.push(1);
     if (formData.name.trim()) completed.push(2);
     if (selectedSubCompetencies.length > 0) completed.push(3);
     if (scenes.length > 0 && scenes.some(s => s.question.trim())) completed.push(4);
