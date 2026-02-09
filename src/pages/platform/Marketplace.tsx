@@ -556,7 +556,7 @@ export default function Marketplace() {
             </span>
           </div>
           <h1 className={`text-3xl font-semibold text-foreground ${morphicClass}`}>
-            {isComplianceMode ? 'NDS3 Regulatory Compliance' : 'Talent Dashboard'}
+            {isComplianceMode ? 'NDS3 Regulatory Compliance' : 'Aero-Airways Talent Dashboard'}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             {isComplianceMode
