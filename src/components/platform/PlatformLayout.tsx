@@ -104,15 +104,6 @@ export const PlatformLayout = () => {
                 <Layers className="w-4 h-4" />
                 Studio
               </Button>
-              <Button
-                variant={location.pathname === '/platform/validator-test' ? 'default' : 'ghost'}
-                onClick={() => navigate('/platform/validator-test')}
-                className="gap-2"
-                size="sm"
-              >
-                <TestTube className="w-4 h-4" />
-                Test
-              </Button>
             </nav>
           </div>
 
