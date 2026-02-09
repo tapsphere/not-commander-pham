@@ -1086,13 +1086,20 @@ export function StudioPropertiesSidebar({
           />
         </div>
 
-        {/* ===== LAYER 1: EXPANDED AI COMMAND CENTER (Primary Interface) ===== */}
+        {/* ═══ SEPARATOR ═══ */}
+        <div className={`flex items-center gap-3 my-2`}>
+          <div className={`flex-1 h-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+          <span className={`text-[9px] uppercase tracking-widest font-semibold ${mutedColor}`}>Local Zone</span>
+          <div className={`flex-1 h-px ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`} />
+        </div>
+
+        {/* ===== LAYER 1: LOCAL SCENE REFINEMENT ===== */}
         <div className={`p-4 rounded-xl border-2 ${isDarkMode ? 'border-primary/30 bg-primary/5' : 'border-primary/20 bg-primary/5'}`}>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-primary/20">
               <Wand2 className="h-4 w-4 text-primary" />
             </div>
-            <span className={`text-sm font-semibold ${textColor}`}>Scene AI Command</span>
+            <span className={`text-sm font-semibold ${textColor}`}>📍 Local Scene Refinement</span>
             {visionStatus === 'ready' && (
               <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-[9px]">
                 Vision Ready
@@ -1101,18 +1108,15 @@ export function StudioPropertiesSidebar({
           </div>
           
           <p className={`text-xs ${mutedColor} mb-3`}>
-            Local commands affect this scene. Global commands style the entire track—
-            <span className="text-amber-500 font-medium"> DNA Layout is locked.</span>
+            Local commands affect this scene only. Game mechanics are <span className="text-amber-500 font-medium">locked to C-BEN standards.</span>
           </p>
           
-          {/* Example Commands - Local & Global */}
-          <div className={`text-[10px] ${mutedColor} mb-2 space-y-0.5`}>
-            <p className="font-medium text-primary">Local commands:</p>
+          {/* Example Commands as helper text */}
+          <div className={`text-[10px] ${mutedColor} mb-2 space-y-0.5 px-2 py-1.5 rounded-md ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
+            <p>💡 <span className="font-medium">Examples:</span></p>
             <p>• "Change choices to 4 vector icons: shoe, dress, hat, watch"</p>
             <p>• "Make my uploaded image 20% larger"</p>
-            <p className="font-medium text-primary mt-1.5">Global commands:</p>
-            <p>• "Make the whole track Gucci-themed"</p>
-            <p>• "Apply luxury branding to all scenes"</p>
+            <p>• "Make it rain in this scene"</p>
             {visionStatus === 'ready' && <p className="text-emerald-500">• "Match the UI theme to this product"</p>}
           </div>
           
