@@ -477,107 +477,250 @@ export function TemplateStepFramework({
               </div>
             </div>
             
-            <div className="space-y-3">
-              {selectedSubCompetencies.map((subId, idx) => {
-                const sub = getSelectedSubData(subId);
-                if (!sub) return null;
-                
-                // Calculate track-relative scene number
-                // Find which track this sub-competency belongs to
-                const subTrack = tracks.find(t => t.subCompetencyIds.includes(subId));
-                const trackIndex = subTrack ? tracks.indexOf(subTrack) : 0;
-                const trackOffset = trackIndex * 6; // Each track has 6 scenes
-                const positionInTrack = subTrack 
-                  ? subTrack.subCompetencyIds.indexOf(subId) + 1
-                  : idx + 1;
-                const globalSceneNumber = trackOffset + positionInTrack;
-                
-                return (
-                  <div 
-                    key={sub.id} 
-                    className="bg-background rounded-lg p-4 border border-border"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
+            {/* Group scenes by track */}
+            <div className="space-y-6">
+              {tracks.length > 0 ? (
+                // Multi-track view: Group by track with visual separation
+                tracks.map((track, trackIndex) => {
+                  const trackSubs = track.subCompetencyIds
+                    .map(id => getSelectedSubData(id))
+                    .filter((sub): sub is SubCompetency => sub !== null);
+                  
+                  if (trackSubs.length === 0) return null;
+                  
+                  const trackOffset = trackIndex * 6;
+                  const trackColor = trackIndex === 0 ? 'amber' : trackIndex === 1 ? 'emerald' : 'blue';
+                  
+                  return (
+                    <div key={track.id} className="space-y-3">
+                      {/* Track Header */}
                       <div 
-                        className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center"
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 ${
+                          trackIndex === 0 
+                            ? 'bg-amber-500/10 border-amber-500/30' 
+                            : trackIndex === 1 
+                            ? 'bg-emerald-500/10 border-emerald-500/30'
+                            : 'bg-blue-500/10 border-blue-500/30'
+                        }`}
                       >
-                        {globalSceneNumber}
-                      </div>
-                      {tracks.length > 1 && subTrack && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                        <div 
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-sm ${
+                            trackIndex === 0 
+                              ? 'bg-amber-500' 
+                              : trackIndex === 1 
+                              ? 'bg-emerald-500'
+                              : 'bg-blue-500'
+                          }`}
+                        >
                           T{trackIndex + 1}
-                        </Badge>
+                        </div>
+                        <div className="flex-1">
+                          <p className={`text-sm font-semibold ${
+                            trackIndex === 0 
+                              ? 'text-amber-700 dark:text-amber-400' 
+                              : trackIndex === 1 
+                              ? 'text-emerald-700 dark:text-emerald-400'
+                              : 'text-blue-700 dark:text-blue-400'
+                          }`}>
+                            Track {trackIndex + 1}: {track.competencyName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Scenes {trackOffset + 1}–{trackOffset + trackSubs.length} • {trackSubs.length}/6 sub-competencies
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Track Scenes */}
+                      <div className="space-y-3 pl-2 border-l-2 border-muted ml-4">
+                        {trackSubs.map((sub, posIdx) => {
+                          const globalSceneNumber = trackOffset + posIdx + 1;
+                          
+                          return (
+                            <div 
+                              key={sub.id} 
+                              className="bg-background rounded-lg p-4 border border-border"
+                            >
+                              <div className="flex items-center gap-2 mb-3">
+                                <div 
+                                  className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center text-white ${
+                                    trackIndex === 0 
+                                      ? 'bg-amber-500' 
+                                      : trackIndex === 1 
+                                      ? 'bg-emerald-500'
+                                      : 'bg-blue-500'
+                                  }`}
+                                >
+                                  {globalSceneNumber}
+                                </div>
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                  T{trackIndex + 1}
+                                </Badge>
+                                <p className="font-medium text-sm text-foreground flex-1 truncate">
+                                  {sub.statement}
+                                </p>
+                              </div>
+                              
+                              {/* V5 Scientific Profile */}
+                              <div className="grid grid-cols-2 gap-2">
+                                {/* Action Cue */}
+                                <div className="relative">
+                                  <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                                    <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                                      <Lock className="h-2.5 w-2.5" />
+                                      ACTION CUE
+                                    </span>
+                                  </div>
+                                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                                    <p className="text-[11px] text-foreground leading-relaxed">
+                                      {sub.action_cue || 'Not defined in framework'}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Mechanic */}
+                                <div className="relative">
+                                  <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                                    <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                                      <Lock className="h-2.5 w-2.5" />
+                                      MECHANIC
+                                    </span>
+                                  </div>
+                                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                                    <p className="text-[11px] text-foreground font-medium">
+                                      {sub.game_mechanic || 'Not defined'}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Physical Interaction (Col G) */}
+                                <div className="relative">
+                                  <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                                    <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
+                                      <Lock className="h-2.5 w-2.5" />
+                                      MOBILE INTERACTION
+                                    </span>
+                                  </div>
+                                  <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
+                                    <p className="text-[11px] text-foreground">
+                                      {sub.game_loop || 'Tap (default)'}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Time Gate (Col H) */}
+                                <div className="relative">
+                                  <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                                    <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
+                                      <Lock className="h-2.5 w-2.5" />
+                                      TIME GATE
+                                    </span>
+                                  </div>
+                                  <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
+                                    <p className="text-[11px] text-foreground font-medium">
+                                      {sub.validator_type || '30s/45s/60s Standard'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Track Divider (between tracks) */}
+                      {trackIndex < tracks.length - 1 && (
+                        <div className="flex items-center gap-3 py-2">
+                          <div className="flex-1 h-px bg-border" />
+                          <span className="text-xs text-muted-foreground font-medium px-2">End of Track {trackIndex + 1}</span>
+                          <div className="flex-1 h-px bg-border" />
+                        </div>
                       )}
-                      <p className="font-medium text-sm text-foreground flex-1 truncate">
-                        {sub.statement}
-                      </p>
                     </div>
+                  );
+                })
+              ) : (
+                // Single competency fallback (no tracks)
+                <div className="space-y-3">
+                  {selectedSubCompetencies.map((subId, idx) => {
+                    const sub = getSelectedSubData(subId);
+                    if (!sub) return null;
                     
-                    {/* V5 Scientific Profile */}
-                    <div className="grid grid-cols-2 gap-2">
-                      {/* Action Cue */}
-                      <div className="relative">
-                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                          <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
-                            <Lock className="h-2.5 w-2.5" />
-                            ACTION CUE
-                          </span>
-                        </div>
-                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
-                          <p className="text-[11px] text-foreground leading-relaxed">
-                            {sub.action_cue || 'Not defined in framework'}
+                    return (
+                      <div 
+                        key={sub.id} 
+                        className="bg-background rounded-lg p-4 border border-border"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">
+                            {idx + 1}
+                          </div>
+                          <p className="font-medium text-sm text-foreground flex-1 truncate">
+                            {sub.statement}
                           </p>
                         </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="relative">
+                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                              <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                                <Lock className="h-2.5 w-2.5" />
+                                ACTION CUE
+                              </span>
+                            </div>
+                            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                              <p className="text-[11px] text-foreground leading-relaxed">
+                                {sub.action_cue || 'Not defined in framework'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                              <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
+                                <Lock className="h-2.5 w-2.5" />
+                                MECHANIC
+                              </span>
+                            </div>
+                            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
+                              <p className="text-[11px] text-foreground font-medium">
+                                {sub.game_mechanic || 'Not defined'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                              <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
+                                <Lock className="h-2.5 w-2.5" />
+                                MOBILE INTERACTION
+                              </span>
+                            </div>
+                            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
+                              <p className="text-[11px] text-foreground">
+                                {sub.game_loop || 'Tap (default)'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
+                              <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
+                                <Lock className="h-2.5 w-2.5" />
+                                TIME GATE
+                              </span>
+                            </div>
+                            <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
+                              <p className="text-[11px] text-foreground font-medium">
+                                {sub.validator_type || '30s/45s/60s Standard'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      
-                      {/* Mechanic */}
-                      <div className="relative">
-                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                          <span className="text-[10px] font-medium text-amber-600 flex items-center gap-1">
-                            <Lock className="h-2.5 w-2.5" />
-                            MECHANIC
-                          </span>
-                        </div>
-                        <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 pt-3 h-full">
-                          <p className="text-[11px] text-foreground font-medium">
-                            {sub.game_mechanic || 'Not defined'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Physical Interaction (Col G) - READ-ONLY */}
-                      <div className="relative">
-                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                          <span className="text-[10px] font-medium text-purple-600 flex items-center gap-1">
-                            <Lock className="h-2.5 w-2.5" />
-                            MOBILE INTERACTION
-                          </span>
-                        </div>
-                        <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-2.5 pt-3 h-full">
-                          <p className="text-[11px] text-foreground">
-                            {sub.game_loop || 'Tap (default)'}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Time Gate (Col H) - READ-ONLY */}
-                      <div className="relative">
-                        <div className="absolute -top-2 left-2 px-1.5 bg-background z-10">
-                          <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
-                            <Lock className="h-2.5 w-2.5" />
-                            TIME GATE
-                          </span>
-                        </div>
-                        <div className="bg-rose-500/5 border border-rose-500/20 rounded-lg p-2.5 pt-3 h-full">
-                          <p className="text-[11px] text-foreground font-medium">
-                            {sub.validator_type || '30s/45s/60s Standard'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
             
             <div className="mt-4 pt-3 border-t border-amber-500/20">
