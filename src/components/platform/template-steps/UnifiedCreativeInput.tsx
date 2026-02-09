@@ -38,6 +38,27 @@ const VALERTI_DEMO = {
   visualBase: 'SS26 Luxury Boutique, 35mm film grain, Amber Haze lighting, ethereal motion',
 };
 
+// VALERTI Demo Override - Template Injection v27.0
+// When detected, this overrides Step 1 & 2 with demo brand data
+export const VALERTI_DEMO_OVERRIDE = {
+  // Step 1: Brand visuals
+  colors: {
+    primary: '#008C45',    // Italian Green
+    secondary: '#D81920', // Italian Red
+    accent: '#FFBF00',    // Amber Gold
+    background: '#1A1A2E', // Deep luxury dark
+    highlight: '#FFBF00', // Amber highlight
+    text: '#FFFFFF',      // White text on dark
+  },
+  logoUrl: '/demo/animals/tpowa-logo.webp', // VALERTI Heart Logo
+  // Step 2: Role & Info
+  name: 'VALERTI',
+  description: 'SS26 "Ethereal Motion" Luxury Training',
+  roleScenario: 'Luxury Sales Associate',
+  industry: 'Retail',
+  keyElement: 'Mid-Level / Boutique Floor',
+};
+
 // Track 1: Fashion/Valerti → Analytical Thinking
 const FASHION_KEYWORDS = ['fashion', 'merchandising', 'retail', 'window', 'mannequin', 'display', 'lighting', 'valerti', 'luxury', 'boutique', 'silk', 'evening wear', 'footwear'];
 
@@ -53,6 +74,17 @@ interface TrackMapping {
   trackId: string;
 }
 
+// Demo Override callback type
+export interface DemoOverrideData {
+  colors: typeof VALERTI_DEMO_OVERRIDE.colors;
+  logoUrl: string;
+  name: string;
+  description: string;
+  roleScenario: string;
+  industry: string;
+  keyElement: string;
+}
+
 interface UnifiedCreativeInputProps {
   competencies: Competency[];
   subCompetencies: SubCompetency[];
@@ -66,6 +98,8 @@ interface UnifiedCreativeInputProps {
     usedPrompt?: string
   ) => void;
   onManualFallback: () => void;
+  // Demo Override callback (v27.0) - triggered when VALERTI keyword detected
+  onDemoOverride?: (data: DemoOverrideData) => void;
 }
 
 export function UnifiedCreativeInput({
@@ -73,6 +107,7 @@ export function UnifiedCreativeInput({
   subCompetencies,
   onComplete,
   onManualFallback,
+  onDemoOverride,
 }: UnifiedCreativeInputProps) {
   // Use demo prompt as initial value, but track if user has modified it
   const [inputValue, setInputValue] = useState(VALERTI_DEMO.activePrompt);
@@ -161,6 +196,30 @@ export function UnifiedCreativeInput({
   const executeSemanticMapping = async (promptText: string): Promise<void> => {
     const searchTheme = promptText.trim() || VALERTI_DEMO.theme;
     const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
+    
+    // ============================================
+    // DEMO OVERRIDE v27.0: VALERTI Template Injection
+    // ============================================
+    const isValertiDemo = searchTheme.toLowerCase().includes('valerti');
+    
+    if (isValertiDemo && onDemoOverride) {
+      // Trigger demo override for Step 1 & 2
+      onDemoOverride({
+        colors: VALERTI_DEMO_OVERRIDE.colors,
+        logoUrl: VALERTI_DEMO_OVERRIDE.logoUrl,
+        name: VALERTI_DEMO_OVERRIDE.name,
+        description: VALERTI_DEMO_OVERRIDE.description,
+        roleScenario: VALERTI_DEMO_OVERRIDE.roleScenario,
+        industry: VALERTI_DEMO_OVERRIDE.industry,
+        keyElement: VALERTI_DEMO_OVERRIDE.keyElement,
+      });
+      
+      // Show feedback animation
+      toast.success('✨ Valerti Demo Template Applied Across All Steps', {
+        description: 'Brand colors, logo, and role have been pre-filled.',
+        duration: 4000,
+      });
+    }
     
     // Detect multiple competencies
     const { hasFashion, hasMarketing } = detectMultipleCompetencies(promptText);

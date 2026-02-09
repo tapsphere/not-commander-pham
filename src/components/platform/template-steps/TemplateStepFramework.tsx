@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Competency, SubCompetency, SceneData, CompetencyTrack, createDefaultScene, createDefaultTrack } from './types';
 import { Lock, Plus, Layers, ChevronRight, Trash2, AlertTriangle } from 'lucide-react';
 import { CompetencyAISearch } from './CompetencyAISearch';
-import { UnifiedCreativeInput } from './UnifiedCreativeInput';
+import { UnifiedCreativeInput, DemoOverrideData } from './UnifiedCreativeInput';
 
 // Track which entry path was used
 type EntryPath = 'upload' | 'manual' | 'combine' | 'theme' | 'skill' | null;
@@ -55,6 +55,8 @@ interface TemplateStepFrameworkProps {
   onAddTrack?: () => void;
   // Expert Advisor callback
   onPromptChange?: (prompt: string) => void;
+  // Demo Override callback (v27.0)
+  onDemoOverride?: (data: DemoOverrideData) => void;
 }
 
 export function TemplateStepFramework({
@@ -71,6 +73,7 @@ export function TemplateStepFramework({
   setTracks,
   onAddTrack,
   onPromptChange,
+  onDemoOverride,
 }: TemplateStepFrameworkProps) {
   const [showAddTrackSearch, setShowAddTrackSearch] = useState(false);
   const [newTrackCompetency, setNewTrackCompetency] = useState('');
@@ -287,6 +290,7 @@ export function TemplateStepFramework({
           onManualFallback={() => {
             setEntryPath('manual');
           }}
+          onDemoOverride={onDemoOverride}
         />
       )}
 
