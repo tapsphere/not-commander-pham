@@ -64,7 +64,8 @@ export function UnifiedCreativeInput({
   onComplete,
   onManualFallback,
 }: UnifiedCreativeInputProps) {
-  const [inputValue, setInputValue] = useState('');
+  // Use demo prompt as initial value, but track if user has modified it
+  const [inputValue, setInputValue] = useState(VALERTI_DEMO.activePrompt);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -138,27 +139,29 @@ export function UnifiedCreativeInput({
 
   // Multi-Competency Detection Engine v13.0
   const detectMultipleCompetencies = (promptText: string): { hasFashion: boolean; hasMarketing: boolean } => {
-    const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
-    const searchTheme = isDemoOrEmpty ? VALERTI_DEMO.theme : promptText;
+    const searchTheme = promptText.trim() || VALERTI_DEMO.theme;
     
     return {
-      hasFashion: isDemoOrEmpty || isFashionPrompt(searchTheme),
+      hasFashion: isFashionPrompt(searchTheme),
       hasMarketing: isMarketingPrompt(searchTheme),
     };
   };
 
   // Smart semantic matching with multi-track support
   const executeSemanticMapping = async (promptText: string): Promise<void> => {
+    const searchTheme = promptText.trim() || VALERTI_DEMO.theme;
     const isDemoOrEmpty = !promptText.trim() || promptText === VALERTI_DEMO.activePrompt;
-    const searchTheme = isDemoOrEmpty ? VALERTI_DEMO.theme : promptText;
     
     // Detect multiple competencies
     const { hasFashion, hasMarketing } = detectMultipleCompetencies(promptText);
     const trackMappings: TrackMapping[] = [];
     const matchedNames: string[] = [];
 
+    // If neither detected, default to fashion/analytical for demo-like prompts
+    const effectiveHasFashion = hasFashion || (!hasMarketing && isDemoOrEmpty);
+
     // Track 1: Fashion/VALERTI → Analytical Thinking
-    if (hasFashion) {
+    if (effectiveHasFashion) {
       const analyticalComp = competencies.find(c => 
         c.name.toLowerCase().includes('analytical')
       ) || competencies[0];
@@ -458,20 +461,15 @@ export function UnifiedCreativeInput({
       <div className="relative">
         <textarea
           ref={textareaRef}
-          value={inputValue || VALERTI_DEMO.activePrompt}
-          onChange={(e) => setInputValue(e.target.value === VALERTI_DEMO.activePrompt ? '' : e.target.value)}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && !isProcessing && !isUploading) {
               e.preventDefault();
               handleSubmit();
             }
           }}
-          onFocus={() => {
-            if (!inputValue) {
-              setInputValue('');
-            }
-          }}
-          placeholder={VALERTI_DEMO.activePrompt}
+          placeholder="Enter your training theme, scenario, or skill focus..."
           className="w-full min-h-[180px] px-5 py-4 pb-14 text-base leading-relaxed bg-background border-2 border-border rounded-xl shadow-lg shadow-primary/5 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none transition-all duration-200 placeholder:text-muted-foreground/70 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isProcessing || isUploading}
           rows={5}
@@ -491,9 +489,9 @@ export function UnifiedCreativeInput({
             <span className="text-muted-foreground group-hover:text-primary">Upload PDF</span>
           </button>
           
-          {/* Center: Clear Button (only show when there's custom input) */}
+          {/* Center: Clear Button (only show when there's text and it's not empty) */}
           <div className="flex-1 flex justify-center">
-            {inputValue && inputValue !== VALERTI_DEMO.activePrompt && (
+            {inputValue.trim() && (
               <button
                 type="button"
                 onClick={handleClearInput}
