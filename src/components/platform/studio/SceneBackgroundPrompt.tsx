@@ -67,13 +67,22 @@ export function SceneBackgroundPrompt({
       <Textarea
         value={backgroundPrompt || ''}
         onChange={(e) => onBackgroundPromptChange(e.target.value)}
-        placeholder={globalStylePrompt ? `Inherits global: "${globalStylePrompt.slice(0, 50)}..."` : 'Describe this scene\'s unique background...'}
+        placeholder={globalStylePrompt 
+          ? `Add to global style: "${globalStylePrompt.slice(0, 40)}..." e.g. "Make it rain"` 
+          : 'Describe this scene\'s unique background...'}
         className={`text-xs min-h-[50px] max-h-[80px] resize-none ${
           isDarkMode
             ? 'bg-white/5 border-white/10 text-white placeholder:text-white/25'
             : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
         }`}
       />
+      
+      {/* Show merged prompt preview when local override is set */}
+      {hasOverride && globalStylePrompt && (
+        <p className={`text-[9px] italic px-1 ${isDarkMode ? 'text-emerald-400/60' : 'text-emerald-600/60'}`}>
+          Final prompt: "{globalStylePrompt.slice(0, 40)}... + {backgroundPrompt?.slice(0, 30)}..."
+        </p>
+      )}
 
       {hasOverride && (
         <Button

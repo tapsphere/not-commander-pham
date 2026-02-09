@@ -60,6 +60,7 @@ function StudioContent({
   const [codeEditorOpen, setCodeEditorOpen] = useState(false); // Split-view code editor
   const [isPublishing, setIsPublishing] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<'properties' | 'curriculum'>('properties');
+  const [isApplyingGlobal, setIsApplyingGlobal] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
@@ -671,9 +672,31 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             globalStylePrompt={globalStylePrompt}
             onGlobalStyleChange={setGlobalStylePrompt}
             onApplyToAllScenes_global={() => {
-              setScenes(scenes.map(s => ({ ...s, backgroundPrompt: '' })));
-              toast.success('Global style applied to all scenes');
+              // Apply global visual DNA to all scenes (visual only - mechanics locked)
+              setIsApplyingGlobal(true);
+              
+              // Merge global prompt with each scene's sub-competency name
+              const updatedScenes = scenes.map((scene, idx) => {
+                // Find the sub-competency name for this scene
+                const subComp = subCompetencies.find(sc => sc.id === scene.subCompetencyId);
+                const sceneLabel = subComp?.statement || `Scene ${idx + 1}`;
+                
+                // Set backgroundPrompt = Global DNA + Scene-specific context
+                return {
+                  ...scene,
+                  backgroundPrompt: `${globalStylePrompt}. Scene focus: ${sceneLabel}`,
+                };
+              });
+              
+              setScenes(updatedScenes);
+              
+              // Simulate AI generation delay for visual feedback
+              setTimeout(() => {
+                setIsApplyingGlobal(false);
+                toast.success(`🎨 Global Visual DNA applied to ${scenes.length} scenes`);
+              }, 2500);
             }}
+            isApplyingGlobal={isApplyingGlobal}
           />
         </div>
       </div>

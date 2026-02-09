@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Globe, Sparkles, Palette, ChevronDown, ChevronUp } from 'lucide-react';
+import { Globe, Sparkles, Palette, ChevronDown, ChevronUp, Loader2, Lock } from 'lucide-react';
 import { useStudioTheme } from './StudioThemeContext';
 import { DesignSettings, SceneData } from '../template-steps/types';
 
@@ -13,6 +13,7 @@ interface GlobalSceneStylerProps {
   scenes: SceneData[];
   designSettings: DesignSettings;
   brandName?: string;
+  isApplying?: boolean;
 }
 
 export function GlobalSceneStyler({
@@ -22,6 +23,7 @@ export function GlobalSceneStyler({
   scenes,
   designSettings,
   brandName,
+  isApplying = false,
 }: GlobalSceneStylerProps) {
   const { isDarkMode } = useStudioTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -34,13 +36,15 @@ export function GlobalSceneStyler({
   const scenesWithOverride = scenes.filter(s => s.backgroundPrompt?.trim()).length;
 
   return (
-    <div className={`${bgColor} border-b ${borderColor} backdrop-blur-xl`}>
+    <div className={`${bgColor} border ${borderColor} rounded-xl backdrop-blur-xl`}
+      style={{ borderColor: designSettings.primary + '40' }}
+    >
       {/* Header */}
-      <div className={`px-4 py-2 flex items-center justify-between`}>
+      <div className={`px-4 py-3 flex items-center justify-between border-b ${borderColor}`}>
         <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-primary" />
-          <span className={`text-xs font-semibold uppercase tracking-wider ${mutedColor}`}>
-            Global Scene Style
+          <span className="text-base">🎨</span>
+          <span className={`text-sm font-bold ${textColor}`}>
+            Global Visual DNA
           </span>
           <Badge variant="outline" className="text-[9px] border-primary/30 text-primary">
             All Scenes
@@ -61,7 +65,7 @@ export function GlobalSceneStyler({
 
       {/* Content */}
       {!isCollapsed && (
-        <div className="px-4 pb-3 space-y-2">
+        <div className="px-4 pb-4 pt-3 space-y-3">
           {/* Brand color reference chips */}
           <div className="flex items-center gap-2 flex-wrap">
             <Palette className={`h-3 w-3 ${mutedColor}`} />
@@ -78,32 +82,48 @@ export function GlobalSceneStyler({
             )}
           </div>
 
-          {/* Global style textarea */}
+          {/* Global style textarea - EXPANDED */}
           <Textarea
             value={globalStylePrompt}
             onChange={(e) => onGlobalStyleChange(e.target.value)}
-            placeholder="Describe the visual DNA for all scenes..."
-            className={`text-sm min-h-[60px] max-h-[100px] resize-none ${
+            placeholder="Describe the visual DNA for all scenes... e.g. 'Cinematic 35mm luxury boutique, Amber Haze lighting'"
+            className={`text-sm resize-none ${
               isDarkMode 
                 ? 'bg-white/5 border-white/10 text-white placeholder:text-white/30' 
                 : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400'
             }`}
+            style={{ minHeight: '250px' }}
           />
 
           {/* Apply button */}
-          <div className="flex items-center justify-between">
-            <span className={`text-[10px] ${mutedColor}`}>
-              Changes propagate to all scenes without local overrides
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onApplyToAllScenes}
-              className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              Apply to All
-            </Button>
+          <Button
+            onClick={onApplyToAllScenes}
+            disabled={isApplying || !globalStylePrompt.trim()}
+            className="w-full h-10 text-sm font-semibold"
+            style={{ 
+              backgroundColor: designSettings.primary,
+              color: '#FFFFFF',
+            }}
+          >
+            {isApplying ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating {scenes.length} backgrounds...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Apply to All Scenes
+              </>
+            )}
+          </Button>
+
+          {/* Footer note - mechanics lock */}
+          <div className={`flex items-start gap-1.5 px-1`}>
+            <Lock className={`h-3 w-3 mt-0.5 flex-shrink-0 ${mutedColor}`} />
+            <p className={`text-[10px] leading-relaxed ${mutedColor}`}>
+              This prompt updates background aesthetics only. Game mechanics are locked to C-BEN standards.
+            </p>
           </div>
         </div>
       )}
