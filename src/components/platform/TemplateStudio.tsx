@@ -68,6 +68,7 @@ function StudioContent({
   // Brand assets
   const [mascotFile, setMascotFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null); // v31.0: URL-based logo for demo injection
   
   // Competency state
   const [competencies, setCompetencies] = useState<Competency[]>([]);
@@ -84,12 +85,12 @@ function StudioContent({
   const [promptContext, setPromptContext] = useState<string>('');
   const [demoOverrideApplied, setDemoOverrideApplied] = useState(false);
 
-  // Demo Override Handler v27.0 - Injects VALERTI template data into Step 1 & 2
+  // Demo Override Handler v31.0 - Silently injects VALERTI template data into Step 1 & 2
   const handleDemoOverride = (data: DemoOverrideData) => {
     // Prevent re-override if user has manually edited after initial override
     if (demoOverrideApplied) return;
     
-    // Override Step 1: Brand colors
+    // Override Step 1: Brand colors (silently)
     setDesignSettings(prev => ({
       ...prev,
       primary: data.colors.primary,
@@ -100,7 +101,12 @@ function StudioContent({
       text: data.colors.text,
     }));
     
-    // Override Step 2: Info fields
+    // Override Step 1: Logo URL (silently - as if AI "found" it)
+    if (data.logoUrl) {
+      setLogoUrl(data.logoUrl);
+    }
+    
+    // Override Step 2: Info fields (silently)
     setFormData(prev => ({
       ...prev,
       name: data.name,
@@ -112,6 +118,9 @@ function StudioContent({
     
     // Mark demo override as applied (prevents re-triggering)
     setDemoOverrideApplied(true);
+    
+    // v31.0: Silent injection - no toast shown, user discovers it naturally when navigating
+    console.log('✨ VALERTI Demo Template silently injected into Steps 1 & 2');
   };
 
   // Calculate completed steps
@@ -611,6 +620,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             setFormData={setFormData}
             logoFile={logoFile}
             setLogoFile={setLogoFile}
+            logoUrl={logoUrl}
             mascotFile={mascotFile}
             setMascotFile={setMascotFile}
             isExpanded={sidebarExpanded}

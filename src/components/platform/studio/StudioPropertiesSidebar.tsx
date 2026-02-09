@@ -79,6 +79,7 @@ interface StudioPropertiesSidebarProps {
   setFormData: (data: TemplateFormData) => void;
   logoFile: File | null;
   setLogoFile: (file: File | null) => void;
+  logoUrl?: string | null; // v31.0: URL-based logo for demo injection
   mascotFile: File | null;
   setMascotFile: (file: File | null) => void;
   // Expandable console props
@@ -217,6 +218,7 @@ export function StudioPropertiesSidebar({
   setFormData,
   logoFile,
   setLogoFile,
+  logoUrl,
   mascotFile,
   setMascotFile,
   isExpanded = false,

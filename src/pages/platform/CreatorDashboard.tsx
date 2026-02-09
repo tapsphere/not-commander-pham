@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, Database, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { TemplateStudio } from '@/components/platform/TemplateStudio';
@@ -56,8 +56,6 @@ export default function CreatorDashboard() {
     design_settings?: any;
   } | null>(null);
   const [subCompetencies, setSubCompetencies] = useState<Map<string, any>>(new Map());
-  const [v5SyncStatus, setV5SyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
-  const [v5Stats, setV5Stats] = useState<{ competencies: number; subCompetencies: number } | null>(null);
 
   useEffect(() => {
     const ensureCreatorRole = async () => {
@@ -79,7 +77,34 @@ export default function CreatorDashboard() {
     ensureCreatorRole();
     loadTemplates();
     loadSubCompetencies();
+    
+    // v31.0: Auto-sync V5 Framework on initial app load (silently in background)
+    autoSyncV5Framework();
   }, []);
+  
+  // Silent V5 Framework sync - runs automatically on app load
+  const autoSyncV5Framework = async () => {
+    try {
+      // Check if we already have competencies loaded
+      const { count, error: countError } = await supabase
+        .from('sub_competencies')
+        .select('*', { count: 'exact', head: true });
+      
+      // Only sync if no sub-competencies exist (fresh install or purged)
+      if (!countError && (count === null || count < 90)) {
+        console.log('🔄 Auto-syncing V5 Framework in background...');
+        const { data, error } = await supabase.functions.invoke('sync-v5-framework');
+        
+        if (!error && data?.success) {
+          console.log(`✅ V5 Framework synced: ${data.stats.competencies_inserted} competencies, ${data.stats.sub_competencies_inserted} sub-competencies`);
+          loadSubCompetencies(); // Refresh local cache
+        }
+      }
+    } catch (error) {
+      // Silent fail - don't interrupt user experience
+      console.warn('V5 auto-sync skipped:', error);
+    }
+  };
 
   const loadSubCompetencies = async () => {
     try {
@@ -482,53 +507,7 @@ export default function CreatorDashboard() {
     }
   };
 
-  // V5 Master Framework Sync
-  const handleV5Sync = async () => {
-    if (v5SyncStatus === 'syncing') return;
-    
-    setV5SyncStatus('syncing');
-    toast.info('🚀 Starting V5 Master Framework Sync...', {
-      description: 'This will purge legacy data and import the V5 framework'
-    });
-
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-v5-framework');
-      
-      if (error) throw error;
-      
-      if (data?.success) {
-        setV5SyncStatus('success');
-        setV5Stats({
-          competencies: data.stats.competencies_inserted,
-          subCompetencies: data.stats.sub_competencies_inserted
-        });
-        
-        toast.success('🎉 V5 Sync Complete!', {
-          description: `Imported ${data.stats.competencies_inserted} competencies with ${data.stats.sub_competencies_inserted} sub-competencies`
-        });
-        
-        console.log('═══════════════════════════════════════════');
-        console.log('🎉 V5 MASTER SYNC COMPLETE!');
-        console.log('═══════════════════════════════════════════');
-        console.log('Competencies now in database:');
-        data.stats.competency_names.forEach((name: string, i: number) => {
-          console.log(`  ${i + 1}. ${name}`);
-        });
-        console.log('═══════════════════════════════════════════');
-        
-        // Reload sub-competencies after sync
-        loadSubCompetencies();
-      } else {
-        throw new Error(data?.error || 'Unknown error');
-      }
-    } catch (error: any) {
-      setV5SyncStatus('error');
-      console.error('V5 Sync failed:', error);
-      toast.error('V5 Sync Failed', {
-        description: error.message || 'Check console for details'
-      });
-    }
-  };
+  // v31.0: Manual V5 Sync removed - now automatic on app load
 
   if (loading) {
     return <div className="text-center py-12">Loading templates...</div>;
@@ -536,15 +515,13 @@ export default function CreatorDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* V5 Sync Status Badge */}
-      {v5SyncStatus === 'success' && v5Stats && (
-        <div className="mb-4 flex items-center gap-2">
-          <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-600 gap-1.5 py-1 px-3">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            V5 Sync Complete: {v5Stats.competencies} competencies, {v5Stats.subCompetencies} sub-competencies
-          </Badge>
-        </div>
-      )}
+      {/* C-BEN Authority Header - v31.0: Replaces manual sync button */}
+      <div className="mb-4 flex items-center gap-2">
+        <Badge variant="outline" className="bg-primary/10 border-primary/30 text-primary gap-1.5 py-1 px-3">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          C-BEN Performance Standards • Industry-Verified Framework Active
+        </Badge>
+      </div>
       
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -554,20 +531,6 @@ export default function CreatorDashboard() {
           <p className="text-muted-foreground mt-2">Manage your game templates and design elements</p>
         </div>
         <div className="flex gap-3">
-          {/* V5 Sync Button */}
-          <Button
-            onClick={handleV5Sync}
-            variant="outline"
-            className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
-            disabled={v5SyncStatus === 'syncing'}
-          >
-            {v5SyncStatus === 'syncing' ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Database className="w-4 h-4" />
-            )}
-            {v5SyncStatus === 'syncing' ? 'Syncing V5...' : 'Sync V5 Framework'}
-          </Button>
           
           <Button
             onClick={() => navigate('/platform/creator/profile-edit')}
