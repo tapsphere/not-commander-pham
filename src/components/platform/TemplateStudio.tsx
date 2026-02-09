@@ -86,9 +86,7 @@ function StudioContent({
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [promptContext, setPromptContext] = useState<string>('');
   const [demoOverrideApplied, setDemoOverrideApplied] = useState(false);
-  const [globalStylePrompt, setGlobalStylePrompt] = useState(
-    'Cinematic 35mm luxury boutique, Amber Haze lighting, warm depth-of-field backgrounds.'
-  );
+  const [globalStylePrompt, setGlobalStylePrompt] = useState('');
 
   // Demo Override Handler v31.0 - Silently injects VALERTI template data into Step 1 & 2
   const handleDemoOverride = (data: DemoOverrideData) => {
@@ -126,7 +124,7 @@ function StudioContent({
     
     // Set global style prompt with VALERTI brand references
     setGlobalStylePrompt(
-      `Cinematic 35mm luxury boutique, Amber Haze lighting, ${data.name} Green (${data.colors.primary}) and Red (${data.colors.secondary}) accents.`
+      `Cinematic 35mm film grain, luxury boutique interior for ${data.name} SS26, 'Amber Haze' focal lighting with warm golden glows. Architectural accents in Heritage Green (${data.colors.primary}) and Valerti Red (${data.colors.secondary}) on polished marble and brushed gold surfaces. Sophisticated, high-end atmosphere, soft bokeh background.`
     );
     
     // v31.0: Silent injection - no toast shown, user discovers it naturally when navigating
