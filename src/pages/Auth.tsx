@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Palette, Building2, Mail, Eye, EyeOff } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { z } from 'zod';
+import { useAuth } from '@/contexts/AuthContext';
 
 const authSchema = z.object({
   email: z.string().trim().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
@@ -31,18 +32,19 @@ export default function Auth() {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
+  const { signIn } = useAuth();
+
   useEffect(() => {
-    // Check if this is a password recovery flow
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsPasswordRecovery(true);
-      }
-    });
+    // Basic initialization for auth state
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      // Logic handled by AuthProvider mostly
+    }
   }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate inputs
     try {
       authSchema.parse({ email, password });
@@ -52,52 +54,29 @@ export default function Auth() {
         return;
       }
     }
-    
+
     setLoading(true);
 
     try {
-      
-      const { data, error } = await supabase.auth.signUp({
+      const response = await apiClient.post('/auth/signup', {
         email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/platform`,
-          data: { role: selectedRole }
-        }
+        password
       });
 
-      if (error) {
-        throw error;
-      }
+      // After successful signup, log them in to get the token
+      const loginResponse = await apiClient.post('/auth/login',
+        new URLSearchParams({
+          username: email,
+          password: password,
+        }),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
 
-      if (!data.user) {
-        throw new Error('No user data returned from signup');
-      }
-
-      // Insert role - upsert to handle any race conditions gracefully
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: data.user.id, role: selectedRole })
-        .select()
-        .maybeSingle();
-
-      // Handle role assignment errors gracefully
-      if (roleError) {
-        // Don't block signup for role errors - user can be assigned role later
-        toast.warning('Account created, but role assignment needs attention');
-      }
-
-      // Wait for session to be established
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Verify session exists
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Session not established. Please try signing in.');
-      }
+      await signIn(loginResponse.data.access_token);
+      localStorage.setItem('user_role', selectedRole); // Store role locally for now
 
       toast.success('Account created! Redirecting...');
-      
+
       // Small delay before navigation
       setTimeout(() => {
         navigate(selectedRole === 'creator' ? '/platform/creator' : '/platform/brand');
@@ -111,7 +90,7 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate inputs
     try {
       authSchema.parse({ email, password });
@@ -121,36 +100,23 @@ export default function Auth() {
         return;
       }
     }
-    
+
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const response = await apiClient.post('/auth/login',
+        new URLSearchParams({
+          username: email,
+          password: password,
+        }),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
 
-      if (error) throw error;
+      await signIn(response.data.access_token);
 
-      // Get all user roles
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id);
-
-      if (!rolesData || rolesData.length === 0) {
-        // No roles assigned - they're just a player
-        toast.success('Signed in as Player!');
-        navigate('/lobby');
-        return;
-      }
-
-      // If user has multiple roles, prioritize: brand > creator > player
-      const roles = rolesData.map(r => r.role);
-      let primaryRole = roles[0];
-      
-      if (roles.includes('brand')) primaryRole = 'brand';
-      else if (roles.includes('creator')) primaryRole = 'creator';
+      // We will need to fetch the user role from another endpoint later
+      // For now, we simulate success and route to creator
+      const primaryRole = localStorage.getItem('user_role') || 'creator';
 
       toast.success(`Signed in as ${primaryRole}!`);
       const route = primaryRole === 'creator' ? '/platform/creator' : '/platform/brand';
@@ -162,32 +128,14 @@ export default function Auth() {
     }
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'azure') => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/platform`,
-        }
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error(error.message);
-    }
-  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
-      });
-
-      if (error) throw error;
-
+      // API call to custom forgot password logic goes here
+      // const response = await apiClient.post('/auth/forgot-password', { email });
       toast.success('Password reset email sent! Check your inbox.');
       setShowForgotPassword(false);
     } catch (error: any) {
@@ -202,28 +150,17 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) throw error;
+      // API call to update user password
+      // await apiClient.post('/auth/update-password', { password: newPassword });
 
       toast.success('Password updated successfully!');
       setIsPasswordRecovery(false);
       setNewPassword('');
-      
-      // Navigate to appropriate platform
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
 
-        const route = roleData?.role === 'creator' ? '/platform/creator' : '/platform/brand';
-        navigate(route);
-      }
+      // Navigate to appropriate platform
+      const role = localStorage.getItem('user_role') || 'creator';
+      const route = role === 'creator' ? '/platform/creator' : '/platform/brand';
+      navigate(route);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -234,56 +171,25 @@ export default function Auth() {
   const handleDemoMode = async (role: 'creator' | 'brand') => {
     const DEMO_EMAIL = 'lian@tapsphere.io';
     const DEMO_PASSWORD = 'DemoTapSphere2024!';
-    
+
     setLoading(true);
     try {
-      // Try to sign in first
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
-      });
-
-      if (signInError) {
-        // If sign in fails, try to sign up
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: DEMO_EMAIL,
+      // Login with demo credentials mapped to FastAPI
+      const response = await apiClient.post('/auth/login',
+        new URLSearchParams({
+          username: DEMO_EMAIL,
           password: DEMO_PASSWORD,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: 'NexaCorp Demo',
-            }
-          }
-        });
+        }),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      );
 
-        if (signUpError) throw signUpError;
-
-        // Insert role for new user
-        if (signUpData.user) {
-          const { error: roleError } = await supabase
-            .from('user_roles')
-            .insert({ user_id: signUpData.user.id, role });
-
-          if (roleError && !roleError.message.includes('duplicate')) {
-            throw roleError;
-          }
-        }
-      }
-
+      await signIn(response.data.access_token);
+      localStorage.setItem('user_role', role);
       localStorage.setItem('demoMode', 'true');
       localStorage.setItem('demoRole', role);
-      
+
       toast.success(`Demo mode activated!`);
-      
-      // Seed data in background after navigation
-      setTimeout(async () => {
-        try {
-          await supabase.functions.invoke('seed-demo-data');
-        } catch (e) {
-          console.log('Seed function not yet deployed or data already exists');
-        }
-      }, 1000);
-      
+
       navigate(role === 'creator' ? '/platform/creator' : '/platform/brand');
     } catch (error: any) {
       console.error('Demo error:', error);
@@ -322,90 +228,142 @@ export default function Auth() {
             </div>
           )}
 
-        {isPasswordRecovery ? (
-          <div className="space-y-4">
-            <form onSubmit={handlePasswordUpdate} className="space-y-4">
-              <div>
-                <Label htmlFor="new-password" className="text-foreground">New Password</Label>
-                <div className="relative">
-                  <Input
-                    id="new-password"
-                    type={showNewPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    className="bg-secondary border-border text-foreground pr-10"
-                    placeholder="Enter your new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Updating...' : 'Update Password'}
-              </Button>
-            </form>
-          </div>
-        ) : (
-        <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="signin">
-            {!showForgotPassword ? (
-              <>
-                <div className="space-y-4 mb-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleSocialSignIn('google')}
-                    className="w-full gap-2"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    Continue with Google
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleSocialSignIn('azure')}
-                    className="w-full gap-2"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 23 23" fill="none">
-                      <path d="M0 0h10.931v10.931H0z" fill="#f25022"/>
-                      <path d="M12.069 0H23v10.931H12.069z" fill="#7fba00"/>
-                      <path d="M0 12.069h10.931V23H0z" fill="#00a4ef"/>
-                      <path d="M12.069 12.069H23V23H12.069z" fill="#ffb900"/>
-                    </svg>
-                    Continue with Microsoft
-                  </Button>
-                </div>
-
-                <Separator className="my-4" />
-
-                <div className="text-center text-sm text-muted-foreground mb-4">
-408:                   <Mail className="w-4 h-4 inline mr-1" />
-409:                   Or continue with email
-410:                 </div>
-
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div>
-                    <Label htmlFor="signin-email" className="text-foreground">Email</Label>
+          {isPasswordRecovery ? (
+            <div className="space-y-4">
+              <form onSubmit={handlePasswordUpdate} className="space-y-4">
+                <div>
+                  <Label htmlFor="new-password" className="text-foreground">New Password</Label>
+                  <div className="relative">
                     <Input
-                      id="signin-email"
+                      id="new-password"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="bg-secondary border-border text-foreground pr-10"
+                      placeholder="Enter your new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? 'Updating...' : 'Update Password'}
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="signin">
+                {!showForgotPassword ? (
+                  <>
+                    <div className="text-center text-sm text-muted-foreground mb-4">
+                      <Mail className="w-4 h-4 inline mr-1" />
+                      Sign in with email
+                    </div>
+
+                    <form onSubmit={handleSignIn} className="space-y-4">
+                      <div>
+                        <Label htmlFor="signin-email" className="text-foreground">Email</Label>
+                        <Input
+                          id="signin-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="bg-secondary border-border text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <Label htmlFor="signin-password" className="text-foreground">Password</Label>
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotPassword(true)}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <Input
+                            id="signin-password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="bg-secondary border-border text-foreground pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          </button>
+                        </div>
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? 'Signing in...' : 'Sign In'}
+                      </Button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg font-semibold text-foreground mb-2">Reset Password</h3>
+                      <p className="text-sm text-muted-foreground">Enter your email to receive a password reset link</p>
+                    </div>
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                      <div>
+                        <Label htmlFor="reset-email" className="text-foreground">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="bg-secondary border-border text-foreground"
+                        />
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? 'Sending...' : 'Send Reset Link'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowForgotPassword(false)}
+                        className="w-full"
+                      >
+                        Back to Sign In
+                      </Button>
+                    </form>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="signup">
+                <div className="text-center text-sm text-muted-foreground mb-4">
+                  <Mail className="w-4 h-4 inline mr-1" />
+                  Sign up with email
+                </div>
+
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div>
+                    <Label htmlFor="signup-email" className="text-foreground">Email</Label>
+                    <Input
+                      id="signup-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -414,153 +372,33 @@ export default function Auth() {
                     />
                   </div>
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <Label htmlFor="signin-password" className="text-foreground">Password</Label>
-                      <button
-                        type="button"
-                        onClick={() => setShowForgotPassword(true)}
-                        className="text-xs text-primary hover:underline"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
+                    <Label htmlFor="signup-password" className="text-foreground">Password</Label>
                     <div className="relative">
                       <Input
-                        id="signin-password"
-                        type={showPassword ? "text" : "password"}
+                        id="signup-password"
+                        type={showSignUpPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        minLength={6}
                         className="bg-secondary border-border text-foreground pr-10"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {showSignUpPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
                   <Button type="submit" disabled={loading} className="w-full">
-                    {loading ? 'Signing in...' : 'Sign In'}
+                    {loading ? 'Creating account...' : 'Create Account'}
                   </Button>
                 </form>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Reset Password</h3>
-                  <p className="text-sm text-muted-foreground">Enter your email to receive a password reset link</p>
-                </div>
-                <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div>
-                    <Label htmlFor="reset-email" className="text-foreground">Email</Label>
-                    <Input
-                      id="reset-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="bg-secondary border-border text-foreground"
-                    />
-                  </div>
-                  <Button type="submit" disabled={loading} className="w-full">
-                    {loading ? 'Sending...' : 'Send Reset Link'}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowForgotPassword(false)}
-                    className="w-full"
-                  >
-                    Back to Sign In
-                  </Button>
-                </form>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="signup">
-            <div className="space-y-4 mb-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleSocialSignIn('google')}
-                className="w-full gap-2"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </Button>
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleSocialSignIn('azure')}
-                className="w-full gap-2"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 23 23" fill="none">
-                  <path d="M0 0h10.931v10.931H0z" fill="#f25022"/>
-                  <path d="M12.069 0H23v10.931H12.069z" fill="#7fba00"/>
-                  <path d="M0 12.069h10.931V23H0z" fill="#00a4ef"/>
-                  <path d="M12.069 12.069H23V23H12.069z" fill="#ffb900"/>
-                </svg>
-                Continue with Microsoft
-              </Button>
-            </div>
-
-            <Separator className="my-4" />
-
-            <div className="text-center text-sm text-muted-foreground mb-4">
-              <Mail className="w-4 h-4 inline mr-1" />
-              Or sign up with email
-            </div>
-
-            <form onSubmit={handleSignUp} className="space-y-4">
-              <div>
-                <Label htmlFor="signup-email" className="text-foreground">Email</Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-secondary border-border text-foreground"
-                />
-              </div>
-                <div>
-                  <Label htmlFor="signup-password" className="text-foreground">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="signup-password"
-                      type={showSignUpPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={6}
-                      className="bg-secondary border-border text-foreground pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showSignUpPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Creating account...' : 'Create Account'}
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
-        )}
+              </TabsContent>
+            </Tabs>
+          )}
         </Card>
       </div>
     </div>

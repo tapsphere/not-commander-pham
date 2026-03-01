@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -109,13 +109,13 @@ function PipelineFunnel() {
                   background: isFirst
                     ? 'hsl(var(--muted))'
                     : isLast
-                    ? `linear-gradient(90deg, hsl(var(--talent-blue)), hsl(var(--talent-gold)))`
-                    : `linear-gradient(90deg, hsl(var(--talent-blue-deep)), hsl(var(--talent-blue)))`,
+                      ? `linear-gradient(90deg, hsl(var(--talent-blue)), hsl(var(--talent-gold)))`
+                      : `linear-gradient(90deg, hsl(var(--talent-blue-deep)), hsl(var(--talent-blue)))`,
                   boxShadow: isFirst
                     ? 'none'
                     : isLast
-                    ? '0 0 10px hsl(var(--talent-gold) / 0.25)'
-                    : '0 0 8px hsl(var(--talent-blue) / 0.2)',
+                      ? '0 0 10px hsl(var(--talent-gold) / 0.25)'
+                      : '0 0 8px hsl(var(--talent-blue) / 0.2)',
                 }}
               >
                 <span className="text-xs font-semibold text-foreground">{stage.count}</span>
@@ -146,12 +146,12 @@ function SkillHeatmapGrid() {
                 style={
                   s.status === 'elite'
                     ? {
-                        backgroundColor: 'hsl(var(--talent-gold) / 0.2)',
-                        color: 'hsl(var(--talent-gold))',
-                        borderWidth: '1px',
-                        borderColor: 'hsl(var(--talent-gold) / 0.3)',
-                        boxShadow: '0 0 8px hsl(var(--talent-gold) / 0.15)',
-                      }
+                      backgroundColor: 'hsl(var(--talent-gold) / 0.2)',
+                      color: 'hsl(var(--talent-gold))',
+                      borderWidth: '1px',
+                      borderColor: 'hsl(var(--talent-gold) / 0.3)',
+                      boxShadow: '0 0 8px hsl(var(--talent-gold) / 0.15)',
+                    }
                     : { backgroundColor: 'hsl(var(--muted) / 0.6)' }
                 }
               >
@@ -484,13 +484,7 @@ export default function Marketplace() {
 
   const fetchCreators = async () => {
     try {
-      const { data: templatesData, error: templatesError } = await supabase
-        .from('game_templates')
-        .select('id, creator_id, name, preview_image')
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
-
-      if (templatesError) throw templatesError;
+      const { data: templatesData } = await apiClient.get('/templates?is_published=true');
 
       const creatorMap = new window.Map() as globalThis.Map<string, { games: any[]; creator_id: string | null }>;
       templatesData?.forEach(template => {
@@ -514,7 +508,13 @@ export default function Marketplace() {
             const fg = games[0];
             return { creator_id: 'playops-sample', creator_name: 'PlayOps Sample Validators', creator_bio: 'Official PlayOps validator templates', featured_game_image: fg?.preview_image, featured_game_name: fg?.name, featured_game_id: fg?.id, total_games: games.length };
           }
-          const { data: profile } = await supabase.from('profiles').select('full_name, bio').eq('user_id', creator_id).single();
+          let profile = null;
+          try {
+            const res = await apiClient.get(`/profiles/${creator_id}`);
+            profile = res.data;
+          } catch (e) {
+            console.error('Failed to load profile for creator:', creator_id, e);
+          }
           const fg = games[0];
           const isUnknown = !profile?.full_name || profile.full_name === 'Unknown Creator';
           const aeroRole = isUnknown ? aeroRoles[aeroIndex++ % aeroRoles.length] : null;

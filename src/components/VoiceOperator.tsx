@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { useToast } from '@/hooks/use-toast';
 import { Mic, X, Volume2 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -18,7 +18,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const { toast } = useToast();
-  
+
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
@@ -29,7 +29,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       setIsSpeaking(false);
       setIsListening(false);
       onSpeakingChange(false);
-      
+
       // Force stop all audio
       try {
         if (recognitionRef.current) {
@@ -38,7 +38,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       } catch (e) {
         // Ignore errors
       }
-      
+
       try {
         if (window.speechSynthesis) {
           window.speechSynthesis.cancel();
@@ -49,7 +49,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       } catch (e) {
         // Ignore errors
       }
-      
+
       // Restore background music
       const gainNodes = getAudioGainNodes();
       gainNodes.forEach(node => {
@@ -59,7 +59,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
           // Ignore errors
         }
       });
-      
+
       return;
     }
 
@@ -68,7 +68,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
 
     // Initialize speech recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
@@ -78,7 +78,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       recognitionRef.current.onresult = async (event: any) => {
         const text = event.results[0][0].transcript;
         setTranscript(text);
-        
+
         // Send to AI and get response
         await handleAIResponse(text);
       };
@@ -120,15 +120,13 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
 
   const handleAIResponse = async (userMessage: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('voice-chat', {
-        body: { message: userMessage }
+      const { data } = await apiClient.post('/chat/voice-chat', {
+        message: userMessage
       });
-
-      if (error) throw error;
 
       const aiMessage = data.message;
       await speakText(aiMessage);
-      
+
     } catch (error) {
       console.error('AI error:', error);
       toast({
@@ -152,63 +150,63 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
       // Small delay to ensure voices are loaded
       setTimeout(() => {
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.1;
-      utterance.volume = 0.9;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.1;
+        utterance.volume = 0.9;
 
-      // Try to use a natural female voice
-      const voices = synthRef.current.getVoices();
-      const preferredVoices = [
-        'Samantha', 'Karen', 'Victoria', 'Alex',
-        'Google US English', 'Microsoft Zira',
-        'Google UK English Female'
-      ];
-      
-      const femaleVoice = voices.find(v => 
-        preferredVoices.some(pv => v.name.includes(pv))
-      ) || voices.find(v => 
-        v.lang.startsWith('en-US') && v.name.includes('Female')
-      ) || voices[0];
+        // Try to use a natural female voice
+        const voices = synthRef.current.getVoices();
+        const preferredVoices = [
+          'Samantha', 'Karen', 'Victoria', 'Alex',
+          'Google US English', 'Microsoft Zira',
+          'Google UK English Female'
+        ];
 
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      }
+        const femaleVoice = voices.find(v =>
+          preferredVoices.some(pv => v.name.includes(pv))
+        ) || voices.find(v =>
+          v.lang.startsWith('en-US') && v.name.includes('Female')
+        ) || voices[0];
 
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-        onSpeakingChange(true);
-        // Lower background music when speaking
-        const gainNodes = getAudioGainNodes();
-        gainNodes.forEach(node => {
-          node.gain.setTargetAtTime(0.05, node.context.currentTime, 0.3);
-        });
-      };
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+        }
 
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        onSpeakingChange(false);
-        // Restore background music volume
-        const gainNodes = getAudioGainNodes();
-        gainNodes.forEach(node => {
-          node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
-        });
-        resolve();
-      };
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          onSpeakingChange(true);
+          // Lower background music when speaking
+          const gainNodes = getAudioGainNodes();
+          gainNodes.forEach(node => {
+            node.gain.setTargetAtTime(0.05, node.context.currentTime, 0.3);
+          });
+        };
 
-      utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event);
-        setIsSpeaking(false);
-        onSpeakingChange(false);
-        // Restore background music volume
-        const gainNodes = getAudioGainNodes();
-        gainNodes.forEach(node => {
-          node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
-        });
-        resolve();
-      };
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          onSpeakingChange(false);
+          // Restore background music volume
+          const gainNodes = getAudioGainNodes();
+          gainNodes.forEach(node => {
+            node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+          });
+          resolve();
+        };
 
-      synthRef.current.speak(utterance);
+        utterance.onerror = (event) => {
+          console.error('Speech synthesis error:', event);
+          setIsSpeaking(false);
+          onSpeakingChange(false);
+          // Restore background music volume
+          const gainNodes = getAudioGainNodes();
+          gainNodes.forEach(node => {
+            node.gain.setTargetAtTime(0.15, node.context.currentTime, 0.3);
+          });
+          resolve();
+        };
+
+        synthRef.current.speak(utterance);
       }, 100);
     });
   };
@@ -233,7 +231,7 @@ export const VoiceOperator = ({ isActive, onSpeakingChange, onClose }: VoiceOper
   if (!isActive) return null;
 
   return (
-    <div 
+    <div
       className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none"
       onClick={(e) => e.stopPropagation()}
     >

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus, Eye, Edit, Trash2, EyeOff, Layers, TestTube, User, CheckCircle2 } from 'lucide-react';
@@ -35,6 +36,7 @@ type TestResult = {
 };
 
 export default function CreatorDashboard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [testResults, setTestResults] = useState<Map<string, TestResult>>(new Map());
@@ -44,9 +46,9 @@ export default function CreatorDashboard() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [testWizardOpen, setTestWizardOpen] = useState(false);
   const [postTestActionsOpen, setPostTestActionsOpen] = useState(false);
-  const [testingTemplate, setTestingTemplate] = useState<{ 
-    id: string; 
-    name: string; 
+  const [testingTemplate, setTestingTemplate] = useState<{
+    id: string;
+    name: string;
     template_type: string;
     selected_sub_competencies: string[];
     custom_game_url?: string;
@@ -58,48 +60,17 @@ export default function CreatorDashboard() {
   const [subCompetencies, setSubCompetencies] = useState<Map<string, any>>(new Map());
 
   useEffect(() => {
-    const ensureCreatorRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Ensure current user has creator role
-        const { error } = await supabase
-          .from('user_roles')
-          .insert({ user_id: user.id, role: 'creator' })
-          .select()
-          .maybeSingle();
-        
-        if (error && !error.message.includes('duplicate')) {
-          console.error('Error assigning creator role:', error);
-        }
-      }
-    };
-    
-    ensureCreatorRole();
-    loadTemplates();
-    loadSubCompetencies();
-    
-    // v31.0: Auto-sync V5 Framework on initial app load (silently in background)
-    autoSyncV5Framework();
-  }, []);
-  
+    if (user) {
+      loadTemplates();
+      loadSubCompetencies();
+    }
+  }, [user]);
+
   // Silent V5 Framework sync - runs automatically on app load
   const autoSyncV5Framework = async () => {
     try {
-      // Check if we already have competencies loaded
-      const { count, error: countError } = await supabase
-        .from('sub_competencies')
-        .select('*', { count: 'exact', head: true });
-      
-      // Only sync if no sub-competencies exist (fresh install or purged)
-      if (!countError && (count === null || count < 90)) {
-        console.log('🔄 Auto-syncing V5 Framework in background...');
-        const { data, error } = await supabase.functions.invoke('sync-v5-framework');
-        
-        if (!error && data?.success) {
-          console.log(`✅ V5 Framework synced: ${data.stats.competencies_inserted} competencies, ${data.stats.sub_competencies_inserted} sub-competencies`);
-          loadSubCompetencies(); // Refresh local cache
-        }
-      }
+      // Logic handled on backend startup now, no manual action needed.
+      return;
     } catch (error) {
       // Silent fail - don't interrupt user experience
       console.warn('V5 auto-sync skipped:', error);
@@ -108,13 +79,8 @@ export default function CreatorDashboard() {
 
   const loadSubCompetencies = async () => {
     try {
-      const { data, error } = await supabase
-        .from('sub_competencies')
-        .select('*');
-      
-      if (error) throw error;
-      
-      const subMap = new Map(data?.map(s => [s.id, s]) || []);
+      const { data } = await apiClient.get('/framework/sub-competencies');
+      const subMap = new Map<string, any>((data || []).map((s: any) => [s.id, s]));
       setSubCompetencies(subMap);
     } catch (error: any) {
       console.error('Failed to load sub-competencies:', error);
@@ -123,24 +89,13 @@ export default function CreatorDashboard() {
 
   const loadTemplates = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Fetch user's profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url, company_logo_url')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const { data: profile } = await apiClient.get('/profiles/me');
 
-      const { data, error } = await supabase
-        .from('game_templates')
-        .select('*')
-        .eq('creator_id', user.id)
-        .order('created_at', { ascending: false});
+      const { data } = await apiClient.get(`/templates?creator_id=${user.id}`);
 
-      if (error) throw error;
-      
       // Generate default covers for templates without preview images or old generic ones
       const oldGenericCovers = [
         'budget-allocation.jpg',
@@ -148,13 +103,13 @@ export default function CreatorDashboard() {
         'data-pattern-detective.jpg',
         'narrative-builder.jpg'
       ];
-      
+
       const templatesWithCovers = await Promise.all(
         (data || []).map(async (template) => {
           // Check if this is an old generic cover that should be replaced
-          const isOldGenericCover = template.preview_image && 
+          const isOldGenericCover = template.preview_image &&
             oldGenericCovers.some(oldCover => template.preview_image?.includes(oldCover));
-          
+
           // If template has a custom preview image (not old generic), keep it
           if (template.preview_image && !isOldGenericCover) {
             return {
@@ -173,21 +128,21 @@ export default function CreatorDashboard() {
               profile?.avatar_url || undefined
             );
 
-            const fileName = `${user.id}/default-cover-${template.id}.png`;
-            const { error: uploadError } = await supabase.storage
-              .from('validator-previews')
-              .upload(fileName, coverBlob, { upsert: true });
+            // FormData upload
+            const file = new File([coverBlob], `default-cover-${template.id}.png`, { type: 'image/png' });
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('path', `${user.id}/default-cover-${template.id}.png`);
 
-            if (!uploadError) {
-              const { data: { publicUrl } } = supabase.storage
-                .from('validator-previews')
-                .getPublicUrl(fileName);
+            const uploadRes = await apiClient.post('/storage/upload/validator-previews', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            if (uploadRes.data.url) {
+              const publicUrl = uploadRes.data.url;
 
               // Update template with new cover
-              await supabase
-                .from('game_templates')
-                .update({ preview_image: publicUrl })
-                .eq('id', template.id);
+              await apiClient.put(`/templates/${template.id}`, { preview_image: publicUrl });
 
               return {
                 ...template,
@@ -208,17 +163,13 @@ export default function CreatorDashboard() {
           };
         })
       );
-      
+
       setTemplates(templatesWithCovers);
 
       // Fetch test results for all templates
-      const { data: results, error: resultsError } = await supabase
-        .from('validator_test_results')
-        .select('template_id, overall_status, approved_for_publish');
+      const { data: results } = await apiClient.get('/results');
 
-      if (resultsError) throw resultsError;
-
-      const resultsMap = new Map(results?.map(r => [r.template_id, r]) || []);
+      const resultsMap = new Map<string, TestResult>((results || []).map((r: any) => [r.template_id, r]));
       setTestResults(resultsMap);
     } catch (error: any) {
       toast.error('Failed to load templates');
@@ -235,8 +186,7 @@ export default function CreatorDashboard() {
       // For AI generated, get design settings (per-game or profile default) and generate preview
       try {
         toast.info('Generating game preview...');
-        
-        const { data: { user } } = await supabase.auth.getUser();
+
         if (!user) {
           toast.error('Please log in to preview games');
           return;
@@ -247,7 +197,7 @@ export default function CreatorDashboard() {
         let avatarUrl: string | null = null;
         let particleEffect: string = 'sparkles';
         let mascotAnimationType: string = 'static';
-        
+
         if ((template as any).design_settings) {
           designPalette = (template as any).design_settings;
           avatarUrl = designPalette.avatar || null;
@@ -256,12 +206,8 @@ export default function CreatorDashboard() {
           console.log('Using per-game design settings');
         } else {
           // Fall back to creator's default palette
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('design_palette, game_avatar_url, default_particle_effect, mascot_animation_type')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          
+          const { data: profile } = await apiClient.get('/profiles/me');
+
           const palette = profile?.design_palette as any;
           designPalette = palette || {
             primary: '#C8DBDB',
@@ -277,38 +223,31 @@ export default function CreatorDashboard() {
           mascotAnimationType = profile?.mascot_animation_type || 'static';
           console.log('Using creator default design settings');
         }
-        
+
         // Fetch sub-competency data
         const subCompIds = template.selected_sub_competencies || [];
-        const { data: subComps } = await supabase
-          .from('sub_competencies')
-          .select('*')
-          .in('id', subCompIds);
-        
-        const { data: response, error } = await supabase.functions.invoke('generate-game', {
-          body: {
-            templatePrompt: template.base_prompt,
-            primaryColor: designPalette.primary,
-            secondaryColor: designPalette.secondary,
-            accentColor: designPalette.accent,
-            backgroundColor: designPalette.background,
-            highlightColor: designPalette.highlight,
-            textColor: designPalette.text,
-            fontFamily: designPalette.font,
-            particleEffect: particleEffect,
-            logoUrl: null,
-            customizationId: null,
-            previewMode: true,
-            subCompetencies: subComps || []
-          }
+        const idsQuery = subCompIds.length ? `in.(${subCompIds.join(',')})` : '';
+        const { data: subComps } = await apiClient.get(
+          idsQuery ? `/framework/sub-competencies?id=${idsQuery}` : '/framework/sub-competencies'
+        );
+
+        const { data: response } = await apiClient.post('/games/generate-game', {
+          templatePrompt: template.base_prompt,
+          primaryColor: designPalette.primary,
+          secondaryColor: designPalette.secondary,
+          accentColor: designPalette.accent,
+          backgroundColor: designPalette.background,
+          highlightColor: designPalette.highlight,
+          textColor: designPalette.text,
+          fontFamily: designPalette.font,
+          particleEffect: particleEffect,
+          logoUrl: null,
+          customizationId: null,
+          previewMode: true,
+          subCompetencies: subComps || []
         });
 
         console.log('Generate game response:', response);
-
-        if (error) {
-          console.error('Generate game error:', error);
-          throw error;
-        }
 
         if (!response || !response.html) {
           throw new Error('No HTML received from game generator');
@@ -381,17 +320,9 @@ export default function CreatorDashboard() {
 
     try {
       console.log('Attempting to delete template:', id);
-      
-      const { error } = await supabase
-        .from('game_templates')
-        .delete()
-        .eq('id', id);
 
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
-      
+      await apiClient.delete(`/templates/${id}`);
+
       console.log('Template deleted successfully');
       toast.success('Template deleted successfully');
       loadTemplates();
@@ -406,7 +337,7 @@ export default function CreatorDashboard() {
       // Check if trying to publish (not unpublish)
       if (!currentStatus) {
         const testResult = testResults.get(id);
-        
+
         // Block publishing if not tested or not passed
         if (!testResult || testResult.overall_status !== 'passed' || !testResult.approved_for_publish) {
           toast.error('Cannot publish: Validator must pass all tests and be approved first', {
@@ -418,24 +349,14 @@ export default function CreatorDashboard() {
 
       if (currentStatus) {
         // Unpublishing - just update the status
-        const { error } = await supabase
-          .from('game_templates')
-          .update({ is_published: false })
-          .eq('id', id);
-
-        if (error) throw error;
+        await apiClient.put(`/templates/${id}`, { is_published: false });
         toast.success('Unpublished from marketplace');
       } else {
         // Publishing - call edge function to create training/testing modes
-        const { data, error } = await supabase.functions.invoke('publish-template', {
-          body: { template_id: id }
-        });
-
-        if (error) throw error;
-        
+        const { data } = await apiClient.post('/games/publish', { template_id: id });
         toast.success(`Published! Created ${data?.runtimes?.length || 2} game modes (Training + Testing)`);
       }
-      
+
       loadTemplates();
     } catch (error: any) {
       toast.error('Failed to update template');
@@ -470,14 +391,10 @@ export default function CreatorDashboard() {
 
   const handlePublish = async () => {
     if (!testingTemplate) return;
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('publish-template', {
-        body: { template_id: testingTemplate.id }
-      });
 
-      if (error) throw error;
-      
+    try {
+      const { data } = await apiClient.post('/games/publish', { template_id: testingTemplate.id });
+
       toast.success(`Published! Created ${data?.runtimes?.length || 2} game modes (Training + Testing)`);
       setPostTestActionsOpen(false);
       setTestingTemplate(null);
@@ -493,11 +410,7 @@ export default function CreatorDashboard() {
     loadTemplates(); // Reload to get updated template
     // Re-open test wizard with updated data
     if (testingTemplate) {
-      supabase
-        .from('game_templates')
-        .select('id, name, template_type, custom_game_url, selected_sub_competencies, game_config, description, base_prompt, design_settings')
-        .eq('id', testingTemplate.id)
-        .single()
+      apiClient.get(`/templates/${testingTemplate.id}`)
         .then(({ data }) => {
           if (data) {
             setTestingTemplate(data as any);
@@ -522,7 +435,7 @@ export default function CreatorDashboard() {
           C-BEN Performance Standards • Industry-Verified Framework Active
         </Badge>
       </div>
-      
+
       <div className="flex justify-between items-center mb-8">
         <div>
           <h2 className="text-3xl font-semibold text-foreground">
@@ -531,7 +444,7 @@ export default function CreatorDashboard() {
           <p className="text-muted-foreground mt-2">Manage your game templates and design elements</p>
         </div>
         <div className="flex gap-3">
-          
+
           <Button
             onClick={() => navigate('/platform/creator/profile-edit')}
             variant="outline"
@@ -540,7 +453,7 @@ export default function CreatorDashboard() {
             <Edit className="w-4 h-4" />
             Edit Profile
           </Button>
-          <Button 
+          <Button
             onClick={() => navigate('/platform/validator-test')}
             variant="outline"
             className="gap-2"
@@ -552,150 +465,149 @@ export default function CreatorDashboard() {
       </div>
 
       <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <p className="text-muted-foreground">Create game templates with CBE competencies built in</p>
-            <Button 
+        <div className="flex justify-between items-center">
+          <p className="text-muted-foreground">Create game templates with CBE competencies built in</p>
+          <Button
+            onClick={() => {
+              setSelectedTemplate(null);
+              setDialogOpen(true);
+            }}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Template
+          </Button>
+        </div>
+
+        {templates.length === 0 ? (
+          <Card className="p-12 text-center glass-card">
+            <p className="text-muted-foreground mb-4">No templates yet</p>
+            <Button
               onClick={() => {
                 setSelectedTemplate(null);
                 setDialogOpen(true);
-              }} 
-              className="gap-2"
+              }}
+              variant="outline"
             >
-              <Plus className="w-4 h-4" />
-              New Template
+              Create Your First Template
             </Button>
-          </div>
+          </Card>
+        ) : (
+          <TooltipProvider>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templates.map((template) => {
+                const isPublishable = canPublish(template.id);
+                const testResult = testResults.get(template.id);
 
-          {templates.length === 0 ? (
-            <Card className="p-12 text-center glass-card">
-              <p className="text-muted-foreground mb-4">No templates yet</p>
-              <Button 
-                onClick={() => {
-                  setSelectedTemplate(null);
-                  setDialogOpen(true);
-                }} 
-                variant="outline"
-              >
-                Create Your First Template
-              </Button>
-            </Card>
-          ) : (
-            <TooltipProvider>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {templates.map((template) => {
-                  const isPublishable = canPublish(template.id);
-                  const testResult = testResults.get(template.id);
-                  
-                  return (
-                    <Card 
-                      key={template.id} 
-                      className="glass-card overflow-hidden hover:border-primary/30 transition-colors cursor-pointer hover-lift"
-                      onClick={() => handlePreviewGame(template)}
-                    >
-                      <div className="aspect-video bg-muted flex items-center justify-center">
-                        {template.preview_image ? (
-                          <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Eye className="w-12 h-12 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-lg text-foreground">{template.name}</h3>
-                            {template.creator_name && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <div className="w-5 h-5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                                  {template.creator_avatar ? (
-                                    <img
-                                      src={template.creator_avatar}
-                                      alt={template.creator_name}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  ) : (
-                                    <User className="w-3 h-3 text-muted-foreground" />
-                                  )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  by {template.creator_name}
-                                </p>
+                return (
+                  <Card
+                    key={template.id}
+                    className="glass-card overflow-hidden hover:border-primary/30 transition-colors cursor-pointer hover-lift"
+                    onClick={() => handlePreviewGame(template)}
+                  >
+                    <div className="aspect-video bg-muted flex items-center justify-center">
+                      {template.preview_image ? (
+                        <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Eye className="w-12 h-12 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-semibold text-lg text-foreground">{template.name}</h3>
+                          {template.creator_name && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <div className="w-5 h-5 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                                {template.creator_avatar ? (
+                                  <img
+                                    src={template.creator_avatar}
+                                    alt={template.creator_name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <User className="w-3 h-3 text-muted-foreground" />
+                                )}
                               </div>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Edited {formatDistanceToNow(new Date(template.updated_at), { addSuffix: true })}
-                            </p>
-                          </div>
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${
-                              template.is_published
-                                ? 'bg-green-500/20 text-green-600 dark:text-green-400'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
-                          >
-                            {template.is_published ? 'Published' : 'Draft'}
-                          </span>
+                              <p className="text-xs text-muted-foreground">
+                                by {template.creator_name}
+                              </p>
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Edited {formatDistanceToNow(new Date(template.updated_at), { addSuffix: true })}
+                          </p>
                         </div>
-                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{template.description}</p>
-                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEdit(template)}
-                            title="Edit Template"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleManageCompetencies(template)}
-                            title="Manage Competencies"
-                          >
-                            <Layers className="w-4 h-4" />
-                          </Button>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => handleTogglePublish(template.id, template.is_published)}
-                                  disabled={!template.is_published && !isPublishable}
-                                  title={template.is_published ? 'Unpublish' : 'Publish'}
-                                >
-                                  {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </Button>
-                              </span>
-                            </TooltipTrigger>
-                            {!template.is_published && !isPublishable && (
-                              <TooltipContent>
-                                <p className="text-xs">
-                                  {!testResult 
-                                    ? 'Must complete testing before publishing' 
-                                    : testResult.overall_status !== 'passed'
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${template.is_published
+                            ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                            : 'bg-muted text-muted-foreground'
+                            }`}
+                        >
+                          {template.is_published ? 'Published' : 'Draft'}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{template.description}</p>
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEdit(template)}
+                          title="Edit Template"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleManageCompetencies(template)}
+                          title="Manage Competencies"
+                        >
+                          <Layers className="w-4 h-4" />
+                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleTogglePublish(template.id, template.is_published)}
+                                disabled={!template.is_published && !isPublishable}
+                                title={template.is_published ? 'Unpublish' : 'Publish'}
+                              >
+                                {template.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          {!template.is_published && !isPublishable && (
+                            <TooltipContent>
+                              <p className="text-xs">
+                                {!testResult
+                                  ? 'Must complete testing before publishing'
+                                  : testResult.overall_status !== 'passed'
                                     ? 'All test phases must pass before publishing'
                                     : 'Must be approved for publish after passing tests'}
-                                </p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(template.id)}
-                            title="Delete Template"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                              </p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDelete(template.id)}
+                          title="Delete Template"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TooltipProvider>
-          )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </TooltipProvider>
+        )}
       </div>
 
       {dialogOpen && (
@@ -729,7 +641,7 @@ export default function CreatorDashboard() {
             }
             onComplete={handleTestComplete}
           />
-          
+
           <PostTestActions
             open={postTestActionsOpen}
             onOpenChange={setPostTestActionsOpen}

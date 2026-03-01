@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
@@ -63,24 +63,19 @@ export const ValidatorTemplateCard = ({
         .split(/[\s-]+/)
         .filter(word => word.length > 3); // Only keep words longer than 3 chars
 
-      // First try exact match
-      let { data, error } = await supabase
-        .from('game_templates')
-        .select('id, name, description, preview_image, creator_id')
-        .eq('name', validator.validator_name)
-        .eq('is_published', true)
-        .maybeSingle();
+      // Try to GET all published templates from backend
+      let data = null;
+      let error = null;
 
-      // If no exact match, try fuzzy matching with keywords
-      if (!data && searchKeywords.length > 0) {
-        const { data: templates } = await supabase
-          .from('game_templates')
-          .select('id, name, description, preview_image, creator_id')
-          .eq('is_published', true);
+      try {
+        const { data: templates } = await apiClient.get('/templates?is_published=true');
 
-        // Find best match by counting keyword matches
-        if (templates && templates.length > 0) {
-          const scoredTemplates = templates.map(template => {
+        // Exact match
+        data = templates.find((t: any) => t.name === validator.validator_name);
+
+        // Fuzzy match
+        if (!data && searchKeywords.length > 0 && templates.length > 0) {
+          const scoredTemplates = templates.map((template: any) => {
             const nameLower = template.name.toLowerCase();
             const matchScore = searchKeywords.reduce((score, keyword) => {
               return score + (nameLower.includes(keyword) ? 1 : 0);
@@ -90,31 +85,32 @@ export const ValidatorTemplateCard = ({
 
           // Get template with highest score (if at least 1 match)
           const bestMatch = scoredTemplates
-            .filter(t => t.matchScore > 0)
-            .sort((a, b) => b.matchScore - a.matchScore)[0];
+            .filter((t: any) => t.matchScore > 0)
+            .sort((a: any, b: any) => b.matchScore - a.matchScore)[0];
 
           if (bestMatch) {
             data = bestMatch.template;
           }
         }
+      } catch (err) {
+        error = err;
       }
 
       if (error && error.code !== 'PGRST116') throw error;
-      
+
       // If we found a template and it has a creator, fetch creator profile
       if (data && data.creator_id) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name, bio')
-          .eq('user_id', data.creator_id)
-          .maybeSingle();
-        
-        if (profile) {
-          setTemplate({ ...data, profiles: profile });
-          return;
+        try {
+          const { data: profile } = await apiClient.get(`/profiles/${data.creator_id}`);
+          if (profile) {
+            setTemplate({ ...data, profiles: profile });
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to fetch profile for template creator", e);
         }
       }
-      
+
       setTemplate(data);
     } catch (error) {
       console.error('Failed to load template:', error);
@@ -128,7 +124,7 @@ export const ValidatorTemplateCard = ({
       toast.error('Template not found');
       return;
     }
-    
+
     // Navigate to template detail with course context
     navigate(`/platform/template/${template.id}`, {
       state: {
@@ -169,8 +165,8 @@ export const ValidatorTemplateCard = ({
   }
 
   const borderColor = validator.priority === 'high' ? 'hsl(var(--neon-green))' :
-                      validator.priority === 'medium' ? 'hsl(var(--primary))' : 
-                      'hsl(var(--muted))';
+    validator.priority === 'medium' ? 'hsl(var(--primary))' :
+      'hsl(var(--muted))';
 
   return (
     <Card className="border-l-4 hover:shadow-lg transition-shadow" style={{ borderLeftColor: borderColor }}>
@@ -179,8 +175,8 @@ export const ValidatorTemplateCard = ({
           {/* Template Preview */}
           {template.preview_image && (
             <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-gray-800">
-              <img 
-                src={template.preview_image} 
+              <img
+                src={template.preview_image}
                 alt={template.name}
                 className="w-full h-full object-cover"
               />
@@ -202,11 +198,11 @@ export const ValidatorTemplateCard = ({
                 </span>
               </div>
             </div>
-            
+
             <p className="text-sm text-muted-foreground mb-2">{validator.reason}</p>
-            
+
             <div className="flex items-center gap-2 mt-3">
-              <Button 
+              <Button
                 onClick={handleCustomize}
                 className="gap-2 bg-neon-green text-white hover:bg-neon-green/90"
                 size="sm"
@@ -214,7 +210,7 @@ export const ValidatorTemplateCard = ({
                 <Sparkles className="w-3 h-3" />
                 Customize for "{courseName}"
               </Button>
-              
+
               <Button
                 onClick={() => navigate(`/platform/template/${template.id}`)}
                 variant="outline"
@@ -234,7 +230,7 @@ export const ValidatorTemplateCard = ({
             <p className="text-xs font-medium mb-2">Will Test These Skills:</p>
             <div className="flex flex-wrap gap-1">
               {competencyMappings.map((mapping, idx) => (
-                <span 
+                <span
                   key={idx}
                   className="text-xs px-2 py-1 rounded bg-primary/10 text-primary"
                 >

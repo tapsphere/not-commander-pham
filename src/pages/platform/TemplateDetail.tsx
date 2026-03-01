@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Palette } from 'lucide-react';
@@ -35,7 +35,7 @@ export default function TemplateDetail() {
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   const [isBrand, setIsBrand] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+
   // Extract course info from navigation state
   const courseInfo = location.state?.fromCourse ? {
     courseName: location.state?.courseName,
@@ -51,7 +51,7 @@ export default function TemplateDetail() {
     // TEMP: Auth disabled for demo
     setIsLoggedIn(true);
     setIsBrand(true);
-    
+
     /* ORIGINAL CODE - Re-enable after demo:
     const { data: { user } } = await supabase.auth.getUser();
     console.log('Checking user role, user:', user?.id);
@@ -76,35 +76,23 @@ export default function TemplateDetail() {
     try {
       if (!templateId) return;
 
-      const { data, error } = await supabase
-        .from('game_templates')
-        .select('*')
-        .eq('id', templateId)
-        .eq('is_published', true)
-        .single();
-
-      if (error) throw error;
+      const { data } = await apiClient.get(`/templates/${templateId}`);
 
       // Fetch related data
-      const [profileData, competencyData] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('user_id', data.creator_id)
-          .single(),
-        data.competency_id
-          ? supabase
-              .from('master_competencies')
-              .select('name, cbe_category, departments')
-              .eq('id', data.competency_id)
-              .single()
-          : null,
+      const [profileResponse, competenciesResponse] = await Promise.all([
+        apiClient.get(`/profiles/${data.creator_id}`),
+        data.competency_id ? apiClient.get('/framework/competencies') : Promise.resolve({ data: null })
       ]);
+
+      let compData = null;
+      if (competenciesResponse.data) {
+        compData = competenciesResponse.data.find((c: any) => c.id === data.competency_id);
+      }
 
       setTemplate({
         ...data,
-        profiles: profileData.data || null,
-        master_competencies: competencyData?.data || null,
+        profiles: { full_name: profileResponse.data?.full_name },
+        master_competencies: compData ? { name: compData.name, cbe_category: compData.cbe_category, departments: compData.departments } : null,
       });
     } catch (error: any) {
       toast.error('Failed to load template details');

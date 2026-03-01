@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, Loader2, Play, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
@@ -58,6 +59,7 @@ export const BrandGameGenerator = ({
   brandId,
   onSuccess,
 }: BrandGameGeneratorProps) => {
+  const { user } = useAuth();
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [gameHtml, setGameHtml] = useState('');
@@ -65,7 +67,7 @@ export const BrandGameGenerator = ({
   const [activeScenes, setActiveScenes] = useState(3);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
-  
+
   const [formData, setFormData] = useState<FormData>({
     industry: 'Technology',
     roleScenario: '',
@@ -90,16 +92,13 @@ export const BrandGameGenerator = ({
       setProgress(10);
 
       // Fetch full sub-competency data (use limit + first to handle duplicates)
-      const { data: subCompDataArray, error: subError } = await supabase
-        .from('sub_competencies')
-        .select('*')
-        .eq('statement', mapping.sub_competency)
-        .limit(1);
+      const response = await apiClient.get(
+        `/api/framework/sub-competencies?statement=eq.${encodeURIComponent(mapping.sub_competency)}`
+      );
+      const subCompDataArray = response.data;
 
-      if (subError) throw subError;
-      
       const subCompData = subCompDataArray?.[0];
-      
+
       if (!subCompData) {
         toast.error('Sub-competency data not found');
         return;
@@ -132,7 +131,7 @@ export const BrandGameGenerator = ({
           scene3: '⚡ EDGE CASE: Priority KPI suddenly changes - pivot evaluation focus'
         }
       };
-      
+
       const scenes = sceneExamples[subCompData.validator_type || mapping.validator_type] || {
         scene1: 'Complete baseline task using standard approach',
         scene2: 'Adapt to new information or constraint',
@@ -162,14 +161,14 @@ The system tracks your actions throughout the ${subCompData.game_loop || 'gamepl
       };
 
       setFormData(autoFilled);
-      
+
       // Set active scenes
       const sceneCount = [scenes.scene1, scenes.scene2, scenes.scene3, scenes.scene4].filter(s => s).length;
       setActiveScenes(Math.max(1, sceneCount));
-      
+
       setProgress(50);
       toast.success('Game template auto-filled from C-BEN framework!');
-      
+
     } catch (error) {
       console.error('Auto-fill error:', error);
       toast.error('Failed to auto-fill. Please try again.');
@@ -245,40 +244,36 @@ ${formData.uiAesthetic}
       setProgress(60);
 
       // Fetch user's logo from profile
-      const { data: { user } } = await supabase.auth.getUser();
       let logoUrl = null;
-      
       if (user) {
-        const { data: profileData } = await (supabase as any)
-          .from('profiles')
-          .select('company_logo_url')
-          .eq('user_id', user.id)
-          .single();
-        logoUrl = profileData?.company_logo_url;
+        try {
+          const response = await apiClient.get('/api/profiles/me');
+          const profile = response.data;
+          logoUrl = profile?.company_logo_url || profile?.avatar_url;
+        } catch (e) {
+          console.error('Failed to load profile for logo', e);
+        }
       }
 
       const gamePrompt = buildGamePrompt();
 
-      const { data, error } = await supabase.functions.invoke('generate-game', {
-        body: {
-          templatePrompt: gamePrompt,
-          primaryColor: '#00FF00',
-          secondaryColor: '#9945FF',
-          accentColor: '#FF5722',
-          backgroundColor: '#1A1A1A',
-          logoUrl: logoUrl,
-          previewMode: true,
-        },
+      const response = await apiClient.post('/api/games/generate-game', {
+        templatePrompt: gamePrompt,
+        primaryColor: '#00FF00',
+        secondaryColor: '#9945FF',
+        accentColor: '#FF5722',
+        backgroundColor: '#1A1A1A',
+        logoUrl: logoUrl,
+        previewMode: true,
       });
+      const data = response.data;
 
-      if (error) throw error;
-      
       setProgress(90);
       setGameHtml(data.generatedHtml);
       setProgress(100);
-      
+
       toast.success('Game generated! Scroll down to see preview.');
-      
+
       // Scroll to preview after a short delay to allow rendering
       setTimeout(() => {
         const dialogContent = document.querySelector('[role="dialog"] [data-radix-scroll-area-viewport]');
@@ -289,8 +284,8 @@ ${formData.uiAesthetic}
           dialogContent.scrollTop = dialogContent.scrollHeight;
         }
       }, 500);
-      
-      
+
+
     } catch (error: any) {
       console.error('Generation error:', error);
       if (error.message?.includes('429')) {
@@ -314,7 +309,6 @@ ${formData.uiAesthetic}
     try {
       setSaving(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Please log in to save');
         return;
@@ -322,46 +316,46 @@ ${formData.uiAesthetic}
 
       // Fetch user's logo from profile
       let logoUrl = null;
-      const { data: profileData } = await (supabase as any)
-        .from('profiles')
-        .select('company_logo_url')
-        .eq('user_id', user.id)
-        .single();
-      logoUrl = profileData?.company_logo_url;
+      try {
+        const response = await apiClient.get('/api/profiles/me');
+        const profile = response.data;
+        logoUrl = profile?.company_logo_url || profile?.avatar_url;
+      } catch (e) {
+        console.error('Profile fetch failed', e);
+      }
 
       // Find matching template
-      const { data: template } = await supabase
-        .from('game_templates')
-        .select('id')
-        .eq('name', mapping.validator_type)
-        .eq('is_published', true)
-        .maybeSingle();
+      let templateId = null;
+      try {
+        const response = await apiClient.get('/api/templates');
+        const templates = response.data;
+        const matched = templates.find((t: any) => t.name === mapping.validator_type && t.is_published);
+        if (matched) templateId = matched.id;
+      } catch (e) {
+        console.error('Failed to fetch templates', e);
+      }
 
       // Create customization with logo
-      const { error: saveError } = await supabase
-        .from('brand_customizations')
-        .insert({
-          brand_id: user.id,
-          template_id: template?.id || null,
-          customization_prompt: buildGamePrompt(),
-          generated_game_html: gameHtml,
-          logo_url: logoUrl,
-          primary_color: '#00FF00',
-          secondary_color: '#9945FF',
-          accent_color: '#FF5722',
-          background_color: '#1A1A1A',
-        });
-
-      if (saveError) throw saveError;
+      await apiClient.post('/api/customizations', {
+        brand_id: user.id,
+        template_id: templateId,
+        customization_prompt: buildGamePrompt(),
+        generated_game_html: gameHtml,
+        logo_url: logoUrl,
+        primary_color: '#00FF00',
+        secondary_color: '#9945FF',
+        accent_color: '#FF5722',
+        background_color: '#1A1A1A',
+      });
 
       toast.success('Game saved to your dashboard!');
       onOpenChange(false);
-      
+
       // Call success callback to refresh dashboard
       if (onSuccess) {
         onSuccess();
       }
-      
+
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Failed to save game');
@@ -429,7 +423,7 @@ ${formData.uiAesthetic}
               <Card className="bg-gray-800 border-purple-500/30">
                 <CardContent className="pt-4 space-y-4">
                   <h3 className="font-semibold text-purple-400">🎨 Customize Your Scenario</h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="industry">Industry / Context</Label>
