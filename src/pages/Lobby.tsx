@@ -8,7 +8,7 @@ import { Building2, Search, Target, ChevronRight, Star, Zap, Rocket, Sparkles, H
 import { AriaButton } from '@/components/AriaButton';
 import { WalletConnect } from '@/components/WalletConnect';
 import { useTonWallet } from '@tonconnect/ui-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import microsoftLogo from '@/assets/logos/microsoft.png';
@@ -69,51 +69,9 @@ const Lobby = () => {
 
   const loadLiveGames = async () => {
     try {
-      const now = new Date().toISOString();
-      
-      // Fetch brand customizations (only public games for lobby)
-      const { data: customizations, error: customError } = await supabase
-        .from('brand_customizations')
-        .select(`
-          id,
-          unique_code,
-          brand_id,
-          logo_url,
-          primary_color,
-          secondary_color,
-          game_templates (
-            name,
-            preview_image
-          )
-        `)
-        .not('published_at', 'is', null)
-        .not('unique_code', 'is', null)
-        .eq('visibility', 'public')
-        .lte('live_start_date', now)
-        .gte('live_end_date', now)
-        .order('published_at', { ascending: false });
+      const { data } = await apiClient.get('/customizations/live');
 
-      if (customError) throw customError;
-      
-      // Fetch brand profiles
-      const brandIds = (customizations || []).map(c => c.brand_id);
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, company_name')
-        .in('user_id', brandIds);
-      
-      // Create a map of brand_id to company_name
-      const profileMap = new Map(
-        (profiles || []).map(p => [p.user_id, p.company_name])
-      );
-      
-      // Transform data to add brand_name
-      const transformedData = (customizations || []).map((game: any) => ({
-        ...game,
-        brand_name: profileMap.get(game.brand_id) || null
-      }));
-      
-      setLiveGames(transformedData);
+      setLiveGames(data || []);
     } catch (error) {
       console.error('Failed to load live games:', error);
     }
@@ -155,9 +113,9 @@ const Lobby = () => {
     <div className="relative w-full min-h-screen bg-black pb-24">
       {/* ARIA Access Button */}
       <AriaButton />
-      
+
       {/* Header */}
-      <div 
+      <div
         className="border-b-2 p-4"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >
@@ -192,7 +150,7 @@ const Lobby = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-black/50 border-2 rounded-lg pl-12 pr-4 py-3 text-sm font-mono focus:outline-none focus:ring-2"
-            style={{ 
+            style={{
               borderColor: 'hsl(var(--neon-green))',
               color: 'hsl(var(--neon-green))'
             }}
@@ -239,7 +197,7 @@ const Lobby = () => {
                 const usePurple = idx % 3 === 2;
                 const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
                 const glowClass = useMagenta ? 'text-glow-magenta' : usePurple ? 'text-glow-purple' : 'text-glow-green';
-                
+
                 return (
                   <Card
                     key={game.id}
@@ -254,17 +212,17 @@ const Lobby = () => {
                     }}
                   >
                     {/* Glow effect on hover */}
-                    <div 
+                    <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                      style={{ 
+                      style={{
                         background: `radial-gradient(circle at center, ${borderColor}, transparent 70%)`
                       }}
                     />
-                    
+
                     <div className="flex items-start justify-between mb-4 relative z-10">
                       <div className="flex flex-col items-center gap-1">
-                        <div 
-                          className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center hover:border-primary transition-colors cursor-pointer" 
+                        <div
+                          className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center hover:border-primary transition-colors cursor-pointer"
                           style={{ borderColor: `${borderColor}33` }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -294,7 +252,7 @@ const Lobby = () => {
                         <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
                           LIVE
                         </Badge>
-                        <Badge 
+                        <Badge
                           className="border-2 font-mono text-[9px] bg-black/50 cursor-pointer hover:bg-white/10"
                           style={{ borderColor, color: borderColor }}
                           onClick={(e) => {
@@ -306,7 +264,7 @@ const Lobby = () => {
                         </Badge>
                       </div>
                     </div>
-                    <h3 
+                    <h3
                       className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${glowClass}`}
                       style={{ color: borderColor }}
                     >
@@ -328,7 +286,7 @@ const Lobby = () => {
                 const usePurple = idx === 4;
                 const borderColor = useMagenta ? 'hsl(var(--neon-magenta))' : usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
                 const glowClass = useMagenta ? 'text-glow-magenta' : usePurple ? 'text-glow-purple' : 'text-glow-green';
-                
+
                 return (
                   <Card
                     key={brand.id}
@@ -336,16 +294,16 @@ const Lobby = () => {
                     style={{ borderColor }}
                   >
                     {/* Glow effect on hover */}
-                    <div 
+                    <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                      style={{ 
+                      style={{
                         background: `radial-gradient(circle at center, ${borderColor}, transparent 70%)`
                       }}
                     />
-                    
+
                     <div className="flex items-start justify-between mb-4 relative z-10">
-                      <div 
-                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors" 
+                      <div
+                        className="w-16 h-16 rounded-lg bg-white/5 border-2 p-2 flex items-center justify-center group-hover:border-primary transition-colors"
                         style={{ borderColor: `${borderColor}33` }}
                       >
                         <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" />
@@ -354,16 +312,16 @@ const Lobby = () => {
                         <Badge className="border-2 font-mono text-[9px] bg-black/50" style={{ borderColor: 'hsl(var(--neon-purple))', color: 'hsl(var(--neon-purple))' }}>
                           CBE
                         </Badge>
-                        <Badge 
-                          variant="outline" 
-                          className="border-2 font-mono text-xs" 
+                        <Badge
+                          variant="outline"
+                          className="border-2 font-mono text-xs"
                           style={{ borderColor, color: borderColor }}
                         >
                           {brand.department}
                         </Badge>
                       </div>
                     </div>
-                    <h3 
+                    <h3
                       className={`text-xl font-bold mb-2 tracking-wide relative z-10 ${glowClass}`}
                       style={{ color: borderColor }}
                     >
@@ -388,7 +346,7 @@ const Lobby = () => {
               const usePurple = idx === 1;
               const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
               const accentGlow = usePurple ? 'text-glow-purple' : 'text-glow-green';
-              
+
               return (
                 <Card
                   key={idx}
@@ -396,13 +354,13 @@ const Lobby = () => {
                   style={{ borderColor: accentColor }}
                 >
                   {/* Glow effect on hover */}
-                  <div 
+                  <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
-                    style={{ 
+                    style={{
                       background: `radial-gradient(circle at left, ${accentColor}, transparent 70%)`
                     }}
                   />
-                  
+
                   <div className="flex items-center gap-4 relative z-10">
                     <div className="w-20 h-20 rounded-lg bg-black border-2 flex items-center justify-center group-hover:scale-110 transition-transform" style={{ borderColor: accentColor }}>
                       <IconComponent className="w-10 h-10" style={{ color: accentColor }} strokeWidth={2.5} />
@@ -434,7 +392,7 @@ const Lobby = () => {
       </div>
 
       {/* Bottom Navigation Bar */}
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 border-t-2 bg-black/95 backdrop-blur-lg z-50"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >
@@ -445,7 +403,7 @@ const Lobby = () => {
             const usePurple = index === 2;
             const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
             const glowClass = usePurple ? 'text-glow-purple' : 'text-glow-green';
-            
+
             return (
               <button
                 key={item.label}
@@ -453,25 +411,25 @@ const Lobby = () => {
                 className="flex flex-col items-center gap-1 flex-1 max-w-[90px] group transition-all duration-300 relative"
               >
                 {isActive && (
-                  <div 
+                  <div
                     className="absolute inset-0 rounded-lg opacity-20 blur-md"
                     style={{ background: accentColor }}
                   />
                 )}
-                <div 
+                <div
                   className={`
                     relative p-2.5 rounded-lg border-2 transition-all duration-300
                     ${isActive ? 'bg-primary/20 scale-110' : 'border-transparent hover:bg-primary/10 hover:border-primary/30'}
                   `}
                   style={isActive ? { borderColor: accentColor } : {}}
                 >
-                  <Icon 
+                  <Icon
                     className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? glowClass : ''}`}
                     style={{ color: accentColor }}
                     strokeWidth={isActive ? 2.5 : 2}
                   />
                 </div>
-                <span 
+                <span
                   className={`text-[10px] md:text-xs font-mono transition-all duration-300 truncate w-full text-center ${isActive ? glowClass + ' font-bold' : ''}`}
                   style={{ color: accentColor }}
                 >

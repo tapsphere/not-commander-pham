@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Building2, Play, ArrowLeft } from 'lucide-react';
@@ -40,36 +40,16 @@ export default function BrandProfile() {
   const loadBrandData = async () => {
     try {
       // Load brand profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_name, company_description, company_logo_url')
-        .eq('user_id', brandId)
-        .single();
-
-      if (profileError) throw profileError;
+      const { data: profileData } = await apiClient.get(`/profiles/${brandId}`);
       setProfile(profileData);
 
       // Load published games
-      const { data: gamesData, error: gamesError } = await supabase
-        .from('brand_customizations')
-        .select(`
-          id,
-          unique_code,
-          logo_url,
-          primary_color,
-          secondary_color,
-          game_templates (
-            name,
-            preview_image
-          )
-        `)
-        .eq('brand_id', brandId)
-        .not('published_at', 'is', null)
-        .not('unique_code', 'is', null)
-        .order('published_at', { ascending: false });
+      // We can use the existing customizations endpoint, filtering by brandId
+      const { data: gamesData } = await apiClient.get(`/customizations?brand_id=${brandId}`);
 
-      if (gamesError) throw gamesError;
-      setGames(gamesData || []);
+      // Filter for published games client-side since API endpoint doesn't strictly filter
+      const publishedGames = (gamesData || []).filter((g: any) => g.published_at && g.unique_code);
+      setGames(publishedGames);
     } catch (error) {
       console.error('Failed to load brand data:', error);
     } finally {
@@ -181,13 +161,13 @@ export default function BrandProfile() {
               const borderColor = useMagenta
                 ? 'hsl(var(--neon-magenta))'
                 : usePurple
-                ? 'hsl(var(--neon-purple))'
-                : 'hsl(var(--neon-green))';
+                  ? 'hsl(var(--neon-purple))'
+                  : 'hsl(var(--neon-green))';
               const glowClass = useMagenta
                 ? 'text-glow-magenta'
                 : usePurple
-                ? 'text-glow-purple'
-                : 'text-glow-green';
+                  ? 'text-glow-purple'
+                  : 'text-glow-green';
 
               return (
                 <Card

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,45 +39,29 @@ export default function CreatorPortfolio() {
   const fetchCreatorAndTemplates = async () => {
     try {
       // Fetch creator profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', creatorId)
-        .single();
-
-      if (profileError) throw profileError;
+      const { data: profileData } = await apiClient.get(`/profiles/${creatorId}`);
       setCreator({ id: creatorId!, full_name: profileData?.full_name, bio: profileData?.bio });
 
       // Fetch templates
-      const { data: templatesData, error: templatesError } = await supabase
-        .from('game_templates')
-        .select('*')
-        .eq('creator_id', creatorId)
-        .eq('is_published', true)
-        .order('created_at', { ascending: false });
+      const { data: templatesData } = await apiClient.get(`/templates?creator_id=${creatorId}&is_published=true`);
 
-      if (templatesError) throw templatesError;
+      // Fetch all master competencies to map them
+      const { data: masterCompsData } = await apiClient.get('/framework/competencies');
+      const compsMap = new Map((masterCompsData || []).map((c: any) => [c.id, c]));
 
-      // Fetch competency data for each template
-      const templatesWithCompetencies = await Promise.all(
-        (templatesData || []).map(async (template) => {
-          if (template.competency_id) {
-            const { data: compData } = await supabase
-              .from('master_competencies')
-              .select('name, cbe_category')
-              .eq('id', template.competency_id)
-              .single();
-            
-            return {
-              ...template,
-              master_competencies: compData || null,
-            };
-          }
-          return template;
-        })
-      );
+      // Map competency data to each template
+      const templatesWithCompetencies = (templatesData || []).map((template: any) => {
+        if (template.competency_id) {
+          const compData: any = compsMap.get(template.competency_id);
+          return {
+            ...template,
+            master_competencies: compData ? { name: compData.name, cbe_category: compData.cbe_category } : null,
+          };
+        }
+        return template;
+      });
 
-      setTemplates(templatesWithCompetencies as any);
+      setTemplates(templatesWithCompetencies);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -119,7 +103,7 @@ export default function CreatorPortfolio() {
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back
           </Button>
-          
+
           {/* Creator Header */}
           <div className="flex items-start gap-3 md:gap-4">
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-neon-green to-neon-purple flex items-center justify-center text-3xl md:text-4xl flex-shrink-0">

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -75,6 +76,7 @@ const PLACEMENT_ZONES = [
 ];
 
 export const DesignElementUpload = () => {
+  const { user } = useAuth();
   const [elementType, setElementType] = useState('');
   const [elementSubtype, setElementSubtype] = useState('');
   const [name, setName] = useState('');
@@ -123,7 +125,7 @@ export const DesignElementUpload = () => {
     }
 
     setFile(selectedFile);
-    
+
     // Create preview for images
     if (selectedFile.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -139,8 +141,8 @@ export const DesignElementUpload = () => {
   };
 
   const toggleZone = (zone: string) => {
-    setSelectedZones(prev => 
-      prev.includes(zone) 
+    setSelectedZones(prev =>
+      prev.includes(zone)
         ? prev.filter(z => z !== zone)
         : [...prev, zone]
     );
@@ -148,7 +150,7 @@ export const DesignElementUpload = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!file || !name || !elementType || selectedZones.length === 0) {
       toast.error('Please fill in all required fields');
       return;
@@ -157,47 +159,35 @@ export const DesignElementUpload = () => {
     setUploading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Please log in to upload elements');
         return;
       }
 
       // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}-${name.replace(/\s+/g, '-')}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('design-elements')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('design-elements')
-        .getPublicUrl(fileName);
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await apiClient.post('/api/storage/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const publicUrl = uploadRes.data.url;
 
       // Create element record
-      const { error: insertError } = await supabase
-        .from('design_elements')
-        .insert({
-          creator_id: user.id,
-          element_type: elementType,
-          element_subtype: elementSubtype || null,
-          name,
-          description: description || null,
-          file_url: publicUrl,
-          preview_url: previewUrl || publicUrl,
-          allowed_zones: selectedZones,
-          file_size_bytes: file.size,
-          review_status: 'pending_review',
-          is_published: false,
-        });
-
-      if (insertError) throw insertError;
+      await apiClient.post('/api/design-elements', {
+        element_type: elementType,
+        element_subtype: elementSubtype || null,
+        name,
+        description: description || null,
+        file_url: publicUrl,
+        preview_url: previewUrl || publicUrl,
+        allowed_zones: selectedZones,
+        file_size_bytes: file.size,
+        review_status: 'pending_review',
+        is_published: false,
+      });
 
       toast.success('Element uploaded successfully! Pending review.');
-      
+
       // Reset form
       setElementType('');
       setElementSubtype('');
@@ -306,11 +296,10 @@ export const DesignElementUpload = () => {
         <div className="space-y-2">
           <Label className="text-white">Upload File *</Label>
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              dragActive
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
                 ? 'border-neon-purple bg-neon-purple/10'
                 : 'border-gray-700 hover:border-gray-600'
-            }`}
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -327,9 +316,9 @@ export const DesignElementUpload = () => {
             {file ? (
               <div className="space-y-3">
                 {previewUrl && (
-                  <img 
-                    src={previewUrl} 
-                    alt="Preview" 
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
                     className="mx-auto max-h-48 rounded-lg"
                   />
                 )}

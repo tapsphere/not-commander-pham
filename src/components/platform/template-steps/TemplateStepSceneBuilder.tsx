@@ -5,7 +5,7 @@ import { SceneData, SubCompetency, Competency } from './types';
 import { SceneCard } from '../SceneCard';
 import { Sparkles, Loader2, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 
 // Industry-specific scenario templates for AI generation
 const INDUSTRY_SCENARIO_TEMPLATES: Record<string, Record<string, string>> = {
@@ -107,41 +107,37 @@ export function TemplateStepSceneBuilder({
 
     setIsRemixing(true);
     const { scenarioHint } = getIndustryContext();
-    
+
     try {
       // Call the generate-game function to remix content with industry context
-      const response = await supabase.functions.invoke('generate-game', {
-        body: {
-          action: 'remix',
-          prompt: aiPrompt,
-          // Pass global context for industry-aware generation
-          globalContext: {
-            industry,
-            competency: competencyName,
-            scenarioHint,
-          },
-          scenes: scenes.map(s => ({
-            question: s.question,
-            choices: s.choices.map(c => ({ text: c.text, isCorrect: c.isCorrect }))
-          })),
-          subCompetencies: selectedSubCompetencies.map(id => {
-            const sub = getSubCompetency(id);
-            return {
-              action_cue: sub?.action_cue,
-              game_mechanic: sub?.game_mechanic,
-            };
-          })
-        }
+      const response = await apiClient.post('/api/games/generate-game', {
+        action: 'remix',
+        prompt: aiPrompt,
+        // Pass global context for industry-aware generation
+        globalContext: {
+          industry,
+          competency: competencyName,
+          scenarioHint,
+        },
+        scenes: scenes.map(s => ({
+          question: s.question,
+          choices: s.choices.map(c => ({ text: c.text, isCorrect: c.isCorrect }))
+        })),
+        subCompetencies: selectedSubCompetencies.map(id => {
+          const sub = getSubCompetency(id);
+          return {
+            action_cue: sub?.action_cue,
+            game_mechanic: sub?.game_mechanic,
+          };
+        })
       });
-
-      if (response.error) throw new Error(response.error.message);
 
       if (response.data?.scenes) {
         // Update scenes with remixed content while preserving correct/incorrect mappings
         const remixedScenes = scenes.map((scene, idx) => {
           const remixedData = response.data.scenes[idx];
           if (!remixedData) return scene;
-          
+
           return {
             ...scene,
             question: remixedData.question || scene.question,
@@ -152,16 +148,16 @@ export function TemplateStepSceneBuilder({
             }))
           };
         });
-        
+
         setScenes(remixedScenes);
         toast.success(`Scenes remixed for ${industry || 'your'} industry!`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Remix error:', error);
       // Fallback: Apply industry-themed transformation
       const remixedScenes = scenes.map(scene => ({
         ...scene,
-        question: industry 
+        question: industry
           ? scene.question.replace(/scenario|situation/gi, `${industry.toLowerCase()} ${aiPrompt.split(' ').slice(0, 2).join(' ')}`)
           : scene.question.replace(/scenario|situation/gi, aiPrompt.split(' ').slice(0, 3).join(' ')),
       }));
@@ -237,7 +233,7 @@ export function TemplateStepSceneBuilder({
           )}
         </div>
         <p className="text-xs text-muted-foreground mb-3">
-          {industry 
+          {industry
             ? `Generate ${industry}-specific scenarios combining with ${competencyName || 'selected competency'}.`
             : 'Transform all scene content while keeping correct/incorrect mappings locked.'}
         </p>
@@ -245,7 +241,7 @@ export function TemplateStepSceneBuilder({
           <Input
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
-            placeholder={industry 
+            placeholder={industry
               ? `e.g., Focus on ${getIndustryContext().scenarioHint.toLowerCase()}...`
               : 'e.g., Make this about high-fashion retail...'}
             className="flex-1 bg-background border-border"

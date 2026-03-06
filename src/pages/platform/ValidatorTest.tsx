@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ interface TestResult {
 
 export default function ValidatorTest() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [subCompetencies, setSubCompetencies] = useState<Map<string, SubCompetency>>(new Map());
   const [testResults, setTestResults] = useState<Map<string, TestResult>>(new Map());
@@ -86,36 +88,20 @@ export default function ValidatorTest() {
       setLoading(true);
 
       // Fetch user's templates
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: templatesData, error: templatesError } = await supabase
-        .from('game_templates')
-        .select('*')
-        .eq('creator_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (templatesError) throw templatesError;
+      const { data: templatesData } = await apiClient.get(`/templates?creator_id=${user.id}`);
 
       // Fetch all sub-competencies
-      const { data: subComps, error: subError } = await supabase
-        .from('sub_competencies')
-        .select('id, statement, action_cue');
+      const { data: subComps } = await apiClient.get('/framework/sub-competencies');
 
-      if (subError) throw subError;
-
-      const subMap = new Map(subComps?.map(s => [s.id, s]) || []);
+      const subMap = new Map<string, SubCompetency>((subComps || []).map((s: any) => [s.id, s]));
       setSubCompetencies(subMap);
 
       // Fetch test results
-      const { data: results, error: resultsError } = await supabase
-        .from('validator_test_results')
-        .select('*')
-        .order('tested_at', { ascending: false });
+      const { data: results } = await apiClient.get('/results');
 
-      if (resultsError) throw resultsError;
-
-      const resultsMap = new Map(results?.map(r => [r.template_id, r]) || []);
+      const resultsMap = new Map<string, TestResult>((results || []).map((r: any) => [r.template_id, r]));
       setTestResults(resultsMap);
 
       setTemplates(templatesData || []);
@@ -162,194 +148,194 @@ export default function ValidatorTest() {
 
   const filteredTemplates = templates.filter(t => {
     const typeMatch = filterType === 'all' || t.template_type === filterType;
-    const statusMatch = filterStatus === 'all' || 
+    const statusMatch = filterStatus === 'all' ||
       (testResults.get(t.id)?.overall_status || 'not_started') === filterStatus;
     return typeMatch && statusMatch;
   });
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-foreground mb-2">Validator Testing Dashboard</h1>
-            <p className="text-muted-foreground">
-              Stress test all validators before publishing • Ensure quality and C-BEN compliance
-            </p>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold text-foreground mb-2">Validator Testing Dashboard</h1>
+          <p className="text-muted-foreground">
+            Stress test all validators before publishing • Ensure quality and C-BEN compliance
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => window.open('/platform/testing-guide', '_blank')}
+        >
+          <BookOpen className="w-4 h-4 mr-2" />
+          Testing Guide
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="text-foreground">Filters</CardTitle>
+        </CardHeader>
+        <CardContent className="flex gap-4">
+          <div className="flex-1">
+            <label className="text-sm text-muted-foreground mb-2 block">Template Type</label>
+            <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
+              <SelectTrigger className="bg-card border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="ai_generated">🤖 AI Generated</SelectItem>
+                <SelectItem value="custom_upload">📤 Custom Upload</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => window.open('/platform/testing-guide', '_blank')}
-          >
-            <BookOpen className="w-4 h-4 mr-2" />
-            Testing Guide
-          </Button>
-        </div>
 
-        {/* Filters */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">Filters</CardTitle>
-          </CardHeader>
-          <CardContent className="flex gap-4">
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground mb-2 block">Template Type</label>
-              <Select value={filterType} onValueChange={(v: any) => setFilterType(v)}>
-                <SelectTrigger className="bg-card border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="ai_generated">🤖 AI Generated</SelectItem>
-                  <SelectItem value="custom_upload">📤 Custom Upload</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex-1">
+            <label className="text-sm text-muted-foreground mb-2 block">Test Status</label>
+            <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
+              <SelectTrigger className="bg-card border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="not_started">Not Tested</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="passed">Passed</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="flex-1">
-              <label className="text-sm text-muted-foreground mb-2 block">Test Status</label>
-              <Select value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)}>
-                <SelectTrigger className="bg-card border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="not_started">Not Tested</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="passed">Passed</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Validators', value: templates.length, color: 'text-blue-600 dark:text-blue-400' },
+          { label: 'Not Tested', value: templates.filter(t => !testResults.has(t.id)).length, color: 'text-yellow-600 dark:text-yellow-400' },
+          { label: 'Passed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'passed').length, color: 'text-green-600 dark:text-green-400' },
+          { label: 'Failed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'failed').length, color: 'text-red-600 dark:text-red-400' },
+        ].map((stat, i) => (
+          <Card key={i} className="glass-card">
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Validators', value: templates.length, color: 'text-blue-600 dark:text-blue-400' },
-            { label: 'Not Tested', value: templates.filter(t => !testResults.has(t.id)).length, color: 'text-yellow-600 dark:text-yellow-400' },
-            { label: 'Passed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'passed').length, color: 'text-green-600 dark:text-green-400' },
-            { label: 'Failed', value: Array.from(testResults.values()).filter(r => r.overall_status === 'failed').length, color: 'text-red-600 dark:text-red-400' },
-          ].map((stat, i) => (
-            <Card key={i} className="glass-card">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {/* Templates List */}
+      <div className="space-y-4">
+        {loading ? (
+          <p className="text-muted-foreground">Loading validators...</p>
+        ) : filteredTemplates.length === 0 ? (
+          <Card className="glass-card">
+            <CardContent className="pt-6 text-center text-muted-foreground">
+              No validators found. Create a validator template first.
+            </CardContent>
+          </Card>
+        ) : (
+          filteredTemplates.map((template) => {
+            const testResult = testResults.get(template.id);
+            const phases = getPhaseStatus(testResult);
+            const subComp = template.selected_sub_competencies[0]
+              ? subCompetencies.get(template.selected_sub_competencies[0])
+              : null;
 
-        {/* Templates List */}
-        <div className="space-y-4">
-          {loading ? (
-            <p className="text-muted-foreground">Loading validators...</p>
-          ) : filteredTemplates.length === 0 ? (
-            <Card className="glass-card">
-              <CardContent className="pt-6 text-center text-muted-foreground">
-                No validators found. Create a validator template first.
-              </CardContent>
-            </Card>
-          ) : (
-            filteredTemplates.map((template) => {
-              const testResult = testResults.get(template.id);
-              const phases = getPhaseStatus(testResult);
-              const subComp = template.selected_sub_competencies[0] 
-                ? subCompetencies.get(template.selected_sub_competencies[0])
-                : null;
-
-              return (
-                <Card key={template.id} className="glass-card">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          {template.template_type === 'ai_generated' ? (
-                            <Bot className="w-5 h-5 text-purple-500" />
-                          ) : (
-                            <Upload className="w-5 h-5 text-blue-500" />
-                          )}
-                          <CardTitle className="text-foreground">{template.name}</CardTitle>
-                        </div>
-                        {subComp && (
-                          <CardDescription>
-                            Sub: {subComp.statement}
-                          </CardDescription>
+            return (
+              <Card key={template.id} className="glass-card">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        {template.template_type === 'ai_generated' ? (
+                          <Bot className="w-5 h-5 text-purple-500" />
+                        ) : (
+                          <Upload className="w-5 h-5 text-blue-500" />
                         )}
+                        <CardTitle className="text-foreground">{template.name}</CardTitle>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {getStatusBadge(testResult?.overall_status || 'not_started')}
-                        {template.is_published && (
-                          <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">
-                            Published
-                          </Badge>
-                        )}
+                      {subComp && (
+                        <CardDescription>
+                          Sub: {subComp.statement}
+                        </CardDescription>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {getStatusBadge(testResult?.overall_status || 'not_started')}
+                      {template.is_published && (
+                        <Badge variant="outline" className="border-green-500 text-green-600 dark:text-green-400">
+                          Published
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* Phase Progress */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Phase 1: UX Flow</p>
+                        {getStatusBadge(phases.p1)}
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Phase 2: Action Cue</p>
+                        {getStatusBadge(phases.p2)}
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Phase 3: Scoring</p>
+                        {getStatusBadge(phases.p3)}
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Phase Progress */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Phase 1: UX Flow</p>
-                          {getStatusBadge(phases.p1)}
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Phase 2: Action Cue</p>
-                          {getStatusBadge(phases.p2)}
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground mb-1">Phase 3: Scoring</p>
-                          {getStatusBadge(phases.p3)}
-                        </div>
-                      </div>
 
-                      {/* Actions */}
-                      <div className="flex gap-2">
+                    {/* Actions */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => startTest(template)}
+                      >
+                        <PlayCircle className="w-4 h-4 mr-2" />
+                        {testResult ? 'Re-test' : 'Start Test'}
+                      </Button>
+                      {testResult && (
                         <Button
+                          variant="outline"
                           onClick={() => startTest(template)}
                         >
-                          <PlayCircle className="w-4 h-4 mr-2" />
-                          {testResult ? 'Re-test' : 'Start Test'}
+                          View Results
                         </Button>
-                        {testResult && (
-                          <Button 
-                            variant="outline" 
-                            onClick={() => startTest(template)}
-                          >
-                            View Results
-                          </Button>
-                        )}
-                        {testResult?.overall_status === 'passed' && !testResult.approved_for_publish && (
-                          <Button variant="outline" className="border-green-500 text-green-600 dark:text-green-400">
-                            Approve for Publish
-                          </Button>
-                        )}
-                      </div>
+                      )}
+                      {testResult?.overall_status === 'passed' && !testResult.approved_for_publish && (
+                        <Button variant="outline" className="border-green-500 text-green-600 dark:text-green-400">
+                          Approve for Publish
+                        </Button>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-        </div>
-
-        {/* Test Wizard */}
-        {testingTemplate && (
-          <ValidatorTestWizard
-            open={wizardOpen}
-            onOpenChange={setWizardOpen}
-            template={testingTemplate}
-            subCompetency={
-              testingTemplate.selected_sub_competencies[0]
-                ? subCompetencies.get(testingTemplate.selected_sub_competencies[0]) || null
-                : null
-            }
-            onComplete={fetchData}
-          />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
         )}
+      </div>
+
+      {/* Test Wizard */}
+      {testingTemplate && (
+        <ValidatorTestWizard
+          open={wizardOpen}
+          onOpenChange={setWizardOpen}
+          template={testingTemplate}
+          subCompetency={
+            testingTemplate.selected_sub_competencies[0]
+              ? subCompetencies.get(testingTemplate.selected_sub_competencies[0]) || null
+              : null
+          }
+          onComplete={fetchData}
+        />
+      )}
     </div>
   );
 }

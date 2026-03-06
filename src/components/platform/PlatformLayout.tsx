@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, Layers, Store, Moon, Sun, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,36 +11,27 @@ interface ComplianceModeContextType {
   isComplianceMode: boolean;
   toggleComplianceMode: () => void;
 }
-const ComplianceModeContext = createContext<ComplianceModeContextType>({ isComplianceMode: false, toggleComplianceMode: () => {} });
+const ComplianceModeContext = createContext<ComplianceModeContextType>({ isComplianceMode: false, toggleComplianceMode: () => { } });
 export const useComplianceMode = () => useContext(ComplianceModeContext);
 
 export const PlatformLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
+  const { user, loading, signOut } = useAuth();
   const [isComplianceMode, setIsComplianceMode] = useState(false);
   const { isDarkMode, toggleTheme } = useGlobalTheme();
   const toggleComplianceMode = () => setIsComplianceMode(prev => !prev);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      await supabase.auth.getUser();
-    } catch (error) {
-      // Silent — no redirect needed
-    } finally {
-      setLoading(false);
+    if (!loading && !user) {
+      navigate('/auth');
     }
-  };
+  }, [user, loading, navigate]);
 
   const handleSignOut = async () => {
     localStorage.removeItem('demoMode');
     localStorage.removeItem('demoRole');
-    await supabase.auth.signOut();
-    toast.success('Signed out');
+    await signOut();
     navigate('/auth');
   };
 
@@ -61,7 +52,7 @@ export const PlatformLayout = () => {
             <h1 className="text-xl font-semibold text-foreground tracking-wide">
               PLAYOPS
             </h1>
-            
+
             <nav className="flex gap-2">
               <Button
                 variant={location.pathname === '/platform/dashboard' ? 'default' : 'ghost'}
@@ -106,7 +97,7 @@ export const PlatformLayout = () => {
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
-            
+
             <Button variant="ghost" onClick={handleSignOut} className="gap-2" size="sm">
               <LogOut className="w-4 h-4" />
               Sign Out
