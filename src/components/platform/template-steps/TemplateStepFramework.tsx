@@ -251,7 +251,10 @@ export function TemplateStepFramework({
     toast.success(`Track "${track.competencyName}" removed`);
   };
 
-  const getSelectedSubData = (id: string) => subCompetencies.find(s => s.id === id);
+  const getSelectedSubData = (id: string) => {
+    return subCompetencies.find(s => s.id === id) || null;
+};
+
 
   // Filter sub-competencies to only show relevant ones for selected competency
   const filteredSubCompetencies = selectedCompetency 
@@ -601,7 +604,7 @@ export function TemplateStepFramework({
                 tracks.map((track, trackIndex) => {
                   const trackSubs = track.subCompetencyIds
                     .map(id => getSelectedSubData(id))
-                    .filter((sub): sub is SubCompetency => sub !== null);
+                    .filter((sub): sub is SubCompetency => Boolean(sub));
                   
                   if (trackSubs.length === 0) return null;
                   

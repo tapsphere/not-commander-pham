@@ -248,14 +248,59 @@ function StudioContent({
 
   // Initialize with template data if editing
   useEffect(() => {
-    if (template) {
-      setFormData(prev => ({
-        ...prev,
-        name: template.name || '',
-        description: template.description || '',
-      }));
-    }
-  }, [template]);
+    if (!template?.id) return;
+
+    const loadFullTemplate = async () => {
+      try {
+        const { data } = await apiClient.get(`/templates/${template.id}`);
+
+        console.log("🔥 FULL TEMPLATE:", data);
+
+        // ✅ BASIC
+        setFormData(prev => ({
+          ...prev,
+          name: data.name || '',
+          description: data.description || '',
+        }));
+
+        // ✅ BRAND
+        if (data.design_settings) {
+          setDesignSettings(data.design_settings);
+        }
+
+        if (data.preview_image) {
+          setLogoUrl(`http://localhost:8001${data.preview_image}`);// 🔥 important
+        }
+
+        // ✅ FRAMEWORK
+        setSelectedCompetency(data.competency_id || '');
+
+        setSelectedSubCompetencies(
+          Array.isArray(data.selected_sub_competencies)
+            ? data.selected_sub_competencies
+            : []
+        );
+
+        // ✅ SCENES (FIXED STRUCTURE)
+        const loadedScenes = (data.game_config?.scenes || []).map((s: any, index: number) => ({
+          id: index,
+          question: s.question || '',
+          choices: s.choices || [],
+          timeLimit: s.timeLimit || 30,
+          subCompetencyId: s.subCompetencyId || '',
+          trackId: s.trackId || null, // 🔥 important
+        }));
+
+        setScenes(loadedScenes);
+
+      } catch (err) {
+        console.error("❌ Failed to load template", err);
+      }
+    };
+    
+    loadFullTemplate();
+
+  }, [template?.id]);
 
   // When step changes to Scenes, show filmstrip
   useEffect(() => {
@@ -344,16 +389,23 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
 
       let coverImageUrl = null;
       if (coverImageFile) {
-        const fileExt = coverImageFile.name.split('.').pop();
-        const fileName = `${user.id}/cover-${Date.now()}.${fileExt}`;
-
-        const file = new File([coverImageFile], fileName, { type: coverImageFile.type });
         const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        formDataUpload.append('path', fileName);
 
-        const uploadRes = await apiClient.post('/storage/upload/validator-previews', formDataUpload);
-        if (uploadRes.data.url) coverImageUrl = uploadRes.data.url;
+        // ✅ send ORIGINAL file (no wrapping)
+        formDataUpload.append('file', coverImageFile);
+
+        const uploadRes = await apiClient.post('/storage/upload', formDataUpload, {
+
+          headers: { 
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        console.log('Upload response:', uploadRes.data);
+        
+        if (uploadRes.data.url) {
+           coverImageUrl = uploadRes.data.url;
+          } 
       }
 
       const templateData = {
@@ -363,7 +415,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         template_type: 'ai_generated',
         preview_image: coverImageUrl,
         competency_id: selectedCompetency || null,
-        selected_sub_competencies: selectedSubCompetencies,
+        selected_sub_competencies: selectedSubCompetencies|| [],
+        
         design_settings: designSettings as any,
         game_config: {
           scenes: scenes.map(s => ({

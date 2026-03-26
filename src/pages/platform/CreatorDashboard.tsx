@@ -134,7 +134,7 @@ export default function CreatorDashboard() {
             formData.append('file', file);
             formData.append('path', `${user.id}/default-cover-${template.id}.png`);
 
-            const uploadRes = await apiClient.post('/storage/upload/validator-previews', formData, {
+            const uploadRes = await apiClient.post('/storage/upload', formData, {
               headers: { 'Content-Type': 'multipart/form-data' }
             });
 
@@ -178,136 +178,137 @@ export default function CreatorDashboard() {
     }
   };
 
-  const handlePreviewGame = async (template: Template) => {
-    if (template.template_type === 'custom_upload' && template.custom_game_url) {
-      // Open custom game in new tab
-      window.open(template.custom_game_url, '_blank');
-    } else {
-      // For AI generated, get design settings (per-game or profile default) and generate preview
-      try {
-        toast.info('Generating game preview...');
+const handlePreviewGame = async (template: Template) => {
+  if (template.template_type === 'custom_upload' && template.custom_game_url) {
+    window.open(template.custom_game_url, '_blank');
+    return;
+  }
 
-        if (!user) {
-          toast.error('Please log in to preview games');
-          return;
-        }
+  try {
+    toast.info('Generating game preview...');
 
-        // First check if this game has custom design settings
-        let designPalette: any = null;
-        let avatarUrl: string | null = null;
-        let particleEffect: string = 'sparkles';
-        let mascotAnimationType: string = 'static';
-
-        if ((template as any).design_settings) {
-          designPalette = (template as any).design_settings;
-          avatarUrl = designPalette.avatar || null;
-          particleEffect = designPalette.particleEffect || 'sparkles';
-          mascotAnimationType = designPalette.mascotAnimationType || 'static';
-          console.log('Using per-game design settings');
-        } else {
-          // Fall back to creator's default palette
-          const { data: profile } = await apiClient.get('/profiles/me');
-
-          const palette = profile?.design_palette as any;
-          designPalette = palette || {
-            primary: '#C8DBDB',
-            secondary: '#6C8FA4',
-            accent: '#2D5556',
-            background: '#F5EDD3',
-            highlight: '#F0C7A0',
-            text: '#2D5556',
-            font: 'Inter, sans-serif'
-          };
-          avatarUrl = profile?.game_avatar_url || null;
-          particleEffect = profile?.default_particle_effect || 'sparkles';
-          mascotAnimationType = profile?.mascot_animation_type || 'static';
-          console.log('Using creator default design settings');
-        }
-
-        // Fetch sub-competency data
-        const subCompIds = template.selected_sub_competencies || [];
-        const idsQuery = subCompIds.length ? `in.(${subCompIds.join(',')})` : '';
-        const { data: subComps } = await apiClient.get(
-          idsQuery ? `/framework/sub-competencies?id=${idsQuery}` : '/framework/sub-competencies'
-        );
-
-        const { data: response } = await apiClient.post('/games/generate-game', {
-          templatePrompt: template.base_prompt,
-          primaryColor: designPalette.primary,
-          secondaryColor: designPalette.secondary,
-          accentColor: designPalette.accent,
-          backgroundColor: designPalette.background,
-          highlightColor: designPalette.highlight,
-          textColor: designPalette.text,
-          fontFamily: designPalette.font,
-          particleEffect: particleEffect,
-          logoUrl: null,
-          customizationId: null,
-          previewMode: true,
-          subCompetencies: subComps || []
-        });
-
-        console.log('Generate game response:', response);
-
-        if (!response || !response.html) {
-          throw new Error('No HTML received from game generator');
-        }
-
-        // Open the generated HTML in a new window with mobile viewport
-        const gameWindow = window.open('', '_blank');
-        if (gameWindow) {
-          gameWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                <style>
-                  body {
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    justify-content: center;
-                    align-items: flex-start;
-                    min-height: 100vh;
-                    background: #1a1a1a;
-                  }
-                  .mobile-container {
-                    width: 100%;
-                    max-width: 430px;
-                    min-height: 100vh;
-                    background: white;
-                    box-shadow: 0 0 50px rgba(0,0,0,0.5);
-                  }
-                  @media (max-width: 430px) {
-                    .mobile-container {
-                      box-shadow: none;
-                    }
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="mobile-container">
-                  ${response.html}
-                </div>
-              </body>
-            </html>
-          `);
-          gameWindow.document.close();
-          toast.success('Game preview opened!');
-        } else {
-          toast.error('Please allow pop-ups to preview games');
-        }
-      } catch (error: any) {
-        console.error('Preview error:', error);
-        toast.error(error.message || 'Failed to generate preview');
-      }
+    if (!user) {
+      toast.error('Please log in to preview games');
+      return;
     }
-  };
 
-  const handleEdit = (template: Template) => {
-    setSelectedTemplate(template);
-    setDialogOpen(true);
+    // ✅ Open popup FIRST (important fix)
+    const gameWindow = window.open('about:blank', '_blank');
+
+    if (!gameWindow) {
+      toast.error('Please allow pop-ups to preview games');
+      return;
+    }
+
+    // ===== Design settings =====
+    let designPalette: any = null;
+    let particleEffect: string = 'sparkles';
+
+    if ((template as any).design_settings) {
+      designPalette = (template as any).design_settings;
+      particleEffect = designPalette.particleEffect || 'sparkles';
+      console.log('Using per-game design settings');
+    } else {
+      const { data: profile } = await apiClient.get('/profiles/me');
+
+      const palette = profile?.design_palette as any;
+      designPalette = palette || {
+        primary: '#C8DBDB',
+        secondary: '#6C8FA4',
+        accent: '#2D5556',
+        background: '#F5EDD3',
+        highlight: '#F0C7A0',
+        text: '#2D5556',
+        font: 'Inter, sans-serif'
+      };
+
+      particleEffect = profile?.default_particle_effect || 'sparkles';
+      console.log('Using creator default design settings');
+    }
+
+    // ===== Sub competencies =====
+    const subCompIds = template.selected_sub_competencies || [];
+    const idsQuery = subCompIds.length ? `in.(${subCompIds.join(',')})` : '';
+
+    const { data: subComps } = await apiClient.get(
+      idsQuery
+        ? `/framework/sub-competencies?id=${idsQuery}`
+        : '/framework/sub-competencies'
+    );
+
+    // ===== Generate game =====
+    const { data: response } = await apiClient.post('/games/generate-game', {
+      templatePrompt: template.base_prompt,
+      primaryColor: designPalette.primary,
+      secondaryColor: designPalette.secondary,
+      accentColor: designPalette.accent,
+      backgroundColor: designPalette.background,
+      highlightColor: designPalette.highlight,
+      textColor: designPalette.text,
+      fontFamily: designPalette.font,
+      particleEffect: particleEffect,
+      logoUrl: null,
+      customizationId: null,
+      previewMode: true,
+      subCompetencies: subComps || []
+    });
+
+    console.log('Generate game response:', response);
+
+    if (!response || !response.generatedHtml) {
+      throw new Error('No HTML received from game generator');
+    }
+
+    // ===== Render in popup =====
+    gameWindow.document.open();
+    gameWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              display: flex;
+              justify-content: center;
+              background: #1a1a1a;
+            }
+            .mobile-container {
+              width: 100%;
+              max-width: 430px;
+              min-height: 100vh;
+              background: white;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="mobile-container">
+            ${response.generatedHtml}
+          </div>
+        </body>
+      </html>
+    `);
+    gameWindow.document.close();
+
+    toast.success('Game preview opened!');
+  } catch (error: any) {
+    console.error('Preview error:', error);
+    toast.error(error.message || 'Failed to generate preview');
+  }
+};
+  const handleEdit = async (template) => {
+    try {
+      const { data } = await apiClient.get(`/templates/${template.id}`);
+
+      //🔥 FORCE fresh object (important for React re-render)
+      setSelectedTemplate({ ...data });
+      setDialogOpen(true);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load template');
+      }  
   };
 
   const handleManageCompetencies = (template: Template) => {
@@ -613,7 +614,13 @@ export default function CreatorDashboard() {
       {dialogOpen && (
         <TemplateStudio
           template={selectedTemplate}
-          onSuccess={loadTemplates}
+          onSuccess={async () => {
+            await loadTemplates();
+
+            //IMPORTANT: reset selected template
+            setSelectedTemplate(null);
+          }}
+          
           onClose={() => {
             setDialogOpen(false);
             setSelectedTemplate(null);

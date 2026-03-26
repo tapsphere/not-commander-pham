@@ -205,6 +205,8 @@ export default function TemplateDetail() {
               ▶ Play Now
             </Button>
 
+          
+
             {/* Customize Button - Brand Only */}
             {!isLoggedIn ? (
               <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">

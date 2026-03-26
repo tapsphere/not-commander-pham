@@ -92,7 +92,10 @@ export function StudioCenterCanvas({
       setLogoPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
     } else if (logoUrl) {
-      setLogoPreviewUrl(logoUrl);
+      const fullUrl = logoUrl.startsWith('http') 
+        ? logoUrl
+        : `http://localhost:8001${logoUrl}`;
+      setLogoPreviewUrl(fullUrl);
     } else {
       setLogoPreviewUrl(null);
     }

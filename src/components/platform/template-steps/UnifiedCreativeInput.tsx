@@ -119,6 +119,7 @@ interface UnifiedCreativeInputProps {
 }
 
 export function UnifiedCreativeInput({
+
   competencies,
   subCompetencies,
   onComplete,
@@ -311,24 +312,40 @@ export function UnifiedCreativeInput({
 
     // Fallback: If no matches, use semantic matching for single track
     if (trackMappings.length === 0) {
-      const matchedCompetency = matchCompetencyFromPrompt(searchTheme, competencies);
+      let matchedCompetency = matchCompetencyFromPrompt(searchTheme, competencies);
 
+      // fallback logic
       if (!matchedCompetency) {
-        throw new Error('No matching competency found. Please try a different prompt.');
-      }
+        console.warn("No match from AI → using fallback");
 
-      const trackId = `track-1-${Date.now()}`;
-      const { matchedSubs, scenes } = populateScenesForCompetency(matchedCompetency.id, searchTheme, trackId);
-
-      trackMappings.push({
-        competencyId: matchedCompetency.id,
-        competencyName: matchedCompetency.name,
-        subIds: matchedSubs.map(s => s.id),
-        scenes,
-        trackId,
-      });
-      matchedNames.push(matchedCompetency.name);
+        matchedCompetency =
+          competencies.find(c => 
+            searchTheme.toLowerCase().includes(c.name.toLowerCase())
+          ) ||
+          competencies.find(c =>
+            c.name.toLowerCase().includes('analytical') 
+          ) ||
+          competencies[0];//final fallback    
     }
+
+    // 🔥 ADD THIS PART (YOU MISSED THIS)
+    const trackId = `track-1-${Date.now()}`;
+    const { matchedSubs, scenes } = populateScenesForCompetency(
+      matchedCompetency.id,
+      searchTheme,
+      trackId
+    );
+
+    trackMappings.push({
+      competencyId: matchedCompetency.id,
+      competencyName: matchedCompetency.name,
+      subIds: matchedSubs.map(s => s.id),
+      scenes,
+      trackId,
+    });
+    matchedNames.push(matchedCompetency.name);
+    }
+
 
     // Store results
     setLastAiCompetencyId(trackMappings[0].competencyId);

@@ -2,6 +2,8 @@ import os
 import uuid
 import httpx
 import hashlib
+import traceback
+from google import genai
 from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -115,16 +117,27 @@ async def manage_session(
     
     raise HTTPException(status_code=400, detail="Invalid action")
 
+
 @router.post("/generate-game")
 async def generate_game(
     req: schemas.GenerateGameRequest,
     current_user: models.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    lovable_api_key = os.getenv('LOVABLE_API_KEY')
-    if not lovable_api_key:
-        raise HTTPException(status_code=500, detail="LOVABLE_API_KEY not configured")
+    provider = os.getenv("LLM_PROVIDER", "gemini")
+    model_name = os.getenv("LLM_MODEL", "gemini-1.5-flash")
 
+    if provider != "gemini":
+        raise HTTPException(status_code=400, detail="Only Gemini enabled for now")
+
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+
+    if not gemini_api_key:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not configured")
+
+    client = genai.Client(api_key=gemini_api_key)
+
+    # Extract values
     primary_color = req.primaryColor
     secondary_color = req.secondaryColor
     accent_color = req.accentColor
@@ -136,13 +149,17 @@ async def generate_game(
     avatar_url = req.avatarUrl
     template_prompt = req.templatePrompt
 
-    # Fetch from customization if colors not provided
+    # Fetch customization if needed
     if not primary_color and req.customizationId:
-        result = await db.execute(select(models.BrandCustomization).filter(models.BrandCustomization.id == req.customizationId))
+        result = await db.execute(
+            select(models.BrandCustomization)
+            .where(models.BrandCustomization.id == req.customizationId)
+        )
         customization = result.scalars().first()
+
         if not customization:
-            raise HTTPException(status_code=404, detail="Failed to fetch brand customization data")
-        
+            raise HTTPException(status_code=404, detail="Customization not found")
+
         primary_color = customization.primary_color or primary_color
         secondary_color = customization.secondary_color or secondary_color
         accent_color = customization.accent_color or accent_color
@@ -154,63 +171,66 @@ async def generate_game(
         avatar_url = customization.avatar_url or avatar_url
         template_prompt = customization.customization_prompt or template_prompt
 
-    # Build prompt (simplified for brevity)
-    system_prompt = f"You are an expert game developer. Generate a HTML5 mini-game."
-    user_prompt = f"Create a game: {template_prompt}. Colors: {primary_color}, {secondary_color}."
-    
+    # Prompt
+    prompt = f"""
+Create a complete HTML5 mini-game.
+
+Requirements:
+- Fully playable
+- Include HTML, CSS, JS in one file
+- Mobile responsive
+- Clean UI
+
+Theme:
+{template_prompt}
+
+Colors:
+Primary: {primary_color}
+Secondary: {secondary_color}
+Accent: {accent_color}
+Background: {background_color}
+Text: {text_color}
+"""
+
     try:
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(
-                'https://ai.gateway.lovable.dev/v1/chat/completions',
-                headers={
-                    'Authorization': f'Bearer {lovable_api_key}',
-                    'Content-Type': 'application/json'
-                },
-                json={
-                    'model': 'google/gemini-2.5-flash',
-                    'messages': [
-                        {'role': 'system', 'content': system_prompt},
-                        {'role': 'user', 'content': user_prompt}
-                    ],
-                    'temperature': 0.0
-                }
-            )
-            response.raise_for_status()
-            data = response.json()
-            generated_html = data['choices'][0]['message']['content']
-            generated_html = generated_html.replace('```html', '').replace('```', '').strip()
+        response = client.models.generate_content(
+            model=model_name,   # uses env
+            contents=prompt
+        )
 
-            if req.previewMode:
-                return {
-                    "success": True,
-                    "message": "Game preview generated",
-                    "generatedHtml": generated_html
-                }
-            
-            # Save if not preview
-            if req.customizationId:
-                await db.execute(
-                    update(models.BrandCustomization)
-                    .where(models.BrandCustomization.id == req.customizationId)
-                    .values(generated_game_html=generated_html)
-                )
-                await db.commit()
+        if not response or not response.text:
+            raise HTTPException(status_code=500, detail="Empty response from Gemini")
 
+        generated_html = response.text.strip()
+        generated_html = generated_html.replace("```html", "").replace("```", "").strip()
+
+        # Preview
+        if req.previewMode:
             return {
                 "success": True,
-                "message": "Game generated successfully",
-                "htmlLength": len(generated_html)
+                "message": "Game preview generated",
+                "generatedHtml": generated_html
             }
-    except httpx.HTTPStatusError as e:
-        status_code = e.response.status_code
-        if status_code == 429:
-            raise HTTPException(status_code=429, detail="Rate limit exceeded")
-        if status_code == 402:
-            raise HTTPException(status_code=402, detail="AI credits depleted")
-        raise HTTPException(status_code=status_code, detail=f"Generation failed: {e.response.text}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
+        # Save
+        if req.customizationId:
+            await db.execute(
+                update(models.BrandCustomization)
+                .where(models.BrandCustomization.id == req.customizationId)
+                .values(generated_game_html=generated_html)
+            )
+            await db.commit()
+
+        return {
+            "success": True,
+            "message": "Game generated successfully",
+            "htmlLength": len(generated_html)
+        }
+
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.post("/publish")
 async def publish_template(
     req: schemas.PublishTemplateRequest,
