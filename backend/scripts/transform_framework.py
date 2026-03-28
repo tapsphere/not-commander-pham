@@ -1,54 +1,71 @@
-
-import asyncio
 import pandas as pd
-import uuid
 
-from database import AsyncSessionLocal
-import models
-
-CSV_FILE = "framework_clean.csv"
+INPUT_FILE = "framework_raw.xlsx"
+OUTPUT_FILE = "framework_clean.csv"
 
 
-async def seed():
-    df = pd.read_csv(CSV_FILE)
+def generate_tags(row):
+    words = []
 
-    async with AsyncSessionLocal() as db:
-        competency_map = {}
+    if pd.notna(row["competency"]):
+        words += str(row["competency"]).lower().split()
 
-        for _, row in df.iterrows():
-            comp_name = row["competency"]
-            category = row["cbe_category"]
+    if pd.notna(row["sub_competency"]):
+        words += str(row["sub_competency"]).lower().split()
 
-            # create competency
-            if comp_name not in competency_map:
-                comp = models.MasterCompetency(
-                    id=str(uuid.uuid4()),
-                    name=comp_name,
-                    cbe_category=category,
-                    departments=None,
-                    is_active=True
-                )
-                db.add(comp)
-                await db.flush()
+    return ",".join(list(set(words))[:5])
 
-                competency_map[comp_name] = comp.id
 
-            # create sub competency
-            sub = models.SubCompetency(
-                id=str(uuid.uuid4()),
-                competency_id=competency_map[comp_name],
-                statement=row["sub_competency"],
-                action_cue=row.get("action_cue"),
-                tags=row.get("tags").split(",") if pd.notna(row.get("tags")) else [],
-                display_order=1
-            )
+def transform():
+    df = pd.read_excel(INPUT_FILE, header=None)
 
-            db.add(sub)
+    # Convert everything to string for safe processing
+    df = df.astype(str)
 
-        await db.commit()
+    records = []
 
-    print("✅ Database seeded successfully!")
+    # 🔥 Loop through rows and detect valid data rows
+    for i in range(len(df)):
+        row = df.iloc[i].tolist()
+
+        # Heuristic:
+        # Real data rows have:
+        # [Cluster, Competency, Sub-Competency, ...]
+        if (
+            len(row) > 3 and
+            " & " in row[1] or "and" in row[1].lower()  # cluster
+        ):
+            cluster = row[1]
+            competency = row[2]
+            sub_comp = row[3]
+
+            # basic validation
+            if (
+                len(competency) > 3 and
+                len(sub_comp) > 5 and
+                "competency" not in competency.lower()
+            ):
+                records.append({
+                    "competency": competency.strip(),
+                    "cbe_category": cluster.strip(),
+                    "sub_competency": sub_comp.strip(),
+                    "action_cue": None
+                })
+
+    if not records:
+        raise Exception("❌ No valid rows extracted")
+
+    clean = pd.DataFrame(records)
+
+    clean["tags"] = clean.apply(generate_tags, axis=1)
+
+    clean = clean.dropna(subset=["competency", "sub_competency"])
+
+    clean.to_csv(OUTPUT_FILE, index=False)
+
+    print(f"✅ Extracted {len(clean)} rows!")
+    print("✅ Clean CSV generated!")
 
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    transform()

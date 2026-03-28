@@ -74,6 +74,9 @@ class SubCompetency(Base):
     competency_id = Column(String, ForeignKey("master_competencies.id"))
     statement = Column(String, nullable=False)
     action_cue = Column(String, nullable=True)
+
+    tags = Column(JSON, nullable=True)  # ["communication", "verbal"]
+
     game_loop = Column(String, nullable=True)
     game_mechanic = Column(String, nullable=True)
     player_action = Column(String, nullable=True)
@@ -85,6 +88,7 @@ class SubCompetency(Base):
     backend_data_captured = Column(JSON, nullable=True)
     display_order = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
 
     competency = relationship("MasterCompetency", back_populates="sub_competencies")
 

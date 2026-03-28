@@ -51,6 +51,8 @@ class ProfileResponse(ProfileBase):
 class SubCompetencyCreate(BaseModel):
     competency_id: str
     statement: str
+    action_cue: Optional[str] = None
+    tags: Optional[List[str]] = None
     display_order: Optional[int] = None
 
 class SubCompetencyResponse(BaseModel):
@@ -58,6 +60,9 @@ class SubCompetencyResponse(BaseModel):
     competency_id: str
     statement: str
     action_cue: Optional[str] = None
+
+    tags: Optional[List[str]] = None
+
     game_loop: Optional[str] = None
     game_mechanic: Optional[str] = None
     player_action: Optional[str] = None
