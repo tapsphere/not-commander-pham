@@ -269,7 +269,8 @@ function StudioContent({
         }
 
         if (data.preview_image) {
-          setLogoUrl(`http://localhost:8001${data.preview_image}`);// 🔥 important
+          const BASE_URL = import.meta.env.VITE_API_URL.replace('/api', '');
+          setLogoUrl(`${BASE_URL}${data.preview_image}`);
         }
 
         // ✅ FRAMEWORK
@@ -391,7 +392,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       if (coverImageFile) {
         const formDataUpload = new FormData();
 
-        // ✅ send ORIGINAL file (no wrapping)
+        // send ORIGINAL file (no wrapping)
         formDataUpload.append('file', coverImageFile);
 
         const uploadRes = await apiClient.post('/storage/upload', formDataUpload, {
@@ -402,7 +403,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         });
 
         console.log('Upload response:', uploadRes.data);
-        
+
         if (uploadRes.data.url) {
            coverImageUrl = uploadRes.data.url;
           } 

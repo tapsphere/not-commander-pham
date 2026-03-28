@@ -27,7 +27,7 @@ export const generateDefaultCover = async (
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
-        const BASE_URL = "http://localhost:8001";
+        const BASE_URL = import.meta.env.VITE_API_URL.replace('/api', '');
         
         const rawUrl = logoUrl || avatarUrl;
 

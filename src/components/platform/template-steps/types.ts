@@ -5,7 +5,7 @@ export interface TemplateFormData {
   roleScenario: string;
   keyElement: string;
   edgeCaseDetails: string;
-  visualTheme: string;
+  visualTheme: string; 
   interactionMethod: string;
   scenario: string;
   playerActions: string;
