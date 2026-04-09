@@ -10,7 +10,8 @@ from database import get_db
 
 router = APIRouter(prefix="/api/templates", tags=["templates"])
 
-@router.get("/", response_model=List[schemas.TemplateResponse])
+# @router.get("/", response_model=List[schemas.TemplateResponse])
+@router.get("", response_model=List[schemas.TemplateResponse])
 async def get_templates(
     creator_id: Optional[str] = None,
     is_published: Optional[bool] = None,
@@ -28,7 +29,8 @@ async def get_templates(
     result = await db.execute(query)
     return result.scalars().all()
 
-@router.post("/", response_model=schemas.TemplateResponse)
+# @router.post("/", response_model=schemas.TemplateResponse)
+@router.post("", response_model=schemas.TemplateResponse)
 async def create_template(
     template: schemas.TemplateCreate, 
     current_user: models.User = Depends(get_current_user),
