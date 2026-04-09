@@ -1,0 +1,124 @@
+name: Deploy Commander
+
+on:
+  push:
+    branches:
+      - main
+      - neha/postgres-setup
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: test-server
+
+    steps:
+      # ─── 1. Checkout repo ────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─── 2. Build frontend ────────────────────────────────────────────────────
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_URL: /api
+
+      # ─── 3. SSH setup ─────────────────────────────────────────────────────────
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      # ─── 4. Prepare server directories ───────────────────────────────────────
+      - name: Prepare server directory
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "mkdir -p /opt/playops/commander /var/www/commander"
+
+      # ─── 5. Sync frontend dist to server ─────────────────────────────────────
+      - name: Sync frontend to server
+        run: |
+          rsync -az --delete dist/ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/commander/
+
+      # ─── 6. Sync backend and project files to server ─────────────────────────
+      - name: Sync code to server
+        run: |
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='backend/.env' \
+            --exclude='backend/app.db' \
+            --exclude='backend/migrations/versions/__pycache__' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/playops/commander/
+
+      # ─── 7. Write backend .env from GitHub Secrets ───────────────────────────
+      - name: Write .env to server
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash -c 'cat > /opt/playops/commander/backend/.env << EOF
+          DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/playops
+          LLM_PROVIDER=gemini
+          LLM_MODEL=gemini-2.5-flash
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          EOF'
+
+      # ─── 8. Build and restart containers ─────────────────────────────────────
+      - name: Build and deploy
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            set -e
+            cd /opt/playops/commander
+            docker compose build --no-cache
+            docker compose up -d
+          "
+
+      # ─── 9. Wait for backend to be ready ─────────────────────────────────────
+      - name: Wait for backend
+        run: sleep 15
+
+      # ─── 10. Run database migrations ─────────────────────────────────────────
+      - name: Run migrations
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            set -e
+            cd /opt/playops/commander
+            docker compose exec -T backend alembic upgrade head
+          "
+
+      # ─── 11. Seed competency framework (first deploy only) ───────────────────
+      - name: Seed framework data
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            cd /opt/playops/commander
+            docker compose exec -T backend python -m scripts.seed_framework && echo 'Seeded' || echo 'Seed skipped (already seeded or error)'
+          "
+
+      # ─── 12. Reload Caddy ────────────────────────────────────────────────────
+      - name: Reload Caddy
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "systemctl reload caddy"
+
+      # ─── 13. Health check ─────────────────────────────────────────────────────
+      - name: Health check
+        run: |
+          sleep 5
+          curl --fail --silent --show-error https://commander.playops.world/api/health | grep -q "ok"
+          echo "✅ Commander is up"
