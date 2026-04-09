@@ -8,7 +8,8 @@ from routers.auth import get_current_user
 
 router = APIRouter(prefix="/api/results", tags=["results"])
 
-@router.get("/", response_model=List[schemas.ValidatorTestResultResponse])
+# @router.get("/", response_model=List[schemas.ValidatorTestResultResponse])
+@router.get("", response_model=List[schemas.ValidatorTestResultResponse])
 async def get_results(
     template_id: Optional[str] = None,
     current_user: models.User = Depends(get_current_user),
