@@ -6,7 +6,8 @@ load_dotenv()
 from database import engine
 from models import Base
 
-app = FastAPI(title="PlayOps API")
+# app = FastAPI(title="PlayOps API")
+app = FastAPI(title="PlayOps API", redirect_slashes=False)
 
 # Create tables automatically on startup
 @app.on_event("startup")
