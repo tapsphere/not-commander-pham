@@ -92,7 +92,11 @@ export function StudioCenterCanvas({
       setLogoPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
     } else if (logoUrl) {
-      setLogoPreviewUrl(logoUrl);
+      const BASE_URL = import.meta.env.VITE_API_URL.replace('/api', '');
+      const fullUrl = logoUrl?.startsWith('http') 
+        ? logoUrl
+        : `${BASE_URL}${logoUrl}`;
+      setLogoPreviewUrl(fullUrl);
     } else {
       setLogoPreviewUrl(null);
     }

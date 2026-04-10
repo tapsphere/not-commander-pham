@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -42,6 +43,7 @@ type Customization = {
 };
 
 export default function BrandDashboard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [customizations, setCustomizations] = useState<Customization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,22 +64,17 @@ export default function BrandDashboard() {
 
   const seedDemoDataIfNeeded = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Check if user already has customizations
-      const { data: existing } = await supabase
-        .from('brand_customizations')
-        .select('id')
-        .eq('brand_id', user.id)
-        .limit(1);
+      const { data: existing } = await apiClient.get(`/customizations?brand_id=${user.id}`);
 
       if (existing && existing.length > 0) return;
 
       // Seed demo data in background
       console.log('Seeding NexaCorp demo data...');
-      await supabase.functions.invoke('seed-demo-data');
-      
+      // await apiClient.post('/games/seed-demo-data', {});
+
       // Reload customizations after seeding
       setTimeout(() => loadCustomizations(), 2000);
     } catch (error) {
@@ -87,57 +84,15 @@ export default function BrandDashboard() {
 
   const loadCustomizations = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('brand_customizations')
-        .select(`
-          *,
-          game_templates (
-            name,
-            preview_image,
-            creator_id
-          )
-        `)
-        .eq('brand_id', user.id)
-        .order('created_at', { ascending: false });
+      const { data: enrichedCustomizations } = await apiClient.get<Customization[]>(`/customizations?brand_id=${user.id}`);
 
-      if (error) throw error;
-
-      // Fetch creator profiles separately for each template
-      const enrichedCustomizations = await Promise.all(
-        (data || []).map(async (custom) => {
-          if (custom.game_templates?.creator_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name, bio, avatar_url')
-              .eq('user_id', custom.game_templates.creator_id)
-              .single();
-            
-            return {
-              ...custom,
-              game_templates: {
-                ...custom.game_templates,
-                profiles: profile || undefined
-              }
-            };
-          }
-          return custom;
-        })
-      );
-
-      if (error) throw error;
-
-      // Fetch brand profile separately using any type to bypass TypeScript
+      // Fetch brand profile separately
       let profileData: any = null;
       try {
-        const result = await (supabase as any)
-          .from('profiles')
-          .select('company_name, company_logo_url')
-          .eq('user_id', user.id)
-          .single();
-        profileData = result.data;
+        const { data: profile } = await apiClient.get('/profiles/me');
+        profileData = profile;
       } catch (e) {
         console.log('No profile found');
       }
@@ -175,26 +130,11 @@ export default function BrandDashboard() {
 
   const handleRegenerateGame = async (customizationId: string, uniqueCode: string | null, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     setRegeneratingId(customizationId);
-    
+
     try {
-      const { data: customData } = await supabase
-        .from('brand_customizations')
-        .select(`
-          primary_color, 
-          secondary_color, 
-          accent_color, 
-          background_color, 
-          logo_url,
-          template_id,
-          game_templates (
-            name,
-            description
-          )
-        `)
-        .eq('id', customizationId)
-        .single();
+      const { data: customData } = await apiClient.get(`/customizations/${customizationId}`);
 
       if (!customData || !customData.game_templates) {
         toast.error('Template data not found');
@@ -215,9 +155,9 @@ Include:
 - Scoring based on accuracy and time`;
 
       toast.info('Generating game... This may take 1-2 minutes');
-      
-      const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-game', {
-        body: {
+
+      try {
+        const { data: generateData } = await apiClient.post('/games/generate-game', {
           templatePrompt,
           primaryColor: customData.primary_color || '#00FF00',
           secondaryColor: customData.secondary_color || '#9945FF',
@@ -226,10 +166,8 @@ Include:
           logoUrl: customData.logo_url || '',
           previewMode: false,
           customizationId
-        }
-      });
-
-      if (generateError) {
+        });
+      } catch (generateError) {
         console.error('Generate error:', generateError);
         toast.error('Failed to generate game');
         setRegeneratingId(null);
@@ -237,10 +175,10 @@ Include:
       }
 
       toast.success('Game generated successfully!');
-      
+
       // Refresh the list
       await loadCustomizations();
-      
+
       // Auto-navigate to play the game after a short delay
       if (uniqueCode) {
         setTimeout(() => {
@@ -257,7 +195,7 @@ Include:
 
   const handlePublish = async () => {
     if (!selectedCustomization) return;
-    
+
     if (!liveStartDate || !liveEndDate) {
       toast.error('Please select start and end dates');
       return;
@@ -270,32 +208,15 @@ Include:
 
     try {
       const uniqueCode = generateUniqueCode();
-      
+
       // First, check if game HTML needs to be generated
-      const { data: customData } = await supabase
-        .from('brand_customizations')
-        .select(`
-          generated_game_html, 
-          customization_prompt, 
-          primary_color, 
-          secondary_color, 
-          accent_color, 
-          background_color, 
-          logo_url,
-          template_id,
-          game_templates (
-            name,
-            description
-          )
-        `)
-        .eq('id', selectedCustomization.id)
-        .single();
+      const { data: customData } = await apiClient.get(`/customizations/${selectedCustomization.id}`);
 
       // Generate game HTML if it doesn't exist
       if (customData && !customData.generated_game_html) {
         // Use customization_prompt if available, otherwise build from template
         let templatePrompt = customData.customization_prompt;
-        
+
         if (!templatePrompt && customData.game_templates) {
           const template = customData.game_templates as any;
           templatePrompt = `Create a validator game for "${template.name}".
@@ -316,9 +237,9 @@ Include:
         }
 
         toast.info('Generating game HTML...');
-        
-        const { data: generateData, error: generateError } = await supabase.functions.invoke('generate-game', {
-          body: {
+
+        try {
+          const { data: generateData } = await apiClient.post('/games/generate-game', {
             templatePrompt,
             primaryColor: customData.primary_color || '#00FF00',
             secondaryColor: customData.secondary_color || '#9945FF',
@@ -327,10 +248,8 @@ Include:
             logoUrl: customData.logo_url,
             customizationId: selectedCustomization.id,
             previewMode: false, // Save to database
-          },
-        });
-
-        if (generateError) {
+          });
+        } catch (generateError) {
           console.error('Game generation error:', generateError);
           toast.error('Failed to generate game. Please try again.');
           return;
@@ -338,22 +257,17 @@ Include:
 
         toast.success('Game HTML generated!');
       }
-      
-      const { error } = await supabase
-        .from('brand_customizations')
-        .update({
-          published_at: new Date().toISOString(),
-          unique_code: uniqueCode,
-          live_start_date: liveStartDate.toISOString(),
-          live_end_date: liveEndDate.toISOString(),
-          visibility: visibility,
-        })
-        .eq('id', selectedCustomization.id);
 
-      if (error) throw error;
+      await apiClient.put(`/customizations/${selectedCustomization.id}`, {
+        published_at: new Date().toISOString(),
+        unique_code: uniqueCode,
+        live_start_date: liveStartDate.toISOString(),
+        live_end_date: liveEndDate.toISOString(),
+        visibility: visibility,
+      });
 
       toast.success('Validator published successfully!');
-      
+
       // Update local state
       setCustomizations(prev =>
         prev.map(c =>
@@ -392,14 +306,12 @@ Include:
 
   const handleDeleteGame = async (customizationId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
       return;
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         toast.error('Authentication required');
         return;
@@ -407,18 +319,9 @@ Include:
 
       console.log('Deleting game:', customizationId, 'for user:', user.id);
 
-      const { error, count } = await supabase
-        .from('brand_customizations')
-        .delete({ count: 'exact' })
-        .eq('id', customizationId)
-        .eq('brand_id', user.id);
+      await apiClient.delete(`/customizations/${customizationId}`);
 
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
-
-      console.log('Delete successful, rows affected:', count);
+      console.log('Delete successful');
 
       // Update local state immediately
       setCustomizations(prev => {
@@ -544,27 +447,27 @@ Include:
           </Button>
         </Card>
       ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {customizations.map((custom) => (
-          <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
-            {/* Game Preview Screenshot */}
-            {custom.game_templates?.preview_image ? (
-              <div className="relative w-full h-48 bg-gray-800">
-                <img 
-                  src={custom.game_templates.preview_image} 
-                  alt={custom.game_templates.name}
-                  className="w-full h-full object-cover"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {customizations.map((custom) => (
+            <Card key={custom.id} className="bg-gray-900 border-gray-800 overflow-hidden">
+              {/* Game Preview Screenshot */}
+              {custom.game_templates?.preview_image ? (
+                <div className="relative w-full h-48 bg-gray-800">
+                  <img
+                    src={custom.game_templates.preview_image}
+                    alt={custom.game_templates.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <GameCoverPhoto
+                  coverPhotoUrl={(custom as any).cover_photo_url}
+                  logoUrl={(custom as any).brand_profile?.company_logo_url}
+                  brandName={(custom as any).brand_profile?.company_name}
+                  className="w-full h-48"
                 />
-              </div>
-            ) : (
-              <GameCoverPhoto
-                coverPhotoUrl={(custom as any).cover_photo_url}
-                logoUrl={(custom as any).brand_profile?.company_logo_url}
-                brandName={(custom as any).brand_profile?.company_name}
-                className="w-full h-48"
-              />
-            )}
-               <div className="p-4">
+              )}
+              <div className="p-4">
                 <h3 className="font-semibold text-white mb-2">
                   {custom.game_templates?.name || 'Course-Generated Game'}
                 </h3>
@@ -595,18 +498,17 @@ Include:
                 </div>
                 <div className="flex items-center justify-between">
                   <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      custom.published_at
+                    className={`text-xs px-2 py-1 rounded ${custom.published_at
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-gray-700 text-gray-400'
-                    }`}
+                      }`}
                   >
                     {custom.published_at ? 'Live' : 'Draft'}
                   </span>
-                   {custom.published_at ? (
+                  {custom.published_at ? (
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           console.log('Play clicked, unique_code:', custom.unique_code);
@@ -621,8 +523,8 @@ Include:
                         <Play className="h-3 w-3" />
                         Play
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={(e) => handleRegenerateGame(custom.id, custom.unique_code, e)}
                         disabled={regeneratingId === custom.id}
@@ -640,8 +542,8 @@ Include:
                           </>
                         )}
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -652,8 +554,8 @@ Include:
                       >
                         <Link2 className="h-3 w-3" />
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
                         onClick={(e) => handleDeleteGame(custom.id, e)}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -663,7 +565,7 @@ Include:
                     </div>
                   ) : (
                     <div className="flex gap-2">
-                      <Button 
+                      <Button
                         size="sm"
                         variant="outline"
                         onClick={(e) => {
@@ -680,7 +582,7 @@ Include:
                         <Eye className="h-3 w-3" />
                         Preview
                       </Button>
-                      <Button 
+                      <Button
                         size="sm"
                         variant="outline"
                         onClick={(e) => handleRegenerateGame(custom.id, custom.unique_code, e)}
@@ -699,8 +601,8 @@ Include:
                           </>
                         )}
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           console.log('🟢 Publish button clicked!');
@@ -710,8 +612,8 @@ Include:
                       >
                         Publish
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
                         onClick={(e) => handleDeleteGame(custom.id, e)}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"

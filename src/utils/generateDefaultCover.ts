@@ -27,7 +27,15 @@ export const generateDefaultCover = async (
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;
-        img.src = (logoUrl || avatarUrl)!;
+        const BASE_URL = import.meta.env.VITE_API_URL.replace('/api', '');
+        
+        const rawUrl = logoUrl || avatarUrl;
+
+        const fullUrl = rawUrl?.startsWith('http') 
+          ? rawUrl
+          : `${BASE_URL}${rawUrl}`;
+          console.log("IMAGE URL:", fullUrl);
+          img.src = fullUrl!;
       });
 
       // Calculate size to fit nicely (max 400px)

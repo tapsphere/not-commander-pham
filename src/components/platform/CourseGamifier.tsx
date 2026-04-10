@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/api/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Upload, Loader2, FileText, Brain, Sparkles, History, Edit, Trash2, PlayCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { ValidatorTemplateCard } from "./ValidatorTemplateCard";
@@ -63,10 +64,10 @@ export function CourseGamifier() {
   const [prerequisites, setPrerequisites] = useState("");
   const [industry, setIndustry] = useState(""); // Industry/Context field
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [extractedData, setExtractedData] = useState<any>(null);
+  const [extractedData, setExtractedData] = useState<unknown>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [existingAnalyses, setExistingAnalyses] = useState<any[]>([]);
+  const [existingAnalyses, setExistingAnalyses] = useState<unknown[]>([]);
   const [selectedAnalysisId, setSelectedAnalysisId] = useState<string | null>(null);
   const [showCustomizationDialog, setShowCustomizationDialog] = useState(false);
   const [selectedMapping, setSelectedMapping] = useState<CompetencyMapping | null>(null);
@@ -81,19 +82,19 @@ export function CourseGamifier() {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: user } = await apiClient.get('/api/auth/me'); // We can also use useAuth within the component for user data
       if (!user) return;
 
       setBrandId(user.id);
 
-      const { data, error } = await supabase
-        .from('course_gamification')
-        .select('*')
-        .eq('brand_id', user.id)
-        .ilike('course_name', `%${courseName}%`)
-        .order('created_at', { ascending: false });
+      const { data } = await apiClient.get('/api/games/course-gamification', {
+        params: {
+          brand_id: user.id,
+          course_name: courseName,
+        }
+      });
 
-      if (!error && data) {
+      if (data) {
         setExistingAnalyses(data);
       }
     };
@@ -102,12 +103,12 @@ export function CourseGamifier() {
     return () => clearTimeout(debounce);
   }, [courseName]);
 
-  const loadExistingAnalysis = (analysis: any) => {
-    setSelectedAnalysisId(analysis.id);
+  const loadExistingAnalysis = (analysis: Record<string, unknown>) => {
+    setSelectedAnalysisId(analysis.id as string);
     // Don't automatically show analysis results - only load metadata
-    setCourseName(analysis.course_name || courseName);
-    setCourseDescription(analysis.course_description || "");
-    setIndustry(analysis.industry || "");
+    setCourseName((analysis.course_name as string) || courseName);
+    setCourseDescription((analysis.course_description as string) || "");
+    setIndustry((analysis.industry as string) || "");
     toast({
       title: "Course details loaded",
       description: "Generate a new analysis to see results",
@@ -116,10 +117,10 @@ export function CourseGamifier() {
 
   const deleteAnalysis = async (analysisId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const { data: user } = await apiClient.get('/api/auth/me');
+
       if (!user) {
         toast({
           title: "Authentication required",
@@ -131,26 +132,17 @@ export function CourseGamifier() {
 
       console.log('Deleting analysis:', analysisId, 'for user:', user.id);
 
-      const { error, count } = await supabase
-        .from('course_gamification')
-        .delete({ count: 'exact' })
-        .eq('id', analysisId)
-        .eq('brand_id', user.id);
+      await apiClient.delete(`/api/games/course-gamification/${analysisId}`);
 
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
-      }
-
-      console.log('Delete successful, rows affected:', count);
+      console.log('Delete successful');
 
       // Update local state immediately
       setExistingAnalyses(prev => {
-        const filtered = prev.filter(a => a.id !== analysisId);
+        const filtered = prev.filter((a: unknown) => (a as Record<string, unknown>).id !== analysisId);
         console.log('Remaining analyses:', filtered.length);
         return filtered;
       });
-      
+
       if (selectedAnalysisId === analysisId) {
         setSelectedAnalysisId(null);
         setAnalysisResult(null);
@@ -196,7 +188,7 @@ export function CourseGamifier() {
 
       // Extract text from PDF
       const extractedText = await extractTextFromFile(selectedFile);
-      
+
       if (!extractedText) {
         toast({
           title: "Extraction failed",
@@ -210,16 +202,12 @@ export function CourseGamifier() {
       setProgress(50);
 
       // Use AI to extract structured data from the text
-      const { data, error } = await supabase.functions.invoke('analyze-course', {
-        body: {
-          courseText: extractedText,
-          courseName: courseName || "Untitled Course",
-          courseDescription: "Extract structured course information",
-          extractMode: true
-        }
+      const { data } = await apiClient.post('/api/games/analyze-course', {
+        courseText: extractedText,
+        courseName: courseName || "Untitled Course",
+        courseDescription: "Extract structured course information",
+        extractMode: true
       });
-
-      if (error) throw error;
 
       setProgress(80);
 
@@ -273,27 +261,24 @@ export function CourseGamifier() {
   const extractTextFromFile = async (file: File): Promise<string> => {
     try {
       console.log('Extracting text from:', file.name, file.type);
-      
+
       // Create FormData to send the file
       const formData = new FormData();
       formData.append('file', file);
-      
+
       // Call parse-document edge function
-      const { data, error } = await supabase.functions.invoke('parse-document', {
-        body: formData,
+      const { data } = await apiClient.post('/api/storage/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      
-      if (error) {
-        console.error('Parse document error:', error);
-        throw error;
-      }
-      
+
       console.log('Extracted content length:', data?.content?.length);
-      
+
       if (!data?.content) {
         throw new Error('No content extracted from document');
       }
-      
+
       return data.content;
     } catch (error) {
       console.error('Document parsing error:', error);
@@ -366,8 +351,8 @@ export function CourseGamifier() {
       setAnalyzing(true);
       setProgress(0);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const { data: user } = await apiClient.get('/api/auth/me');
+
       let fileUrl = null;
       let courseText = courseDescription;
 
@@ -375,33 +360,31 @@ export function CourseGamifier() {
       if (selectedFile && user) {
         setProgress(20);
         setUploading(true);
-        
+
         const fileExt = selectedFile.name.split('.').pop();
         const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('course-files')
-          .upload(filePath, selectedFile);
 
-        if (uploadError) throw uploadError;
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+        const { data: uploadData } = await apiClient.post('/api/storage/upload', uploadFormData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('course-files')
-          .getPublicUrl(filePath);
-        
-        fileUrl = publicUrl;
-        
+        fileUrl = uploadData.url;
+
         // Extract text from the file
         toast({
           title: "Extracting content",
           description: "Reading your course file...",
         });
-        
+
         const extractedText = await extractTextFromFile(selectedFile);
         if (extractedText) {
           courseText = extractedText + '\n\n' + courseDescription;
         }
-        
+
         setUploading(false);
         setProgress(40);
       }
@@ -436,15 +419,12 @@ ${courseDescription}
 
       // Call AI analysis
       setProgress(60);
-      const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-course', {
-        body: {
-          courseText,
-          courseName,
-          courseDescription: showReviewForm ? courseText : courseDescription
-        }
+      const { data: analysisData } = await apiClient.post('/api/games/analyze-course', {
+        courseText,
+        courseName,
+        courseDescription: showReviewForm ? courseText : courseDescription
       });
 
-      if (analysisError) throw analysisError;
       if (!analysisData.success) throw new Error(analysisData.error || "Analysis failed");
 
       setProgress(80);
@@ -456,21 +436,17 @@ ${courseDescription}
           new Set(analysisData.analysis.competency_mappings.map((m: CompetencyMapping) => m.validator_type))
         );
 
-        const { error: saveError } = await supabase
-          .from('course_gamification')
-          .insert({
-            brand_id: user.id,
-            course_name: courseName,
-            course_description: courseDescription,
-            file_url: fileUrl,
-            file_type: selectedFile?.type || 'text',
-            industry: industry || null,
-            analysis_results: analysisData.analysis,
-            competency_mappings: analysisData.analysis.competency_mappings,
-            recommended_validators: analysisData.analysis.recommended_validators
-          });
-
-        if (saveError) throw saveError;
+        await apiClient.post('/api/games/course-gamification', {
+          brand_id: user.id,
+          course_name: courseName,
+          course_description: courseDescription,
+          file_url: fileUrl,
+          file_type: selectedFile?.type || 'text',
+          industry: industry || null,
+          analysis_results: analysisData.analysis,
+          competency_mappings: analysisData.analysis.competency_mappings,
+          recommended_validators: analysisData.analysis.recommended_validators
+        });
       }
 
       setProgress(100);
@@ -527,7 +503,7 @@ ${courseDescription}
       setIndustry("tech");
       setCourseDuration("5");
       setPrerequisites("None - designed for day-one employees");
-      
+
       // Hardcode the correct 4 HR onboarding competencies
       const demoAnalysisResult = {
         course_analysis: {
@@ -617,9 +593,9 @@ ${courseDescription}
           implementation_note: "These 4 competencies directly map to Microsoft's 4-step onboarding framework: Initiative (paperwork), Team Connection (integration), Coaching & Mentorship (training), and Feedback & Reflection (check-ins)."
         }
       };
-      
+
       setAnalysisResult(demoAnalysisResult);
-      
+
       toast({
         title: "Demo loaded!",
         description: "Microsoft HR onboarding analysis complete with 4 core competencies.",
@@ -638,13 +614,13 @@ ${courseDescription}
     // Close the generator
     setGeneratorOpen(false);
     setSelectedMapping(null);
-    
+
     // Show success message
     toast({
       title: "Game saved!",
       description: "Redirecting to your dashboard...",
     });
-    
+
     // Navigate to dashboard after short delay
     setTimeout(() => {
       navigate('/platform/brand');
@@ -726,8 +702,8 @@ ${courseDescription}
             </div>
             {selectedFile && (
               <p className="text-xs text-muted-foreground">
-                {showReviewForm 
-                  ? "Review and edit the course details below, or use AI to extract and prefill from your PDF" 
+                {showReviewForm
+                  ? "Review and edit the course details below, or use AI to extract and prefill from your PDF"
                   : "Fill in the course details below, or click 'AI Extract & Prefill' to automatically extract from your PDF"}
               </p>
             )}
@@ -914,8 +890,8 @@ ${courseDescription}
                 <div className="space-y-2">
                   <p className="font-medium">Found {existingAnalyses.length} previous analysis for similar courses:</p>
                   <div className="space-y-2">
-                    {existingAnalyses.slice(0, 3).map((analysis) => (
-                      <div key={analysis.id} className="flex items-center gap-2">
+                    {existingAnalyses.slice(0, 3).map((analysis: Record<string, unknown>) => (
+                      <div key={analysis.id as string} className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
@@ -923,12 +899,12 @@ ${courseDescription}
                           onClick={() => loadExistingAnalysis(analysis)}
                         >
                           <FileText className="w-4 h-4 mr-2" />
-                          {analysis.course_name} ({new Date(analysis.created_at).toLocaleDateString()})
+                          {analysis.course_name as string} ({new Date(analysis.created_at as string).toLocaleDateString()})
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => deleteAnalysis(analysis.id, e)}
+                          onClick={(e) => deleteAnalysis(analysis.id as string, e)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -941,7 +917,7 @@ ${courseDescription}
             </Alert>
           )}
 
-          <Button 
+          <Button
             onClick={handleAnalyze}
             disabled={loading}
             className="w-full"
@@ -1003,7 +979,7 @@ ${courseDescription}
                             {mappings.length} sub-competenc{mappings.length === 1 ? 'y' : 'ies'}
                           </span>
                         </div>
-                        
+
                         <div className="space-y-4">
                           {mappings.map((mapping, mapIdx) => (
                             <div key={mapIdx} className="space-y-2 pl-4 border-l-2 border-primary/30">
@@ -1024,7 +1000,7 @@ ${courseDescription}
                                   Auto-Generate
                                 </Button>
                               </div>
-                              
+
                               {mapping.action_cue && (
                                 <p className="text-xs text-muted-foreground">
                                   <strong>Action Cue:</strong> {mapping.action_cue}

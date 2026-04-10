@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 
 interface CompetencyFromDB {
   id: string;
@@ -54,21 +54,10 @@ export function useCompetencySearch() {
 
       try {
         // Fetch master competencies
-        const { data: compData, error: compError } = await supabase
-          .from('master_competencies')
-          .select('id, name, cbe_category, departments, is_active')
-          .eq('is_active', true)
-          .order('name');
-
-        if (compError) throw compError;
+        const { data: compData } = await apiClient.get('/framework/competencies');
 
         // Fetch sub-competencies
-        const { data: subData, error: subError } = await supabase
-          .from('sub_competencies')
-          .select('id, competency_id, statement, action_cue, game_mechanic, game_loop, validator_type')
-          .order('display_order');
-
-        if (subError) throw subError;
+        const { data: subData } = await apiClient.get('/framework/sub-competencies');
 
         setCompetencies(compData || []);
         setSubCompetencies(subData || []);
@@ -141,7 +130,7 @@ export function useCompetencySearch() {
 
     // RULE: Skip pure numeric queries - we don't want ID matching
     if (/^\d+$/.test(q)) return 0;
-    
+
     // RULE: Skip if query is just 1-2 characters (too ambiguous)
     if (q.length < 3) return 0;
 
@@ -160,18 +149,18 @@ export function useCompetencySearch() {
 
     // Contains match - query is within target
     if (t.includes(q)) return 80;
-    
+
     // Word-based matching (not character substring)
     // Split into words and match whole words only
     const queryWords = q.split(/\s+/).filter(w => w.length > 2 && !/^\d+$/.test(w));
     const targetWords = t.split(/\s+/).filter(w => w.length > 2);
-    
+
     if (queryWords.length === 0) return 0;
-    
+
     let matchCount = 0;
     queryWords.forEach(qw => {
       // Check for word-level matches (not arbitrary substrings)
-      if (targetWords.some(tw => 
+      if (targetWords.some(tw =>
         tw === qw || // Exact word match
         tw.startsWith(qw) || qw.startsWith(tw) || // Prefix match for stemming
         (qw.length >= 4 && tw.includes(qw)) // Substring only if 4+ chars
@@ -209,21 +198,21 @@ export function useCompetencySearch() {
     if (!query.trim() || competencies.length === 0) return [];
 
     const queryLower = query.toLowerCase().trim();
-    
+
     // RULE: Block pure numeric queries - we don't match ID numbers
     if (/^\d+$/.test(queryLower)) return [];
-    
+
     // RULE: Minimum 3 characters for search
     if (queryLower.length < 3) return [];
-    
+
     const results: CompetencySearchResult[] = [];
     const addedIds = new Set<string>();
 
     // Helper to add a competency to results
     // CRITICAL: Only adds the competency NAME (Column B), never IDs or category names
     const addResult = (
-      comp: CompetencyFromDB, 
-      score: number, 
+      comp: CompetencyFromDB,
+      score: number,
       matchReason: string,
       matchType: 'exact' | 'category' | 'department' | 'fuzzy'
     ) => {
@@ -261,7 +250,7 @@ export function useCompetencySearch() {
       const categoryMatch = fuzzyMatch(queryLower, comp.cbe_category);
       if (categoryMatch >= 40) {
         addResult(
-          comp, 
+          comp,
           categoryMatch + 50,
           `Found in domain: ${comp.cbe_category}`,
           'category'

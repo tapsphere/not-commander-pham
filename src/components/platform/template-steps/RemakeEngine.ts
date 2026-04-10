@@ -136,21 +136,27 @@ export function populateSixScenes(
 ): SceneData[] {
   // Filter to matching sub-competencies and take exactly 6
   const matchingSubs = subCompetencies
-    .filter(s => s.competency_id === competencyId)
-    .slice(0, 6);
+    ?.filter(s => s?.competency_id === competencyId)
+    ?.slice(0, 6) || [];
   
   // Pad with first subs if we don't have 6
   while (matchingSubs.length < 6) {
-    const fallbackSub = subCompetencies.find(s => s.competency_id === competencyId);
+    const fallbackSub = subCompetencies?.find(s => s?.competency_id === competencyId);
     if (fallbackSub) {
-      matchingSubs.push({ ...fallbackSub, id: `fallback-${matchingSubs.length}` });
+      matchingSubs.push({
+        ...fallbackSub,
+        id: `fallback-${matchingSubs.length}` 
+      });
     } else {
+      console.warn("No fallback sub-competency found");
       break;
     }
   }
   
   // Create exactly 6 scenes with V5 mechanic lock
-  const scenes: SceneData[] = matchingSubs.map((sub, idx) => {
+  const scenes: SceneData[] = matchingSubs
+   .filter(sub => sub && sub.id) // ✅ REMOVE undefined
+   .map((sub, idx) => {
     const sceneNumber = idx + 1;
     const v5Config = V5_SCENE_MECHANICS[sceneNumber];
     

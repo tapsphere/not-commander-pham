@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import type { Area } from 'react-easy-crop';
 export default function BrandProfileEdit() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -22,7 +24,7 @@ export default function BrandProfileEdit() {
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
-  
+
   // Image crop states
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -36,7 +38,6 @@ export default function BrandProfileEdit() {
 
   const checkAuth = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
         return;
@@ -115,20 +116,17 @@ export default function BrandProfileEdit() {
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       const fileName = `avatar-${Date.now()}.png`;
-      const filePath = `${userId}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('profiles')
-        .upload(filePath, croppedBlob, {
-          contentType: 'image/png',
-          upsert: true
-        });
+      const formData = new FormData();
+      formData.append('file', croppedBlob, fileName);
 
-      if (uploadError) throw uploadError;
+      const response = await apiClient.post('/storage/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('profiles')
-        .getPublicUrl(filePath);
+      const publicUrl = response.data.url;
 
       setAvatarUrl(publicUrl);
       setCropDialogOpen(false);
@@ -151,20 +149,15 @@ export default function BrandProfileEdit() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          company_name: companyName || null,
-          bio: bio || null,
-          avatar_url: avatarUrl || null,
-        })
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      await apiClient.put('/profiles/me', {
+        full_name: fullName,
+        company_name: companyName || null,
+        bio: bio || null,
+        avatar_url: avatarUrl || null,
+      });
 
       toast.success('Profile updated successfully!');
-      
+
       // Navigate back based on current path
       const isCreatorPath = location.pathname.includes('/creator');
       navigate(isCreatorPath ? '/platform/creator' : '/platform/brand');

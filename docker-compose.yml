@@ -1,0 +1,57 @@
+version: "3.8"
+
+# services:
+#   db:
+#     image: postgres:15
+#     restart: always
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#       POSTGRES_DB: playops
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
+
+
+services:
+  db:
+    image: postgres:15
+    container_name: commander-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: playops
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - commander_default
+
+  backend:
+    build: ./backend
+    container_name: commander-backend
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./backend/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      - db
+    networks:
+      - commander_default
+
+networks:
+  commander_default:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  media_data:
