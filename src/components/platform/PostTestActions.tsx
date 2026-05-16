@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, Download, Upload, FileCode, FileText } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { toast } from 'sonner';
 import { generateSpecPDF } from '@/utils/generateSpecPDF';
 
@@ -40,7 +40,7 @@ export function PostTestActions({
   const handleDownloadCode = async () => {
     try {
       let htmlContent = '';
-      
+
       // Get HTML based on template type
       if (template.template_type === 'custom_upload' && template.custom_game_url) {
         const response = await fetch(template.custom_game_url);
@@ -75,11 +75,8 @@ export function PostTestActions({
       // Fetch sub-competency details if available
       let subCompetencies: any[] = [];
       if (template.selected_sub_competencies && template.selected_sub_competencies.length > 0) {
-        const { data } = await supabase
-          .from('sub_competencies')
-          .select('*')
-          .in('id', template.selected_sub_competencies);
-        
+        const { data } = await apiClient.get('/api/framework/sub-competencies?id=in.(' + template.selected_sub_competencies.join(',') + ')');
+
         // Transform to expected format
         subCompetencies = (data || []).map((sub: any, idx: number) => ({
           statement: sub.statement || '',
@@ -142,35 +139,22 @@ export function PostTestActions({
       setUploading(true);
 
       // Upload file to storage
-      const fileName = `${template.id}-${Date.now()}.html`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('custom-games')
-        .upload(fileName, uploadedFile, {
-          contentType: 'text/html',
-          upsert: true
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('custom-games')
-        .getPublicUrl(fileName);
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+      const uploadRes = await apiClient.post('/api/storage/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const publicUrl = uploadRes.data.url;
 
       // Update template with new URL
-      const { error: updateError } = await supabase
-        .from('game_templates')
-        .update({ custom_game_url: publicUrl })
-        .eq('id', template.id);
-
-      if (updateError) throw updateError;
+      await apiClient.put(`/api/templates/${template.id}`, { custom_game_url: publicUrl });
 
       toast.success('✅ Code uploaded! Now re-running tests...');
-      
+
       // Close this dialog and trigger re-test
       onOpenChange(false);
       onReTest();
-      
+
     } catch (error: any) {
       console.error('Upload error:', error);
       toast.error('Failed to upload: ' + error.message);
@@ -188,7 +172,7 @@ export function PostTestActions({
             Tests Passed!
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            {mode === 'choice' 
+            {mode === 'choice'
               ? 'Choose to publish immediately or customize the code first'
               : 'Upload your customized code to re-test before publishing'}
           </DialogDescription>
@@ -199,7 +183,7 @@ export function PostTestActions({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Publish Now */}
               <Card className="bg-gray-800 border-gray-700 p-6 hover:border-green-500 transition-colors cursor-pointer group"
-                    onClick={onPublish}>
+                onClick={onPublish}>
                 <div className="text-center space-y-4">
                   <div className="w-16 h-16 mx-auto bg-green-500/10 rounded-full flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
                     <CheckCircle className="w-8 h-8 text-green-500" />
@@ -216,7 +200,7 @@ export function PostTestActions({
 
               {/* Download to Customize */}
               <Card className="bg-gray-800 border-gray-700 p-6 hover:border-cyan-400 transition-colors cursor-pointer group"
-                    onClick={() => setMode('customize')}>
+                onClick={() => setMode('customize')}>
                 <div className="text-center space-y-4">
                   <div className="w-16 h-16 mx-auto bg-cyan-400/10 rounded-full flex items-center justify-center group-hover:bg-cyan-400/20 transition-colors">
                     <Download className="w-8 h-8 text-cyan-400" />
@@ -243,7 +227,7 @@ export function PostTestActions({
                 Step 1: Download Files
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Button 
+                <Button
                   onClick={handleDownloadCode}
                   variant="outline"
                   className="w-full border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black"
@@ -251,7 +235,7 @@ export function PostTestActions({
                   <FileCode className="w-4 h-4 mr-2" />
                   Game Code (HTML)
                 </Button>
-                <Button 
+                <Button
                   onClick={handleDownloadSpec}
                   variant="outline"
                   className="w-full border-purple-400 text-purple-400 hover:bg-purple-400 hover:text-black"
@@ -260,7 +244,7 @@ export function PostTestActions({
                   Spec PDF
                 </Button>
               </div>
-              <Button 
+              <Button
                 onClick={handleDownloadBoth}
                 className="w-full bg-gradient-to-r from-cyan-400 to-purple-400 text-black hover:from-cyan-500 hover:to-purple-500"
               >

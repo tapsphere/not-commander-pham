@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { apiClient } from "@/api/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { ModeChooser } from "@/components/platform/ModeChooser";
 import { GamePlayer } from "@/components/platform/GamePlayer";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface Template {
 export default function PlayValidator() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [template, setTemplate] = useState<Template | null>(null);
   const [runtimes, setRuntimes] = useState<Runtime[]>([]);
   const [selectedRuntime, setSelectedRuntime] = useState<Runtime | null>(null);
@@ -40,24 +42,15 @@ export default function PlayValidator() {
 
   const loadTemplateAndRuntimes = async () => {
     try {
-      // Get template (generated_game_html will be added to schema later)
-      const { data: templateData, error: templateError } = await supabase
-        .from('game_templates')
-        .select('id, name, description')
-        .eq('id', templateId)
-        .eq('is_published', true)
-        .single();
-
-      if (templateError) throw templateError;
-      setTemplate({ ...templateData, generated_game_html: null });
+      // Get template
+      const { data: templateData } = await apiClient.get(`/templates/${templateId}`);
+      if (templateData && !templateData.generated_game_html) {
+        templateData.generated_game_html = null;
+      }
+      setTemplate(templateData);
 
       // Get runtimes
-      const { data: runtimesData, error: runtimesError } = await supabase
-        .from('validators_runtime')
-        .select('*')
-        .eq('template_id', templateId);
-
-      if (runtimesError) throw runtimesError;
+      const { data: runtimesData } = await apiClient.get(`/templates/${templateId}/runtimes`);
       setRuntimes((runtimesData || []) as Runtime[]);
     } catch (error: any) {
       console.error('Error loading:', error);
@@ -75,9 +68,6 @@ export default function PlayValidator() {
       return;
     }
 
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    
     // Testing mode requires login
     if (mode === 'testing' && !user) {
       toast.error('Please sign in to access Validation Mode');
@@ -86,24 +76,20 @@ export default function PlayValidator() {
     }
 
     setSelectedRuntime(runtime);
-    
+
     // Start session
     try {
-      const { data, error } = await supabase.functions.invoke('session-manager', {
-        body: {
-          action: 'start',
-          runtime_id: runtime.id
-        }
+      const { data } = await apiClient.post('/games/session', {
+        action: 'start',
+        runtime_id: runtime.id
       });
 
-      if (error) throw error;
-
       console.log('Session started:', data);
-      
+
       const sessionIdentifier = data.session?.id || data.session_id;
       setSessionId(sessionIdentifier);
       setIsDemo(data.demo || false);
-      
+
       if (data.demo) {
         toast.info('Demo mode - Your progress will not be saved');
       } else {

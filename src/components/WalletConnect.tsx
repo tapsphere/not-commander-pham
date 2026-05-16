@@ -1,6 +1,7 @@
 import { TonConnectButton, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
 import { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from './ui/card';
 
@@ -8,59 +9,52 @@ export function WalletConnect() {
   const wallet = useTonWallet();
   const [tonConnectUI] = useTonConnectUI();
   const { toast } = useToast();
-
+  const { user } = useAuth();
 
   useEffect(() => {
     const linkWalletToProfile = async () => {
-      if (!wallet) return;
+      try {
+        if (!wallet) return;
 
-      const walletAddress = wallet.account.address;
-      const { data: { user } } = await supabase.auth.getUser();
+        const walletAddress = wallet.account.address;
 
-      if (!user) {
-        // Auto-signup with wallet address
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email: `${walletAddress}@ton.wallet`,
-          password: crypto.randomUUID(), // Random password
-          options: {
-            data: {
-              wallet_address: walletAddress,
-              full_name: `TON User ${walletAddress.slice(0, 6)}`,
-            },
-          },
-        });
-
-        if (signUpError) {
-          toast({
-            title: "Connection Failed",
-            description: "Could not link wallet to account",
-            variant: "destructive",
+        if (!user) {
+          // Auto-signup with wallet address
+          const res = await apiClient.post('/api/auth/signup', {
+            email: `${walletAddress}@ton.wallet`,
+            password: crypto.randomUUID(), // Random password
           });
-          return;
-        }
 
-        toast({
-          title: "Wallet Connected! 🎮",
-          description: "Account created with your TON wallet",
-        });
-      } else {
-        // Update existing user profile with wallet
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ wallet_address: walletAddress })
-          .eq('user_id', user.id);
+          const newUser = res.data;
 
-        if (!updateError) {
+          // Also update the profile with the wallet address
+          await apiClient.put('/api/profiles/me', {
+            wallet_address: walletAddress,
+            full_name: `TON User ${walletAddress.slice(0, 6)}`,
+          });
+
+          toast({
+            title: "Wallet Connected! 🎮",
+            description: "Account created with your TON wallet",
+          });
+        } else {
+          // Update existing user profile with wallet
+          await apiClient.put('/api/profiles/me', {
+            wallet_address: walletAddress
+          });
+
           toast({
             title: "Wallet Linked! 🎮",
             description: "Your TON wallet is now connected",
           });
         }
+      } catch (error) {
+        // Handle errors silently
       }
     };
 
     linkWalletToProfile();
-  }, [wallet, toast]);
+  }, [wallet, toast, user]);
 
   return (
     <Card className="p-6 bg-gray-900/50 border-neon-green/30">
@@ -68,7 +62,7 @@ export function WalletConnect() {
         <div className="text-center space-y-2">
           <h3 className="text-xl font-bold text-white">Connect TON Wallet</h3>
           <p className="text-sm text-gray-400">
-            {typeof window !== 'undefined' && window.innerWidth <= 768 
+            {typeof window !== 'undefined' && window.innerWidth <= 768
               ? 'Connect your TON wallet to access the game grid'
               : 'Scan QR code with mobile wallet or install Tonkeeper extension'}
           </p>

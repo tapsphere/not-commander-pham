@@ -5,7 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AriaButton } from '@/components/AriaButton';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiClient } from '@/api/client';
 import profileImage from '@/assets/profile-nitin.jpeg';
 
 type GameResult = {
@@ -16,66 +17,66 @@ type GameResult = {
 };
 
 const mockCompetencies = [
-  { 
-    name: 'Analytical Thinking / Critical Reasoning', 
-    department: 'Operations', 
-    level: 'mastery', 
+  {
+    name: 'Analytical Thinking / Critical Reasoning',
+    department: 'Operations',
+    level: 'mastery',
     progress: 100,
     subCompetencies: 6,
     validator: 'Advanced Ops Puzzle'
   },
-  { 
-    name: 'AI & Big Data Skills', 
-    department: 'All Departments', 
-    level: 'proficient', 
+  {
+    name: 'AI & Big Data Skills',
+    department: 'All Departments',
+    level: 'proficient',
     progress: 75,
     subCompetencies: 5,
     validator: 'AI Data Symphony'
   },
-  { 
-    name: 'Technological Literacy', 
-    department: 'Operations', 
-    level: 'mastery', 
+  {
+    name: 'Technological Literacy',
+    department: 'Operations',
+    level: 'mastery',
     progress: 100,
     subCompetencies: 4,
     validator: 'Tech Stack Challenge'
   },
-  { 
-    name: 'Creative Thinking', 
-    department: 'Marketing', 
-    level: 'proficient', 
+  {
+    name: 'Creative Thinking',
+    department: 'Marketing',
+    level: 'proficient',
     progress: 80,
     subCompetencies: 5,
     validator: 'Innovation Sprint'
   },
-  { 
-    name: 'Networks & Cybersecurity', 
-    department: 'IT/Security', 
-    level: 'needs-work', 
+  {
+    name: 'Networks & Cybersecurity',
+    department: 'IT/Security',
+    level: 'needs-work',
     progress: 45,
     subCompetencies: 6,
     validator: 'Security Defense Sim'
   },
-  { 
-    name: 'Resilience & Adaptability', 
-    department: 'All Departments', 
-    level: 'proficient', 
+  {
+    name: 'Resilience & Adaptability',
+    department: 'All Departments',
+    level: 'proficient',
     progress: 70,
     subCompetencies: 4,
     validator: 'Change Navigator'
   },
-  { 
-    name: 'Leadership & Social Influence', 
-    department: 'Management', 
-    level: 'mastery', 
+  {
+    name: 'Leadership & Social Influence',
+    department: 'Management',
+    level: 'mastery',
     progress: 95,
     subCompetencies: 5,
     validator: 'Team Dynamics Challenge'
   },
-  { 
-    name: 'Service Orientation', 
-    department: 'Customer Success', 
-    level: 'proficient', 
+  {
+    name: 'Service Orientation',
+    department: 'Customer Success',
+    level: 'proficient',
     progress: 65,
     subCompetencies: 4,
     validator: 'Customer Impact Scenarios'
@@ -112,26 +113,21 @@ const getLevelLabel = (level: string) => {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(1);
   const [gameResults, setGameResults] = useState<GameResult[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     loadGameResults();
   }, []);
-  
+
   const loadGameResults = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
-      const { data, error } = await supabase
-        .from('game_results')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+
+      const { data } = await apiClient.get('/games/results');
+
       setGameResults(data || []);
     } catch (error) {
       console.error('Failed to load game results:', error);
@@ -139,7 +135,7 @@ const Profile = () => {
       setLoading(false);
     }
   };
-  
+
   const masteryCount = gameResults.filter(r => r.proficiency_level === 'Mastery').length;
   const proficientCount = gameResults.filter(r => r.proficiency_level === 'Proficient').length;
   const badgesCount = masteryCount + proficientCount;
@@ -161,7 +157,7 @@ const Profile = () => {
     <div className="relative w-full min-h-screen bg-black pb-24">
       {/* ARIA Access Button */}
       <AriaButton />
-      
+
       {/* Header */}
       <div
         className="border-b-2 p-4"
@@ -193,9 +189,9 @@ const Profile = () => {
         <Card className="bg-black/50 border-2 p-6" style={{ borderColor: 'hsl(var(--neon-green))' }}>
           <div className="flex items-center gap-4 mb-6">
             <div className="w-20 h-20 rounded-full bg-black border-2 relative overflow-hidden group" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-              <img 
-                src={profileImage} 
-                alt="Nitin Kumar" 
+              <img
+                src={profileImage}
+                alt="Nitin Kumar"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform"
               />
             </div>
@@ -238,7 +234,7 @@ const Profile = () => {
             <Card className="bg-black/50 border-2 p-8 text-center" style={{ borderColor: 'hsl(var(--neon-green))' }}>
               <div className="text-4xl mb-4">🎮</div>
               <p className="text-gray-400 mb-4">No validators completed yet</p>
-              <button 
+              <button
                 onClick={() => navigate('/lobby')}
                 className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all"
                 style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
@@ -251,22 +247,22 @@ const Profile = () => {
               {gameResults.slice(0, 8).map((result, idx) => {
                 const isMastery = result.proficiency_level === 'Mastery';
                 const isProficient = result.proficiency_level === 'Proficient';
-                const borderColor = isMastery ? 'hsl(var(--neon-green))' : 
-                                   isProficient ? 'hsl(var(--neon-purple))' : 
-                                   'hsl(var(--neon-magenta))';
-                const glowClass = isMastery ? 'text-glow-green' : 
-                                 isProficient ? 'text-glow-purple' : 
-                                 'text-glow-magenta';
+                const borderColor = isMastery ? 'hsl(var(--neon-green))' :
+                  isProficient ? 'hsl(var(--neon-purple))' :
+                    'hsl(var(--neon-magenta))';
+                const glowClass = isMastery ? 'text-glow-green' :
+                  isProficient ? 'text-glow-purple' :
+                    'text-glow-magenta';
                 const icon = isMastery ? '🏆' : isProficient ? '⭐' : '📊';
-                
+
                 return (
-                  <Card 
-                    key={result.id} 
-                    className="bg-black/50 border-2 p-4 text-center hover:bg-black/70 transition-all cursor-pointer" 
+                  <Card
+                    key={result.id}
+                    className="bg-black/50 border-2 p-4 text-center hover:bg-black/70 transition-all cursor-pointer"
                     style={{ borderColor }}
                   >
                     <div className="text-4xl mb-2">{icon}</div>
-                    <div 
+                    <div
                       className={`font-bold text-sm mb-1 ${glowClass}`}
                       style={{ color: borderColor }}
                     >
@@ -297,39 +293,39 @@ const Profile = () => {
                 const isMastery = result.proficiency_level === 'Mastery';
                 const isProficient = result.proficiency_level === 'Proficient';
                 const isPass = result.scoring_metrics?.score >= 80;
-                const borderColor = isMastery ? 'hsl(var(--neon-green))' : 
-                                   isProficient ? 'hsl(var(--neon-purple))' : 
-                                   'hsl(var(--neon-magenta))';
+                const borderColor = isMastery ? 'hsl(var(--neon-green))' :
+                  isProficient ? 'hsl(var(--neon-purple))' :
+                    'hsl(var(--neon-magenta))';
                 const date = new Date(result.created_at);
                 const timeString = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                 const dateString = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                
+
                 return (
-                  <Card 
-                    key={result.id} 
-                    className="bg-black/50 border-2 p-4 hover:bg-black/70 transition-all" 
+                  <Card
+                    key={result.id}
+                    className="bg-black/50 border-2 p-4 hover:bg-black/70 transition-all"
                     style={{ borderColor: 'hsl(var(--neon-green))' }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
-                        <div 
+                        <div
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl border-2"
-                          style={{ 
+                          style={{
                             borderColor: borderColor,
                             backgroundColor: `${borderColor}20`
                           }}
                         >
                           {isMastery ? '🏆' : isProficient ? '⭐' : '📊'}
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-1">
                             <h4 className="font-bold text-white">
                               Priority Trade-Off Navigator
                             </h4>
-                            <Badge 
-                              className="border-2 text-xs" 
-                              style={{ 
+                            <Badge
+                              className="border-2 text-xs"
+                              style={{
                                 borderColor: borderColor,
                                 backgroundColor: `${borderColor}20`,
                                 color: borderColor
@@ -338,7 +334,7 @@ const Profile = () => {
                               {result.proficiency_level}
                             </Badge>
                           </div>
-                          
+
                           <div className="flex items-center gap-4 text-xs font-mono" style={{ color: 'hsl(var(--neon-green) / 0.6)' }}>
                             <span>{dateString} at {timeString}</span>
                             <span>•</span>
@@ -348,9 +344,9 @@ const Profile = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="text-right">
-                        <div 
+                        <div
                           className="text-3xl font-bold"
                           style={{ color: borderColor }}
                         >
@@ -408,9 +404,9 @@ const Profile = () => {
 
         {/* Portable Resume CTA */}
         <Card className="bg-black/50 border-2 p-6 text-center relative overflow-hidden group" style={{ borderColor: 'hsl(var(--neon-green))' }}>
-          <div 
+          <div
             className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity"
-            style={{ 
+            style={{
               background: 'radial-gradient(circle at center, hsl(var(--neon-green)), transparent 70%)'
             }}
           />
@@ -424,7 +420,7 @@ const Profile = () => {
             <p className="text-sm font-mono mb-4" style={{ color: 'hsl(var(--neon-green) / 0.7)' }}>
               Download immutable receipts & portable CBE resume
             </p>
-            <button 
+            <button
               className="px-6 py-2 border-2 rounded-lg font-mono font-bold hover:bg-primary/20 transition-all hover:scale-105"
               style={{ borderColor: 'hsl(var(--neon-green))', color: 'hsl(var(--neon-green))' }}
             >
@@ -435,7 +431,7 @@ const Profile = () => {
       </div>
 
       {/* Bottom Navigation Bar */}
-      <div 
+      <div
         className="fixed bottom-0 left-0 right-0 border-t-2 bg-black/95 backdrop-blur-lg z-50"
         style={{ borderColor: 'hsl(var(--neon-green))' }}
       >
@@ -446,7 +442,7 @@ const Profile = () => {
             const usePurple = index === 2;
             const accentColor = usePurple ? 'hsl(var(--neon-purple))' : 'hsl(var(--neon-green))';
             const glowClass = usePurple ? 'text-glow-purple' : 'text-glow-green';
-            
+
             return (
               <button
                 key={item.label}
@@ -454,25 +450,25 @@ const Profile = () => {
                 className="flex flex-col items-center gap-1 flex-1 max-w-[90px] group transition-all duration-300 relative"
               >
                 {isActive && (
-                  <div 
+                  <div
                     className="absolute inset-0 rounded-lg opacity-20 blur-md"
                     style={{ background: accentColor }}
                   />
                 )}
-                <div 
+                <div
                   className={`
                     relative p-2.5 rounded-lg border-2 transition-all duration-300
                     ${isActive ? 'bg-primary/20 scale-110' : 'border-transparent hover:bg-primary/10 hover:border-primary/30'}
                   `}
                   style={isActive ? { borderColor: accentColor } : {}}
                 >
-                  <Icon 
+                  <Icon
                     className={`w-5 h-5 md:w-6 md:h-6 transition-all duration-300 ${isActive ? glowClass : ''}`}
                     style={{ color: accentColor }}
                     strokeWidth={isActive ? 2.5 : 2}
                   />
                 </div>
-                <span 
+                <span
                   className={`text-[10px] md:text-xs font-mono transition-all duration-300 truncate w-full text-center ${isActive ? glowClass + ' font-bold' : ''}`}
                   style={{ color: accentColor }}
                 >

@@ -1,8 +1,8 @@
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { ReactNode, useEffect } from 'react';
 
-// Use hardcoded published URL for Telegram Mini App compatibility
-const manifestUrl = 'https://86589c2d-84a5-4b0a-9c24-5f5a77fb6135.lovableproject.com/tonconnect-manifest.json';
+// Use origin for development to support any port dynamically
+const manifestUrl = window.location.origin + '/tonconnect-manifest.json';
 
 interface TonConnectProviderProps {
   children: ReactNode;
@@ -22,7 +22,7 @@ export function TonConnectProvider({ children }: TonConnectProviderProps) {
   }, []);
 
   return (
-    <TonConnectUIProvider 
+    <TonConnectUIProvider
       manifestUrl={manifestUrl}
       actionsConfiguration={{
         twaReturnUrl: 'https://t.me/PlayOpsBot'

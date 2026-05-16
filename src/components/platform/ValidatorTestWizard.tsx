@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, AlertCircle, PlayCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface ValidatorTestWizardProps {
@@ -33,14 +34,15 @@ interface CheckResult {
   details: any;
 }
 
-export function ValidatorTestWizard({ 
-  open, 
-  onOpenChange, 
-  template, 
+export function ValidatorTestWizard({
+  open,
+  onOpenChange,
+  template,
   subCompetency,
   onComplete,
   demoMode = false
 }: ValidatorTestWizardProps) {
+  const { user } = useAuth();
   const [testing, setTesting] = useState(false);
   const [testComplete, setTestComplete] = useState(false);
   const [results, setResults] = useState<CheckResult[]>([]);
@@ -64,14 +66,14 @@ export function ValidatorTestWizard({
 
     try {
       setTesting(true);
-      
+
       // Demo mode: return mock passing results
       if (demoMode) {
         toast.info('🎬 Demo Mode: Simulating test execution');
-        
+
         // Simulate loading time
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         // Mock all 8 tests passing
         const mockResults: CheckResult[] = [
           {
@@ -131,7 +133,7 @@ export function ValidatorTestWizard({
             details: { telegram_ready: true }
           }
         ];
-        
+
         setResults(mockResults);
         setOverallStatus('passed');
         setTestComplete(true);
@@ -139,16 +141,11 @@ export function ValidatorTestWizard({
         setTesting(false);
         return;
       }
-      
-      const { data: { user } } = await supabase.auth.getUser();
+
       if (!user) throw new Error('Not authenticated');
 
       // Step 1: Check if we need to generate the game first
-      const { data: templateData } = await supabase
-        .from('game_templates')
-        .select('template_type, game_config, selected_sub_competencies, base_prompt, design_settings')
-        .eq('id', template.id)
-        .single();
+      const { data: templateData } = await apiClient.get(`/templates/${template.id}`);
 
       const isAiGenerated = templateData?.template_type === 'ai_generated';
       const gameConfig = templateData?.game_config as any;
@@ -163,17 +160,13 @@ export function ValidatorTestWizard({
         // Get design settings (per-game or creator default)
         let designPalette: any = null;
         let particleEffect = 'sparkles';
-        
+
         if (templateData.design_settings) {
           designPalette = templateData.design_settings;
           particleEffect = designPalette.particleEffect || 'sparkles';
         } else {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('design_palette, default_particle_effect')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          
+          const { data: profile } = await apiClient.get('/profiles/me');
+
           designPalette = profile?.design_palette || {
             primary: '#C8DBDB',
             secondary: '#6C8FA4',
@@ -188,40 +181,38 @@ export function ValidatorTestWizard({
 
         // Fetch sub-competency data
         const subCompIds = templateData.selected_sub_competencies || [];
-        const { data: subComps } = await supabase
-          .from('sub_competencies')
-          .select('*')
-          .in('id', subCompIds);
+        const idsQuery = subCompIds.length ? `in.(${subCompIds.join(',')})` : '';
+        const { data: subComps } = await apiClient.get(
+          idsQuery ? `/framework/sub-competencies?id=${idsQuery}` : '/framework/sub-competencies'
+        );
 
         // Generate the game
-        const response = await supabase.functions.invoke('generate-game', {
-          body: {
-            templatePrompt: templateData.base_prompt,
-            primaryColor: designPalette.primary,
-            secondaryColor: designPalette.secondary,
-            accentColor: designPalette.accent,
-            backgroundColor: designPalette.background,
-            highlightColor: designPalette.highlight,
-            textColor: designPalette.text,
-            fontFamily: designPalette.font,
-            particleEffect: particleEffect,
-            logoUrl: null,
-            customizationId: null,
-            previewMode: false,
-            subCompetencies: subComps || []
-          }
+        const { data: response } = await apiClient.post('/games/generate-game', {
+          templatePrompt: templateData.base_prompt,
+          primaryColor: designPalette.primary,
+          secondaryColor: designPalette.secondary,
+          accentColor: designPalette.accent,
+          backgroundColor: designPalette.background,
+          highlightColor: designPalette.highlight,
+          textColor: designPalette.text,
+          fontFamily: designPalette.font,
+          particleEffect: particleEffect,
+          logoUrl: null,
+          customizationId: null,
+          previewMode: false,
+          subCompetencies: subComps || []
         });
 
         // Check for errors and extract error message properly
         if (response.error) {
           // Try multiple ways to extract the error message
-          const errorMsg = 
-            response.data?.error || 
+          const errorMsg =
+            response.data?.error ||
             (typeof response.error === 'string' ? response.error : response.error?.message) ||
             'Unknown error';
-          
+
           console.error('Game generation error:', { error: response.error, data: response.data, errorMsg });
-          
+
           // Check for specific error types
           if (errorMsg.includes('credits depleted') || errorMsg.includes('AI credits') || errorMsg.includes('402')) {
             throw new Error('❌ AI credits depleted. Please add credits to continue.\n\nGo to Settings → Usage to add more credits.');
@@ -230,29 +221,24 @@ export function ValidatorTestWizard({
           } else if (errorMsg.includes('429') || errorMsg.includes('Rate limit')) {
             throw new Error('⏳ Rate limit exceeded. Please wait a moment and try again.');
           }
-          
+
           throw new Error('Failed to generate game: ' + errorMsg);
         }
-        
-        if (!response.data?.generatedHtml && !response.data?.html) {
+
+        if (!response?.generatedHtml && !response?.html) {
           throw new Error('No HTML received from game generator');
         }
 
         // Save the generated HTML to the template
-        const generatedHtml = response.data.generatedHtml || response.data.html;
+        const generatedHtml = response.generatedHtml || response.html;
         const updatedGameConfig = {
           ...(typeof gameConfig === 'object' ? gameConfig : {}),
           generated_html: generatedHtml
         };
-        
-        const { error: updateError } = await supabase
-          .from('game_templates')
-          .update({
-            game_config: updatedGameConfig as any
-          })
-          .eq('id', template.id);
 
-        if (updateError) throw new Error('Failed to save generated game: ' + updateError.message);
+        await apiClient.put(`/templates/${template.id}`, {
+          game_config: updatedGameConfig
+        });
 
         toast.success('✅ Game generated successfully!');
       }
@@ -262,15 +248,11 @@ export function ValidatorTestWizard({
         description: 'Testing all 8 validation checks'
       });
 
-      const { data, error } = await supabase.functions.invoke('stress-test-validator', {
-        body: {
-          templateId: template.id,
-          subCompetencyId: subCompetency?.id || null,
-          testerId: user.id
-        }
+      const { data } = await apiClient.post('/games/stress-test-validator', {
+        templateId: template.id,
+        subCompetencyId: subCompetency?.id || null,
+        testerId: user.id
       });
-
-      if (error) throw error;
 
       // Update local state with results
       setResults(data.results);
@@ -291,9 +273,9 @@ export function ValidatorTestWizard({
           description: 'Some checks need attention'
         });
       }
-      
+
       onComplete();
-      
+
     } catch (error: any) {
       console.error('Automated test error:', error);
       toast.error('Failed to run automated tests: ' + error.message);
@@ -373,7 +355,7 @@ export function ValidatorTestWizard({
               </div>
             )}
             <p className="text-muted-foreground">
-              This will run 8 comprehensive checks including scene structure, UX/UI integrity, 
+              This will run 8 comprehensive checks including scene structure, UX/UI integrity,
               Telegram compliance, configuration validation, and more.
             </p>
             <Button
@@ -407,11 +389,11 @@ export function ValidatorTestWizard({
                     Overall Status: {overallStatus.replace('_', ' ').toUpperCase()}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {overallStatus === 'passed' 
-                      ? '✅ All checks passed! Ready for publishing.' 
+                    {overallStatus === 'passed'
+                      ? '✅ All checks passed! Ready for publishing.'
                       : overallStatus === 'failed'
-                      ? '❌ Critical issues found. Review and fix before publishing.'
-                      : '⚠️ Manual review required for some checks.'}
+                        ? '❌ Critical issues found. Review and fix before publishing.'
+                        : '⚠️ Manual review required for some checks.'}
                   </p>
                 </div>
               </div>

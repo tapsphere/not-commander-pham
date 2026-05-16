@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,33 +53,29 @@ export const BrandCustomizationDialog = ({
   const [editablePrompt, setEditablePrompt] = useState('');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
+  const { user: currentUser } = useAuth();
+
   // Load creator's profile defaults ONLY for avatar/particles, NOT colors
   useEffect(() => {
     const loadCreatorDefaults = async () => {
       if (!open || !template.id) return;
-      
+
       setLoadingDefaults(true);
       try {
         // Get template creator's profile to load defaults
-        const { data: templateData } = await supabase
-          .from('game_templates')
-          .select('creator_id')
-          .eq('id', template.id)
-          .single();
+        const templateRes = await apiClient.get(`/api/templates/${template.id}`);
+        const templateData = templateRes.data;
 
         if (templateData?.creator_id) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('default_particle_effect, game_avatar_url, mascot_animation_type')
-            .eq('user_id', templateData.creator_id)
-            .single();
+          const profileRes = await apiClient.get(`/api/profiles/${templateData.creator_id}`);
+          const profileData = profileRes.data;
 
           if (profileData) {
             // Load particle effect default
             if (profileData.default_particle_effect) {
               setParticleEffect(profileData.default_particle_effect);
             }
-            
+
             // Load game avatar default
             if (profileData.game_avatar_url) {
               setAvatarPreview(profileData.game_avatar_url);
@@ -100,7 +97,7 @@ export const BrandCustomizationDialog = ({
   useEffect(() => {
     if (template.base_prompt && !editablePrompt) {
       let prompt = template.base_prompt;
-      
+
       // If we have course info, append it to the prompt
       if (courseInfo) {
         const courseContext = `
@@ -110,18 +107,18 @@ export const BrandCustomizationDialog = ({
 This validator is being customized for the course: "${courseInfo.courseName}"
 
 Mapped Competencies:
-${courseInfo.competencyMappings.map((mapping: any, idx: number) => 
-  `${idx + 1}. ${mapping.sub_competency || mapping.competency}
+${courseInfo.competencyMappings.map((mapping: any, idx: number) =>
+          `${idx + 1}. ${mapping.sub_competency || mapping.competency}
    Domain: ${mapping.domain}
    Alignment: ${mapping.alignment_summary}
    Evidence Metric: ${mapping.evidence_metric}`
-).join('\n\n')}
+        ).join('\n\n')}
 
 Please ensure the validator content and scenarios are relevant to this course material.
 `;
         prompt = prompt + courseContext;
       }
-      
+
       setEditablePrompt(prompt);
     }
   }, [template, courseInfo]);
@@ -189,7 +186,7 @@ UI Styling Instructions:
     }
 
     setLogoFile(file);
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
       setLogoPreview(e.target?.result as string);
@@ -212,7 +209,7 @@ UI Styling Instructions:
     }
 
     setCoverPhotoFile(file);
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
       setCoverPhotoPreview(e.target?.result as string);
@@ -235,7 +232,7 @@ UI Styling Instructions:
     }
 
     setAvatarFile(file);
-    
+
     const reader = new FileReader();
     reader.onload = (e) => {
       setAvatarPreview(e.target?.result as string);
@@ -247,8 +244,7 @@ UI Styling Instructions:
   const handleSaveCustomization = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!currentUser) throw new Error('Not authenticated');
 
       let logoUrl = null;
       let coverPhotoUrl = null;
@@ -256,82 +252,59 @@ UI Styling Instructions:
 
       // Upload logo if provided
       if (logoFile) {
-        const fileName = `${user.id}/${Date.now()}-${logoFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('brand-logos')
-          .upload(fileName, logoFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('brand-logos')
-          .getPublicUrl(fileName);
-
-        logoUrl = publicUrl;
+        const formData = new FormData();
+        formData.append('file', logoFile);
+        const uploadRes = await apiClient.post('/api/storage/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        logoUrl = uploadRes.data.url;
       }
 
       // Upload cover photo if provided
       if (coverPhotoFile) {
-        const fileName = `${user.id}/cover-${Date.now()}-${coverPhotoFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('brand-logos')
-          .upload(fileName, coverPhotoFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('brand-logos')
-          .getPublicUrl(fileName);
-
-        coverPhotoUrl = publicUrl;
+        const formData = new FormData();
+        formData.append('file', coverPhotoFile);
+        const uploadRes = await apiClient.post('/api/storage/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        coverPhotoUrl = uploadRes.data.url;
       }
 
       // Upload avatar if provided
       if (avatarFile) {
-        const fileName = `${user.id}/avatar-${Date.now()}-${avatarFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('brand-logos')
-          .upload(fileName, avatarFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('brand-logos')
-          .getPublicUrl(fileName);
-
-        avatarUrl = publicUrl;
+        const formData = new FormData();
+        formData.append('file', avatarFile);
+        const uploadRes = await apiClient.post('/api/storage/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        avatarUrl = uploadRes.data.url;
       }
 
       // Save customization
-      const { data: customizationData, error } = await supabase
-        .from('brand_customizations')
-        .insert({
-          brand_id: user.id,
-          template_id: template.id,
-          primary_color: primaryColor,
-          secondary_color: secondaryColor,
-          accent_color: accentColor,
-          background_color: backgroundColor,
-          highlight_color: highlightColor,
-          text_color: textColor,
-          font_family: fontFamily,
-          logo_url: logoUrl,
-          cover_photo_url: coverPhotoUrl,
-          avatar_url: avatarUrl,
-          particle_effect: particleEffect,
-          mascot_animation_type: mascotAnimationType,
-          customization_prompt: generatedPrompt,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const custRes = await apiClient.post('/api/customizations/', {
+        brand_id: currentUser.id,
+        template_id: template.id,
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        accent_color: accentColor,
+        background_color: backgroundColor,
+        highlight_color: highlightColor,
+        text_color: textColor,
+        font_family: fontFamily,
+        logo_url: logoUrl,
+        cover_photo_url: coverPhotoUrl,
+        avatar_url: avatarUrl,
+        particle_effect: particleEffect,
+        mascot_animation_type: mascotAnimationType,
+        customization_prompt: generatedPrompt,
+      });
+      const customizationData = custRes.data;
 
       toast.success('Customization saved! Generating your game...');
 
       // Call edge function to generate game
-      const { data: gameData, error: gameError } = await supabase.functions.invoke('generate-game', {
-        body: {
+      try {
+        await apiClient.post('/api/games/generate-game', {
           templatePrompt: editablePrompt,
           primaryColor,
           secondaryColor,
@@ -346,14 +319,11 @@ UI Styling Instructions:
           mascotAnimationType,
           customizationId: customizationData.id,
           previewMode: false, // Ensure it saves to database
-        }
-      });
-
-      if (gameError) {
+        });
+        toast.success('Game generated successfully! 🎮');
+      } catch (gameError) {
         console.error('Game generation error:', gameError);
         toast.error('Game generation failed. You can try again later from your dashboard.');
-      } else {
-        toast.success('Game generated successfully! 🎮');
       }
 
       onSuccess();
@@ -394,7 +364,7 @@ UI Styling Instructions:
                 Reset to Original
               </Button>
             </div>
-            
+
             <Textarea
               value={editablePrompt}
               onChange={(e) => setEditablePrompt(e.target.value)}
@@ -402,7 +372,7 @@ UI Styling Instructions:
               className="bg-gray-800 border-gray-700 font-mono text-sm"
               placeholder="Edit the validator design prompt here..."
             />
-            
+
             <p className="text-xs text-gray-400">
               Edit this prompt to customize the validator for your brand. Add specific requirements, adjust the theme, or modify the gameplay mechanics.
             </p>
@@ -414,7 +384,7 @@ UI Styling Instructions:
               <Palette className="h-5 w-5 text-neon-green" />
               Brand Colors
             </h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="primaryColor">Primary Color</Label>
@@ -546,58 +516,58 @@ UI Styling Instructions:
                 Enter a Google Font name or system font stack
               </p>
             </div>
-            </div>
+          </div>
 
-            {/* Color Preview */}
-            <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mt-4">
-              <p className="text-sm text-gray-400 mb-3">Color Palette Preview:</p>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div
-                    className="w-20 h-20 rounded-lg border-2 mx-auto"
-                    style={{ backgroundColor: primaryColor, borderColor: primaryColor }}
-                  />
-                  <p className="text-xs text-gray-400 mt-2">Primary</p>
+          {/* Color Preview */}
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mt-4">
+            <p className="text-sm text-gray-400 mb-3">Color Palette Preview:</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 mx-auto"
+                  style={{ backgroundColor: primaryColor, borderColor: primaryColor }}
+                />
+                <p className="text-xs text-gray-400 mt-2">Primary</p>
+              </div>
+              <div className="text-center">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 mx-auto"
+                  style={{ backgroundColor: secondaryColor, borderColor: secondaryColor }}
+                />
+                <p className="text-xs text-gray-400 mt-2">Secondary</p>
+              </div>
+              <div className="text-center">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 mx-auto"
+                  style={{ backgroundColor: accentColor, borderColor: accentColor }}
+                />
+                <p className="text-xs text-gray-400 mt-2">Accent</p>
+              </div>
+              <div className="text-center">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 mx-auto"
+                  style={{ backgroundColor: backgroundColor, borderColor: backgroundColor }}
+                />
+                <p className="text-xs text-gray-400 mt-2">Background</p>
+              </div>
+              <div className="text-center">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 mx-auto"
+                  style={{ backgroundColor: highlightColor, borderColor: highlightColor }}
+                />
+                <p className="text-xs text-gray-400 mt-2">Highlight</p>
+              </div>
+              <div className="text-center">
+                <div
+                  className="w-20 h-20 rounded-lg border-2 mx-auto flex items-center justify-center"
+                  style={{ backgroundColor: backgroundColor, borderColor: textColor }}
+                >
+                  <span style={{ color: textColor, fontFamily }}>Aa</span>
                 </div>
-                <div className="text-center">
-                  <div
-                    className="w-20 h-20 rounded-lg border-2 mx-auto"
-                    style={{ backgroundColor: secondaryColor, borderColor: secondaryColor }}
-                  />
-                  <p className="text-xs text-gray-400 mt-2">Secondary</p>
-                </div>
-                <div className="text-center">
-                  <div
-                    className="w-20 h-20 rounded-lg border-2 mx-auto"
-                    style={{ backgroundColor: accentColor, borderColor: accentColor }}
-                  />
-                  <p className="text-xs text-gray-400 mt-2">Accent</p>
-                </div>
-                <div className="text-center">
-                  <div
-                    className="w-20 h-20 rounded-lg border-2 mx-auto"
-                    style={{ backgroundColor: backgroundColor, borderColor: backgroundColor }}
-                  />
-                  <p className="text-xs text-gray-400 mt-2">Background</p>
-                </div>
-                <div className="text-center">
-                  <div
-                    className="w-20 h-20 rounded-lg border-2 mx-auto"
-                    style={{ backgroundColor: highlightColor, borderColor: highlightColor }}
-                  />
-                  <p className="text-xs text-gray-400 mt-2">Highlight</p>
-                </div>
-                <div className="text-center">
-                  <div
-                    className="w-20 h-20 rounded-lg border-2 mx-auto flex items-center justify-center"
-                    style={{ backgroundColor: backgroundColor, borderColor: textColor }}
-                  >
-                    <span style={{ color: textColor, fontFamily }}>Aa</span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-2">Text</p>
-                </div>
+                <p className="text-xs text-gray-400 mt-2">Text</p>
               </div>
             </div>
+          </div>
 
           {/* Logo Upload */}
           <div className="space-y-4">
@@ -685,7 +655,7 @@ UI Styling Instructions:
               ) : (
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
                   <p className="text-sm text-gray-400 mb-2">Default Cover:</p>
-                  <div 
+                  <div
                     className="w-full bg-black flex items-center justify-center rounded"
                     style={{ aspectRatio: '16/9', height: '150px' }}
                   >
@@ -741,11 +711,10 @@ UI Styling Instructions:
                   key={effect.value}
                   type="button"
                   onClick={() => setParticleEffect(effect.value)}
-                  className={`p-6 rounded-lg border-2 transition-all text-center ${
-                    particleEffect === effect.value
+                  className={`p-6 rounded-lg border-2 transition-all text-center ${particleEffect === effect.value
                       ? 'border-neon-green bg-gray-800 text-white'
                       : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
-                  }`}
+                    }`}
                 >
                   <div className="text-5xl mb-2">{effect.label}</div>
                   <div className="text-sm">{effect.desc}</div>

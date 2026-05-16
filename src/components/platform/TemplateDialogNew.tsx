@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ChevronLeft, ChevronRight, Check, Eye, Loader2 } from 'lucide-react';
-import { 
+import {
   TemplateStepIdentity,
   TemplateStepFramework,
   TemplateStepSceneBuilder,
@@ -50,47 +51,45 @@ const STEPS = [
   { id: 4, title: 'Brand Skin', description: 'Colors & fonts' },
 ];
 
-export function TemplateDialogNew({ 
-  open, 
-  onOpenChange, 
-  template, 
-  onSuccess, 
+export function TemplateDialogNew({
+  open,
+  onOpenChange,
+  template,
+  onSuccess,
   onTemplateCreated,
-  demoMode = false 
+  demoMode = false
 }: TemplateDialogNewProps) {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [designSettings, setDesignSettings] = useState<DesignSettings>(DEFAULT_DESIGN_SETTINGS);
-  
+
   // Competency state
   const [competencies, setCompetencies] = useState<Competency[]>([]);
   const [subCompetencies, setSubCompetencies] = useState<SubCompetency[]>([]);
   const [selectedCompetency, setSelectedCompetency] = useState('');
   const [selectedSubCompetencies, setSelectedSubCompetencies] = useState<string[]>([]);
-  
+
   // Scene state
   const [scenes, setScenes] = useState<SceneData[]>([]);
 
   // Fetch competencies on mount
   useEffect(() => {
     const fetchCompetencies = async () => {
-      const { data, error } = await supabase
-        .from('master_competencies')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-      
-      if (!error && data) {
-        setCompetencies(data);
+      try {
+        const { data } = await apiClient.get('/api/framework/competencies');
+        setCompetencies(data.filter((c: Record<string, unknown>) => c.is_active));
+      } catch (error) {
+        console.error('Failed to fetch competencies', error);
       }
     };
-    
+
     fetchCompetencies();
   }, []);
 
@@ -104,17 +103,15 @@ export function TemplateDialogNew({
     }
 
     const fetchSubCompetencies = async () => {
-      const { data, error } = await supabase
-        .from('sub_competencies')
-        .select('*')
-        .eq('competency_id', selectedCompetency)
-        .order('display_order', { nullsFirst: false });
-      
-      if (!error && data) {
-        setSubCompetencies(data);
+      try {
+        const { data } = await apiClient.get<SubCompetency[]>('/api/framework/sub-competencies?competency_id=' + selectedCompetency);
+        // Assuming API might not sort by display_order, but we can do it client side just in case
+        setSubCompetencies(data.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
+      } catch (error) {
+        console.error('Failed to fetch sub-competencies', error);
       }
     };
-    
+
     fetchSubCompetencies();
   }, [selectedCompetency]);
 
@@ -168,29 +165,26 @@ export function TemplateDialogNew({
     try {
       // Build prompt from scenes
       const prompt = buildPromptFromScenes();
-      
+
       if (demoMode) {
         toast.success('Demo preview would open here! 🎮');
         return;
       }
 
-      const response = await supabase.functions.invoke('generate-game', {
-        body: {
-          templatePrompt: prompt,
-          primaryColor: designSettings.primary,
-          secondaryColor: designSettings.secondary,
-          previewMode: true,
-          subCompetencies: selectedSubCompetencies.map(id => 
-            subCompetencies.find(s => s.id === id)
-          ).filter(Boolean),
-        }
+      const res = await apiClient.post('/api/games/generate-game', {
+        templatePrompt: prompt,
+        primaryColor: designSettings.primary,
+        secondaryColor: designSettings.secondary,
+        previewMode: true,
+        subCompetencies: selectedSubCompetencies.map(id =>
+          subCompetencies.find(s => s.id === id)
+        ).filter(Boolean),
       });
 
-      if (response.error) throw new Error(response.error.message);
-      
-      if (response.data?.html || response.data?.generatedHtml) {
+      const data = res.data;
+      if (data?.html || data?.generatedHtml) {
         // Open preview in new window
-        const html = response.data.html || response.data.generatedHtml;
+        const html = data.html || data.generatedHtml;
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
@@ -208,7 +202,7 @@ export function TemplateDialogNew({
       const sub = subCompetencies.find(s => s.id === scene.subCompetencyId);
       const correctChoices = scene.choices.filter(c => c.isCorrect).map(c => c.text);
       const incorrectChoices = scene.choices.filter(c => !c.isCorrect).map(c => c.text);
-      
+
       return `
 Scene ${idx + 1} (${scene.timeLimit}s):
 - Action Cue: ${sub?.action_cue || 'Not specified'}
@@ -239,7 +233,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
     try {
       if (demoMode) {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
         if (onTemplateCreated) {
           onTemplateCreated({
             id: `demo-${Date.now()}`,
@@ -251,32 +245,24 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             design_settings: designSettings,
           });
         }
-        
+
         toast.success('Template created!');
         onSuccess();
         onOpenChange(false);
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       // Upload cover image if provided
       let coverImageUrl = null;
       if (coverImageFile) {
-        const fileExt = coverImageFile.name.split('.').pop();
-        const fileName = `${user.id}/cover-${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('validator-previews')
-          .upload(fileName, coverImageFile);
-
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('validator-previews')
-            .getPublicUrl(fileName);
-          coverImageUrl = publicUrl;
-        }
+        const uploadData = new FormData();
+        uploadData.append('file', coverImageFile);
+        const uploadRes = await apiClient.post('/api/storage/upload', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        coverImageUrl = uploadRes.data.url;
       }
 
       const templateData = {
@@ -301,24 +287,14 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       };
 
       if (template?.id) {
-        const { error } = await supabase
-          .from('game_templates')
-          .update(templateData as any)
-          .eq('id', template.id);
-        
-        if (error) throw error;
+        await apiClient.put(`/api/templates/${template.id}`, templateData);
         toast.success('Template updated!');
       } else {
-        const { data: newTemplate, error } = await supabase
-          .from('game_templates')
-          .insert(templateData as any)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        
+        const res = await apiClient.post('/api/templates', templateData);
+        const newTemplate = res.data;
+
         toast.success('Template created!');
-        
+
         if (onTemplateCreated && newTemplate) {
           onTemplateCreated({
             id: newTemplate.id,
@@ -334,7 +310,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
 
       onSuccess();
       onOpenChange(false);
-      
+
       // Reset state
       setFormData(DEFAULT_FORM_DATA);
       setScenes([]);
@@ -342,7 +318,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       setSelectedCompetency('');
       setDesignSettings(DEFAULT_DESIGN_SETTINGS);
       setCurrentStep(1);
-      
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -411,24 +387,22 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
               <DialogTitle className="text-foreground">
                 {template ? 'Edit Template' : 'Create Validator Template'}
               </DialogTitle>
-              
+
               {/* Step Indicator */}
               <div className="flex items-center gap-2 mt-4">
                 {STEPS.map((step, idx) => (
                   <div key={step.id} className="flex items-center">
                     <button
                       onClick={() => setCurrentStep(step.id)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
-                        currentStep === step.id
-                          ? 'bg-primary text-primary-foreground'
-                          : currentStep > step.id
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${currentStep === step.id
+                        ? 'bg-primary text-primary-foreground'
+                        : currentStep > step.id
                           ? 'bg-primary/20 text-primary'
                           : 'bg-muted text-muted-foreground'
-                      }`}
+                        }`}
                     >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        currentStep > step.id ? 'bg-primary text-primary-foreground' : ''
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${currentStep > step.id ? 'bg-primary text-primary-foreground' : ''
+                        }`}>
                         {currentStep > step.id ? <Check className="h-3 w-3" /> : step.id}
                       </div>
                       <div className="hidden sm:block text-left">
@@ -437,9 +411,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                       </div>
                     </button>
                     {idx < STEPS.length - 1 && (
-                      <div className={`w-8 h-0.5 mx-1 ${
-                        currentStep > step.id ? 'bg-primary' : 'bg-muted'
-                      }`} />
+                      <div className={`w-8 h-0.5 mx-1 ${currentStep > step.id ? 'bg-primary' : 'bg-muted'
+                        }`} />
                     )}
                   </div>
                 ))}

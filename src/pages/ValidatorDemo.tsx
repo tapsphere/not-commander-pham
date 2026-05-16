@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { MobileViewport } from '@/components/MobileViewport';
 import {
@@ -47,15 +48,16 @@ type GameRound = 1 | 2 | 3;
 
 export default function ValidatorDemo() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'edge-case' | 'results'>('intro');
-  
+
   /**
    * Timer Management
    * Starts at 180 seconds (3 minutes) and counts down to 0
    * Game automatically ends when timer reaches 0
    */
   const [timeLeft, setTimeLeft] = useState(180);
-  
+
   /**
    * Round Tracking
    * Round 1: 180-121s (Initial KPI assessment)
@@ -63,11 +65,11 @@ export default function ValidatorDemo() {
    * Round 3: 60-0s (Edge case crisis management)
    */
   const [currentRound, setCurrentRound] = useState<GameRound>(1);
-  
+
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [edgeCaseTriggered, setEdgeCaseTriggered] = useState(false);
   const [score, setScore] = useState(0);
-  
+
   /**
    * Competency Feedback System
    * Stores feedback for each player action to provide transparent grading
@@ -75,7 +77,7 @@ export default function ValidatorDemo() {
   const [feedbackHistory, setFeedbackHistory] = useState<CompetencyFeedback[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState<CompetencyFeedback | null>(null);
-  
+
   const [kpis, setKpis] = useState<KPI[]>([
     { id: '1', name: 'User Retention', value: 78, trend: 'down' },
     { id: '2', name: 'Revenue', value: 92, trend: 'stable' },
@@ -94,7 +96,7 @@ export default function ValidatorDemo() {
    */
   useEffect(() => {
     if (gameState !== 'playing' && gameState !== 'edge-case') return;
-    
+
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -117,13 +119,13 @@ export default function ValidatorDemo() {
    */
   useEffect(() => {
     if (gameState !== 'playing' && gameState !== 'edge-case') return;
-    
+
     // Transition to Round 2 at 120s
     if (timeLeft === 120 && currentRound === 1) {
       setCurrentRound(2);
       toast.info('Round 2: KPI values are becoming more volatile!');
     }
-    
+
     // Transition to Round 3 at 60s (edge case)
     if (timeLeft === 60 && currentRound === 2 && !edgeCaseTriggered) {
       setEdgeCaseTriggered(true);
@@ -141,16 +143,16 @@ export default function ValidatorDemo() {
    */
   useEffect(() => {
     if (gameState !== 'playing' && gameState !== 'edge-case') return;
-    
+
     // Volatility increases with each round
     const volatility = currentRound === 1 ? 2 : currentRound === 2 ? 5 : 8;
-    
+
     const interval = setInterval(() => {
       setKpis(prev => prev.map(kpi => ({
         ...kpi,
         value: Math.max(0, Math.min(100, kpi.value + (Math.random() - 0.5) * volatility)),
       })));
-      
+
       setRankedKpis(prev => prev.map(kpi => ({
         ...kpi,
         value: Math.max(0, Math.min(100, kpi.value + (Math.random() - 0.5) * volatility)),
@@ -164,7 +166,7 @@ export default function ValidatorDemo() {
     // Sub-competencies for this validator (Pass/Fail logic)
     let passes = 0;
     const totalSubs = 5;
-    
+
     const subResults = {
       identifiedMetrics: rankedKpis.length >= 2,
       prioritizedCritical: rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6'),
@@ -172,47 +174,39 @@ export default function ValidatorDemo() {
       completedAnalysis: rankedKpis.length === 6,
       edgeCaseHandled: edgeCaseTriggered && rankedKpis[0]?.id === '2'
     };
-    
+
     // Count passes
     passes = Object.values(subResults).filter(Boolean).length;
-    
+
     // Final score = (passes / total_subs) × 100%
     const finalScore = Math.round((passes / totalSubs) * 100);
     setScore(finalScore);
-    
+
     // Save to database
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const proficiencyLevel = 
+        const proficiencyLevel =
           finalScore >= 95 && subResults.edgeCaseHandled ? 'Mastery' :
-          finalScore >= 80 ? 'Proficient' :
-          'Needs Work';
-        
-        const { error } = await supabase
-          .from('game_results')
-          .insert({
-            user_id: user.id,
-            passed: finalScore >= 80,
-            proficiency_level: proficiencyLevel,
-            scoring_metrics: {
-              score: finalScore,
-              passes: passes,
-              totalSubs: totalSubs,
-              subResults: subResults,
-              timeRemaining: timeLeft
-            },
-            gameplay_data: {
-              rankedKpis: rankedKpis.map(k => k.name),
-              edgeCaseTriggered: edgeCaseTriggered
-            }
-          });
-        
-        if (error) {
-          console.error('Failed to save result:', error);
-        } else {
-          toast.success('Result saved to your profile!');
-        }
+            finalScore >= 80 ? 'Proficient' :
+              'Needs Work';
+
+        await apiClient.post('/games/results', {
+          passed: finalScore >= 80,
+          proficiency_level: proficiencyLevel,
+          scoring_metrics: {
+            score: finalScore,
+            passes: passes,
+            totalSubs: totalSubs,
+            subResults: subResults,
+            timeRemaining: timeLeft
+          },
+          gameplay_data: {
+            rankedKpis: rankedKpis.map(k => k.name),
+            edgeCaseTriggered: edgeCaseTriggered
+          }
+        });
+
+        toast.success('Result saved to your profile!');
       }
     } catch (error) {
       console.error('Error saving result:', error);
@@ -239,7 +233,7 @@ export default function ValidatorDemo() {
     const isDeclining = kpi.trend === 'down';
     const isRevenue = kpi.id === '2';
     const isInRound3 = currentRound === 3;
-    
+
     if (action === 'ranked') {
       // Exemplary (4): Correctly prioritizes critical declining metrics
       if (isCritical && rankedKpis.length < 3) {
@@ -250,7 +244,7 @@ export default function ValidatorDemo() {
           improvement: 'Continue identifying high-impact metrics that affect system stability.'
         };
       }
-      
+
       // Proficient (3): Addresses declining metrics appropriately
       if (isDeclining && rankedKpis.length < 4) {
         return {
@@ -260,7 +254,7 @@ export default function ValidatorDemo() {
           improvement: 'Consider how this metric impacts other KPIs in your ranking.'
         };
       }
-      
+
       // Proficient (3): Prioritizes revenue in Round 3 edge case
       if (isRevenue && isInRound3) {
         return {
@@ -270,7 +264,7 @@ export default function ValidatorDemo() {
           improvement: 'Balance stakeholder demands with technical realities.'
         };
       }
-      
+
       // Developing (2): Makes reasonable but non-critical choices
       if (rankedKpis.length < 4) {
         return {
@@ -280,7 +274,7 @@ export default function ValidatorDemo() {
           improvement: 'Look for declining trends and critical system issues that impact multiple areas.'
         };
       }
-      
+
       // Emerging (1): Late or low-priority rankings
       return {
         score: 1,
@@ -298,7 +292,7 @@ export default function ValidatorDemo() {
           improvement: 'Critical metrics like bugs and tech debt usually need consistent attention.'
         };
       }
-      
+
       return {
         score: 1,
         level: 'Emerging',
@@ -323,7 +317,7 @@ export default function ValidatorDemo() {
         setCurrentFeedback(feedback);
         setShowFeedback(true);
         setFeedbackHistory([...feedbackHistory, feedback]);
-        
+
         setRankedKpis([...rankedKpis, kpi]);
         setKpis(kpis.filter(k => k.id !== draggedItem));
       }
@@ -334,12 +328,12 @@ export default function ValidatorDemo() {
         setCurrentFeedback(feedback);
         setShowFeedback(true);
         setFeedbackHistory([...feedbackHistory, feedback]);
-        
+
         setKpis([...kpis, kpi]);
         setRankedKpis(rankedKpis.filter(k => k.id !== draggedItem));
       }
     }
-    
+
     setDraggedItem(null);
   };
 
@@ -395,49 +389,49 @@ export default function ValidatorDemo() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Button>
-          
-          <div className="border-2 border-neon-green rounded-lg p-8 space-y-6 border-glow-green">
-            <h1 className="text-4xl font-bold text-neon-green text-glow-green">
-              Priority Trade-Off Navigator
-            </h1>
-            
-            <div className="space-y-4 text-gray-300">
-              <p className="text-lg">
-                You're a Product Manager during a critical launch week. The KPI dashboard is overloading — 
-                you must prioritize which metrics to stabilize first before the system crashes.
-              </p>
-              
-              <div className="bg-gray-900 border border-neon-magenta/30 rounded-lg p-4">
-                <h3 className="font-semibold text-neon-magenta mb-2">🎯 Your Mission:</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>• Drag and drop KPIs to rank them by priority</li>
-                  <li>• Each choice affects other metrics in real-time</li>
-                  <li>• Complete the ranking before time runs out</li>
-                  <li>• Expect the unexpected... 👀</li>
-                </ul>
+
+            <div className="border-2 border-neon-green rounded-lg p-8 space-y-6 border-glow-green">
+              <h1 className="text-4xl font-bold text-neon-green text-glow-green">
+                Priority Trade-Off Navigator
+              </h1>
+
+              <div className="space-y-4 text-gray-300">
+                <p className="text-lg">
+                  You're a Product Manager during a critical launch week. The KPI dashboard is overloading —
+                  you must prioritize which metrics to stabilize first before the system crashes.
+                </p>
+
+                <div className="bg-gray-900 border border-neon-magenta/30 rounded-lg p-4">
+                  <h3 className="font-semibold text-neon-magenta mb-2">🎯 Your Mission:</h3>
+                  <ul className="space-y-2 text-sm">
+                    <li>• Drag and drop KPIs to rank them by priority</li>
+                    <li>• Each choice affects other metrics in real-time</li>
+                    <li>• Complete the ranking before time runs out</li>
+                    <li>• Expect the unexpected... 👀</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-2 text-sm text-gray-400">
+                  <span className="bg-gray-800 px-3 py-1 rounded">⏱ 3 minutes</span>
+                  <span className="bg-gray-800 px-3 py-1 rounded">📱 Mobile-optimized</span>
+                  <span className="bg-gray-800 px-3 py-1 rounded">🎮 Interactive</span>
+                </div>
               </div>
-              
-              <div className="flex gap-2 text-sm text-gray-400">
-                <span className="bg-gray-800 px-3 py-1 rounded">⏱ 3 minutes</span>
-                <span className="bg-gray-800 px-3 py-1 rounded">📱 Mobile-optimized</span>
-                <span className="bg-gray-800 px-3 py-1 rounded">🎮 Interactive</span>
-              </div>
+
+              <Button
+                onClick={startGame}
+                className="w-full bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 text-lg h-14 border-glow-green touch-manipulation active:scale-98"
+                aria-label="Start the validator game"
+              >
+                Start Validator
+              </Button>
             </div>
-            
-            <Button
-              onClick={startGame}
-              className="w-full bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 text-lg h-14 border-glow-green touch-manipulation active:scale-98"
-              aria-label="Start the validator game"
-            >
-              Start Validator
-            </Button>
+
+            <p className="text-xs text-gray-500 text-center">
+              This is a sample validator built from the template system
+            </p>
           </div>
-          
-          <p className="text-xs text-gray-500 text-center">
-            This is a sample validator built from the template system
-          </p>
         </div>
-      </div>
       </MobileViewport>
     );
   }
@@ -448,136 +442,136 @@ export default function ValidatorDemo() {
         {/* FIX: Removed min-h-screen and flex to allow proper scrolling */}
         <div className="bg-black text-white p-6 py-12">
           <div className="max-w-2xl w-full mx-auto">
-          <div className="border-2 border-red-500 rounded-lg p-8 space-y-6 animate-pulse bg-red-950/20">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-12 h-12 text-red-500" />
-              <h2 className="text-3xl font-bold text-red-500">URGENT MESSAGE FROM CEO</h2>
+            <div className="border-2 border-red-500 rounded-lg p-8 space-y-6 animate-pulse bg-red-950/20">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-12 h-12 text-red-500" />
+                <h2 className="text-3xl font-bold text-red-500">URGENT MESSAGE FROM CEO</h2>
+              </div>
+
+              <div className="bg-black border border-red-500/50 rounded-lg p-6">
+                <p className="text-xl mb-4">
+                  "Revenue must be #1 or we lose funding."
+                </p>
+                <p className="text-gray-400">
+                  Timer has been cut to 90 seconds. You must re-prioritize while maintaining system stability.
+                </p>
+              </div>
+
+              <div className="text-center">
+                <p className="text-4xl font-bold text-red-500 mb-4">
+                  {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                </p>
+              </div>
+
+              <Button
+                onClick={continueAfterEdgeCase}
+                className="w-full bg-red-500 text-white hover:bg-red-600 active:bg-red-700 text-lg h-14 touch-manipulation active:scale-98"
+                aria-label="Continue game after edge case alert"
+              >
+                Continue Game
+              </Button>
             </div>
-            
-            <div className="bg-black border border-red-500/50 rounded-lg p-6">
-              <p className="text-xl mb-4">
-                "Revenue must be #1 or we lose funding."
-              </p>
-              <p className="text-gray-400">
-                Timer has been cut to 90 seconds. You must re-prioritize while maintaining system stability.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-4xl font-bold text-red-500 mb-4">
-                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-              </p>
-            </div>
-            
-            <Button
-              onClick={continueAfterEdgeCase}
-              className="w-full bg-red-500 text-white hover:bg-red-600 active:bg-red-700 text-lg h-14 touch-manipulation active:scale-98"
-              aria-label="Continue game after edge case alert"
-            >
-              Continue Game
-            </Button>
           </div>
         </div>
-      </div>
       </MobileViewport>
     );
   }
 
   if (gameState === 'results') {
     const proficiency = getProficiencyLevel(score);
-    
+
     return (
       <MobileViewport>
         {/* FIX: Removed min-h-screen and flex to allow proper scrolling */}
         <div className="bg-black text-white p-6 py-12">
-        <div className="max-w-2xl w-full mx-auto space-y-6">
-          <div className={`border-2 rounded-lg p-8 space-y-6 ${proficiency.bg} border-${proficiency.color.split('-')[1]}`}>
-            <h2 className="text-3xl font-bold text-center">Validator Complete</h2>
-            
-            <div className="text-center space-y-4">
-              <div className="text-6xl font-bold">
-                {score}%
-              </div>
-              
-              <div className={`text-2xl font-semibold ${proficiency.color}`}>
-                Level {proficiency.numericLevel} - {proficiency.level}
-              </div>
-            </div>
-            
-            {/* FIX: Added flex-wrap to prevent text overflow on small screens */}
-            <div className="bg-gray-900 rounded-lg p-6 space-y-3">
-              <h3 className="font-semibold text-neon-green">Sub-Competencies Passed:</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex flex-wrap justify-between gap-2">
-                  <span className="text-gray-400 break-words">Identified Concerning Metrics (≥2):</span>
-                  <span className={`flex-shrink-0 ${rankedKpis.length >= 2 ? 'text-neon-green' : 'text-red-400'}`}>
-                    {rankedKpis.length >= 2 ? '✓ Pass' : '✗ Fail'}
-                  </span>
+          <div className="max-w-2xl w-full mx-auto space-y-6">
+            <div className={`border-2 rounded-lg p-8 space-y-6 ${proficiency.bg} border-${proficiency.color.split('-')[1]}`}>
+              <h2 className="text-3xl font-bold text-center">Validator Complete</h2>
+
+              <div className="text-center space-y-4">
+                <div className="text-6xl font-bold">
+                  {score}%
                 </div>
-                <div className="flex flex-wrap justify-between gap-2">
-                  <span className="text-gray-400 break-words">Prioritized Critical Issues (Top 3):</span>
-                  <span className={`flex-shrink-0 ${rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? 'text-neon-green' : 'text-red-400'}`}>
-                    {rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? '✓ Pass' : '✗ Fail'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap justify-between gap-2">
-                  <span className="text-gray-400 break-words">Addressed Declining Metrics:</span>
-                  <span className={`flex-shrink-0 ${rankedKpis.some(k => k.id === '1' || k.id === '4') ? 'text-neon-green' : 'text-red-400'}`}>
-                    {rankedKpis.some(k => k.id === '1' || k.id === '4') ? '✓ Pass' : '✗ Fail'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap justify-between gap-2">
-                  <span className="text-gray-400 break-words">Completed Full Analysis:</span>
-                  <span className={`flex-shrink-0 ${rankedKpis.length === 6 ? 'text-neon-green' : 'text-red-400'}`}>
-                    {rankedKpis.length === 6 ? '✓ Pass' : '✗ Fail'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap justify-between gap-2">
-                  <span className="text-gray-400 break-words">Edge-Case: Revenue Priority:</span>
-                  <span className={`flex-shrink-0 ${edgeCaseTriggered && rankedKpis[0]?.id === '2' ? 'text-neon-green' : 'text-red-400'}`}>
-                    {edgeCaseTriggered && rankedKpis[0]?.id === '2' ? '✓ Pass' : '✗ Fail'}
-                  </span>
+
+                <div className={`text-2xl font-semibold ${proficiency.color}`}>
+                  Level {proficiency.numericLevel} - {proficiency.level}
                 </div>
               </div>
+
+              {/* FIX: Added flex-wrap to prevent text overflow on small screens */}
+              <div className="bg-gray-900 rounded-lg p-6 space-y-3">
+                <h3 className="font-semibold text-neon-green">Sub-Competencies Passed:</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <span className="text-gray-400 break-words">Identified Concerning Metrics (≥2):</span>
+                    <span className={`flex-shrink-0 ${rankedKpis.length >= 2 ? 'text-neon-green' : 'text-red-400'}`}>
+                      {rankedKpis.length >= 2 ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <span className="text-gray-400 break-words">Prioritized Critical Issues (Top 3):</span>
+                    <span className={`flex-shrink-0 ${rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? 'text-neon-green' : 'text-red-400'}`}>
+                      {rankedKpis.slice(0, 3).some(k => k.id === '3' || k.id === '6') ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <span className="text-gray-400 break-words">Addressed Declining Metrics:</span>
+                    <span className={`flex-shrink-0 ${rankedKpis.some(k => k.id === '1' || k.id === '4') ? 'text-neon-green' : 'text-red-400'}`}>
+                      {rankedKpis.some(k => k.id === '1' || k.id === '4') ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <span className="text-gray-400 break-words">Completed Full Analysis:</span>
+                    <span className={`flex-shrink-0 ${rankedKpis.length === 6 ? 'text-neon-green' : 'text-red-400'}`}>
+                      {rankedKpis.length === 6 ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <span className="text-gray-400 break-words">Edge-Case: Revenue Priority:</span>
+                    <span className={`flex-shrink-0 ${edgeCaseTriggered && rankedKpis[0]?.id === '2' ? 'text-neon-green' : 'text-red-400'}`}>
+                      {edgeCaseTriggered && rankedKpis[0]?.id === '2' ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => navigate('/platform/creator')}
+                  className="flex-1 bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 touch-manipulation active:scale-98"
+                  aria-label="Return to creator dashboard"
+                >
+                  Back to Dashboard
+                </Button>
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  className="flex-1 touch-manipulation active:scale-98"
+                  aria-label="Retry the validator"
+                >
+                  Try Again
+                </Button>
+              </div>
             </div>
-            
-            <div className="flex gap-3">
-              <Button
-                onClick={() => navigate('/platform/creator')}
-                className="flex-1 bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 touch-manipulation active:scale-98"
-                aria-label="Return to creator dashboard"
-              >
-                Back to Dashboard
-              </Button>
-              <Button
-                onClick={() => window.location.reload()}
-                variant="outline"
-                className="flex-1 touch-manipulation active:scale-98"
-                aria-label="Retry the validator"
-              >
-                Try Again
-              </Button>
-            </div>
+
+            <p className="text-xs text-gray-500 text-center">
+              In production, results are stored in your proof ledger and XP is awarded
+            </p>
+
+            {/* Average Competency Score Display */}
+            {feedbackHistory.length > 0 && (
+              <div className="bg-gray-900 rounded-lg p-4 border border-neon-green/30">
+                <h3 className="font-semibold text-neon-green mb-2">Average Competency Score:</h3>
+                <div className="text-3xl font-bold text-center text-neon-magenta">
+                  {(feedbackHistory.reduce((sum, f) => sum + f.score, 0) / feedbackHistory.length).toFixed(1)}/4
+                </div>
+                <p className="text-xs text-gray-400 text-center mt-2">
+                  Based on {feedbackHistory.length} graded actions during gameplay
+                </p>
+              </div>
+            )}
           </div>
-          
-          <p className="text-xs text-gray-500 text-center">
-            In production, results are stored in your proof ledger and XP is awarded
-          </p>
-          
-          {/* Average Competency Score Display */}
-          {feedbackHistory.length > 0 && (
-            <div className="bg-gray-900 rounded-lg p-4 border border-neon-green/30">
-              <h3 className="font-semibold text-neon-green mb-2">Average Competency Score:</h3>
-              <div className="text-3xl font-bold text-center text-neon-magenta">
-                {(feedbackHistory.reduce((sum, f) => sum + f.score, 0) / feedbackHistory.length).toFixed(1)}/4
-              </div>
-              <p className="text-xs text-gray-400 text-center mt-2">
-                Based on {feedbackHistory.length} graded actions during gameplay
-              </p>
-            </div>
-          )}
         </div>
-      </div>
       </MobileViewport>
     );
   }
@@ -588,216 +582,214 @@ export default function ValidatorDemo() {
       {/* FIX: Removed min-h-screen to allow proper scrolling within MobileViewport */}
       {/* FIX: Added pb-20 to ensure submit button is not hidden by mobile keyboards */}
       <div className="bg-black text-white p-4 md:p-6 pb-20">
-      <div className="max-w-6xl mx-auto w-full">
-        {/* Header with Round Indicator */}
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-neon-green text-glow-green">
-              KPI Dashboard Reboot
-            </h1>
-            <p className="text-sm text-gray-400 mt-1">{getRoundDescription(currentRound)}</p>
-          </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-neon-magenta text-glow-magenta">
-              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+        <div className="max-w-6xl mx-auto w-full">
+          {/* Header with Round Indicator */}
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-neon-green text-glow-green">
+                KPI Dashboard Reboot
+              </h1>
+              <p className="text-sm text-gray-400 mt-1">{getRoundDescription(currentRound)}</p>
             </div>
-            <div className="text-xs text-gray-400">Round {currentRound}/3</div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-neon-magenta text-glow-magenta">
+                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+              </div>
+              <div className="text-xs text-gray-400">Round {currentRound}/3</div>
+            </div>
           </div>
-        </div>
 
-        {/* Instructions */}
-        <div className="bg-gray-900 border border-neon-green/30 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-300">
-            🎯 Drag KPIs to the ranking area to prioritize them. System stability depends on your choices! 
-            You'll receive feedback on each decision.
-          </p>
-        </div>
+          {/* Instructions */}
+          <div className="bg-gray-900 border border-neon-green/30 rounded-lg p-4 mb-6">
+            <p className="text-sm text-gray-300">
+              🎯 Drag KPIs to the ranking area to prioritize them. System stability depends on your choices!
+              You'll receive feedback on each decision.
+            </p>
+          </div>
 
-        {/* Competency Feedback Pop-up */}
-        {/* FIX: Converted to proper Dialog component for better modal behavior */}
-        {/* FIX: Dialog handles overlay clicks, ESC key, focus trapping automatically */}
-        <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-          <DialogContent className="bg-gray-900 border-2 border-neon-green text-white max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-neon-green">
-                Score: {currentFeedback?.score}/4
-              </DialogTitle>
-              <DialogDescription className="text-lg text-gray-300">
-                {currentFeedback?.level}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 mt-4">
-              <div>
-                <div className="text-xs text-gray-500 uppercase mb-1">Feedback</div>
-                <p className="text-sm text-gray-300 break-words">{currentFeedback?.message}</p>
+          {/* Competency Feedback Pop-up */}
+          {/* FIX: Converted to proper Dialog component for better modal behavior */}
+          {/* FIX: Dialog handles overlay clicks, ESC key, focus trapping automatically */}
+          <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+            <DialogContent className="bg-gray-900 border-2 border-neon-green text-white max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-neon-green">
+                  Score: {currentFeedback?.score}/4
+                </DialogTitle>
+                <DialogDescription className="text-lg text-gray-300">
+                  {currentFeedback?.level}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-4">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase mb-1">Feedback</div>
+                  <p className="text-sm text-gray-300 break-words">{currentFeedback?.message}</p>
+                </div>
+
+                <div>
+                  <div className="text-xs text-gray-500 uppercase mb-1">How to Improve</div>
+                  <p className="text-sm text-gray-300 break-words">{currentFeedback?.improvement}</p>
+                </div>
+
+                <Button
+                  onClick={() => setShowFeedback(false)}
+                  className="w-full bg-neon-green text-black hover:bg-neon-green/90 touch-manipulation"
+                  aria-label="Continue playing"
+                >
+                  Continue
+                </Button>
               </div>
-              
-              <div>
-                <div className="text-xs text-gray-500 uppercase mb-1">How to Improve</div>
-                <p className="text-sm text-gray-300 break-words">{currentFeedback?.improvement}</p>
-              </div>
-              
-              <Button
-                onClick={() => setShowFeedback(false)}
-                className="w-full bg-neon-green text-black hover:bg-neon-green/90 touch-manipulation"
-                aria-label="Continue playing"
+            </DialogContent>
+          </Dialog>
+
+          {/* FIX: Changed grid layout to stack on mobile for better usability */}
+          {/* FIX: Increased max-height and improved scrolling behavior */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Available KPIs */}
+            <div className="w-full">
+              <h2 className="text-lg font-semibold mb-3 text-neon-green">Available Metrics</h2>
+              <div
+                className="space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto border-2 border-dashed border-gray-700 rounded-lg p-4"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, 'unranked')}
+                role="region"
+                aria-label="Available metrics area"
               >
-                Continue
+                {kpis.map((kpi) => (
+                  <div
+                    key={kpi.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, kpi.id)}
+                    className="bg-gray-900 border border-neon-purple rounded-lg p-4 cursor-move hover:border-neon-magenta transition-all hover:border-glow-purple touch-manipulation active:scale-95"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Drag ${kpi.name} metric to priority ranking`}
+                    onKeyDown={(e) => {
+                      // FIX: Keyboard support for accessibility - Enter or Space to move to ranked
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const syntheticEvent = {
+                          preventDefault: () => { },
+                          dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
+                        } as React.DragEvent;
+                        handleDragStart(syntheticEvent, kpi.id);
+                        handleDrop(syntheticEvent, 'ranked');
+                      }
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      {/* FIX: Added break-words to prevent long text overflow */}
+                      <span className="font-semibold text-white break-words flex-1">{kpi.name}</span>
+                      <span className={`text-sm flex-shrink-0 ${kpi.trend === 'up' ? 'text-green-400' :
+                          kpi.trend === 'down' ? 'text-red-400' :
+                            'text-gray-400'
+                        }`}>
+                        {kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-800 rounded-full h-2">
+                        <div
+                          className="bg-neon-green h-2 rounded-full transition-all"
+                          style={{ width: `${kpi.value}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-400 flex-shrink-0">{Math.round(kpi.value)}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ranked KPIs */}
+            <div className="w-full">
+              <h2 className="text-lg font-semibold mb-3 text-neon-magenta">Priority Ranking</h2>
+              <div
+                className="space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto border-2 border-dashed border-neon-magenta/50 rounded-lg p-4"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, 'ranked')}
+                role="region"
+                aria-label="Priority ranking area"
+              >
+                {rankedKpis.length === 0 && (
+                  <div className="flex items-center justify-center h-full text-gray-500 text-center p-4">
+                    Drop KPIs here to rank them
+                  </div>
+                )}
+                {rankedKpis.map((kpi, index) => (
+                  <div
+                    key={kpi.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, kpi.id)}
+                    className="bg-gray-900 border border-neon-magenta rounded-lg p-4 cursor-move hover:border-neon-green transition-all touch-manipulation active:scale-95"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Ranked position ${index + 1}: ${kpi.name}. Press Enter to move back to available metrics.`}
+                    onKeyDown={(e) => {
+                      // FIX: Keyboard support for accessibility - Enter or Space to move back to available
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const syntheticEvent = {
+                          preventDefault: () => { },
+                          dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
+                        } as React.DragEvent;
+                        handleDragStart(syntheticEvent, kpi.id);
+                        handleDrop(syntheticEvent, 'unranked');
+                      }
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-neon-magenta text-black flex items-center justify-center font-bold flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-2 gap-2">
+                          {/* FIX: Added break-words to prevent long text overflow */}
+                          <span className="font-semibold text-white break-words flex-1">{kpi.name}</span>
+                          <span className={`text-sm flex-shrink-0 ${kpi.trend === 'up' ? 'text-green-400' :
+                              kpi.trend === 'down' ? 'text-red-400' :
+                                'text-gray-400'
+                            }`}>
+                            {kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-800 rounded-full h-2">
+                            <div
+                              className="bg-neon-magenta h-2 rounded-full transition-all"
+                              style={{ width: `${kpi.value}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-400 flex-shrink-0">{Math.round(kpi.value)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          {/* FIX: Sticky button with proper z-index below modal (z-50) */}
+          {/* FIX: Enhanced touch feedback with active state */}
+          {rankedKpis.length === 6 && (
+            <div className="mt-6 sticky bottom-4 z-30">
+              <Button
+                onClick={() => {
+                  setGameState('results');
+                  calculateScore();
+                }}
+                className="w-full bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 text-lg h-14 border-glow-green shadow-lg touch-manipulation active:scale-98"
+                aria-label="Submit your ranking and see results"
+              >
+                Submit Ranking
               </Button>
             </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* FIX: Changed grid layout to stack on mobile for better usability */}
-        {/* FIX: Increased max-height and improved scrolling behavior */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Available KPIs */}
-          <div className="w-full">
-            <h2 className="text-lg font-semibold mb-3 text-neon-green">Available Metrics</h2>
-            <div
-              className="space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto border-2 border-dashed border-gray-700 rounded-lg p-4"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'unranked')}
-              role="region"
-              aria-label="Available metrics area"
-            >
-              {kpis.map((kpi) => (
-                <div
-                  key={kpi.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, kpi.id)}
-                  className="bg-gray-900 border border-neon-purple rounded-lg p-4 cursor-move hover:border-neon-magenta transition-all hover:border-glow-purple touch-manipulation active:scale-95"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Drag ${kpi.name} metric to priority ranking`}
-                  onKeyDown={(e) => {
-                    // FIX: Keyboard support for accessibility - Enter or Space to move to ranked
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      const syntheticEvent = {
-                        preventDefault: () => {},
-                        dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
-                      } as React.DragEvent;
-                      handleDragStart(syntheticEvent, kpi.id);
-                      handleDrop(syntheticEvent, 'ranked');
-                    }
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-2 gap-2">
-                    {/* FIX: Added break-words to prevent long text overflow */}
-                    <span className="font-semibold text-white break-words flex-1">{kpi.name}</span>
-                    <span className={`text-sm flex-shrink-0 ${
-                      kpi.trend === 'up' ? 'text-green-400' : 
-                      kpi.trend === 'down' ? 'text-red-400' : 
-                      'text-gray-400'
-                    }`}>
-                      {kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-800 rounded-full h-2">
-                      <div
-                        className="bg-neon-green h-2 rounded-full transition-all"
-                        style={{ width: `${kpi.value}%` }}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-400 flex-shrink-0">{Math.round(kpi.value)}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Ranked KPIs */}
-          <div className="w-full">
-            <h2 className="text-lg font-semibold mb-3 text-neon-magenta">Priority Ranking</h2>
-            <div
-              className="space-y-3 min-h-[200px] max-h-[600px] overflow-y-auto border-2 border-dashed border-neon-magenta/50 rounded-lg p-4"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, 'ranked')}
-              role="region"
-              aria-label="Priority ranking area"
-            >
-              {rankedKpis.length === 0 && (
-                <div className="flex items-center justify-center h-full text-gray-500 text-center p-4">
-                  Drop KPIs here to rank them
-                </div>
-              )}
-              {rankedKpis.map((kpi, index) => (
-                <div
-                  key={kpi.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, kpi.id)}
-                  className="bg-gray-900 border border-neon-magenta rounded-lg p-4 cursor-move hover:border-neon-green transition-all touch-manipulation active:scale-95"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Ranked position ${index + 1}: ${kpi.name}. Press Enter to move back to available metrics.`}
-                  onKeyDown={(e) => {
-                    // FIX: Keyboard support for accessibility - Enter or Space to move back to available
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      const syntheticEvent = {
-                        preventDefault: () => {},
-                        dataTransfer: { effectAllowed: 'move', dropEffect: 'move' }
-                      } as React.DragEvent;
-                      handleDragStart(syntheticEvent, kpi.id);
-                      handleDrop(syntheticEvent, 'unranked');
-                    }
-                  }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-neon-magenta text-black flex items-center justify-center font-bold flex-shrink-0">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-2 gap-2">
-                        {/* FIX: Added break-words to prevent long text overflow */}
-                        <span className="font-semibold text-white break-words flex-1">{kpi.name}</span>
-                        <span className={`text-sm flex-shrink-0 ${
-                          kpi.trend === 'up' ? 'text-green-400' : 
-                          kpi.trend === 'down' ? 'text-red-400' : 
-                          'text-gray-400'
-                        }`}>
-                          {kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-800 rounded-full h-2">
-                          <div
-                            className="bg-neon-magenta h-2 rounded-full transition-all"
-                            style={{ width: `${kpi.value}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-gray-400 flex-shrink-0">{Math.round(kpi.value)}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
-
-        {/* Submit Button */}
-        {/* FIX: Sticky button with proper z-index below modal (z-50) */}
-        {/* FIX: Enhanced touch feedback with active state */}
-        {rankedKpis.length === 6 && (
-          <div className="mt-6 sticky bottom-4 z-30">
-            <Button
-              onClick={() => {
-                setGameState('results');
-                calculateScore();
-              }}
-              className="w-full bg-neon-green text-white hover:bg-neon-green/90 active:bg-neon-green/80 text-lg h-14 border-glow-green shadow-lg touch-manipulation active:scale-98"
-              aria-label="Submit your ranking and see results"
-            >
-              Submit Ranking
-            </Button>
-          </div>
-        )}
       </div>
-    </div>
     </MobileViewport>
   );
 }

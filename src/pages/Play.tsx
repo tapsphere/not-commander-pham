@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, ArrowLeft, Edit, Share2, Eye } from 'lucide-react';
@@ -44,6 +45,8 @@ export default function Play() {
   } | null>(null);
   const isPreviewMode = !!customizationId;
 
+  const { user } = useAuth();
+
   useEffect(() => {
     if (code || customizationId) {
       loadValidator();
@@ -53,42 +56,15 @@ export default function Play() {
   const loadValidator = async () => {
     try {
       console.log('Loading validator with code:', code, 'or customizationId:', customizationId);
-      
-      let query = supabase
-        .from('brand_customizations')
-        .select(`
-          id,
-          customization_prompt,
-          primary_color,
-          secondary_color,
-          accent_color,
-          background_color,
-          logo_url,
-          generated_game_html,
-          brand_id,
-          unique_code,
-          game_templates (
-            name,
-            description,
-            preview_image,
-            template_type,
-            custom_game_url
-          )
-        `);
 
-      // Preview mode: load by ID (no publish check)
+      let endpoint = '';
       if (customizationId) {
-        query = query.eq('id', customizationId);
+        endpoint = `/customizations/${customizationId}`;
       } else {
-        // Public mode: load by code (must be published)
-        query = query.eq('unique_code', code).not('published_at', 'is', null);
+        endpoint = `/customizations/public/${code}`;
       }
 
-      const { data, error } = await query.maybeSingle();
-
-      console.log('Validator query result:', { data, error });
-      
-      if (error) throw error;
+      const { data } = await apiClient.get(endpoint);
 
       if (!data) {
         setError(isPreviewMode ? 'Game not found' : 'Validator not found or not published');
@@ -104,12 +80,11 @@ export default function Play() {
       setValidator(data as ValidatorData);
 
       // Check if current user is the owner
-      const { data: { user } } = await supabase.auth.getUser();
       if (user && data.brand_id === user.id) {
         setIsOwner(true);
       }
-    } catch (error: any) {
-      console.error('Failed to load validator:', error);
+    } catch (err: any) {
+      console.error('Failed to load validator:', err);
       setError('Failed to load validator');
       toast.error('Failed to load validator');
     } finally {
@@ -182,24 +157,24 @@ export default function Play() {
       console.error('No generated_game_html found!');
       return '';
     }
-    
+
     console.log('Processing HTML, original length:', validator.generated_game_html.length);
-    
+
     const colors = getCurrentColors();
     let html = validator.generated_game_html;
-    
+
     // Replace original colors with new colors throughout the HTML
     html = html.replace(new RegExp(validator.primary_color, 'gi'), colors.primary);
     html = html.replace(new RegExp(validator.secondary_color, 'gi'), colors.secondary);
     html = html.replace(new RegExp(validator.accent_color || validator.primary_color, 'gi'), colors.accent);
     html = html.replace(new RegExp(validator.background_color || '#1A1A1A', 'gi'), colors.background);
-    
+
     // Calculate contrasting text colors
     const primaryText = isLightColor(colors.primary) ? '#000000' : '#FFFFFF';
     const secondaryText = isLightColor(colors.secondary) ? '#000000' : '#FFFFFF';
     const accentText = isLightColor(colors.accent) ? '#000000' : '#FFFFFF';
     const bgText = isLightColor(colors.background) ? '#000000' : '#FFFFFF';
-    
+
     // Inject contrast CSS to ensure text is always readable
     const contrastStyles = `
       <style>
@@ -242,13 +217,13 @@ export default function Play() {
         }
       </style>
     `;
-    
+
     // Insert contrast styles right after opening <head> tag
     html = html.replace('<head>', '<head>' + contrastStyles);
-    
+
     console.log('Processed HTML, final length:', html.length);
     console.log('HTML preview (first 500 chars):', html.substring(0, 500));
-    
+
     return html;
   };
 
@@ -267,7 +242,7 @@ export default function Play() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 {isPreviewMode ? 'Back to Dashboard' : 'Return to Hub'}
               </Button>
-              
+
               {isPreviewMode && (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/20 border border-yellow-500/50 rounded-lg">
                   <Eye className="w-4 h-4 text-yellow-400" />
@@ -303,7 +278,7 @@ export default function Play() {
                     onLoad={(e) => {
                       console.log('Iframe loaded successfully');
                       console.log('HTML length:', getRemixedHtml().length);
-                      
+
                       // Force remove loading screen after iframe loads
                       const iframe = e.currentTarget;
                       setTimeout(() => {
@@ -354,7 +329,7 @@ export default function Play() {
               <div className="bg-gray-900 border-t-2 border-neon-green py-8">
                 <div className="max-w-4xl mx-auto px-4 space-y-6">
                   <h2 className="text-2xl font-bold text-neon-green mb-6">Game Management</h2>
-                  
+
                   {/* Promote Section */}
                   <Card className="bg-gray-800 border-gray-700 p-6">
                     <div className="flex items-start gap-4">
@@ -367,14 +342,14 @@ export default function Play() {
                           Share this game with your team or publish it to a wider audience.
                         </p>
                         <div className="flex gap-3">
-                          <Button 
+                          <Button
                             onClick={handleCopyLink}
                             className="gap-2"
                           >
                             <Share2 className="h-4 w-4" />
                             Copy Share Link
                           </Button>
-                          <Button 
+                          <Button
                             variant="outline"
                             onClick={() => navigate('/platform/brand')}
                           >
@@ -397,7 +372,7 @@ export default function Play() {
                           Modify game parameters, branding, or visibility settings.
                         </p>
                         <div className="flex gap-3">
-                          <Button 
+                          <Button
                             variant="outline"
                             onClick={() => navigate('/platform/brand')}
                             className="gap-2"
@@ -414,84 +389,84 @@ export default function Play() {
             )}
           </div>
         ) : (
-        /* Show preview if game hasn't been generated yet - Mobile View */
-        <div className="pt-16 flex justify-center">
-          <div className="w-full max-w-[425px] px-4">
-            {/* Hero Section */}
-            <div 
-              className="relative py-12 px-4 rounded-lg"
-              style={{
-                background: `linear-gradient(135deg, ${validator.primary_color}22, ${validator.secondary_color}22)`
-              }}
-            >
-              <div className="text-center">
-                {validator.logo_url && (
-                  <img
-                    src={validator.logo_url}
-                    alt="Brand Logo"
-                    className="h-12 mx-auto mb-4 object-contain"
-                  />
-                )}
-                <h1 className="text-2xl font-bold mb-3">
-                  {validator.game_templates?.name || 'Game Validator'}
-                </h1>
-                {validator.game_templates?.description && (
-                  <p className="text-sm text-gray-300 mb-6">
-                    {validator.game_templates.description}
-                  </p>
-                )}
-                <Card className="bg-yellow-900/20 border-yellow-500 p-6 mt-6">
-                  <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
-                  <p className="text-yellow-300 text-sm">
-                    This validator is being generated. Please check back soon!
-                  </p>
-                </Card>
-              </div>
-            </div>
-
-            {/* Preview Section */}
-            <div className="py-8">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-bold mb-3" style={{ color: validator.primary_color }}>
-                    About This Validator
-                  </h2>
-                  <div className="space-y-3 text-sm text-gray-300">
-                    <p>
-                      This is a branded competency validator designed to assess your skills
-                      through interactive gameplay scenarios.
+          /* Show preview if game hasn't been generated yet - Mobile View */
+          <div className="pt-16 flex justify-center">
+            <div className="w-full max-w-[425px] px-4">
+              {/* Hero Section */}
+              <div
+                className="relative py-12 px-4 rounded-lg"
+                style={{
+                  background: `linear-gradient(135deg, ${validator.primary_color}22, ${validator.secondary_color}22)`
+                }}
+              >
+                <div className="text-center">
+                  {validator.logo_url && (
+                    <img
+                      src={validator.logo_url}
+                      alt="Brand Logo"
+                      className="h-12 mx-auto mb-4 object-contain"
+                    />
+                  )}
+                  <h1 className="text-2xl font-bold mb-3">
+                    {validator.game_templates?.name || 'Game Validator'}
+                  </h1>
+                  {validator.game_templates?.description && (
+                    <p className="text-sm text-gray-300 mb-6">
+                      {validator.game_templates.description}
                     </p>
-                    <div className="flex gap-3 pt-3">
-                      <div 
-                        className="w-12 h-12 rounded-lg"
-                        style={{ backgroundColor: validator.primary_color }}
-                      />
-                      <div 
-                        className="w-12 h-12 rounded-lg"
-                        style={{ backgroundColor: validator.secondary_color }}
-                      />
+                  )}
+                  <Card className="bg-yellow-900/20 border-yellow-500 p-6 mt-6">
+                    <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
+                    <p className="text-yellow-300 text-sm">
+                      This validator is being generated. Please check back soon!
+                    </p>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Preview Section */}
+              <div className="py-8">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold mb-3" style={{ color: validator.primary_color }}>
+                      About This Validator
+                    </h2>
+                    <div className="space-y-3 text-sm text-gray-300">
+                      <p>
+                        This is a branded competency validator designed to assess your skills
+                        through interactive gameplay scenarios.
+                      </p>
+                      <div className="flex gap-3 pt-3">
+                        <div
+                          className="w-12 h-12 rounded-lg"
+                          style={{ backgroundColor: validator.primary_color }}
+                        />
+                        <div
+                          className="w-12 h-12 rounded-lg"
+                          style={{ backgroundColor: validator.secondary_color }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {validator.game_templates.preview_image && (
-                  <div className="rounded-lg overflow-hidden border-2" style={{ borderColor: validator.primary_color }}>
-                    <img
-                      src={validator.game_templates.preview_image}
-                      alt="Validator Preview"
-                      className="w-full h-auto"
-                    />
-                  </div>
-                )}
+                  {validator.game_templates.preview_image && (
+                    <div className="rounded-lg overflow-hidden border-2" style={{ borderColor: validator.primary_color }}>
+                      <img
+                        src={validator.game_templates.preview_image}
+                        alt="Validator Preview"
+                        className="w-full h-auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-gray-800 py-6 text-center text-gray-500">
+                <p className="text-xs">Powered by TON Validator Platform</p>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="border-t border-gray-800 py-6 text-center text-gray-500">
-              <p className="text-xs">Powered by TON Validator Platform</p>
-            </div>
           </div>
-        </div>
         )}
       </div>
     </ScrollArea>

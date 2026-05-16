@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { MobileViewport } from '@/components/MobileViewport';
 import { LotusBreathing } from '@/components/LotusBreathing';
@@ -11,15 +12,16 @@ type BreathPhase = 'idle' | 'in' | 'hold' | 'out';
 
 export default function BreathBalance() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [gameState, setGameState] = useState<'intro' | 'playing' | 'results'>('intro');
   const [currentCycle, setCurrentCycle] = useState(0);
   const totalCycles = 5;
-  
+
   // Breathing mechanics
   const [breathPhase, setBreathPhase] = useState<BreathPhase>('idle');
   const [phaseProgress, setPhaseProgress] = useState(0);
   const [timeInPhase, setTimeInPhase] = useState(0);
-  
+
   // Tracking
   const [correctBreaths, setCorrectBreaths] = useState(0);
   const [totalOpportunities, setTotalOpportunities] = useState(0);
@@ -101,17 +103,15 @@ export default function BreathBalance() {
 
   const endGame = async () => {
     setGameState('results');
-    
+
     const timeElapsed = timeStarted ? (Date.now() - timeStarted) / 1000 : 0;
     const accuracy = totalOpportunities > 0 ? (correctBreaths / totalOpportunities) * 100 : 0;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const proficiencyLevel = accuracy >= 80 ? 'Proficient' : accuracy >= 60 ? 'Developing' : 'Needs Work';
-        
-        await supabase.from('game_results').insert({
-          user_id: user.id,
+
+        await apiClient.post('/games/results', {
           passed: accuracy >= 60,
           proficiency_level: proficiencyLevel,
           scoring_metrics: {
@@ -124,7 +124,7 @@ export default function BreathBalance() {
             cycles: totalCycles,
           },
         });
-        
+
         toast.success('Result saved!');
       }
     } catch (error) {
@@ -144,7 +144,7 @@ export default function BreathBalance() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-          
+
           <div className="flex flex-col items-center space-y-8 max-w-md">
             <div className="space-y-2 text-center">
               <h1 className="text-4xl font-light tracking-wide">Breath & Balance</h1>
@@ -155,7 +155,7 @@ export default function BreathBalance() {
               <p className="text-white/70 font-light leading-relaxed">
                 Follow the lotus breathing pattern. Tap during the hold and exhale phases to demonstrate mindful awareness.
               </p>
-              
+
               <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/60">Breathe In</span>
@@ -188,7 +188,7 @@ export default function BreathBalance() {
     const accuracy = totalOpportunities > 0 ? (correctBreaths / totalOpportunities) * 100 : 0;
     const timeElapsed = timeStarted ? (Date.now() - timeStarted) / 1000 : 0;
     const proficiencyLevel = accuracy >= 80 ? 'Level 3 - Proficient' : accuracy >= 60 ? 'Level 2 - Developing' : 'Level 1 - Needs Work';
-    
+
     return (
       <MobileViewport>
         <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-800 to-gray-900 text-white flex flex-col items-center justify-center p-6">
@@ -197,11 +197,10 @@ export default function BreathBalance() {
             <div className="bg-gray-800/60 backdrop-blur-lg rounded-3xl p-8 shadow-2xl space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-light">Meditation Summary</h2>
-                <div className={`inline-block px-6 py-2 rounded-full text-sm font-medium ${
-                  accuracy >= 80 ? 'bg-green-500/20 text-green-400' : 
-                  accuracy >= 60 ? 'bg-yellow-500/20 text-yellow-400' : 
-                  'bg-red-500/20 text-red-400'
-                }`}>
+                <div className={`inline-block px-6 py-2 rounded-full text-sm font-medium ${accuracy >= 80 ? 'bg-green-500/20 text-green-400' :
+                    accuracy >= 60 ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-red-500/20 text-red-400'
+                  }`}>
                   {proficiencyLevel}
                 </div>
               </div>
@@ -215,7 +214,7 @@ export default function BreathBalance() {
             {/* Performance Metrics */}
             <div className="bg-gray-800/60 backdrop-blur-lg rounded-3xl p-8 shadow-2xl space-y-4">
               <h3 className="text-xl font-light mb-4">Performance Metrics</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-green-400 font-medium">Accuracy:</span>
@@ -286,7 +285,7 @@ export default function BreathBalance() {
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           <div className="text-center space-y-12">
             <h2 className="text-3xl font-light tracking-wide">{getPhaseText()}</h2>
-            
+
             <div
               id="lotus-container"
               className="transition-transform duration-200 cursor-pointer"
@@ -307,11 +306,10 @@ export default function BreathBalance() {
             {Array.from({ length: totalCycles }).map((_, i) => (
               <div
                 key={i}
-                className={`h-2 rounded-full transition-all ${
-                  i < currentCycle ? 'w-8 bg-green-500' : 
-                  i === currentCycle ? 'w-12 bg-purple-500' : 
-                  'w-8 bg-white/20'
-                }`}
+                className={`h-2 rounded-full transition-all ${i < currentCycle ? 'w-8 bg-green-500' :
+                    i === currentCycle ? 'w-12 bg-purple-500' :
+                      'w-8 bg-white/20'
+                  }`}
               />
             ))}
           </div>

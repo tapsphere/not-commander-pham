@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { Globe } from '@/components/GlobeScene';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,7 +25,7 @@ export default function VoiceChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [showConversation, setShowConversation] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -38,7 +38,7 @@ export default function VoiceChat() {
 
     // Initialize speech recognition
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true; // Keep listening
@@ -118,35 +118,27 @@ export default function VoiceChat() {
   const handleAIResponse = async (userMessage: string) => {
     try {
       // Add user message to conversation
-      setMessages(prev => [...prev, { 
-        role: 'user', 
-        content: userMessage, 
-        timestamp: new Date() 
+      setMessages(prev => [...prev, {
+        role: 'user',
+        content: userMessage,
+        timestamp: new Date()
       }]);
 
-      // Get current session for auth
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const { data, error } = await supabase.functions.invoke('voice-chat', {
-        body: { message: userMessage },
-        headers: session?.access_token ? {
-          Authorization: `Bearer ${session.access_token}`
-        } : undefined
+      const { data } = await apiClient.post('/chat/voice-chat', {
+        message: userMessage
       });
 
-      if (error) throw error;
-
       const aiMessage = data.message;
-      
+
       // Add AI response to conversation
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: aiMessage, 
-        timestamp: new Date() 
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: aiMessage,
+        timestamp: new Date()
       }]);
-      
+
       await speakText(aiMessage);
-      
+
     } catch (error) {
       console.error('AI error:', error);
       toast({
@@ -183,10 +175,10 @@ export default function VoiceChat() {
           'Google US English', 'Microsoft Zira',
           'Google UK English Female'
         ];
-        
-        const femaleVoice = voices.find(v => 
+
+        const femaleVoice = voices.find(v =>
           preferredVoices.some(pv => v.name.includes(pv))
-        ) || voices.find(v => 
+        ) || voices.find(v =>
           v.lang.startsWith('en-US') && v.name.includes('Female')
         ) || voices[0];
 
@@ -236,9 +228,9 @@ export default function VoiceChat() {
 
             analyserRef.current.getByteFrequencyData(dataArray);
             const average = dataArray.reduce((a, b) => a + b) / bufferLength;
-            
+
             setIsUserSpeaking(average > 30); // Threshold for detecting speech
-            
+
             animationFrameRef.current = requestAnimationFrame(checkAudioLevel);
           };
 
@@ -295,7 +287,7 @@ export default function VoiceChat() {
           camera={{ position: [0, 0, 4], fov: 50 }}
           className="w-full h-full"
           style={{ background: 'transparent' }}
-          gl={{ 
+          gl={{
             antialias: true,
             powerPreference: 'high-performance'
           }}
@@ -306,11 +298,11 @@ export default function VoiceChat() {
           <pointLight position={[-3, 0, 3]} intensity={1.2} color="#4a90e2" />
           <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffffff" />
           <Suspense fallback={null}>
-            <Globe 
-              progress={100} 
+            <Globe
+              progress={100}
               mousePosition={mousePosition}
               isSpeaking={isSpeaking || isUserSpeaking}
-              onEarthClick={() => {}}
+              onEarthClick={() => { }}
             />
           </Suspense>
         </Canvas>
@@ -319,7 +311,7 @@ export default function VoiceChat() {
       {/* Minimal top-left status */}
       <div className="fixed top-4 left-4 z-50 flex items-center gap-3">
         {(isListening || isSpeaking) && (
-          <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-2 rounded-full border" 
+          <div className="flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-2 rounded-full border"
             style={{ borderColor: 'hsl(var(--neon-green) / 0.5)' }}>
             <div className={`w-2 h-2 rounded-full ${isSpeaking ? 'bg-purple-500 animate-pulse' : 'bg-green-500 animate-pulse'}`} />
             <span className="text-xs font-mono" style={{ color: 'hsl(var(--neon-green))' }}>
@@ -335,7 +327,7 @@ export default function VoiceChat() {
           onClick={() => setShowConversation(!showConversation)}
           variant="ghost"
           className="w-9 h-9 p-0 bg-black/60 backdrop-blur-sm hover:bg-primary/20 rounded-full"
-          style={{ 
+          style={{
             color: 'hsl(var(--neon-green))'
           }}
         >
@@ -345,7 +337,7 @@ export default function VoiceChat() {
           onClick={handleClose}
           variant="ghost"
           className="w-9 h-9 p-0 bg-black/60 backdrop-blur-sm hover:bg-destructive/20 rounded-full"
-          style={{ 
+          style={{
             color: 'hsl(var(--neon-green))'
           }}
         >
@@ -363,17 +355,16 @@ export default function VoiceChat() {
             <ScrollArea className="h-[calc(100%-2rem)]">
               <div className="space-y-3 pr-4">
                 {messages.map((msg, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`p-3 rounded border ${
-                      msg.role === 'user' 
-                        ? 'bg-black/50 border-white/20' 
+                  <div
+                    key={idx}
+                    className={`p-3 rounded border ${msg.role === 'user'
+                        ? 'bg-black/50 border-white/20'
                         : 'bg-primary/10 border-primary/30'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-mono font-bold" style={{ 
-                        color: msg.role === 'user' ? 'hsl(var(--neon-green))' : 'hsl(var(--neon-green))' 
+                      <span className="text-xs font-mono font-bold" style={{
+                        color: msg.role === 'user' ? 'hsl(var(--neon-green))' : 'hsl(var(--neon-green))'
                       }}>
                         {msg.role === 'user' ? 'YOU' : 'ARIA'}
                       </span>
@@ -394,14 +385,14 @@ export default function VoiceChat() {
       {/* Minimal bottom floating button */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-3 pointer-events-none">
         {transcript && (
-          <div className="pointer-events-auto bg-black/90 backdrop-blur-sm px-6 py-4 rounded-lg border-2 w-[600px]" 
+          <div className="pointer-events-auto bg-black/90 backdrop-blur-sm px-6 py-4 rounded-lg border-2 w-[600px]"
             style={{ borderColor: 'hsl(var(--neon-green) / 0.5)' }}>
             <p className="text-sm text-gray-200 text-center font-mono leading-relaxed">
               "{transcript}"
             </p>
           </div>
         )}
-        
+
         <button
           onClick={isListening ? stopListening : startListening}
           disabled={isSpeaking}
@@ -422,7 +413,7 @@ export default function VoiceChat() {
             <Mic className="w-6 h-6" style={{ color: 'hsl(var(--neon-green) / 0.7)' }} />
           )}
         </button>
-        
+
         {!isListening && !isSpeaking && (
           <p className="text-[10px] text-gray-500 font-mono pointer-events-none">
             Tap to speak

@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Eye, Loader2, Save, Moon, Sun, X, Code2, PanelLeftClose, PanelLeft, Cloud, ExternalLink } from 'lucide-react';
-import { 
+import {
   TemplateStepFramework,
   TemplateFormData,
   SceneData,
@@ -15,9 +16,9 @@ import {
   DEFAULT_DESIGN_SETTINGS,
 } from './template-steps';
 import type { DemoOverrideData, DistillationResult } from './template-steps';
-import { 
-  StudioThemeProvider, 
-  useStudioTheme, 
+import {
+  StudioThemeProvider,
+  useStudioTheme,
   StudioFilmstrip,
   StudioTrackRail,
   StudioPropertiesSidebar,
@@ -43,14 +44,15 @@ interface TemplateStudioProps {
   demoMode?: boolean;
 }
 
-function StudioContent({ 
-  template, 
-  onSuccess, 
+function StudioContent({
+  template,
+  onSuccess,
   onClose,
-  demoMode = false 
+  demoMode = false
 }: TemplateStudioProps) {
+  const { user } = useAuth();
   const { isDarkMode, toggleTheme } = useStudioTheme();
-  
+
   const [currentStep, setCurrentStep] = useState(1);
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -61,26 +63,26 @@ function StudioContent({
   const [isPublishing, setIsPublishing] = useState(false);
   const [sidebarTab, setSidebarTab] = useState<'properties' | 'curriculum'>('properties');
   const [isApplyingGlobal, setIsApplyingGlobal] = useState(false);
-  
+
   // Form state
   const [formData, setFormData] = useState<TemplateFormData>(DEFAULT_FORM_DATA);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [designSettings, setDesignSettings] = useState<DesignSettings>(DEFAULT_DESIGN_SETTINGS);
-  
+
   // Brand assets
   const [mascotFile, setMascotFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null); // v31.0: URL-based logo for demo injection
-  
+
   // Competency state
   const [competencies, setCompetencies] = useState<Competency[]>([]);
   const [subCompetencies, setSubCompetencies] = useState<SubCompetency[]>([]);
   const [selectedCompetency, setSelectedCompetency] = useState('');
   const [selectedSubCompetencies, setSelectedSubCompetencies] = useState<string[]>([]);
-  
+
   // Scene state
   const [scenes, setScenes] = useState<SceneData[]>([]);
-  
+
   // Multi-track curriculum state
   const [tracks, setTracks] = useState<CompetencyTrack[]>([]);
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
@@ -93,7 +95,7 @@ function StudioContent({
   const handleDemoOverride = (data: DemoOverrideData) => {
     // Prevent re-override if user has manually edited after initial override
     if (demoOverrideApplied) return;
-    
+
     // Override Step 1: Brand colors (silently)
     setDesignSettings(prev => ({
       ...prev,
@@ -104,12 +106,12 @@ function StudioContent({
       highlight: data.colors.highlight,
       text: data.colors.text,
     }));
-    
+
     // Override Step 1: Logo URL (silently - as if AI "found" it)
     if (data.logoUrl) {
       setLogoUrl(data.logoUrl);
     }
-    
+
     // Override Step 2: Info fields (silently)
     setFormData(prev => ({
       ...prev,
@@ -119,15 +121,15 @@ function StudioContent({
       industry: data.industry,
       keyElement: data.keyElement,
     }));
-    
+
     // Mark demo override as applied (prevents re-triggering)
     setDemoOverrideApplied(true);
-    
+
     // Set global style prompt with Quiet Luxury Italian Maison references
     setGlobalStylePrompt(
       `Cinematic 35mm vignette, Milanese luxury showroom for ${data.name} SS26. Arched architecture, natural stone floors, warm ambient lighting with heavy bokeh. Champagne Gold (${data.colors.primary}) accents on Walnut (${data.colors.secondary}) surfaces. Linen-white walls, minimal props, one physical subject per scene. Quiet luxury, Italian maison aesthetic.`
     );
-    
+
     // v31.0: Silent injection - no toast shown, user discovers it naturally when navigating
     console.log('✨ VALERTI Demo Template silently injected into Steps 1 & 2');
   };
@@ -136,36 +138,36 @@ function StudioContent({
   const handleFactoryReset = () => {
     // Step 1: Reset design settings to neutral defaults
     setDesignSettings({ ...DEFAULT_DESIGN_SETTINGS });
-    
+
     // Step 1: Clear brand assets
     setLogoFile(null);
     setLogoUrl(null);
     setMascotFile(null);
     setCoverImageFile(null);
-    
+
     // Step 2: Reset form data
     setFormData({ ...DEFAULT_FORM_DATA });
-    
+
     // Step 3: Clear competency selections
     setSelectedCompetency('');
     setSelectedSubCompetencies([]);
     setTracks([]);
     setActiveTrackId(null);
     setPromptContext('');
-    
+
     // Step 4: Clear all scenes and visual DNA
     setScenes([]);
     setGlobalStylePrompt('');
     setDistillationResult(null);
-    
+
     // Reset demo override flag so it can be triggered again
     setDemoOverrideApplied(false);
-    
+
     // Clear CSS variables
     document.documentElement.style.removeProperty('--brand-primary');
     document.documentElement.style.removeProperty('--brand-secondary');
     document.documentElement.style.removeProperty('--brand-background');
-    
+
     toast.success('🔄 Factory Reset — Studio returned to neutral state');
     console.log('🔄 v54.0 Factory Reset executed — all brand data cleared');
   };
@@ -197,7 +199,7 @@ function StudioContent({
       const trackScenes = scenes.filter(s => s.trackId === t.id);
       return trackScenes.length === 6;
     });
-    return currentTrack && 
+    return currentTrack &&
       scenes.filter(s => s.trackId === currentTrack.id).length === 6 &&
       currentSceneIndex === (tracks.indexOf(currentTrack) + 1) * 6;
   }, [currentSceneIndex, scenes, tracks]);
@@ -216,29 +218,24 @@ function StudioContent({
   // Fetch competencies and ALL sub-competencies on mount
   useEffect(() => {
     const fetchCompetencies = async () => {
-      const { data, error } = await supabase
-        .from('master_competencies')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-      
-      if (!error && data) {
-        setCompetencies(data);
+      try {
+        const { data } = await apiClient.get('/framework/competencies');
+        if (data) setCompetencies(data);
+      } catch (error) {
+        console.error('Failed to load competencies:', error);
       }
     };
-    
+
     // Fetch ALL sub-competencies upfront for the UnifiedCreativeInput Smart Reveal
     const fetchAllSubCompetencies = async () => {
-      const { data, error } = await supabase
-        .from('sub_competencies')
-        .select('*')
-        .order('display_order', { nullsFirst: false });
-      
-      if (!error && data) {
-        setSubCompetencies(data);
+      try {
+        const { data } = await apiClient.get('/framework/sub-competencies');
+        if (data) setSubCompetencies(data);
+      } catch (error) {
+        console.error('Failed to load sub-competencies:', error);
       }
     };
-    
+
     fetchCompetencies();
     fetchAllSubCompetencies();
   }, []);
@@ -271,28 +268,24 @@ function StudioContent({
     setGenerating(true);
     try {
       const prompt = buildPromptFromScenes();
-      
+
       if (demoMode) {
         toast.success('Demo preview would open here! 🎮');
         return;
       }
 
-      const response = await supabase.functions.invoke('generate-game', {
-        body: {
-          templatePrompt: prompt,
-          primaryColor: designSettings.primary,
-          secondaryColor: designSettings.secondary,
-          previewMode: true,
-          subCompetencies: selectedSubCompetencies.map(id => 
-            subCompetencies.find(s => s.id === id)
-          ).filter(Boolean),
-        }
+      const { data: response } = await apiClient.post('/games/generate-game', {
+        templatePrompt: prompt,
+        primaryColor: designSettings.primary,
+        secondaryColor: designSettings.secondary,
+        previewMode: true,
+        subCompetencies: selectedSubCompetencies.map(id =>
+          subCompetencies.find(s => s.id === id)
+        ).filter(Boolean),
       });
 
-      if (response.error) throw new Error(response.error.message);
-      
-      if (response.data?.html || response.data?.generatedHtml) {
-        const html = response.data.html || response.data.generatedHtml;
+      if (response?.html || response?.generatedHtml) {
+        const html = response.html || response.generatedHtml;
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         window.open(url, '_blank');
@@ -310,7 +303,7 @@ function StudioContent({
       const sub = subCompetencies.find(s => s.id === scene.subCompetencyId);
       const correctChoices = scene.choices.filter(c => c.isCorrect).map(c => c.text);
       const incorrectChoices = scene.choices.filter(c => !c.isCorrect).map(c => c.text);
-      
+
       return `
 Scene ${idx + 1} (${scene.timeLimit}s):
 - Action Cue: ${sub?.action_cue || 'Not specified'}
@@ -347,28 +340,23 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       let coverImageUrl = null;
       if (coverImageFile) {
         const fileExt = coverImageFile.name.split('.').pop();
         const fileName = `${user.id}/cover-${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('validator-previews')
-          .upload(fileName, coverImageFile);
 
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('validator-previews')
-            .getPublicUrl(fileName);
-          coverImageUrl = publicUrl;
-        }
+        const file = new File([coverImageFile], fileName, { type: coverImageFile.type });
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        formDataUpload.append('path', fileName);
+
+        const uploadRes = await apiClient.post('/storage/upload/validator-previews', formDataUpload);
+        if (uploadRes.data.url) coverImageUrl = uploadRes.data.url;
       }
 
       const templateData = {
-        creator_id: user.id,
         name: formData.name,
         description: formData.description,
         base_prompt: buildPromptFromScenes(),
@@ -389,27 +377,16 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
       };
 
       if (template?.id) {
-        const { error } = await supabase
-          .from('game_templates')
-          .update(templateData as any)
-          .eq('id', template.id);
-        
-        if (error) throw error;
+        await apiClient.put(`/templates/${template.id}`, templateData);
         toast.success('Template updated!');
       } else {
-        const { error } = await supabase
-          .from('game_templates')
-          .insert(templateData as any)
-          .select()
-          .single();
-        
-        if (error) throw error;
+        await apiClient.post('/templates/', templateData);
         toast.success('Template created!');
       }
 
       onSuccess();
       onClose();
-      
+
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -419,12 +396,12 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
 
   // Theme styles using semantic tokens
   const bgStyles = 'bg-background';
-  
+
   const headerStyles = 'bg-card/95 border-b border-border backdrop-blur-xl';
-  
+
   const textStyles = 'text-foreground';
   const mutedStyles = 'text-muted-foreground';
-  
+
   const buttonStyles = 'text-muted-foreground hover:text-foreground hover:bg-accent';
 
   const canvasAreaStyles = 'bg-muted/30';
@@ -456,8 +433,8 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             </>
           )}
         </div>
-        
-<div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2">
           {/* Open Code Button */}
           <Button
             variant={codeEditorOpen ? "secondary" : "ghost"}
@@ -468,9 +445,9 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             <Code2 className="h-4 w-4 mr-2" />
             {codeEditorOpen ? 'Close Code' : 'Open Code'}
           </Button>
-          
+
           <div className="h-5 w-px bg-border" />
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -479,7 +456,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
           >
             {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -600,7 +577,7 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
                       subCompetencies={subCompetencies}
                     />
                   </div>
-                  
+
                   {/* Right: Telegram Mobile Preview (50%) */}
                   <div className="w-1/2 overflow-hidden">
                     <StudioCenterCanvas
@@ -656,10 +633,9 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
         </div>
 
         {/* Right Properties Sidebar - Expandable */}
-        <div 
-          className={`flex-shrink-0 transition-all duration-300 ease-out relative h-full overflow-hidden ${
-            sidebarExpanded ? 'w-[50%]' : 'w-80'
-          }`}
+        <div
+          className={`flex-shrink-0 transition-all duration-300 ease-out relative h-full overflow-hidden ${sidebarExpanded ? 'w-[50%]' : 'w-80'
+            }`}
         >
           <StudioPropertiesSidebar
             currentStep={currentStep}
@@ -716,22 +692,22 @@ Generate a mobile-first Telegram Mini App game implementing these scenes.
             onApplyToAllScenes_global={() => {
               // Apply global visual DNA to all scenes (visual only - mechanics locked)
               setIsApplyingGlobal(true);
-              
+
               // Merge global prompt with each scene's sub-competency name
               const updatedScenes = scenes.map((scene, idx) => {
                 // Find the sub-competency name for this scene
                 const subComp = subCompetencies.find(sc => sc.id === scene.subCompetencyId);
                 const sceneLabel = subComp?.statement || `Scene ${idx + 1}`;
-                
+
                 // Set backgroundPrompt = Global DNA + Scene-specific context
                 return {
                   ...scene,
                   backgroundPrompt: `${globalStylePrompt}. Scene focus: ${sceneLabel}`,
                 };
               });
-              
+
               setScenes(updatedScenes);
-              
+
               // Simulate AI generation delay for visual feedback
               setTimeout(() => {
                 setIsApplyingGlobal(false);

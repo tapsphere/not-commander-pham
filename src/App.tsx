@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GlobalThemeProvider } from "@/hooks/useGlobalTheme";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Lobby from "./pages/Lobby";
 import Profile from "./pages/Profile";
@@ -40,58 +41,60 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Game Routes (Players) */}
-            <Route path="/" element={<Index />} />
-            <Route path="/lobby" element={<Lobby />} />
-            <Route path="/voice-chat" element={<VoiceChat />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            
-            {/* Platform Routes (Creators & Brands) */}
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/platform" element={<PlatformLayout />}>
-              <Route index element={<Navigate to="/platform/dashboard" replace />} />
-              <Route path="dashboard" element={<Marketplace />} />
-              <Route path="creator" element={<CreatorDashboard />} />
-              <Route path="creator-demo" element={<CreatorDemo />} />
-              <Route path="creator/profile-edit" element={<BrandProfileEdit />} />
-              <Route path="brand" element={<BrandDashboard />} />
-              <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
-              <Route path="brand/demo-generator" element={<DemoGenerator />} />
-              <Route path="marketplace" element={<Navigate to="/platform/dashboard" replace />} />
-              <Route path="template/:templateId" element={<TemplateDetail />} />
-              <Route path="validator-test" element={<ValidatorTest />} />
-              <Route path="testing-guide" element={<TestingGuide />} />
-              <Route path="play/:templateId" element={<PlayValidator />} />
-              <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
-              <Route path="*" element={<Navigate to="/platform/dashboard" replace />} />
-            </Route>
-            
-            {/* Public Brand Profile */}
-            <Route path="/brand/:brandId" element={<BrandProfile />} />
-            
-            {/* Validator Demos */}
-            <Route path="/validator-demo" element={<ValidatorDemo />} />
-            <Route path="/breath-balance" element={<BreathBalance />} />
-            
-            {/* PDF Generation */}
-            <Route path="/generate-pdf" element={<GeneratePDF />} />
-            
-            {/* Public Play Route */}
-            <Route path="/play/:code" element={<Play />} />
-            <Route path="/play/preview/:customizationId" element={<Play />} />
-            
-            {/* Demo HTML Files - Redirect to static files */}
-            <Route path="/demo/:demoFile" element={<DemoRedirect />} />
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Game Routes (Players) */}
+              <Route path="/" element={<Index />} />
+              <Route path="/lobby" element={<Lobby />} />
+              <Route path="/voice-chat" element={<VoiceChat />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+
+              {/* Platform Routes (Creators & Brands) */}
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/platform" element={<PlatformLayout />}>
+                <Route index element={<Navigate to="/platform/dashboard" replace />} />
+                <Route path="dashboard" element={<Marketplace />} />
+                <Route path="creator" element={<CreatorDashboard />} />
+                <Route path="creator-demo" element={<CreatorDemo />} />
+                <Route path="creator/profile-edit" element={<BrandProfileEdit />} />
+                <Route path="brand" element={<BrandDashboard />} />
+                <Route path="brand/profile-edit" element={<BrandProfileEdit />} />
+                <Route path="brand/demo-generator" element={<DemoGenerator />} />
+                <Route path="marketplace" element={<Navigate to="/platform/dashboard" replace />} />
+                <Route path="template/:templateId" element={<TemplateDetail />} />
+                <Route path="validator-test" element={<ValidatorTest />} />
+                <Route path="testing-guide" element={<TestingGuide />} />
+                <Route path="play/:templateId" element={<PlayValidator />} />
+                <Route path="creator/:creatorId" element={<CreatorPortfolio />} />
+                <Route path="*" element={<Navigate to="/platform/dashboard" replace />} />
+              </Route>
+
+              {/* Public Brand Profile */}
+              <Route path="/brand/:brandId" element={<BrandProfile />} />
+
+              {/* Validator Demos */}
+              <Route path="/validator-demo" element={<ValidatorDemo />} />
+              <Route path="/breath-balance" element={<BreathBalance />} />
+
+              {/* PDF Generation */}
+              <Route path="/generate-pdf" element={<GeneratePDF />} />
+
+              {/* Public Play Route */}
+              <Route path="/play/:code" element={<Play />} />
+              <Route path="/play/preview/:customizationId" element={<Play />} />
+
+              {/* Demo HTML Files - Redirect to static files */}
+              <Route path="/demo/:demoFile" element={<DemoRedirect />} />
+
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </GlobalThemeProvider>
   </QueryClientProvider>

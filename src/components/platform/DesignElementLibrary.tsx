@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ type DesignElement = {
 };
 
 export const DesignElementLibrary = () => {
+  const { user } = useAuth();
   const [elements, setElements] = useState<DesignElement[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -36,17 +38,10 @@ export const DesignElementLibrary = () => {
 
   const loadElements = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('design_elements')
-        .select('*')
-        .eq('creator_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setElements(data || []);
+      const res = await apiClient.get(`/api/design-elements?creator_id=${user.id}`);
+      setElements(res.data || []);
     } catch (error: any) {
       console.error('Failed to load elements:', error);
       toast.error('Failed to load design elements');
@@ -59,13 +54,8 @@ export const DesignElementLibrary = () => {
     if (!confirm('Delete this element? This cannot be undone.')) return;
 
     try {
-      const { error } = await supabase
-        .from('design_elements')
-        .delete()
-        .eq('id', id);
+      await apiClient.delete(`/api/design-elements/${id}`);
 
-      if (error) throw error;
-      
       toast.success('Element deleted successfully');
       loadElements();
     } catch (error: any) {
@@ -122,7 +112,7 @@ export const DesignElementLibrary = () => {
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4 bg-gray-900 border-gray-800">
           <div className="flex items-center gap-3">
             <CheckCircle className="h-8 w-8 text-green-500" />
@@ -132,7 +122,7 @@ export const DesignElementLibrary = () => {
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4 bg-gray-900 border-gray-800">
           <div className="flex items-center gap-3">
             <Clock className="h-8 w-8 text-yellow-500" />
@@ -142,7 +132,7 @@ export const DesignElementLibrary = () => {
             </div>
           </div>
         </Card>
-        
+
         <Card className="p-4 bg-gray-900 border-gray-800">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-8 w-8 text-neon-green" />

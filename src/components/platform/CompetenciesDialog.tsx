@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/api/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,21 +43,10 @@ export const CompetenciesDialog = ({ open, onOpenChange, templateId, templateNam
   const loadCompetencies = async () => {
     try {
       // Load master competencies with their sub-competencies (only active ones)
-      const { data: masterCompetencies, error: compError } = await supabase
-        .from('master_competencies')
-        .select('*')
-        .eq('is_active', true)
-        .order('name');
-
-      if (compError) throw compError;
+      const { data: masterCompetencies } = await apiClient.get('/framework/competencies?is_active=true');
 
       // Load all sub-competencies
-      const { data: subCompData, error: subError } = await supabase
-        .from('sub_competencies')
-        .select('*')
-        .order('display_order');
-
-      if (subError) throw subError;
+      const { data: subCompData } = await apiClient.get('/framework/sub-competencies');
 
       // Group sub-competencies by competency_id
       const grouped = (masterCompetencies || []).map(comp => ({
@@ -85,15 +74,11 @@ export const CompetenciesDialog = ({ open, onOpenChange, templateId, templateNam
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('master_competencies')
-        .insert({
-          name: newCompetency,
-          cbe_category: 'Custom',
-          departments: []
-        });
-
-      if (error) throw error;
+      await apiClient.post('/framework/competencies', {
+        name: newCompetency,
+        cbe_category: 'Custom',
+        departments: []
+      });
       toast.success('Competency added!');
       setNewCompetency('');
       loadCompetencies();
@@ -111,26 +96,20 @@ export const CompetenciesDialog = ({ open, onOpenChange, templateId, templateNam
 
     try {
       // Get the highest display_order for this competency
-      const { data: existingSubs } = await supabase
-        .from('sub_competencies')
-        .select('display_order')
-        .eq('competency_id', competencyId)
-        .order('display_order', { ascending: false })
-        .limit(1);
+      const { data: existingSubs } = await apiClient.get(`/framework/sub-competencies?competency_id=${competencyId}`);
 
-      const nextOrder = existingSubs?.[0]?.display_order 
-        ? existingSubs[0].display_order + 1 
-        : 1;
+      let maxOrder = 0;
+      if (existingSubs && existingSubs.length > 0) {
+        maxOrder = Math.max(...existingSubs.map((s: any) => s.display_order || 0));
+      }
 
-      const { error } = await supabase
-        .from('sub_competencies')
-        .insert({
-          competency_id: competencyId,
-          statement: newSub,
-          display_order: nextOrder
-        });
+      const nextOrder = maxOrder + 1;
 
-      if (error) throw error;
+      await apiClient.post('/framework/sub-competencies', {
+        competency_id: competencyId,
+        statement: newSub,
+        display_order: nextOrder
+      });
       toast.success('Sub-competency added!');
       setNewSubCompetency({ ...newSubCompetency, [competencyId]: '' });
       loadCompetencies();
@@ -144,19 +123,17 @@ export const CompetenciesDialog = ({ open, onOpenChange, templateId, templateNam
   const handleDeleteCompetency = async (competencyId: string) => {
     setLoading(true);
     try {
-      // First delete all sub-competencies
-      await supabase
-        .from('sub_competencies')
-        .delete()
-        .eq('competency_id', competencyId);
+      // In actual DB, deleting master competency deletes sub-competencies if CASCADE is set.
+      // But we will delete it explicitly via API or wait, does our backend support CASCADE?
+      // Our backend doesn't have an endpoint to delete sub-competencies by competency_id,
+      // But we can delete the master competency first and let CASCADE do it if configured.
+      // Let's assume the DB will handle CASCADE or we can fetch and delete sub-competencies here.
+      const { data: subsToDelete } = await apiClient.get(`/framework/sub-competencies?competency_id=${competencyId}`);
+      for (const sub of (subsToDelete || [])) {
+        await apiClient.delete(`/framework/sub-competencies/${sub.id}`);
+      }
 
-      // Then delete the competency
-      const { error } = await supabase
-        .from('master_competencies')
-        .delete()
-        .eq('id', competencyId);
-
-      if (error) throw error;
+      await apiClient.delete(`/framework/competencies/${competencyId}`);
       toast.success('Competency deleted!');
       loadCompetencies();
     } catch (error: any) {
@@ -169,12 +146,7 @@ export const CompetenciesDialog = ({ open, onOpenChange, templateId, templateNam
   const handleRemoveSubCompetency = async (subCompetencyId: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('sub_competencies')
-        .delete()
-        .eq('id', subCompetencyId);
-
-      if (error) throw error;
+      await apiClient.delete(`/framework/sub-competencies/${subCompetencyId}`);
       toast.success('Sub-competency removed!');
       loadCompetencies();
     } catch (error: any) {
